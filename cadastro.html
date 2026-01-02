@@ -170,11 +170,13 @@ button{
 /* =======================
    SUPABASE CLIENT (ÚNICO)
    ======================= */
-window.sb = window.sb || window.supabase.createClient(
+/* CLIENT ÚNICO GLOBAL */
+window.supabaseClient = window.supabaseClient || window.supabase.createClient(
   "https://ssmsjryjwhnrbjyzklno.supabase.co",
   "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
 );
-const supabase = window.sb;
+
+const supabase = window.supabaseClient;
 
 const overlay = document.getElementById("overlay");
 const modal = document.getElementById("modal");
