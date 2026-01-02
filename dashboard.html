@@ -15,8 +15,7 @@
   --bg:#f4f6fb;
   --sidebar1:#0b1e39;
   --sidebar2:#102a43;
-  --radius:18px;
-  --text:#1f2937;
+  --radius:16px;
 }
 
 /* RESET */
@@ -26,14 +25,14 @@ body{height:100vh;background:var(--bg);overflow:hidden}
 /* APP */
 .app{display:flex;height:100vh}
 
-/* ================= SIDEBAR (DESKTOP) ================= */
+/* ================= SIDEBAR ================= */
 .sidebar{
   width:72px;
   background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
   color:#fff;
   display:flex;
   flex-direction:column;
-  transition:.35s ease;
+  transition:width .35s ease;
 }
 .sidebar:hover{width:240px}
 
@@ -43,33 +42,56 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:20px;
+  gap:10px;
+  font-size:18px;
   font-weight:800;
   color:var(--primary);
-  overflow:hidden;
+  white-space:nowrap;
 }
 .logo span{opacity:0;transition:.2s}
-.sidebar:hover .logo{justify-content:flex-start;padding-left:20px}
+.sidebar:hover .logo{
+  justify-content:flex-start;
+  padding-left:20px;
+}
 .sidebar:hover .logo span{opacity:1}
 
 /* MENU */
-.menu{flex:1;padding:10px}
-.menu-item{
+.menu{
+  flex:1;
+  padding:10px;
   display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.menu-item{
+  height:48px;
+  display:grid;
+  grid-template-columns:48px 1fr;
   align-items:center;
-  gap:14px;
-  padding:14px;
   border-radius:14px;
   cursor:pointer;
-  margin-bottom:6px;
+  transition:.2s;
+}
+
+.menu-item i{
+  font-size:20px;
+  display:flex;
+  align-items:center;
   justify-content:center;
 }
-.sidebar:hover .menu-item{justify-content:flex-start}
-.menu-item i{font-size:20px}
-.menu-item span{opacity:0;transition:.2s}
+
+.menu-item span{
+  opacity:0;
+  transition:.2s;
+}
+
 .sidebar:hover .menu-item span{opacity:1}
 
-.menu-item:hover{background:rgba(255,255,255,.08)}
+.menu-item:hover{
+  background:rgba(255,255,255,.08);
+}
+
 .menu-item.active{
   background:linear-gradient(135deg,var(--primary),var(--primary-dark));
 }
@@ -78,36 +100,41 @@ body{height:100vh;background:var(--bg);overflow:hidden}
 .submenu{
   display:none;
   margin-left:48px;
+  flex-direction:column;
+  gap:4px;
 }
 .submenu div{
-  padding:10px;
+  height:38px;
+  display:flex;
+  align-items:center;
+  padding-left:14px;
   font-size:14px;
   border-radius:10px;
-  color:#d1d5db;
   cursor:pointer;
+  color:#d1d5db;
 }
 .submenu div:hover{background:rgba(255,255,255,.08)}
 .submenu .active{color:#fff;font-weight:600}
 
 /* FOOTER */
 .footer{
-  padding:14px;
+  padding:10px;
   border-top:1px solid rgba(255,255,255,.1);
 }
 .logout-btn{
-  width:100%;
-  display:flex;
+  height:48px;
+  display:grid;
+  grid-template-columns:48px 1fr;
   align-items:center;
-  justify-content:center;
-  gap:10px;
-  padding:12px;
-  border:none;
   border-radius:14px;
-  background:rgba(255,255,255,.08);
-  color:#fff;
   cursor:pointer;
+  background:rgba(255,255,255,.08);
 }
-.sidebar:hover .logout-btn{justify-content:flex-start;padding-left:14px}
+.logout-btn i{
+  display:flex;
+  justify-content:center;
+  font-size:18px;
+}
 .logout-btn span{opacity:0;transition:.2s}
 .sidebar:hover .logout-btn span{opacity:1}
 
@@ -128,7 +155,6 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   align-items:center;
   padding:0 24px;
   font-weight:700;
-  color:var(--text);
 }
 
 /* CONTENT */
@@ -137,9 +163,9 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   padding:20px;
 }
 .iframe-box{
+  height:100%;
   background:#fff;
   border-radius:var(--radius);
-  height:100%;
   overflow:hidden;
   box-shadow:0 20px 40px rgba(0,0,0,.06);
 }
@@ -185,11 +211,11 @@ iframe{width:100%;height:100%;border:none}
 
 <div class="app">
 
-  <!-- SIDEBAR DESKTOP -->
+  <!-- SIDEBAR -->
   <aside class="sidebar">
 
     <div class="logo">
-      <i class="ri-scissors-line"></i><span>&nbsp;AgendaBeauty</span>
+      <i class="ri-scissors-line"></i><span>AgendaBeauty</span>
     </div>
 
     <div class="menu">
@@ -222,16 +248,16 @@ iframe{width:100%;height:100%;border:none}
     </div>
 
     <div class="footer">
-      <button class="logout-btn" onclick="logout()">
+      <div class="logout-btn" onclick="logout()">
         <i class="ri-logout-box-line"></i><span>Sair</span>
-      </button>
+      </div>
     </div>
 
   </aside>
 
   <!-- MAIN -->
   <div class="main">
-    <div class="topbar" id="nomeNegocio">Meu Negócio</div>
+    <div class="topbar">Meu Negócio</div>
 
     <div class="content">
       <div class="iframe-box">
@@ -242,7 +268,7 @@ iframe{width:100%;height:100%;border:none}
 
 </div>
 
-<!-- NAVBAR MOBILE -->
+<!-- MOBILE NAV -->
 <div class="mobile-nav">
   <div data-page="home.html" class="active"><i class="ri-home-5-line"></i>Home</div>
   <div data-page="agenda.html"><i class="ri-calendar-line"></i>Agenda</div>
@@ -254,11 +280,9 @@ iframe{width:100%;height:100%;border:none}
 const frame=document.getElementById("frame");
 
 /* carregar página */
-function carregar(p){
-  frame.src=p;
-}
+function carregar(p){frame.src=p}
 
-/* DESKTOP */
+/* menu desktop */
 document.querySelectorAll(".menu-item[data-page]").forEach(item=>{
   item.onclick=()=>{
     document.querySelectorAll(".menu-item,.submenu div").forEach(i=>i.classList.remove("active"));
@@ -267,11 +291,11 @@ document.querySelectorAll(".menu-item[data-page]").forEach(item=>{
   };
 });
 
-/* SUBMENU */
+/* submenu */
 document.querySelectorAll(".has-sub").forEach((item,i)=>{
   item.onclick=()=>{
     const s=document.querySelectorAll(".submenu")[i];
-    s.style.display=s.style.display==="block"?"none":"block";
+    s.style.display=s.style.display==="flex"?"none":"flex";
   };
 });
 document.querySelectorAll(".submenu div").forEach(item=>{
@@ -282,7 +306,7 @@ document.querySelectorAll(".submenu div").forEach(item=>{
   };
 });
 
-/* MOBILE */
+/* mobile */
 document.querySelectorAll(".mobile-nav div").forEach(item=>{
   item.onclick=()=>{
     document.querySelectorAll(".mobile-nav div").forEach(i=>i.classList.remove("active"));
