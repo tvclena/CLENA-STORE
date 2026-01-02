@@ -177,33 +177,32 @@ button{
 
 <script>
 /* =======================
-   SUPABASE CLIENT (ÚNICO)
+   SUPABASE CLIENT
    ======================= */
-window.sb = window.sb || window.supabase.createClient(
+const sb = window.supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-const supabase = window.sb;
 
 const overlay = document.getElementById("overlay");
 const errorBox = document.getElementById("errorBox");
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
 
 function showError(msg){
   errorBox.innerText = msg;
   errorBox.style.display = "block";
 }
 
+/* LOGIN */
 async function login(e){
   e.preventDefault();
   errorBox.style.display = "none";
   overlay.style.display = "flex";
 
-  const emailVal = email.value.trim().toLowerCase();
-  const senhaVal = senha.value.trim();
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: emailVal,
-    password: senhaVal
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: emailInput.value.trim().toLowerCase(),
+    password: senhaInput.value.trim()
   });
 
   overlay.style.display = "none";
@@ -223,7 +222,7 @@ async function login(e){
 
 /* RESET DE SENHA */
 async function resetSenha(){
-  const emailVal = email.value.trim().toLowerCase();
+  const emailVal = emailInput.value.trim().toLowerCase();
   if(!emailVal){
     showError("Informe seu e-mail para recuperar a senha.");
     return;
@@ -231,7 +230,7 @@ async function resetSenha(){
 
   overlay.style.display = "flex";
 
-  const { error } = await supabase.auth.resetPasswordForEmail(emailVal, {
+  const { error } = await sb.auth.resetPasswordForEmail(emailVal, {
     redirectTo: window.location.origin + "/login.html"
   });
 
