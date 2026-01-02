@@ -18,11 +18,10 @@
   --radius:16px;
 }
 
-/* RESET */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{height:100vh;background:var(--bg);overflow:hidden}
 
-/* APP */
+/* ================= APP ================= */
 .app{display:flex;height:100vh}
 
 /* ================= SIDEBAR ================= */
@@ -64,63 +63,8 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   gap:6px;
 }
 
-.menu-item{
-  height:48px;
-  display:grid;
-  grid-template-columns:48px 1fr;
-  align-items:center;
-  border-radius:14px;
-  cursor:pointer;
-  transition:.2s;
-}
-
-.menu-item i{
-  font-size:20px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.menu-item span{
-  opacity:0;
-  transition:.2s;
-}
-
-.sidebar:hover .menu-item span{opacity:1}
-
-.menu-item:hover{
-  background:rgba(255,255,255,.08);
-}
-
-.menu-item.active{
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-}
-
-/* SUBMENU */
-.submenu{
-  display:none;
-  margin-left:48px;
-  flex-direction:column;
-  gap:4px;
-}
-.submenu div{
-  height:38px;
-  display:flex;
-  align-items:center;
-  padding-left:14px;
-  font-size:14px;
-  border-radius:10px;
-  cursor:pointer;
-  color:#d1d5db;
-}
-.submenu div:hover{background:rgba(255,255,255,.08)}
-.submenu .active{color:#fff;font-weight:600}
-
-/* FOOTER */
-.footer{
-  padding:10px;
-  border-top:1px solid rgba(255,255,255,.1);
-}
+.menu-item,
+.submenu-item,
 .logout-btn{
   height:48px;
   display:grid;
@@ -128,15 +72,51 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   align-items:center;
   border-radius:14px;
   cursor:pointer;
+  transition:.2s;
+}
+
+.menu-item i,
+.submenu-item i,
+.logout-btn i{
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.menu-item span,
+.submenu-item span,
+.logout-btn span{
+  opacity:0;
+  transition:.2s;
+}
+
+.sidebar:hover span{opacity:1}
+
+.menu-item:hover,
+.submenu-item:hover,
+.logout-btn:hover{
   background:rgba(255,255,255,.08);
 }
-.logout-btn i{
-  display:flex;
-  justify-content:center;
-  font-size:18px;
+
+.menu-item.active,
+.submenu-item.active{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
 }
-.logout-btn span{opacity:0;transition:.2s}
-.sidebar:hover .logout-btn span{opacity:1}
+
+/* SUBMENU */
+.submenu{
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  margin-left:0;
+}
+
+/* FOOTER */
+.footer{
+  padding:10px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
 
 /* ================= MAIN ================= */
 .main{
@@ -219,32 +199,40 @@ iframe{width:100%;height:100%;border:none}
     </div>
 
     <div class="menu">
+
       <div class="menu-item active" data-page="home.html">
         <i class="ri-home-5-line"></i><span>Home</span>
       </div>
 
-      <div class="menu-item has-sub">
+      <div class="menu-item toggle-sub">
         <i class="ri-calendar-line"></i><span>Agenda</span>
       </div>
       <div class="submenu">
-        <div data-page="agenda.html">Horários</div>
+        <div class="submenu-item" data-page="agenda.html">
+          <i class="ri-time-line"></i><span>Horários</span>
+        </div>
       </div>
 
       <div class="menu-item" data-page="clientes.html">
         <i class="ri-user-3-line"></i><span>Clientes</span>
       </div>
 
-      <div class="menu-item has-sub">
+      <div class="menu-item toggle-sub">
         <i class="ri-currency-line"></i><span>Financeiro</span>
       </div>
       <div class="submenu">
-        <div data-page="caixa.html">Caixa</div>
-        <div data-page="despesas.html">Despesas</div>
+        <div class="submenu-item" data-page="caixa.html">
+          <i class="ri-wallet-3-line"></i><span>Caixa</span>
+        </div>
+        <div class="submenu-item" data-page="despesas.html">
+          <i class="ri-file-list-3-line"></i><span>Despesas</span>
+        </div>
       </div>
 
       <div class="menu-item" data-page="config.html">
         <i class="ri-settings-3-line"></i><span>Configurações</span>
       </div>
+
     </div>
 
     <div class="footer">
@@ -279,28 +267,30 @@ iframe{width:100%;height:100%;border:none}
 <script>
 const frame=document.getElementById("frame");
 
-/* carregar página */
+/* carregar */
 function carregar(p){frame.src=p}
 
-/* menu desktop */
+/* menu principal */
 document.querySelectorAll(".menu-item[data-page]").forEach(item=>{
   item.onclick=()=>{
-    document.querySelectorAll(".menu-item,.submenu div").forEach(i=>i.classList.remove("active"));
+    document.querySelectorAll(".menu-item,.submenu-item").forEach(i=>i.classList.remove("active"));
     item.classList.add("active");
     carregar(item.dataset.page);
   };
 });
 
-/* submenu */
-document.querySelectorAll(".has-sub").forEach((item,i)=>{
-  item.onclick=()=>{
+/* submenu toggle */
+document.querySelectorAll(".toggle-sub").forEach((btn,i)=>{
+  btn.onclick=()=>{
     const s=document.querySelectorAll(".submenu")[i];
     s.style.display=s.style.display==="flex"?"none":"flex";
   };
 });
-document.querySelectorAll(".submenu div").forEach(item=>{
+
+/* submenu item */
+document.querySelectorAll(".submenu-item").forEach(item=>{
   item.onclick=()=>{
-    document.querySelectorAll(".menu-item,.submenu div").forEach(i=>i.classList.remove("active"));
+    document.querySelectorAll(".menu-item,.submenu-item").forEach(i=>i.classList.remove("active"));
     item.classList.add("active");
     carregar(item.dataset.page);
   };
