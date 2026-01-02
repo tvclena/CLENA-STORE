@@ -13,45 +13,47 @@
   --primary:#ff6a00;
   --primary-dark:#e55d00;
   --bg:#f4f6fb;
-  --sidebar-bg:#0b1e39;
-  --sidebar-bg-2:#102a43;
-  --text:#1f2937;
-  --muted:#6b7280;
+  --sidebar1:#0b1e39;
+  --sidebar2:#102a43;
   --radius:18px;
+  --text:#1f2937;
 }
 
 /* RESET */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);height:100vh;overflow:hidden}
+body{height:100vh;background:var(--bg);overflow:hidden}
 
 /* APP */
 .app{display:flex;height:100vh}
 
-/* ================= SIDEBAR ================= */
+/* ================= SIDEBAR (DESKTOP) ================= */
 .sidebar{
   width:72px;
-  background:linear-gradient(180deg,var(--sidebar-bg),var(--sidebar-bg-2));
+  background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
   color:#fff;
   display:flex;
   flex-direction:column;
   transition:.35s ease;
 }
-.sidebar:hover{width:250px}
+.sidebar:hover{width:240px}
 
+/* LOGO */
 .logo{
-  padding:22px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   font-size:20px;
   font-weight:800;
   color:var(--primary);
-  white-space:nowrap;
   overflow:hidden;
 }
+.logo span{opacity:0;transition:.2s}
+.sidebar:hover .logo{justify-content:flex-start;padding-left:20px}
+.sidebar:hover .logo span{opacity:1}
 
-.menu{
-  flex:1;
-  padding:10px;
-}
-
+/* MENU */
+.menu{flex:1;padding:10px}
 .menu-item{
   display:flex;
   align-items:center;
@@ -60,64 +62,61 @@ body{background:var(--bg);height:100vh;overflow:hidden}
   border-radius:14px;
   cursor:pointer;
   margin-bottom:6px;
-  white-space:nowrap;
-  overflow:hidden;
+  justify-content:center;
 }
-.menu-item i{
-  font-size:20px;
-  min-width:20px;
-}
-.menu-item span{
-  opacity:0;
-  transition:.2s;
-}
-.sidebar:hover .menu-item span{
-  opacity:1;
-}
+.sidebar:hover .menu-item{justify-content:flex-start}
+.menu-item i{font-size:20px}
+.menu-item span{opacity:0;transition:.2s}
+.sidebar:hover .menu-item span{opacity:1}
 
-.menu-item:hover{
-  background:rgba(255,255,255,.08);
-}
+.menu-item:hover{background:rgba(255,255,255,.08)}
 .menu-item.active{
   background:linear-gradient(135deg,var(--primary),var(--primary-dark));
 }
 
+/* SUBMENU */
 .submenu{
   display:none;
-  margin-left:38px;
+  margin-left:48px;
 }
 .submenu div{
   padding:10px;
   font-size:14px;
-  color:#d1d5db;
   border-radius:10px;
+  color:#d1d5db;
   cursor:pointer;
 }
-.submenu div:hover{
-  background:rgba(255,255,255,.08);
-}
+.submenu div:hover{background:rgba(255,255,255,.08)}
+.submenu .active{color:#fff;font-weight:600}
 
+/* FOOTER */
 .footer{
-  padding:16px;
+  padding:14px;
   border-top:1px solid rgba(255,255,255,.1);
 }
-.logout{
+.logout-btn{
+  width:100%;
   display:flex;
-  gap:14px;
   align-items:center;
+  justify-content:center;
+  gap:10px;
   padding:12px;
-  border-radius:12px;
+  border:none;
+  border-radius:14px;
+  background:rgba(255,255,255,.08);
+  color:#fff;
   cursor:pointer;
 }
-.logout:hover{
-  background:rgba(255,255,255,.08);
-}
+.sidebar:hover .logout-btn{justify-content:flex-start;padding-left:14px}
+.logout-btn span{opacity:0;transition:.2s}
+.sidebar:hover .logout-btn span{opacity:1}
 
 /* ================= MAIN ================= */
 .main{
   flex:1;
   display:flex;
   flex-direction:column;
+  overflow:hidden;
 }
 
 /* TOPBAR */
@@ -127,7 +126,7 @@ body{background:var(--bg);height:100vh;overflow:hidden}
   border-bottom:1px solid #e5e7eb;
   display:flex;
   align-items:center;
-  padding:0 28px;
+  padding:0 24px;
   font-weight:700;
   color:var(--text);
 }
@@ -144,11 +143,7 @@ body{background:var(--bg);height:100vh;overflow:hidden}
   overflow:hidden;
   box-shadow:0 20px 40px rgba(0,0,0,.06);
 }
-iframe{
-  width:100%;
-  height:100%;
-  border:none;
-}
+iframe{width:100%;height:100%;border:none}
 
 /* ================= MOBILE ================= */
 .mobile-nav{
@@ -157,13 +152,10 @@ iframe{
 
 @media(max-width:900px){
   .sidebar{display:none}
-
-  .content{
-    padding:12px;
-    padding-bottom:84px;
-  }
+  .content{padding:12px;padding-bottom:90px}
 
   .mobile-nav{
+    display:flex;
     position:fixed;
     bottom:0;
     left:0;
@@ -171,27 +163,20 @@ iframe{
     height:72px;
     background:#fff;
     border-top:1px solid #e5e7eb;
-    display:flex;
     justify-content:space-around;
     align-items:center;
-    z-index:20;
+    z-index:1000;
   }
-
   .mobile-nav div{
     display:flex;
     flex-direction:column;
     align-items:center;
-    font-size:11px;
-    color:var(--muted);
+    font-size:12px;
+    color:#6b7280;
     cursor:pointer;
   }
-  .mobile-nav i{
-    font-size:22px;
-    margin-bottom:4px;
-  }
-  .mobile-nav .active{
-    color:var(--primary);
-  }
+  .mobile-nav i{font-size:22px}
+  .mobile-nav .active{color:var(--primary)}
 }
 </style>
 </head>
@@ -200,9 +185,12 @@ iframe{
 
 <div class="app">
 
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR DESKTOP -->
   <aside class="sidebar">
-    <div class="logo">AgendaBeauty</div>
+
+    <div class="logo">
+      <i class="ri-scissors-line"></i><span>&nbsp;AgendaBeauty</span>
+    </div>
 
     <div class="menu">
       <div class="menu-item active" data-page="home.html">
@@ -216,11 +204,8 @@ iframe{
         <div data-page="agenda.html">Horários</div>
       </div>
 
-      <div class="menu-item has-sub">
+      <div class="menu-item" data-page="clientes.html">
         <i class="ri-user-3-line"></i><span>Clientes</span>
-      </div>
-      <div class="submenu">
-        <div data-page="clientes.html">Clientes</div>
       </div>
 
       <div class="menu-item has-sub">
@@ -237,10 +222,11 @@ iframe{
     </div>
 
     <div class="footer">
-      <div class="logout" onclick="logout()">
+      <button class="logout-btn" onclick="logout()">
         <i class="ri-logout-box-line"></i><span>Sair</span>
-      </div>
+      </button>
     </div>
+
   </aside>
 
   <!-- MAIN -->
@@ -253,22 +239,15 @@ iframe{
       </div>
     </div>
   </div>
+
 </div>
 
-<!-- MOBILE NAV -->
+<!-- NAVBAR MOBILE -->
 <div class="mobile-nav">
-  <div class="active" data-page="home.html">
-    <i class="ri-home-5-line"></i>Home
-  </div>
-  <div data-page="agenda.html">
-    <i class="ri-calendar-line"></i>Agenda
-  </div>
-  <div data-page="clientes.html">
-    <i class="ri-user-3-line"></i>Clientes
-  </div>
-  <div data-page="config.html">
-    <i class="ri-settings-3-line"></i>Config
-  </div>
+  <div data-page="home.html" class="active"><i class="ri-home-5-line"></i>Home</div>
+  <div data-page="agenda.html"><i class="ri-calendar-line"></i>Agenda</div>
+  <div data-page="clientes.html"><i class="ri-user-3-line"></i>Clientes</div>
+  <div data-page="config.html"><i class="ri-settings-3-line"></i>Config</div>
 </div>
 
 <script>
@@ -279,16 +258,16 @@ function carregar(p){
   frame.src=p;
 }
 
-/* menu desktop */
+/* DESKTOP */
 document.querySelectorAll(".menu-item[data-page]").forEach(item=>{
   item.onclick=()=>{
-    document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
+    document.querySelectorAll(".menu-item,.submenu div").forEach(i=>i.classList.remove("active"));
     item.classList.add("active");
     carregar(item.dataset.page);
   };
 });
 
-/* submenu */
+/* SUBMENU */
 document.querySelectorAll(".has-sub").forEach((item,i)=>{
   item.onclick=()=>{
     const s=document.querySelectorAll(".submenu")[i];
@@ -296,10 +275,14 @@ document.querySelectorAll(".has-sub").forEach((item,i)=>{
   };
 });
 document.querySelectorAll(".submenu div").forEach(item=>{
-  item.onclick=()=>carregar(item.dataset.page);
+  item.onclick=()=>{
+    document.querySelectorAll(".menu-item,.submenu div").forEach(i=>i.classList.remove("active"));
+    item.classList.add("active");
+    carregar(item.dataset.page);
+  };
 });
 
-/* mobile */
+/* MOBILE */
 document.querySelectorAll(".mobile-nav div").forEach(item=>{
   item.onclick=()=>{
     document.querySelectorAll(".mobile-nav div").forEach(i=>i.classList.remove("active"));
@@ -311,6 +294,7 @@ document.querySelectorAll(".mobile-nav div").forEach(item=>{
 /* inicial */
 carregar("home.html");
 
+/* logout */
 function logout(){
   localStorage.clear();
   location.href="login.html";
