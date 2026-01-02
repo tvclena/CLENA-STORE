@@ -14,17 +14,11 @@
   --border:#e5e7eb;
   --radius:18px;
   --danger:#c62828;
+  --success:#2e7d32;
 }
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{min-height:100vh;display:grid;grid-template-columns:1.2fr .8fr}
 
-body{
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:1.2fr .8fr;
-}
-
-/* LEFT */
 .left{
   background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250")
   center/cover no-repeat;
@@ -38,18 +32,16 @@ body{
   background:linear-gradient(120deg,rgba(0,0,0,.75),rgba(0,0,0,.3));
 }
 .left div{position:relative;z-index:2;padding:80px}
-.left h1{font-size:40px}
 .left span{color:var(--primary)}
 
-/* RIGHT */
 .right{display:flex;align-items:center;justify-content:center}
 .card{
   width:100%;
   max-width:460px;
   padding:44px;
-  box-shadow:0 20px 60px rgba(0,0,0,.08);
-  border-radius:var(--radius);
   background:#fff;
+  border-radius:var(--radius);
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
 }
 
 input{
@@ -72,26 +64,17 @@ button{
 }
 
 .msg{
-  background:#ffe5e5;
-  color:var(--danger);
   padding:12px;
   border-radius:10px;
   font-size:14px;
   margin-bottom:14px;
   display:none;
 }
+.msg.error{background:#ffe5e5;color:var(--danger)}
+.msg.success{background:#e6f4ea;color:var(--success)}
 
-.links{
-  text-align:center;
-  margin-top:18px;
-  font-size:13px;
-}
-.links a{
-  display:block;
-  color:var(--primary);
-  text-decoration:none;
-  margin-top:8px;
-}
+.links{text-align:center;margin-top:18px;font-size:13px}
+.links a{display:block;color:var(--primary);text-decoration:none;margin-top:8px}
 
 #overlay{
   position:fixed;
@@ -118,19 +101,19 @@ button{
 <div class="left">
   <div>
     <h1>A gestão do seu salão<br>começa com um <span>login</span></h1>
-    <p>Controle agenda, clientes e profissionais em um só lugar.</p>
+    <p style="margin-top:12px">Controle agenda, clientes e profissionais em um só lugar.</p>
   </div>
 </div>
 
 <div class="right">
   <div class="card">
 
-    <h2>Entrar</h2>
-    <p style="color:#6b7280;margin-bottom:18px">
-      Use seu e-mail e senha para continuar
-    </p>
+    <small style="color:#ff6a00;font-weight:600">Acesso à plataforma</small>
+    <h2 style="margin:10px 0 6px">Entrar</h2>
+    <p style="color:#6b7280;margin-bottom:18px">Use seu e-mail e senha para continuar</p>
 
-    <div id="errorBox" class="msg"></div>
+    <div id="msgError" class="msg error"></div>
+    <div id="msgSuccess" class="msg success"></div>
 
     <form id="loginForm">
       <input id="email" type="email" placeholder="E-mail" required>
@@ -139,7 +122,7 @@ button{
     </form>
 
     <div class="links">
-      <a href="#" id="resetSenha">Esqueci minha senha</a>
+      <a href="#" onclick="resetSenha()">Esqueci minha senha</a>
       <a href="cadastro.html">Cadastrar meu negócio</a>
     </div>
 
@@ -147,80 +130,83 @@ button{
 </div>
 
 <script>
-/* =================================================
-   SUPABASE CLIENT — SEM CONFLITO
-   ================================================= */
-if(!window.sb){
-  window.sb = window.supabase.createClient(
+/* =======================
+   SUPABASE CLIENT (ÚNICO)
+   ======================= */
+if (!window.supabaseClient) {
+  window.supabaseClient = supabase.createClient(
     "https://egxjgmzukjyyxmkukwub.supabase.co",
     "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
   );
 }
-const sb = window.sb;
+const sb = window.supabaseClient;
 
 /* ELEMENTOS */
 const overlay = document.getElementById("overlay");
-const errorBox = document.getElementById("errorBox");
-const emailInput = document.getElementById("email");
-const senhaInput = document.getElementById("senha");
+const msgError = document.getElementById("msgError");
+const msgSuccess = document.getElementById("msgSuccess");
+
+function showError(msg){
+  msgSuccess.style.display = "none";
+  msgError.innerText = msg;
+  msgError.style.display = "block";
+}
+function showSuccess(msg){
+  msgError.style.display = "none";
+  msgSuccess.innerText = msg;
+  msgSuccess.style.display = "block";
+}
 
 /* LOGIN */
-document.getElementById("loginForm").addEventListener("submit", async (e)=>{
+document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  errorBox.style.display = "none";
+  msgError.style.display = "none";
   overlay.style.display = "flex";
 
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const senha = document.getElementById("senha").value;
+
   const { data, error } = await sb.auth.signInWithPassword({
-    email: emailInput.value.trim().toLowerCase(),
-    password: senhaInput.value.trim()
+    email,
+    password: senha
   });
-
-  if(error){
-    overlay.style.display = "none";
-    errorBox.innerText = "E-mail ou senha inválidos.";
-    errorBox.style.display = "block";
-    return;
-  }
-
-  /* GARANTE QUE EXISTE PERFIL */
-  const { data: profile } = await sb
-    .from("user_profile")
-    .select("id")
-    .eq("user_id", data.user.id)
-    .single();
 
   overlay.style.display = "none";
 
-  if(!profile){
-    errorBox.innerText = "Perfil não encontrado.";
-    errorBox.style.display = "block";
-    await sb.auth.signOut();
+  if(error){
+    const m = error.message.toLowerCase();
+    if(m.includes("confirm")){
+      showError("Confirme seu e-mail antes de entrar.");
+    }else{
+      showError("E-mail ou senha incorretos.");
+    }
     return;
   }
 
-  /* ✅ REDIRECIONAMENTO GARANTIDO */
+  /* LOGIN OK */
   window.location.replace("dashboard.html");
 });
 
-/* RESET SENHA */
-document.getElementById("resetSenha").addEventListener("click", async e=>{
-  e.preventDefault();
-  const email = emailInput.value.trim().toLowerCase();
+/* RESET */
+async function resetSenha(){
+  const email = document.getElementById("email").value.trim().toLowerCase();
   if(!email){
-    errorBox.innerText="Informe seu e-mail.";
-    errorBox.style.display="block";
+    showError("Informe seu e-mail para recuperar a senha.");
     return;
   }
 
-  overlay.style.display="flex";
-  await sb.auth.resetPasswordForEmail(email,{
-    redirectTo: window.location.origin + "/login.html"
-  });
-  overlay.style.display="none";
+  overlay.style.display = "flex";
 
-  errorBox.innerText="E-mail de recuperação enviado.";
-  errorBox.style.display="block";
-});
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+
+  overlay.style.display = "none";
+
+  if(error){
+    showError("Erro ao enviar e-mail de recuperação.");
+  }else{
+    showSuccess("Enviamos um link de recuperação para seu e-mail.");
+  }
+}
 </script>
 
 </body>
