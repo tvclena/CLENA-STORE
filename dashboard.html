@@ -12,61 +12,39 @@
 :root{
   --primary:#ff6a00;
   --primary-dark:#e55d00;
-  --bg:#f6f7fb;
-  --sidebar1:#0b1e39;
-  --sidebar2:#102a43;
+  --bg:#f4f6fb;
+  --sidebar-bg:#0b1e39;
+  --sidebar-bg-2:#102a43;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --radius:18px;
 }
 
+/* RESET */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);height:100vh;overflow:hidden}
 
-body{
-  height:100vh;
-  background:var(--bg);
-  overflow:hidden;
-}
+/* APP */
+.app{display:flex;height:100vh}
 
-/* ================= LAYOUT ================= */
-.app{
-  display:flex;
-  height:100vh;
-}
-
-/* ================= SIDEBAR DESKTOP ================= */
+/* ================= SIDEBAR ================= */
 .sidebar{
-  position:fixed;
-  left:-220px;
-  top:0;
-  height:100%;
-  width:260px;
-  background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
+  width:72px;
+  background:linear-gradient(180deg,var(--sidebar-bg),var(--sidebar-bg-2));
   color:#fff;
   display:flex;
   flex-direction:column;
-  transition:.3s ease;
-  z-index:10;
+  transition:.35s ease;
 }
-
-/* área sensível para hover */
-.sidebar-hover{
-  position:fixed;
-  left:0;
-  top:0;
-  width:12px;
-  height:100%;
-  z-index:9;
-}
-
-/* hover mostra */
-.sidebar-hover:hover + .sidebar,
-.sidebar:hover{
-  left:0;
-}
+.sidebar:hover{width:250px}
 
 .logo{
   padding:22px;
   font-size:20px;
   font-weight:800;
   color:var(--primary);
+  white-space:nowrap;
+  overflow:hidden;
 }
 
 .menu{
@@ -79,34 +57,42 @@ body{
   align-items:center;
   gap:14px;
   padding:14px;
-  border-radius:12px;
+  border-radius:14px;
   cursor:pointer;
   margin-bottom:6px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.menu-item i{
+  font-size:20px;
+  min-width:20px;
+}
+.menu-item span{
+  opacity:0;
+  transition:.2s;
+}
+.sidebar:hover .menu-item span{
+  opacity:1;
 }
 
 .menu-item:hover{
   background:rgba(255,255,255,.08);
 }
-
 .menu-item.active{
   background:linear-gradient(135deg,var(--primary),var(--primary-dark));
 }
 
-.menu-item i{font-size:20px}
-
 .submenu{
   display:none;
-  margin-left:36px;
+  margin-left:38px;
 }
-
 .submenu div{
   padding:10px;
   font-size:14px;
   color:#d1d5db;
+  border-radius:10px;
   cursor:pointer;
-  border-radius:8px;
 }
-
 .submenu div:hover{
   background:rgba(255,255,255,.08);
 }
@@ -115,13 +101,14 @@ body{
   padding:16px;
   border-top:1px solid rgba(255,255,255,.1);
 }
-
 .logout{
+  display:flex;
+  gap:14px;
+  align-items:center;
   padding:12px;
   border-radius:12px;
   cursor:pointer;
 }
-
 .logout:hover{
   background:rgba(255,255,255,.08);
 }
@@ -131,42 +118,49 @@ body{
   flex:1;
   display:flex;
   flex-direction:column;
-  margin-left:0;
 }
 
+/* TOPBAR */
 .topbar{
   height:64px;
   background:#fff;
+  border-bottom:1px solid #e5e7eb;
   display:flex;
   align-items:center;
-  padding:0 24px;
-  border-bottom:1px solid #e5e7eb;
+  padding:0 28px;
+  font-weight:700;
+  color:var(--text);
 }
 
+/* CONTENT */
 .content{
   flex:1;
+  padding:20px;
 }
-
+.iframe-box{
+  background:#fff;
+  border-radius:var(--radius);
+  height:100%;
+  overflow:hidden;
+  box-shadow:0 20px 40px rgba(0,0,0,.06);
+}
 iframe{
   width:100%;
   height:100%;
   border:none;
-  background:#fff;
 }
 
-/* ================= MOBILE NAVBAR ================= */
+/* ================= MOBILE ================= */
 .mobile-nav{
   display:none;
 }
 
 @media(max-width:900px){
-  .sidebar,
-  .sidebar-hover{
-    display:none;
-  }
+  .sidebar{display:none}
 
-  .main{
-    margin-left:0;
+  .content{
+    padding:12px;
+    padding-bottom:84px;
   }
 
   .mobile-nav{
@@ -174,7 +168,7 @@ iframe{
     bottom:0;
     left:0;
     right:0;
-    height:64px;
+    height:72px;
     background:#fff;
     border-top:1px solid #e5e7eb;
     display:flex;
@@ -188,21 +182,15 @@ iframe{
     flex-direction:column;
     align-items:center;
     font-size:11px;
-    color:#6b7280;
+    color:var(--muted);
     cursor:pointer;
   }
-
   .mobile-nav i{
     font-size:22px;
     margin-bottom:4px;
   }
-
   .mobile-nav .active{
     color:var(--primary);
-  }
-
-  .content{
-    padding-bottom:64px;
   }
 }
 </style>
@@ -212,35 +200,31 @@ iframe{
 
 <div class="app">
 
-  <!-- ÁREA DE HOVER -->
-  <div class="sidebar-hover"></div>
-
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">AgendaBeauty</div>
 
     <div class="menu">
-
       <div class="menu-item active" data-page="home.html">
-        <i class="ri-home-5-line"></i> Home
+        <i class="ri-home-5-line"></i><span>Home</span>
       </div>
 
       <div class="menu-item has-sub">
-        <i class="ri-calendar-line"></i> Agenda
+        <i class="ri-calendar-line"></i><span>Agenda</span>
       </div>
       <div class="submenu">
         <div data-page="agenda.html">Horários</div>
       </div>
 
       <div class="menu-item has-sub">
-        <i class="ri-user-3-line"></i> Clientes
+        <i class="ri-user-3-line"></i><span>Clientes</span>
       </div>
       <div class="submenu">
         <div data-page="clientes.html">Clientes</div>
       </div>
 
       <div class="menu-item has-sub">
-        <i class="ri-currency-line"></i> Financeiro
+        <i class="ri-currency-line"></i><span>Financeiro</span>
       </div>
       <div class="submenu">
         <div data-page="caixa.html">Caixa</div>
@@ -248,26 +232,27 @@ iframe{
       </div>
 
       <div class="menu-item" data-page="config.html">
-        <i class="ri-settings-3-line"></i> Configurações
+        <i class="ri-settings-3-line"></i><span>Configurações</span>
       </div>
     </div>
 
     <div class="footer">
-      <div class="logout" onclick="logout()">Sair</div>
+      <div class="logout" onclick="logout()">
+        <i class="ri-logout-box-line"></i><span>Sair</span>
+      </div>
     </div>
   </aside>
 
   <!-- MAIN -->
   <div class="main">
-    <div class="topbar">
-      <strong id="nomeNegocio">Meu Negócio</strong>
-    </div>
+    <div class="topbar" id="nomeNegocio">Meu Negócio</div>
 
     <div class="content">
-      <iframe id="frame"></iframe>
+      <div class="iframe-box">
+        <iframe id="frame"></iframe>
+      </div>
     </div>
   </div>
-
 </div>
 
 <!-- MOBILE NAV -->
@@ -287,11 +272,11 @@ iframe{
 </div>
 
 <script>
-const frame = document.getElementById("frame");
+const frame=document.getElementById("frame");
 
 /* carregar página */
-function carregar(pagina){
-  frame.src = pagina;
+function carregar(p){
+  frame.src=p;
 }
 
 /* menu desktop */
@@ -306,16 +291,15 @@ document.querySelectorAll(".menu-item[data-page]").forEach(item=>{
 /* submenu */
 document.querySelectorAll(".has-sub").forEach((item,i)=>{
   item.onclick=()=>{
-    const submenu=document.querySelectorAll(".submenu")[i];
-    submenu.style.display=submenu.style.display==="block"?"none":"block";
+    const s=document.querySelectorAll(".submenu")[i];
+    s.style.display=s.style.display==="block"?"none":"block";
   };
 });
-
 document.querySelectorAll(".submenu div").forEach(item=>{
   item.onclick=()=>carregar(item.dataset.page);
 });
 
-/* mobile nav */
+/* mobile */
 document.querySelectorAll(".mobile-nav div").forEach(item=>{
   item.onclick=()=>{
     document.querySelectorAll(".mobile-nav div").forEach(i=>i.classList.remove("active"));
