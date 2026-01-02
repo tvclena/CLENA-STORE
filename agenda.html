@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
@@ -19,15 +18,15 @@
   --soft:#fff7ed;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);padding:32px}
+body{background:var(--bg);padding:24px}
 
 /* HEADER */
 .header{
   max-width:1200px;
-  margin:0 auto 24px;
+  margin:0 auto 20px;
 }
 .header h1{
-  font-size:28px;
+  font-size:26px;
   font-weight:800;
 }
 .header span{color:var(--primary)}
@@ -36,24 +35,24 @@ body{background:var(--bg);padding:32px}
 .calendar{
   background:var(--card);
   border-radius:var(--radius);
-  padding:28px;
+  padding:24px;
   max-width:1200px;
   margin:auto;
-  box-shadow:0 20px 40px rgba(0,0,0,.06);
+  box-shadow:0 15px 30px rgba(0,0,0,.06);
 }
 
 .calendar-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:24px;
+  margin-bottom:20px;
 }
 
 .calendar-header button{
   border:1px solid var(--border);
   background:#fff;
   border-radius:14px;
-  padding:10px 18px;
+  padding:8px 16px;
   font-weight:700;
   cursor:pointer;
 }
@@ -71,14 +70,13 @@ body{background:var(--bg);padding:32px}
 
 .day{
   border:1px solid var(--border);
-  min-height:140px;
-  padding:10px;
+  min-height:130px;
+  padding:8px;
   border-radius:14px;
   background:#fff;
   cursor:pointer;
   display:flex;
   flex-direction:column;
-  transition:.2s;
 }
 .day:hover{background:var(--soft)}
 
@@ -106,7 +104,6 @@ body{background:var(--bg);padding:32px}
   gap:6px;
 }
 .time-pill{
-  background:#fff;
   border:1px solid var(--border);
   border-radius:10px;
   padding:6px;
@@ -122,19 +119,19 @@ body{background:var(--bg);padding:32px}
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:1000;
+  z-index:999;
 }
 
 .modal-box{
   background:#fff;
-  padding:30px;
+  padding:26px;
   border-radius:22px;
   width:100%;
-  max-width:480px;
+  max-width:460px;
 }
 
 .modal-box h3{
-  margin-bottom:18px;
+  margin-bottom:16px;
   font-size:20px;
 }
 
@@ -183,7 +180,7 @@ body{background:var(--bg);padding:32px}
   border-radius:30px;
   padding:14px;
   width:100%;
-  margin-top:20px;
+  margin-top:18px;
   font-weight:800;
   cursor:pointer;
 }
@@ -198,9 +195,9 @@ body{background:var(--bg);padding:32px}
 
 <div class="calendar">
   <div class="calendar-header">
-    <button onclick="changeMonth(-1)">◀</button>
+    <button id="prev">◀</button>
     <h2 id="monthYear"></h2>
-    <button onclick="changeMonth(1)">▶</button>
+    <button id="next">▶</button>
   </div>
 
   <div class="weekdays">
@@ -217,31 +214,35 @@ body{background:var(--bg);padding:32px}
     <h3 id="modalDate"></h3>
 
     <div class="toggle">
-      <input type="checkbox" id="fechado" onchange="toggleFechado()">
+      <input type="checkbox" id="fechado">
       <label>Dia fechado</label>
     </div>
 
     <div id="horariosBox">
       <div id="horarios"></div>
-      <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
+      <button class="add-btn" id="addHorario">+ Adicionar horário</button>
     </div>
 
-    <button class="save-btn" onclick="salvarAgenda()">Salvar agenda</button>
+    <button class="save-btn" id="save">Salvar agenda</button>
   </div>
 </div>
 
 <script>
-/* ================= SUPABASE ================= */
-const supabase = window.supabase.createClient(
-  "https://ssmsjryjwhnrbjyzklno.supabase.co",
-  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
-);
+/* ================= SUPABASE (REUTILIZA) ================= */
+const supabase =
+  window.supabaseClient ||
+  window.supabase.createClient(
+    "https://ssmsjryjwhnrbjyzklno.supabase.co",
+    "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
+  );
+window.supabaseClient = supabase;
 
 let USER_ID = null;
 let agenda = {};
 let currentDate = new Date();
 let selectedDate = "";
 
+/* ELEMENTOS */
 const daysEl = document.getElementById("days");
 const monthYearEl = document.getElementById("monthYear");
 const modal = document.getElementById("modal");
@@ -250,24 +251,23 @@ const horariosEl = document.getElementById("horarios");
 const horariosBox = document.getElementById("horariosBox");
 const fechadoEl = document.getElementById("fechado");
 
-/* ================= INIT ================= */
-async function init(){
+/* INIT */
+(async ()=>{
   const { data:{ user } } = await supabase.auth.getUser();
   if(!user){
-    location.href = "login.html";
+    document.body.innerHTML = "Usuário não autenticado";
     return;
   }
   USER_ID = user.id;
-  await carregarAgendaMes();
-}
-init();
+  await carregarMes();
+})();
 
-/* ================= CALENDAR ================= */
-function renderCalendar(){
+/* CALENDAR */
+function render(){
   daysEl.innerHTML="";
   const y=currentDate.getFullYear(),m=currentDate.getMonth();
-
   monthYearEl.innerText=currentDate.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+
   const firstDay=new Date(y,m,1).getDay();
   const lastDate=new Date(y,m+1,0).getDate();
 
@@ -277,8 +277,8 @@ function renderCalendar(){
     const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const el=document.createElement("div");
     el.className="day";
-    el.onclick=()=>openDay(key);
     el.innerHTML=`<div class="day-number">${d}</div>`;
+    el.onclick=()=>openDay(key);
 
     if(agenda[key]){
       if(agenda[key].fechado){
@@ -296,12 +296,38 @@ function renderCalendar(){
   }
 }
 
-function changeMonth(v){
-  currentDate.setMonth(currentDate.getMonth()+v);
-  carregarAgendaMes();
+/* MÊS */
+async function carregarMes(){
+  const y=currentDate.getFullYear(),m=currentDate.getMonth();
+  const ini=`${y}-${String(m+1).padStart(2,"0")}-01`;
+  const fim=`${y}-${String(m+1).padStart(2,"0")}-31`;
+
+  const {data}=await supabase
+    .from("agenda_loja")
+    .select("*")
+    .eq("user_id",USER_ID)
+    .gte("data",ini)
+    .lte("data",fim);
+
+  agenda={};
+  data?.forEach(r=>{
+    agenda[r.data]={fechado:r.fechado,horarios:r.horarios||[]};
+  });
+
+  render();
 }
 
-/* ================= MODAL ================= */
+/* BOTÕES */
+document.getElementById("prev").onclick=()=>{
+  currentDate.setMonth(currentDate.getMonth()-1);
+  carregarMes();
+};
+document.getElementById("next").onclick=()=>{
+  currentDate.setMonth(currentDate.getMonth()+1);
+  carregarMes();
+};
+
+/* MODAL */
 function openDay(date){
   selectedDate=date;
   modalDate.innerText=new Date(date).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
@@ -313,26 +339,22 @@ function openDay(date){
     agenda[date].horarios.forEach(h=>addHorario(h.inicio,h.fim));
   }else addHorario();
 
-  toggleFechado();
   modal.style.display="flex";
 }
 
-function toggleFechado(){
-  horariosBox.style.display=fechadoEl.checked?"none":"block";
-}
-
 function addHorario(i="",f=""){
-  const div=document.createElement("div");
-  div.className="horario";
-  div.innerHTML=`
+  const d=document.createElement("div");
+  d.className="horario";
+  d.innerHTML=`
     <input type="time" value="${i}">
     <input type="time" value="${f}">
     <button onclick="this.parentElement.remove()">✕</button>`;
-  horariosEl.appendChild(div);
+  horariosEl.appendChild(d);
 }
 
-/* ================= SAVE ================= */
-async function salvarAgenda(){
+document.getElementById("addHorario").onclick=()=>addHorario();
+
+document.getElementById("save").onclick=async()=>{
   let slots=[];
   if(!fechadoEl.checked){
     document.querySelectorAll(".horario").forEach(h=>{
@@ -342,36 +364,15 @@ async function salvarAgenda(){
   }
 
   await supabase.from("agenda_loja").upsert({
-    user_id: USER_ID,
-    data: selectedDate,
-    fechado: fechadoEl.checked,
-    horarios: slots
+    user_id:USER_ID,
+    data:selectedDate,
+    fechado:fechadoEl.checked,
+    horarios:slots
   },{onConflict:"user_id,data"});
 
   modal.style.display="none";
-  await carregarAgendaMes();
-}
-
-/* ================= LOAD MONTH ================= */
-async function carregarAgendaMes(){
-  const y=currentDate.getFullYear(),m=currentDate.getMonth();
-  const inicio=`${y}-${String(m+1).padStart(2,"0")}-01`;
-  const fim=`${y}-${String(m+1).padStart(2,"0")}-31`;
-
-  const {data}=await supabase
-    .from("agenda_loja")
-    .select("*")
-    .eq("user_id",USER_ID)
-    .gte("data",inicio)
-    .lte("data",fim);
-
-  agenda={};
-  data?.forEach(r=>{
-    agenda[r.data]={fechado:r.fechado,horarios:r.horarios||[]};
-  });
-
-  renderCalendar();
-}
+  carregarMes();
+};
 </script>
 
 </body>
