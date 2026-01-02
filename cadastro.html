@@ -168,7 +168,7 @@ button{
 
 <script>
 /* =======================
-   SUPABASE CLIENT SEGURO
+   SUPABASE CLIENT
    ======================= */
 const sb = window.supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
@@ -190,8 +190,8 @@ const uf = document.getElementById("uf");
 const email = document.getElementById("email");
 const senha = document.getElementById("senha");
 
-/* MASK */
-whatsapp.addEventListener("input", e=>{
+/* WHATSAPP MASK */
+whatsapp.addEventListener("input", e => {
   let v = e.target.value.replace(/\D/g,'').slice(0,11);
   v = v.replace(/^(\d{2})(\d)/,"($1) $2")
        .replace(/(\d{5})(\d)/,"$1-$2");
@@ -207,7 +207,9 @@ function showEmailError(show){
   emailError.style.display = show ? "block" : "none";
 }
 
-/* CADASTRO */
+/* =======================
+   CADASTRO (CORRETO)
+   ======================= */
 async function cadastrar(e){
   e.preventDefault();
   errorBox.style.display = "none";
@@ -217,14 +219,24 @@ async function cadastrar(e){
   const emailValue = email.value.trim().toLowerCase();
   const senhaValue = senha.value.trim();
 
-  /* AUTH */
-  const { data, error } = await sb.auth.signUp({
+  const { error } = await sb.auth.signUp({
     email: emailValue,
-    password: senhaValue
+    password: senhaValue,
+    options: {
+      data: {
+        responsavel: responsavel.value.trim(),
+        whatsapp: whatsapp.value.replace(/\D/g,''),
+        negocio: negocio.value.trim(),
+        tipo: tipo.value,
+        cidade: cidade.value.trim(),
+        uf: uf.value.trim()
+      }
+    }
   });
 
+  overlay.style.display = "none";
+
   if(error){
-    overlay.style.display = "none";
     if(error.message.toLowerCase().includes("already")){
       showEmailError(true);
     }else{
@@ -233,32 +245,7 @@ async function cadastrar(e){
     return;
   }
 
-  if(!data?.user){
-    overlay.style.display = "none";
-    showError("Conta criada. Confirme o e-mail para continuar.");
-    return;
-  }
-
-  /* PROFILE */
-  const { error: profileError } = await sb
-    .from("user_profile")
-    .insert({
-      user_id: data.user.id,
-      responsavel: responsavel.value.trim(),
-      whatsapp: whatsapp.value.replace(/\D/g,''),
-      negocio: negocio.value.trim(),
-      tipo: tipo.value,
-      cidade: cidade.value.trim(),
-      uf: uf.value.trim()
-    });
-
-  overlay.style.display = "none";
-
-  if(profileError){
-    showError(profileError.message);
-    return;
-  }
-
+  /* ✅ PERFIL SERÁ CRIADO PELO TRIGGER SQL */
   modal.style.display = "flex";
 }
 
@@ -266,6 +253,7 @@ function irLogin(){
   window.location.href = "login.html";
 }
 </script>
+
 
 </body>
 </html>
