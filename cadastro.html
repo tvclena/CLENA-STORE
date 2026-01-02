@@ -168,20 +168,19 @@ button{
 
 <script>
 /* =======================
-   SUPABASE CLIENT (ÚNICO)
+   SUPABASE CLIENT SEGURO
    ======================= */
-/* CLIENT ÚNICO GLOBAL */
-window.supabaseClient = window.supabaseClient || window.supabase.createClient(
+const sb = window.supabase.createClient(
   "https://ssmsjryjwhnrbjyzklno.supabase.co",
   "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
 );
 
-const supabase = window.supabaseClient;
-
+/* ELEMENTOS */
 const overlay = document.getElementById("overlay");
 const modal = document.getElementById("modal");
 const errorBox = document.getElementById("errorBox");
 const emailError = document.getElementById("emailError");
+
 const responsavel = document.getElementById("responsavel");
 const whatsapp = document.getElementById("whatsapp");
 const negocio = document.getElementById("negocio");
@@ -191,9 +190,7 @@ const uf = document.getElementById("uf");
 const email = document.getElementById("email");
 const senha = document.getElementById("senha");
 
-  
-
-/* WHATSAPP MASK */
+/* MASK */
 whatsapp.addEventListener("input", e=>{
   let v = e.target.value.replace(/\D/g,'').slice(0,11);
   v = v.replace(/^(\d{2})(\d)/,"($1) $2")
@@ -201,15 +198,7 @@ whatsapp.addEventListener("input", e=>{
   e.target.value = v;
 });
 
-/* UPPERCASE */
-document.querySelectorAll("input").forEach(el=>{
-  el.addEventListener("input", ()=>{
-    if(el.type !== "email" && el.type !== "password"){
-      el.value = el.value.toUpperCase();
-    }
-  });
-});
-
+/* UI */
 function showError(msg){
   errorBox.innerText = msg;
   errorBox.style.display = "block";
@@ -218,6 +207,7 @@ function showEmailError(show){
   emailError.style.display = show ? "block" : "none";
 }
 
+/* CADASTRO */
 async function cadastrar(e){
   e.preventDefault();
   errorBox.style.display = "none";
@@ -227,8 +217,8 @@ async function cadastrar(e){
   const emailValue = email.value.trim().toLowerCase();
   const senhaValue = senha.value.trim();
 
-  /* 1️⃣ AUTH */
-  const { data, error } = await supabase.auth.signUp({
+  /* AUTH */
+  const { data, error } = await sb.auth.signUp({
     email: emailValue,
     password: senhaValue
   });
@@ -243,17 +233,16 @@ async function cadastrar(e){
     return;
   }
 
-  /* Caso confirmação de e-mail esteja ativa */
   if(!data?.user){
     overlay.style.display = "none";
-    showError("Conta criada. Confirme seu e-mail para continuar.");
+    showError("Conta criada. Confirme o e-mail para continuar.");
     return;
   }
 
-  /* 2️⃣ PROFILE */
-  const { error: profileError } = await supabase
+  /* PROFILE */
+  const { error: profileError } = await sb
     .from("user_profile")
-    .insert([{
+    .insert({
       user_id: data.user.id,
       responsavel: responsavel.value.trim(),
       whatsapp: whatsapp.value.replace(/\D/g,''),
@@ -261,12 +250,12 @@ async function cadastrar(e){
       tipo: tipo.value,
       cidade: cidade.value.trim(),
       uf: uf.value.trim()
-    }]);
+    });
 
   overlay.style.display = "none";
 
   if(profileError){
-    showError("Usuário criado, mas erro ao salvar perfil.");
+    showError(profileError.message);
     return;
   }
 
