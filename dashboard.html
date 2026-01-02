@@ -7,7 +7,6 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
@@ -22,10 +21,10 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{height:100vh;background:var(--bg);overflow:hidden}
 
-/* APP */
+/* ================= APP ================= */
 .app{display:flex;height:100vh}
 
-/* SIDEBAR */
+/* ================= SIDEBAR ================= */
 .sidebar{
   width:72px;
   background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
@@ -46,8 +45,9 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   font-size:18px;
   font-weight:800;
   color:var(--primary);
+  white-space:nowrap;
 }
-.logo span{opacity:0;transition:.2s;white-space:nowrap}
+.logo span{opacity:0;transition:.2s}
 .sidebar:hover .logo{
   justify-content:flex-start;
   padding-left:20px;
@@ -109,6 +109,7 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   display:none;
   flex-direction:column;
   gap:4px;
+  margin-left:0;
 }
 
 /* FOOTER */
@@ -117,7 +118,7 @@ body{height:100vh;background:var(--bg);overflow:hidden}
   border-top:1px solid rgba(255,255,255,.1);
 }
 
-/* MAIN */
+/* ================= MAIN ================= */
 .main{
   flex:1;
   display:flex;
@@ -150,7 +151,7 @@ body{height:100vh;background:var(--bg);overflow:hidden}
 }
 iframe{width:100%;height:100%;border:none}
 
-/* MOBILE */
+/* ================= MOBILE ================= */
 .mobile-nav{
   display:none;
 }
@@ -244,7 +245,7 @@ iframe{width:100%;height:100%;border:none}
 
   <!-- MAIN -->
   <div class="main">
-    <div class="topbar" id="nomeNegocio">Meu Negócio</div>
+    <div class="topbar">Meu Negócio</div>
 
     <div class="content">
       <div class="iframe-box">
@@ -264,34 +265,9 @@ iframe{width:100%;height:100%;border:none}
 </div>
 
 <script>
-/* ================= SUPABASE GLOBAL ================= */
-window.supabaseClient = supabase.createClient(
-  "https://ssmsjryjwhnrbjyzklno.supabase.co",
-  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
-);
-
-/* ================= AUTH ================= */
-(async()=>{
-  const {data:{user}} = await window.supabaseClient.auth.getUser();
-  if(!user){
-    location.href="login.html";
-    return;
-  }
-
-  const {data} = await window.supabaseClient
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id",user.id)
-    .single();
-
-  if(data?.negocio){
-    document.getElementById("nomeNegocio").innerText = data.negocio;
-  }
-})();
-
-/* ================= MENU ================= */
 const frame=document.getElementById("frame");
 
+/* carregar */
 function carregar(p){frame.src=p}
 
 /* menu principal */
@@ -333,8 +309,8 @@ document.querySelectorAll(".mobile-nav div").forEach(item=>{
 carregar("home.html");
 
 /* logout */
-async function logout(){
-  await window.supabaseClient.auth.signOut();
+function logout(){
+  localStorage.clear();
   location.href="login.html";
 }
 </script>
