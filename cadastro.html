@@ -5,106 +5,255 @@
 <title>Cadastrar negócio • AgendaBeauty</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root{--primary:#ff6a00;--danger:#c62828}
-body{margin:0;font-family:Inter;background:#f9fafb;display:grid;place-items:center;height:100vh}
-.card{background:#fff;padding:40px;width:100%;max-width:420px;border-radius:16px}
-input,select,button{width:100%;padding:14px;margin-bottom:12px}
-button{background:var(--primary);border:none;color:#fff;font-weight:700;border-radius:30px}
-.error{display:none;background:#ffe5e5;color:var(--danger);padding:10px;border-radius:8px}
-#overlay,#modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}
-.modal-box{background:#fff;padding:30px;border-radius:14px;text-align:center}
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#c62828;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{min-height:100vh;display:grid;grid-template-columns:1.2fr .8fr}
+
+/* LEFT */
+.left{
+  background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250")
+  center/cover no-repeat;
+  position:relative;
+  color:#fff;
+}
+.left::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,rgba(0,0,0,.75),rgba(0,0,0,.3));
+}
+.left div{position:relative;z-index:2;padding:80px}
+.left span{color:var(--primary)}
+
+/* RIGHT */
+.right{display:flex;align-items:center;justify-content:center}
+.card{
+  width:100%;
+  max-width:460px;
+  padding:44px;
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+  border-radius:var(--radius);
+  background:#fff;
+}
+.card small{color:var(--primary);font-weight:600}
+
+input,select{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  text-transform:uppercase;
+}
+input[type="email"],input[type="password"]{text-transform:none}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* ERROR */
+.error{
+  background:#ffe5e5;
+  color:var(--danger);
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+  margin-bottom:14px;
+  display:none;
+}
+#emailError{
+  display:none;
+  color:var(--danger);
+  font-size:13px;
+  margin:-8px 0 14px 4px;
+}
+
+/* OVERLAY */
+#overlay,#modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#overlay div,.modal-box{
+  background:#fff;
+  padding:30px 40px;
+  border-radius:16px;
+  font-weight:700;
+  text-align:center;
+}
+.modal-box button{border-radius:25px}
 </style>
 </head>
 
 <body>
 
-<div id="overlay"><div class="modal-box">Criando conta…</div></div>
+<!-- OVERLAY -->
+<div id="overlay">
+  <div>Salvando cadastro…</div>
+</div>
 
+<!-- MODAL -->
 <div id="modal">
   <div class="modal-box">
-    <h3>Cadastro concluído 🎉</h3>
-    <p>Agora faça login.</p>
-    <button onclick="location.href='login.html'">Ir para login</button>
+    <h3>Cadastro realizado!</h3>
+    <p>Seu negócio foi cadastrado com sucesso.</p>
+    <button onclick="irLogin()">Ir para login</button>
   </div>
 </div>
 
-<div class="card">
-  <h2>Cadastrar negócio</h2>
-  <div id="error" class="error"></div>
+<div class="left">
+  <div>
+    <h1>Crie seu salão<br><span>digital</span></h1>
+    <p style="margin-top:12px">
+      Agenda, clientes e controle em um só lugar.
+    </p>
+  </div>
+</div>
 
-  <form onsubmit="cadastrar(event)">
-    <input id="responsavel" placeholder="Responsável" required>
-    <input id="whatsapp" placeholder="WhatsApp" required>
-    <input id="negocio" placeholder="Negócio" required>
-    <select id="tipo" required>
-      <option value="">Tipo</option>
-      <option>SALAO</option>
-      <option>BARBEARIA</option>
-      <option>CLINICA</option>
-    </select>
-    <input id="cidade" placeholder="Cidade" required>
-    <input id="uf" placeholder="UF" maxlength="2" required>
-    <input id="email" type="email" placeholder="Email" required>
-    <input id="senha" type="password" placeholder="Senha (mín 6)" required minlength="6">
-    <button>Criar conta</button>
-  </form>
+<div class="right">
+  <div class="card">
+
+    <small>Acesso à plataforma</small>
+    <h2 style="margin:10px 0 6px">Cadastrar negócio</h2>
+    <p style="color:#6b7280;margin-bottom:18px">
+      Leva menos de 1 minuto
+    </p>
+
+    <div id="errorBox" class="error"></div>
+
+    <form onsubmit="cadastrar(event)">
+      <input id="responsavel" placeholder="Nome do responsável" required>
+      <input id="whatsapp" placeholder="WhatsApp" required>
+      <input id="negocio" placeholder="Nome do negócio" required>
+
+      <select id="tipo" required>
+        <option value="">Tipo do negócio</option>
+        <option value="SALAO DE BELEZA">Salão de Beleza</option>
+        <option value="BARBEARIA">Barbearia</option>
+        <option value="CLINICA DE ESTETICA">Clínica de Estética</option>
+        <option value="STUDIO">Studio</option>
+      </select>
+
+      <input id="cidade" placeholder="Cidade" required>
+      <input id="uf" placeholder="UF" maxlength="2" required>
+
+      <input id="email" type="email" placeholder="E-mail" required>
+      <div id="emailError">Este e-mail já possui cadastro. Faça login.</div>
+
+      <input id="senha" type="password" placeholder="Senha" minlength="6" required>
+
+      <button>Criar conta</button>
+    </form>
+
+  </div>
 </div>
 
 <script>
+/* 🔐 SUPABASE CLIENT – ÚNICO */
 const supabase = window.supabase.createClient(
-  "https://SEU-PROJETO.supabase.co",
-  "SUA-CHAVE-PUBLICA"
+  "https://ssmsjryjwhnrbjyzklno.supabase.co",
+  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
 );
 
-const overlay=document.getElementById("overlay");
-const modal=document.getElementById("modal");
-const errorBox=document.getElementById("error");
+const overlay = document.getElementById("overlay");
+const modal = document.getElementById("modal");
+const errorBox = document.getElementById("errorBox");
+const emailError = document.getElementById("emailError");
+
+/* WHATSAPP MASK */
+whatsapp.addEventListener("input", e=>{
+  let v = e.target.value.replace(/\D/g,'').slice(0,11);
+  v = v.replace(/^(\d{2})(\d)/,"($1) $2")
+       .replace(/(\d{5})(\d)/,"$1-$2");
+  e.target.value = v;
+});
+
+/* UPPERCASE */
+document.querySelectorAll("input").forEach(el=>{
+  el.addEventListener("input", ()=>{
+    if(el.type !== "email" && el.type !== "password"){
+      el.value = el.value.toUpperCase();
+    }
+  });
+});
 
 function showError(msg){
-  errorBox.innerText=msg;
-  errorBox.style.display="block";
+  errorBox.innerText = msg;
+  errorBox.style.display = "block";
+}
+function showEmailError(show){
+  emailError.style.display = show ? "block" : "none";
 }
 
 async function cadastrar(e){
   e.preventDefault();
-  errorBox.style.display="none";
-  overlay.style.display="flex";
+  errorBox.style.display = "none";
+  showEmailError(false);
+  overlay.style.display = "flex";
 
+  /* 1️⃣ CRIA USUÁRIO NO AUTH */
   const { data, error } = await supabase.auth.signUp({
-    email: email.value.toLowerCase(),
-    password: senha.value
+    email: email.value.trim().toLowerCase(),
+    password: senha.value.trim()
   });
 
   if(error){
-    overlay.style.display="none";
-    showError(error.message);
+    overlay.style.display = "none";
+    if(error.message.toLowerCase().includes("already")){
+      showEmailError(true);
+    }else{
+      showError(error.message);
+    }
     return;
   }
 
+  const userId = data.user.id;
+
+  /* 2️⃣ SALVA PERFIL */
   const { error: profileError } = await supabase
     .from("user_profile")
     .insert([{
-      user_id: data.user.id,
-      responsavel: responsavel.value,
+      user_id: userId,
+      responsavel: responsavel.value.trim(),
       whatsapp: whatsapp.value.replace(/\D/g,''),
-      negocio: negocio.value,
+      negocio: negocio.value.trim(),
       tipo: tipo.value,
-      cidade: cidade.value,
-      uf: uf.value
+      cidade: cidade.value.trim(),
+      uf: uf.value.trim()
     }]);
 
-  overlay.style.display="none";
+  overlay.style.display = "none";
 
   if(profileError){
-    showError("Conta criada, mas erro ao salvar perfil.");
+    showError("Conta criada, mas houve erro ao salvar o perfil.");
     return;
   }
 
-  modal.style.display="flex";
+  modal.style.display = "flex";
+}
+
+function irLogin(){
+  window.location.href = "login.html";
 }
 </script>
 
