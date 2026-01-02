@@ -14,14 +14,16 @@
   --border:#e5e7eb;
   --radius:18px;
   --danger:#c62828;
+  --success:#2e7d32;
 }
+
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
   font-family:Inter;
-  text-transform:uppercase;
 }
+
 body{
   min-height:100vh;
   display:grid;
@@ -74,7 +76,6 @@ input{
   margin-bottom:14px;
   border-radius:12px;
   border:1px solid var(--border);
-  text-transform:none;
 }
 
 button{
@@ -88,6 +89,7 @@ button{
   cursor:pointer;
 }
 
+/* LINKS */
 .links{
   text-align:center;
   margin-top:18px;
@@ -100,15 +102,21 @@ button{
   margin-top:8px;
 }
 
-/* ERROR */
-.error{
-  background:#ffe5e5;
-  color:var(--danger);
+/* MESSAGES */
+.msg{
   padding:12px;
   border-radius:10px;
   font-size:14px;
   margin-bottom:14px;
   display:none;
+}
+.msg.error{
+  background:#ffe5e5;
+  color:var(--danger);
+}
+.msg.success{
+  background:#e6f4ea;
+  color:var(--success);
 }
 
 /* OVERLAY */
@@ -155,9 +163,10 @@ button{
       Use seu e-mail e senha para continuar
     </p>
 
-    <div id="errorBox" class="error"></div>
+    <div id="msgError" class="msg error"></div>
+    <div id="msgSuccess" class="msg success"></div>
 
-    <form onsubmit="login(event)">
+    <form id="loginForm">
       <label>E-mail</label>
       <input id="email" type="email" required>
 
@@ -179,28 +188,37 @@ button{
 /* =======================
    SUPABASE CLIENT
    ======================= */
-const sb = window.supabase.createClient(
+const supabase = window.supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
+/* ELEMENTOS */
 const overlay = document.getElementById("overlay");
-const errorBox = document.getElementById("errorBox");
+const msgError = document.getElementById("msgError");
+const msgSuccess = document.getElementById("msgSuccess");
 const emailInput = document.getElementById("email");
 const senhaInput = document.getElementById("senha");
 
+/* UI */
 function showError(msg){
-  errorBox.innerText = msg;
-  errorBox.style.display = "block";
+  msgSuccess.style.display = "none";
+  msgError.innerText = msg;
+  msgError.style.display = "block";
+}
+function showSuccess(msg){
+  msgError.style.display = "none";
+  msgSuccess.innerText = msg;
+  msgSuccess.style.display = "block";
 }
 
 /* LOGIN */
-async function login(e){
+document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  errorBox.style.display = "none";
+  msgError.style.display = "none";
   overlay.style.display = "flex";
 
-  const { data, error } = await sb.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: emailInput.value.trim().toLowerCase(),
     password: senhaInput.value.trim()
   });
@@ -208,17 +226,20 @@ async function login(e){
   overlay.style.display = "none";
 
   if(error){
-    if(error.message.toLowerCase().includes("confirm")){
+    const m = error.message.toLowerCase();
+    if(m.includes("confirm")){
       showError("Confirme seu e-mail antes de entrar.");
-    }else{
+    }else if(m.includes("invalid")){
       showError("E-mail ou senha inválidos.");
+    }else{
+      showError("Erro ao realizar login. Tente novamente.");
     }
     return;
   }
 
   /* LOGIN OK */
   window.location.href = "dashboard.html";
-}
+});
 
 /* RESET DE SENHA */
 async function resetSenha(){
@@ -230,7 +251,7 @@ async function resetSenha(){
 
   overlay.style.display = "flex";
 
-  const { error } = await sb.auth.resetPasswordForEmail(emailVal, {
+  const { error } = await supabase.auth.resetPasswordForEmail(emailVal, {
     redirectTo: window.location.origin + "/login.html"
   });
 
@@ -239,7 +260,7 @@ async function resetSenha(){
   if(error){
     showError("Erro ao enviar e-mail de recuperação.");
   }else{
-    showError("Enviamos um link de recuperação para seu e-mail.");
+    showSuccess("Enviamos um link de recuperação para seu e-mail.");
   }
 }
 </script>
