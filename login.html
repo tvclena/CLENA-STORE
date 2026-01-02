@@ -16,19 +16,8 @@
   --danger:#c62828;
   --success:#2e7d32;
 }
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter;
-}
-
-body{
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:1.2fr .8fr;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{min-height:100vh;display:grid;grid-template-columns:1.2fr .8fr}
 
 /* LEFT */
 .left{
@@ -43,20 +32,12 @@ body{
   inset:0;
   background:linear-gradient(120deg,rgba(0,0,0,.75),rgba(0,0,0,.3));
 }
-.left div{
-  position:relative;
-  z-index:2;
-  padding:80px;
-}
+.left div{position:relative;z-index:2;padding:80px}
 .left h1{font-size:40px}
 .left span{color:var(--primary)}
 
 /* RIGHT */
-.right{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+.right{display:flex;align-items:center;justify-content:center}
 .card{
   width:100%;
   max-width:460px;
@@ -65,10 +46,7 @@ body{
   border-radius:var(--radius);
   background:#fff;
 }
-.card small{
-  color:var(--primary);
-  font-weight:600;
-}
+.card small{color:var(--primary);font-weight:600}
 
 input{
   width:100%;
@@ -89,18 +67,8 @@ button{
   cursor:pointer;
 }
 
-/* LINKS */
-.links{
-  text-align:center;
-  margin-top:18px;
-  font-size:13px;
-}
-.links a{
-  display:block;
-  color:var(--primary);
-  text-decoration:none;
-  margin-top:8px;
-}
+.links{text-align:center;margin-top:18px;font-size:13px}
+.links a{display:block;color:var(--primary);text-decoration:none;margin-top:8px}
 
 /* MESSAGES */
 .msg{
@@ -110,14 +78,8 @@ button{
   margin-bottom:14px;
   display:none;
 }
-.msg.error{
-  background:#ffe5e5;
-  color:var(--danger);
-}
-.msg.success{
-  background:#e6f4ea;
-  color:var(--success);
-}
+.msg.error{background:#ffe5e5;color:var(--danger)}
+.msg.success{background:#e6f4ea;color:var(--success)}
 
 /* OVERLAY */
 #overlay{
@@ -140,17 +102,12 @@ button{
 
 <body>
 
-<!-- OVERLAY -->
-<div id="overlay">
-  <div>Validando acesso…</div>
-</div>
+<div id="overlay"><div>Validando acesso…</div></div>
 
 <div class="left">
   <div>
     <h1>A gestão do seu salão<br>começa com um <span>login</span></h1>
-    <p style="margin-top:12px">
-      Controle agenda, clientes e profissionais em um só lugar.
-    </p>
+    <p style="margin-top:12px">Controle agenda, clientes e profissionais em um só lugar.</p>
   </div>
 </div>
 
@@ -159,9 +116,6 @@ button{
 
     <small>Acesso à plataforma</small>
     <h2 style="margin:10px 0 6px">Entrar</h2>
-    <p style="color:#6b7280;margin-bottom:18px">
-      Use seu e-mail e senha para continuar
-    </p>
 
     <div id="msgError" class="msg error"></div>
     <div id="msgSuccess" class="msg success"></div>
@@ -185,13 +139,16 @@ button{
 </div>
 
 <script>
-/* =======================
-   SUPABASE CLIENT
-   ======================= */
-const supabase = window.supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
+/* ==================================================
+   SUPABASE CLIENT — GLOBAL (NUNCA DUPLICA)
+   ================================================== */
+if(!window.sb){
+  window.sb = window.supabase.createClient(
+    "https://egxjgmzukjyyxmkukwub.supabase.co",
+    "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+  );
+}
+const supabase = window.sb;
 
 /* ELEMENTOS */
 const overlay = document.getElementById("overlay");
@@ -202,65 +159,70 @@ const senhaInput = document.getElementById("senha");
 
 /* UI */
 function showError(msg){
-  msgSuccess.style.display = "none";
-  msgError.innerText = msg;
-  msgError.style.display = "block";
+  msgSuccess.style.display="none";
+  msgError.innerText=msg;
+  msgError.style.display="block";
 }
 function showSuccess(msg){
-  msgError.style.display = "none";
-  msgSuccess.innerText = msg;
-  msgSuccess.style.display = "block";
+  msgError.style.display="none";
+  msgSuccess.innerText=msg;
+  msgSuccess.style.display="block";
 }
 
 /* LOGIN */
 document.getElementById("loginForm").addEventListener("submit", async e=>{
   e.preventDefault();
-  msgError.style.display = "none";
-  overlay.style.display = "flex";
+  msgError.style.display="none";
+  overlay.style.display="flex";
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email: emailInput.value.trim().toLowerCase(),
     password: senhaInput.value.trim()
   });
 
-  overlay.style.display = "none";
-
   if(error){
-    const m = error.message.toLowerCase();
-    if(m.includes("confirm")){
-      showError("Confirme seu e-mail antes de entrar.");
-    }else if(m.includes("invalid")){
-      showError("E-mail ou senha inválidos.");
-    }else{
-      showError("Erro ao realizar login. Tente novamente.");
-    }
+    overlay.style.display="none";
+    showError("E-mail ou senha inválidos.");
     return;
   }
 
-  /* LOGIN OK */
+  const user = data.user;
+
+  /* CONFERE PERFIL */
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profile")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  overlay.style.display="none";
+
+  if(profileError || !profile){
+    showError("Perfil não encontrado. Finalize o cadastro.");
+    await supabase.auth.signOut();
+    return;
+  }
+
+  /* SUCESSO */
   window.location.href = "dashboard.html";
 });
 
-/* RESET DE SENHA */
+/* RESET SENHA */
 async function resetSenha(){
   const emailVal = emailInput.value.trim().toLowerCase();
   if(!emailVal){
-    showError("Informe seu e-mail para recuperar a senha.");
+    showError("Informe seu e-mail.");
     return;
   }
 
-  overlay.style.display = "flex";
-
-  const { error } = await supabase.auth.resetPasswordForEmail(emailVal, {
-    redirectTo: window.location.origin + "/login.html"
-  });
-
-  overlay.style.display = "none";
+  overlay.style.display="flex";
+  const { error } = await supabase.auth.resetPasswordForEmail(emailVal);
+  overlay.style.display="none";
 
   if(error){
-    showError("Erro ao enviar e-mail de recuperação.");
+    showError("Erro ao enviar e-mail.");
   }else{
-    showSuccess("Enviamos um link de recuperação para seu e-mail.");
+    showSuccess("Link de recuperação enviado.");
   }
 }
 </script>
