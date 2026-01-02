@@ -2,253 +2,283 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>AgendaBeauty • Dashboard</title>
+<title>Entrar • AgendaBeauty</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-dark:#e55d00;
-  --bg:#f6f7fb;
-  --sidebar1:#0b1e39;
-  --sidebar2:#102a43;
-  --text:#1f2937;
-  --muted:#6b7280;
-  --radius:16px;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#c62828;
+  --success:#2e7d32;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+}
 
 body{
-  background:var(--bg);
-  height:100vh;
-  display:flex;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
 }
 
-/* ================= SIDEBAR ================= */
-.sidebar{
-  width:260px;
-  background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
+/* LEFT */
+.left{
+  background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250")
+  center/cover no-repeat;
+  position:relative;
   color:#fff;
-  display:flex;
-  flex-direction:column;
-  transition:.3s;
 }
-.sidebar.collapsed{ width:78px; }
-
-.logo{
-  padding:22px;
-  font-size:20px;
-  font-weight:800;
-  color:var(--primary);
-  white-space:nowrap;
+.left::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,rgba(0,0,0,.75),rgba(0,0,0,.3));
 }
-
-.menu{
-  flex:1;
-  padding:10px;
+.left div{
+  position:relative;
+  z-index:2;
+  padding:80px;
 }
+.left h1{font-size:40px}
+.left span{color:var(--primary)}
 
-.menu-item{
+/* RIGHT */
+.right{
   display:flex;
   align-items:center;
-  gap:14px;
-  padding:14px;
-  border-radius:12px;
-  cursor:pointer;
-  margin-bottom:6px;
-  transition:.25s;
-  white-space:nowrap;
+  justify-content:center;
 }
-.menu-item:hover{
-  background:rgba(255,255,255,.08);
-}
-.menu-item.active{
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-}
-
-.menu-item i{
-  font-size:20px;
-  min-width:20px;
-}
-
-.sidebar.collapsed span{
-  display:none;
-}
-
-/* SUBMENU */
-.submenu{
-  margin-left:36px;
-  display:none;
-}
-.submenu a{
-  display:block;
-  padding:10px 14px;
-  font-size:14px;
-  color:#d1d5db;
-  text-decoration:none;
-  border-radius:10px;
-}
-.submenu a:hover{
-  background:rgba(255,255,255,.08);
-}
-
-/* FOOTER */
-.sidebar-footer{
-  padding:16px;
-  border-top:1px solid rgba(255,255,255,.1);
-}
-.logout{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:12px;
-  border-radius:12px;
-  cursor:pointer;
-}
-.logout:hover{
-  background:rgba(255,255,255,.08);
-}
-
-/* ================= MAIN ================= */
-.main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-/* TOPBAR */
-.topbar{
-  height:64px;
+.card{
+  width:100%;
+  max-width:460px;
+  padding:44px;
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+  border-radius:var(--radius);
   background:#fff;
-  border-bottom:1px solid #e5e7eb;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 24px;
 }
-
-.toggle{
-  font-size:22px;
-  cursor:pointer;
-}
-
-.user{
-  display:flex;
-  align-items:center;
-  gap:10px;
+.card small{
+  color:var(--primary);
   font-weight:600;
 }
 
-/* CONTENT */
-.content{
-  flex:1;
-  padding:0;
-}
-iframe{
+input{
   width:100%;
-  height:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+
+button{
+  width:100%;
+  padding:15px;
   border:none;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* LINKS */
+.links{
+  text-align:center;
+  margin-top:18px;
+  font-size:13px;
+}
+.links a{
+  display:block;
+  color:var(--primary);
+  text-decoration:none;
+  margin-top:8px;
+}
+
+/* MESSAGES */
+.msg{
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+  margin-bottom:14px;
+  display:none;
+}
+.msg.error{
+  background:#ffe5e5;
+  color:var(--danger);
+}
+.msg.success{
+  background:#e6f4ea;
+  color:var(--success);
+}
+
+/* OVERLAY */
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#overlay div{
   background:#fff;
+  padding:30px 40px;
+  border-radius:16px;
+  font-weight:700;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= SIDEBAR ================= -->
-<aside class="sidebar" id="sidebar">
-  <div class="logo">AgendaBeauty</div>
+<!-- OVERLAY -->
+<div id="overlay">
+  <div>Validando acesso…</div>
+</div>
 
-  <div class="menu">
-
-    <div class="menu-item active" onclick="loadPage('home.html')">
-      <i class="ri-home-5-line"></i><span>Home</span>
-    </div>
-
-    <div class="menu-item" onclick="toggleSub(this)">
-      <i class="ri-calendar-line"></i><span>Cadastro</span>
-    </div>
-    <div class="submenu">
-      <a onclick="loadPage('agenda.html')">Meus horários</a>
-      <a onclick="loadPage('produtos.html')">Produtos e serviços</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSub(this)">
-      <i class="ri-user-3-line"></i><span>Clientes</span>
-    </div>
-    <div class="submenu">
-      <a onclick="loadPage('clientes.html')">Todos os clientes</a>
-      <a onclick="loadPage('creditos.html')">Créditos</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSub(this)">
-      <i class="ri-currency-line"></i><span>Financeiro</span>
-    </div>
-    <div class="submenu">
-      <a onclick="loadPage('caixa.html')">Caixa</a>
-      <a onclick="loadPage('despesas.html')">Despesas</a>
-    </div>
-
-    <div class="menu-item" onclick="loadPage('config.html')">
-      <i class="ri-settings-3-line"></i><span>Configurações</span>
-    </div>
-
+<div class="left">
+  <div>
+    <h1>A gestão do seu salão<br>começa com um <span>login</span></h1>
+    <p style="margin-top:12px">
+      Controle agenda, clientes e profissionais em um só lugar.
+    </p>
   </div>
+</div>
 
-  <div class="sidebar-footer">
-    <div class="logout" onclick="logout()">
-      <i class="ri-logout-box-line"></i><span>Sair</span>
+<div class="right">
+  <div class="card">
+
+    <small>Acesso à plataforma</small>
+    <h2 style="margin:10px 0 6px">Entrar</h2>
+    <p style="color:#6b7280;margin-bottom:18px">
+      Use seu e-mail e senha para continuar
+    </p>
+
+    <div id="msgError" class="msg error"></div>
+    <div id="msgSuccess" class="msg success"></div>
+
+    <form id="loginForm">
+      <label>E-mail</label>
+      <input id="email" type="email" required>
+
+      <label>Senha</label>
+      <input id="senha" type="password" required>
+
+      <button>Entrar</button>
+    </form>
+
+    <div class="links">
+      <a href="#" onclick="resetSenha()">Esqueci minha senha</a>
+      <a href="cadastro.html">Cadastrar meu negócio</a>
     </div>
-  </div>
-</aside>
 
-<!-- ================= MAIN ================= -->
-<div class="main">
-  <div class="topbar">
-    <i class="ri-menu-line toggle" onclick="toggleMenu()"></i>
-    <div class="user" id="nomeNegocio"></div>
-  </div>
-
-  <div class="content">
-    <iframe id="frame" src=""></iframe>
   </div>
 </div>
 
 <script>
-/* 🔐 PROTEÇÃO */
-const negocio = JSON.parse(localStorage.getItem("negocioLogado"));
-if(!negocio){
-  window.location.href = "login.html";
+/* =======================
+   SUPABASE CLIENT
+   ======================= */
+const supabase = window.supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+/* ELEMENTOS */
+const overlay = document.getElementById("overlay");
+const msgError = document.getElementById("msgError");
+const msgSuccess = document.getElementById("msgSuccess");
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
+
+/* UI */
+function showError(msg){
+  msgSuccess.style.display = "none";
+  msgError.innerText = msg;
+  msgError.style.display = "block";
+}
+function showSuccess(msg){
+  msgError.style.display = "none";
+  msgSuccess.innerText = msg;
+  msgSuccess.style.display = "block";
 }
 
-/* NOME */
-document.getElementById("nomeNegocio").innerText = negocio.negocio;
+/* LOGIN */
+document.getElementById("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  msgError.style.display = "none";
+  overlay.style.display = "flex";
 
-/* MENU */
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("collapsed");
-}
+  /* 1️⃣ AUTH */
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: emailInput.value.trim().toLowerCase(),
+    password: senhaInput.value.trim()
+  });
 
-function toggleSub(el){
-  const sub = el.nextElementSibling;
-  sub.style.display = sub.style.display === "block" ? "none" : "block";
-}
+  if(error){
+    overlay.style.display = "none";
+    const m = error.message.toLowerCase();
+    if(m.includes("confirm")){
+      showError("Confirme seu e-mail antes de entrar.");
+    }else{
+      showError("E-mail ou senha inválidos.");
+    }
+    return;
+  }
 
-/* LOAD IFRAME */
-function loadPage(page){
-  document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
-  event.currentTarget.classList.add("active");
-  document.getElementById("frame").src = page;
-}
+  const user = data.user;
 
-/* LOGOUT */
-function logout(){
-  localStorage.removeItem("negocioLogado");
-  window.location.href = "index.html";
+  /* 2️⃣ PROFILE (garante que existe) */
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profile")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+
+  overlay.style.display = "none";
+
+  if(profileError || !profile){
+    showError(
+      "Seu perfil ainda não foi configurado. Finalize o cadastro ou contate o suporte."
+    );
+    await supabase.auth.signOut();
+    return;
+  }
+
+  /* 3️⃣ LOGIN OK */
+  window.location.href = "dashboard.html";
+});
+
+/* RESET DE SENHA */
+async function resetSenha(){
+  const emailVal = emailInput.value.trim().toLowerCase();
+  if(!emailVal){
+    showError("Informe seu e-mail para recuperar a senha.");
+    return;
+  }
+
+  overlay.style.display = "flex";
+
+  const { error } = await supabase.auth.resetPasswordForEmail(emailVal, {
+    redirectTo: window.location.origin + "/login.html"
+  });
+
+  overlay.style.display = "none";
+
+  if(error){
+    showError("Erro ao enviar e-mail de recuperação.");
+  }else{
+    showSuccess("Enviamos um link de recuperação para seu e-mail.");
+  }
 }
 </script>
 
