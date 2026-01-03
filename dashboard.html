@@ -296,12 +296,15 @@ async function carregarPerfil(){
   pCidade.value = p.cidade || "";
   pUf.value = (p.uf || "").toUpperCase();
 
-  if(p.avatar_url){
-    profileImg.style.backgroundImage = `url(${p.avatar_url})`;
-    avatar.style.backgroundImage = `url(${p.avatar_url})`;
+if(p.avatar_url){
+  const signed = await getSigned(p.avatar_url);
+  if(signed){
+    profileImg.style.backgroundImage = `url(${signed})`;
+    avatar.style.backgroundImage = `url(${signed})`;
     avatar.textContent = "";
   }
 }
+
 
 
 /* ================= NAV ================= */
