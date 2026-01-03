@@ -2,9 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Agendamento Online</title>
+<title>Agendamento</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ff6a00">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,8 +13,8 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-dark:#e85f00;
-  --bg:#f4f6fb;
+  --primary-dark:#e45f00;
+  --bg:#f3f4f6;
   --card:#ffffff;
   --text:#111827;
   --muted:#6b7280;
@@ -22,175 +22,214 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:var(--text);overflow-x:hidden}
+body{background:var(--bg);color:var(--text)}
 
-/* ================= HEADER ================= */
-.header{
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  padding:36px 16px 90px;
-  text-align:center;
+/* ===== PERFIL TOPO ===== */
+.profile{
+  background:linear-gradient(135deg,#ff6a00,#ff934a);
+  padding:24px 16px 80px;
   position:relative;
 }
-.header img{
-  width:96px;height:96px;
-  border-radius:50%;
+
+.profile-card{
   background:#fff;
-  object-fit:cover;
-  box-shadow:0 14px 36px rgba(0,0,0,.3);
+  border-radius:24px;
+  padding:20px;
+  max-width:960px;
+  margin:0 auto;
+  box-shadow:0 25px 60px rgba(0,0,0,.18);
+  display:flex;
+  gap:18px;
+  align-items:center;
 }
-.header h1{
-  margin-top:14px;
-  color:#fff;
-  font-size:22px;
+
+.profile-card img{
+  width:92px;
+  height:92px;
+  border-radius:20px;
+  object-fit:cover;
+  background:#f3f4f6;
+}
+
+.profile-info h1{
+  font-size:20px;
   font-weight:800;
 }
-.header p{
-  color:#fff;
+
+.profile-info p{
   font-size:14px;
-  opacity:.95;
-  margin-top:4px;
+  color:var(--muted);
+  margin-top:2px;
 }
-.quick-info{
-  margin-top:16px;
+
+.profile-tags{
   display:flex;
-  gap:10px;
-  justify-content:center;
+  gap:8px;
   flex-wrap:wrap;
+  margin-top:10px;
 }
-.quick-info span{
-  background:rgba(255,255,255,.2);
-  color:#fff;
-  font-size:12px;
+
+.profile-tags span{
+  background:#f3f4f6;
   padding:6px 12px;
   border-radius:999px;
+  font-size:12px;
 }
 
-/* ================= CONTAINER ================= */
+/* ===== CONTEÚDO ===== */
 .container{
-  margin-top:-60px;
-  padding:16px;
+  max-width:960px;
+  margin:-50px auto 100px;
+  padding:0 16px;
 }
 
-/* ================= CARD ================= */
+/* ===== CARD ===== */
 .card{
-  background:var(--card);
+  background:#fff;
   border-radius:22px;
-  padding:16px;
-  box-shadow:0 18px 48px rgba(0,0,0,.1);
+  padding:20px;
+  box-shadow:0 18px 40px rgba(0,0,0,.08);
 }
 
-/* ================= TABS ================= */
+/* ===== TABS ===== */
 .tabs{
   display:flex;
-  gap:10px;
-  margin-bottom:14px;
+  gap:12px;
+  margin-bottom:16px;
 }
+
 .tabs button{
   flex:1;
   padding:12px;
   border-radius:999px;
-  border:none;
-  background:#f3f4f6;
-  font-weight:800;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:700;
   cursor:pointer;
 }
+
 .tabs button.active{
   background:var(--primary);
   color:#fff;
+  border-color:var(--primary);
 }
 
-/* ================= SEARCH ================= */
+/* ===== BUSCA ===== */
 .search{
-  margin-bottom:14px;
+  margin-bottom:18px;
 }
+
 .search input{
   width:100%;
   padding:14px;
   border-radius:14px;
   border:1px solid var(--border);
-}
-
-/* ================= GRID ================= */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-}
-.item{
-  background:#fff;
-  border-radius:18px;
-  overflow:hidden;
-  box-shadow:0 12px 30px rgba(0,0,0,.08);
-}
-.item img{
-  width:100%;
-  height:120px;
-  object-fit:cover;
-}
-.item-body{
-  padding:12px;
-}
-.item strong{
-  display:block;
   font-size:14px;
 }
-.meta{
+
+/* ===== GRID ===== */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
+}
+
+.item{
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.item img{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  background:#f3f4f6;
+}
+
+.item-body{
+  padding:16px;
+  flex:1;
+}
+
+.item-body strong{
+  font-size:15px;
+}
+
+.item-meta{
   display:flex;
   justify-content:space-between;
-  font-size:12px;
+  margin-top:6px;
+  font-size:13px;
   color:var(--muted);
-  margin:6px 0 10px;
 }
+
 .item button{
-  width:100%;
-  padding:10px;
+  margin:16px;
+  margin-top:0;
+  padding:12px;
+  border-radius:14px;
   border:none;
-  border-radius:999px;
   background:var(--primary);
   color:#fff;
   font-weight:800;
   cursor:pointer;
 }
-.item button:hover{background:var(--primary-dark)}
 
-/* ================= FIXED CTA ================= */
-.fixed-cta{
-  position:fixed;
-  bottom:14px;
-  left:14px;
-  right:14px;
-  background:var(--primary);
-  color:#fff;
-  padding:14px;
-  text-align:center;
-  border-radius:16px;
-  font-weight:800;
-  box-shadow:0 20px 40px rgba(0,0,0,.25);
-  z-index:3000;
+.item button:hover{
+  background:var(--primary-dark);
 }
 
-/* ================= CHAT ================= */
+/* ===== CTA FIXO ===== */
+.cta{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid var(--border);
+  padding:14px;
+}
+
+.cta button{
+  width:100%;
+  padding:16px;
+  border-radius:16px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+  font-size:16px;
+}
+
+/* ===== CHAT ===== */
 #chatOverlay{
   position:fixed;
   inset:0;
   background:#fff;
-  z-index:5000;
+  z-index:9999;
   display:none;
   flex-direction:column;
 }
+
 .chat-header{
   padding:16px;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  background:var(--primary);
   color:#fff;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
+
 .chat-body{
   flex:1;
   padding:16px;
   overflow-y:auto;
 }
+
 .msg{
   max-width:80%;
   padding:12px 16px;
@@ -198,57 +237,60 @@ body{background:var(--bg);color:var(--text);overflow-x:hidden}
   margin-bottom:10px;
   font-size:14px;
 }
+
 .bot{
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  color:#fff;
+  background:#fff4ec;
 }
+
 .user{
   background:#e5e7eb;
   margin-left:auto;
 }
+
 .chat-input{
   display:flex;
   gap:10px;
   padding:14px;
   border-top:1px solid var(--border);
 }
+
 .chat-input input{
   flex:1;
   padding:14px;
   border-radius:999px;
   border:1px solid var(--border);
 }
+
 .chat-input button{
-  width:56px;
-  border:none;
+  width:54px;
   border-radius:50%;
+  border:none;
   background:var(--primary);
   color:#fff;
   font-weight:800;
-}
-
-/* ================= LOADING ================= */
-.loading{
-  text-align:center;
-  padding:30px;
-  color:var(--muted);
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <img id="logo">
-  <h1 id="nomeLoja">Carregando…</h1>
-  <p>Agende seu horário online em segundos</p>
-  <div class="quick-info">
-    <span>⏱ Atendimento rápido</span>
-    <span>📱 Confirmação WhatsApp</span>
-    <span>💳 Pagamento facilitado</span>
+<!-- PERFIL -->
+<section class="profile">
+  <div class="profile-card">
+    <img id="logo">
+    <div class="profile-info">
+      <h1 id="nomeLoja">Carregando…</h1>
+      <p>Agendamento online</p>
+      <div class="profile-tags">
+        <span>⏱ Atendimento rápido</span>
+        <span>📱 WhatsApp</span>
+        <span>💳 Pagamento facilitado</span>
+      </div>
+    </div>
   </div>
-</div>
+</section>
 
+<!-- CONTEÚDO -->
 <div class="container">
   <div class="card">
 
@@ -258,7 +300,7 @@ body{background:var(--bg);color:var(--text);overflow-x:hidden}
     </div>
 
     <div class="search">
-      <input id="busca" placeholder="Buscar serviço ou produto">
+      <input placeholder="Buscar serviço ou produto">
     </div>
 
     <div id="servicos" class="grid"></div>
@@ -267,13 +309,16 @@ body{background:var(--bg);color:var(--text);overflow-x:hidden}
   </div>
 </div>
 
-<div class="fixed-cta" onclick="scrollToServicos()">Agendar agora</div>
+<!-- CTA -->
+<div class="cta">
+  <button onclick="scrollToTop()">Agendar agora</button>
+</div>
 
 <!-- CHAT -->
 <div id="chatOverlay">
   <div class="chat-header">
     <strong>Agendamento</strong>
-    <span style="cursor:pointer" onclick="fecharChat()">✕</span>
+    <span onclick="fecharChat()">✕</span>
   </div>
   <div class="chat-body" id="chat"></div>
   <div class="chat-input">
@@ -291,32 +336,29 @@ const sb = supabase.createClient(
 const lojaId = new URLSearchParams(location.search).get("l");
 let etapa="nome", cliente={}, servico=null;
 
-function scrollToServicos(){
-  document.querySelector(".card").scrollIntoView({behavior:"smooth"});
+function scrollToTop(){
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
-/* ===== CHAT ===== */
+/* CHAT */
 function abrirChat(s){
   servico=s;
   chatOverlay.style.display="flex";
-  document.body.style.overflow="hidden";
   chat.innerHTML="";
   etapa="nome";
-  bot(`Você escolheu <b>${s.nome}</b> 😊`);
-  bot("Para começar, qual é o seu nome?");
+  bot(`Você escolheu <b>${s.nome}</b>`);
+  bot("Qual é o seu nome?");
 }
 
 function fecharChat(){
   chatOverlay.style.display="none";
-  document.body.style.overflow="";
 }
 
 function bot(t){
-  setTimeout(()=>{
-    chat.innerHTML+=`<div class="msg bot">${t}</div>`;
-    chat.scrollTop=chat.scrollHeight;
-  },600);
+  chat.innerHTML+=`<div class="msg bot">${t}</div>`;
+  chat.scrollTop=chat.scrollHeight;
 }
+
 function userMsg(t){
   chat.innerHTML+=`<div class="msg user">${t}</div>`;
 }
@@ -326,21 +368,18 @@ function enviar(){
   if(!v) return;
   userMsg(v);
   input.value="";
-
   if(etapa==="nome"){
     cliente.nome=v;
     etapa="whats";
-    bot("Agora me informe seu WhatsApp 📱");
-  }
-  else if(etapa==="whats"){
-    cliente.whats=v.replace(/\D/g,'');
-    bot("Perfeito! Seu pedido foi registrado ✅");
-    bot("Em breve entraremos em contato para confirmar o horário.");
+    bot("Agora informe seu WhatsApp 📱");
+  }else if(etapa==="whats"){
+    cliente.whats=v;
+    bot("Perfeito! Em breve confirmaremos seu horário.");
     etapa="fim";
   }
 }
 
-/* ===== LISTAGEM ===== */
+/* LISTAGEM */
 async function carregar(){
   const {data:p}=await sb.from("user_profile")
     .select("negocio,avatar_url")
@@ -354,42 +393,19 @@ async function carregar(){
     .eq("user_id",lojaId)
     .eq("ativo",true);
 
-  const s=data.filter(i=>i.tipo==="SERVICO");
-  const pr=data.filter(i=>i.tipo==="PRODUTO");
-
-  servicos.innerHTML=s.map(i=>`
+  servicos.innerHTML=data.filter(i=>i.tipo==="SERVICO").map(i=>`
     <div class="item">
-      <img src="${i.imagem_url || 'https://placehold.co/300x200'}">
+      <img src="${i.imagem_url||''}">
       <div class="item-body">
         <strong>${i.nome}</strong>
-        <div class="meta">
+        <div class="item-meta">
           <span>⏱ ${i.duracao||60} min</span>
           <span>💰 R$ ${i.preco}</span>
         </div>
-        <button onclick='abrirChat(${JSON.stringify(i)})'>Agendar</button>
       </div>
+      <button onclick='abrirChat(${JSON.stringify(i)})'>Agendar</button>
     </div>
   `).join("");
-
-  produtos.innerHTML=pr.map(i=>`
-    <div class="item">
-      <img src="${i.imagem_url || 'https://placehold.co/300x200'}">
-      <div class="item-body">
-        <strong>${i.nome}</strong>
-        <div class="meta">
-          <span>💰 R$ ${i.preco}</span>
-        </div>
-        <button>Comprar</button>
-      </div>
-    </div>
-  `).join("");
-}
-
-function mostrar(t,el){
-  servicos.style.display=t==="servicos"?"grid":"none";
-  produtos.style.display=t==="produtos"?"grid":"none";
-  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-  el.classList.add("active");
 }
 
 if(lojaId) carregar();
