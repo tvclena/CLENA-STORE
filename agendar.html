@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Agendamento</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,6 +13,8 @@
 :root{
   --primary:#ff6a00;
   --bg:#f4f6fb;
+  --card:#fff;
+  --border:#e5e7eb;
 }
 
 *{box-sizing:border-box;font-family:Inter}
@@ -24,15 +26,28 @@ body{
   overflow:hidden;
 }
 
+/* ===== TOPO FIXO ===== */
+.top{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:56px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  font-weight:800;
+  z-index:10;
+}
+
 /* ===== CHAT ===== */
 .chat{
   position:fixed;
-  top:0;
+  top:56px;
+  bottom:80px;
   left:0;
   right:0;
-  bottom:0;
   padding:14px;
-  padding-bottom:90px; /* espaço do input */
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 }
@@ -52,119 +67,146 @@ body{
   margin-left:auto;
 }
 
-/* ===== OPTIONS ===== */
-.options{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
-  margin:10px 0;
+/* ===== SERVIÇOS ===== */
+.carousel{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  padding:6px 0;
 }
 
-.card{
+.service{
+  min-width:160px;
   background:#fff;
-  border-radius:16px;
+  border-radius:18px;
   overflow:hidden;
+  position:relative;
   cursor:pointer;
 }
 
-.card img{
+.service img{
   width:100%;
   height:100px;
   object-fit:cover;
 }
 
-.card div{
+.service div{
   padding:10px;
   font-weight:800;
   font-size:13px;
 }
 
-.day,.time{
+/* OVERLAY */
+.loading{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,.8);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+}
+
+/* ===== DIAS ===== */
+.days{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.day{
+  background:#fff;
+  border-radius:14px;
+  padding:14px 0;
+  text-align:center;
+  font-weight:800;
+  cursor:pointer;
+  position:relative;
+}
+
+/* ===== HORÁRIOS ===== */
+.times{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.time{
   background:#fff;
   border-radius:999px;
-  padding:10px;
+  padding:12px;
   text-align:center;
+  font-weight:800;
   cursor:pointer;
-  font-weight:700;
 }
 
 /* ===== INPUT ===== */
 .input{
   position:fixed;
+  bottom:0;
   left:0;
   right:0;
-  bottom:0;
+  height:80px;
   padding:10px;
   background:#fff;
+  border-top:1px solid var(--border);
   display:flex;
   gap:10px;
-  border-top:1px solid #eee;
 }
 
 .input input{
   flex:1;
-  padding:12px 16px;
+  padding:14px;
   border-radius:999px;
-  border:1px solid #ddd;
-  font-size:15px;
+  border:1px solid var(--border);
 }
 
 .input button{
-  width:44px;
+  width:46px;
   border:none;
   border-radius:50%;
   background:var(--primary);
   color:#fff;
   font-size:18px;
 }
+
+/* ===== RESUMO ===== */
+.summary{
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
 </style>
 </head>
 
 <body>
 
+<div class="top">Agendamento</div>
+
 <div class="chat" id="chat"></div>
 
-<div class="input" id="inputBar">
-  <input id="text" placeholder="Digite aqui">
+<div class="input">
+  <input id="input" placeholder="Digite aqui">
   <button onclick="send()">➤</button>
 </div>
 
 <script>
-/* ================= SUPABASE ================= */
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-/* ================= CONTEXTO ================= */
 const lojaId = new URLSearchParams(location.search).get("l");
-let etapa="nome";
-let dados={};
-let agendaAtual=[];
+let etapa="nome", dados={}, agenda=[], duracao=0;
 
 const chat=document.getElementById("chat");
-const input=document.getElementById("text");
-const inputBar=document.getElementById("inputBar");
-
-/* ================= SCROLL FIX (TECLADO) ================= */
-function ajustarPadding(){
-  const h = inputBar.offsetHeight;
-  chat.style.paddingBottom = (h + 16) + "px";
-  scrollFinal();
-}
+const input=document.getElementById("input");
 
 function scrollFinal(){
-  chat.scrollTop = chat.scrollHeight;
+  requestAnimationFrame(()=>chat.scrollTop=chat.scrollHeight);
 }
-
-window.visualViewport?.addEventListener("resize",()=>{
-  setTimeout(scrollFinal,50);
-});
-
-input.addEventListener("focus",()=>setTimeout(scrollFinal,300));
-
-/* ================= UTIL ================= */
-function delay(ms=1000){ return new Promise(r=>setTimeout(r,ms)); }
+function delay(ms=1000){return new Promise(r=>setTimeout(r,ms));}
 
 function bot(t){
   delay().then(()=>{
@@ -177,19 +219,17 @@ function user(t){
   scrollFinal();
 }
 
-function toMin(h){const[a,b]=h.split(":").map(Number);return a*60+b;}
-function toHour(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
-
-/* ================= START ================= */
+/* ===== INÍCIO ===== */
 bot("Olá 😊 Vamos agendar seu horário?");
 bot("Qual é o seu nome completo?");
 
-/* ================= SEND ================= */
+/* ===== SEND ===== */
 async function send(){
   const v=input.value.trim();
   if(!v) return;
   user(v);
   input.value="";
+  scrollFinal();
 
   if(etapa==="nome"){
     dados.nome=v;
@@ -201,14 +241,14 @@ async function send(){
   }
 
   if(etapa==="whats"){
-    dados.whatsapp=v.replace(/\D/g,'');
+    dados.whats=v.replace(/\D/g,'');
     etapa="servico";
     bot("Escolha um serviço:");
     listarServicos();
   }
 }
 
-/* ================= SERVIÇOS ================= */
+/* ===== SERVIÇOS ===== */
 async function listarServicos(){
   const {data}=await sb.from("produtos_servicos")
     .select("*")
@@ -218,9 +258,9 @@ async function listarServicos(){
     .eq("pode_agendar",true);
 
   chat.innerHTML+=`
-    <div class="options">
+    <div class="carousel">
       ${data.map(s=>`
-        <div class="card" onclick="selectServico('${s.id}',${s.duracao_minutos})">
+        <div class="service" onclick="selectServico(this,'${s.id}',${s.duracao_minutos})">
           <img src="${s.imagem_url||''}">
           <div>${s.nome}<br>R$ ${s.preco}</div>
         </div>
@@ -229,47 +269,53 @@ async function listarServicos(){
   scrollFinal();
 }
 
-/* ================= DIAS ================= */
-async function selectServico(id,d){
-  dados.servico_id=id;
-  dados.duracao=d;
-  bot("Agora escolha o dia disponível:");
-  const hoje=new Date().toISOString().split("T")[0];
+/* ===== DIAS ===== */
+async function selectServico(el,id,d){
+  el.innerHTML+=`<div class="loading">Carregando…</div>`;
+  dados.servico=id;
+  duracao=d;
 
+  const hoje=new Date().toISOString().split("T")[0];
   const {data}=await sb.from("agenda_loja")
     .select("*")
     .eq("user_id",lojaId)
     .gte("data",hoje)
     .eq("fechado",false);
 
+  el.querySelector(".loading")?.remove();
+  bot("Escolha o dia:");
+
   chat.innerHTML+=`
-    <div class="options">
+    <div class="days">
       ${data.map(d=>`
-        <div class="day" onclick='selectDia("${d.data}",${JSON.stringify(d.horarios).replace(/"/g,"&quot;")})'>
-          ${new Date(d.data).toLocaleDateString("pt-BR",{weekday:"short",day:"numeric"})}
+        <div class="day" onclick='selectDia(this,"${d.data}",${JSON.stringify(d.horarios).replace(/"/g,"&quot;")})'>
+          ${new Date(d.data).getDate()}
         </div>
       `).join("")}
     </div>`;
   scrollFinal();
 }
 
-/* ================= HORÁRIOS ================= */
-function selectDia(data,horarios){
+/* ===== HORÁRIOS ===== */
+function selectDia(el,data,horarios){
+  el.innerHTML+=`<div class="loading">…</div>`;
   dados.data=data;
-  agendaAtual=horarios;
-  bot("Agora escolha um horário:");
+  agenda=horarios;
 
   let slots=[];
-  agendaAtual.forEach(h=>{
+  agenda.forEach(h=>{
     let s=toMin(h.inicio), e=toMin(h.fim);
-    while(s+dados.duracao<=e){
+    while(s+duracao<=e){
       slots.push(toHour(s));
-      s+=dados.duracao;
+      s+=duracao;
     }
   });
 
+  el.querySelector(".loading")?.remove();
+  bot("Escolha o horário:");
+
   chat.innerHTML+=`
-    <div class="options">
+    <div class="times">
       ${slots.map(h=>`
         <div class="time" onclick="confirmar('${h}')">${h}</div>
       `).join("")}
@@ -277,26 +323,33 @@ function selectDia(data,horarios){
   scrollFinal();
 }
 
-/* ================= CONFIRMAR ================= */
+/* ===== CONFIRMAR ===== */
 async function confirmar(h){
-  dados.hora_inicio=h;
-  dados.hora_fim=toHour(toMin(h)+dados.duracao);
+  dados.inicio=h;
+  dados.fim=toHour(toMin(h)+duracao);
 
   await sb.from("agendamentos").insert({
     user_id:lojaId,
-    servico_id:dados.servico_id,
+    servico_id:dados.servico,
     data:dados.data,
-    hora_inicio:dados.hora_inicio,
-    hora_fim:dados.hora_fim,
+    hora_inicio:dados.inicio,
+    hora_fim:dados.fim,
     cliente_nome:dados.nome,
-    cliente_whatsapp:dados.whatsapp
+    cliente_whatsapp:dados.whats
   });
 
-  bot("✅ Agendamento confirmado!");
-  bot(`${dados.data} às ${dados.hora_inicio}`);
+  bot(`
+    <div class="summary">
+      <strong>Agendamento confirmado 🎉</strong><br><br>
+      👤 ${dados.nome}<br>
+      📅 ${dados.data}<br>
+      ⏰ ${dados.inicio}<br><br>
+      Seu agendamento já está disponível na área de agendamentos.
+    </div>
+  `);
 }
-
-ajustarPadding();
+function toMin(h){const[a,b]=h.split(":").map(Number);return a*60+b;}
+function toHour(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
 </script>
 
 </body>
