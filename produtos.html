@@ -28,7 +28,7 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
-  font-family:Inter;
+  font-family:Inter, sans-serif;
 }
 
 html, body{
@@ -38,7 +38,7 @@ html, body{
 body{
   background:var(--bg);
   padding:24px;
-  overflow:hidden; /* ❌ remove scroll global */
+  overflow:hidden; /* ❌ sem scroll global */
 }
 
 /* ================= HEADER ================= */
@@ -81,7 +81,7 @@ body{
   font-weight:800;
 }
 
-/* ================= LAYOUT ================= */
+/* ================= LAYOUT PRINCIPAL ================= */
 .container{
   max-width:1700px;
   margin:auto;
@@ -131,6 +131,7 @@ textarea{
   gap:10px;
 }
 
+/* CHECKBOX */
 .switch{
   display:flex;
   align-items:center;
@@ -198,7 +199,7 @@ button{
   grid-template-columns:repeat(auto-fill, minmax(190px,1fr));
   gap:16px;
 
-  overflow-y:auto;
+  overflow-y:auto;     /* ✅ scroll só aqui */
   overflow-x:hidden;
   padding-right:6px;
 }
@@ -214,7 +215,7 @@ button{
 
 /* ================= ITEM (CARD PRODUTO) ================= */
 .item{
-  height:240px; /* 🔒 TODOS IGUAIS */
+  height:240px; /* 🔒 todos iguais */
   background:#fff;
   border-radius:18px;
   box-shadow:0 8px 22px rgba(0,0,0,.10);
@@ -230,27 +231,29 @@ button{
   box-shadow:0 16px 36px rgba(0,0,0,.14);
 }
 
-/* ================= IMAGE ================= */
-.item .image{
-  height:90px;
+/* ================= IMAGE (SEM CONFLITO) ================= */
+.image{
+  width:100%;
+  height:110px;
+  background:linear-gradient(135deg,#f1f5f9,#e5e7eb);
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(135deg,#111,#333);
+  overflow:hidden;
+  border-radius:18px 18px 0 0;
 }
 
-/* imagem normal */
-.item .image img{
+.image img{
   width:100%;
   height:100%;
   object-fit:cover;
 }
 
 /* SEM IMAGEM → LETRA */
-.item .image.no-image{
+.image.no-image{
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
-  font-size:36px;
+  font-size:38px;
   font-weight:800;
   text-transform:uppercase;
 }
