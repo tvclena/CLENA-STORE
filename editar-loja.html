@@ -2,180 +2,112 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Agendamento Online</title>
+<title>Configurar Loja</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="theme-color" id="themeColor">
 
-<link rel="manifest" id="manifestLink">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --primary:#ff6a00;
+  --primary:#a71b1b;
+  --secondary:#520000;
   --bg:#f4f6fb;
-  --card:#ffffff;
+  --card:#fff;
   --text:#111827;
   --muted:#6b7280;
-  --danger:#dc2626;
+  --success:#16a34a;
 }
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:var(--text)}
+body{background:var(--bg);color:var(--text);padding-bottom:90px}
 
+/* HEADER */
 header{
-  background:var(--primary);
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
   color:#fff;
-  padding:18px;
+  padding:22px;
   text-align:center;
 }
 header img{
-  width:88px;height:88px;border-radius:50%;object-fit:cover;background:#fff;
-}
-header h1{margin-top:8px;font-size:22px;font-weight:800}
-
-#perfilCliente{
+  width:84px;height:84px;
+  border-radius:50%;
   background:#fff;
-  margin:14px;
-  padding:14px;
-  border-radius:14px;
-  font-size:14px;
-}
-
-/* BANNER */
-#banner{
-  display:none;
-  margin:14px;
-  border-radius:18px;
-  overflow:hidden;
-  position:relative;
-}
-#banner img{
-  width:100%;
-  height:160px;
   object-fit:cover;
 }
-#banner span{
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  padding:10px;
-  background:rgba(0,0,0,.55);
-  color:#fff;
-  font-weight:700;
-}
+header h1{margin-top:10px;font-size:20px}
 
-/* SEÇÕES */
-.section{display:none;padding:14px}
-.section.active{display:block}
-
-/* CARDS */
+/* CARD */
 .card{
   background:var(--card);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:12px;
+  margin:14px;
+  padding:16px;
+  border-radius:18px;
+}
+.card h3{
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  margin-bottom:10px;
+  color:var(--muted);
 }
 
-/* SERVIÇOS / PRODUTOS */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:12px;
-}
-.item img{
+/* INPUTS */
+label{font-size:13px;font-weight:700}
+input,select{
   width:100%;
-  height:120px;
-  border-radius:12px;
-  object-fit:cover;
-}
-.item button{
-  width:100%;
+  padding:12px;
   margin-top:6px;
-  padding:10px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+input[type="color"]{padding:4px;height:44px}
+
+/* SWITCH */
+.switch{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.switch input{width:20px;height:20px}
+
+/* BUTTON */
+button{
+  width:calc(100% - 28px);
+  margin:14px;
+  padding:16px;
   border:none;
   border-radius:999px;
   background:var(--primary);
   color:#fff;
   font-weight:800;
+  font-size:15px;
 }
 
-/* CALENDÁRIO */
-.dias{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
+/* PREVIEW */
+.preview{
+  border-radius:14px;
+  overflow:hidden;
+  margin-top:10px;
 }
-.dia{
-  min-width:80px;
-  padding:10px;
-  border-radius:12px;
-  text-align:center;
-  background:#e5e7eb;
-  cursor:pointer;
-}
-.dia.active{background:var(--primary);color:#fff}
+.preview img{width:100%;height:140px;object-fit:cover}
 
-.horarios{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
-  gap:8px;
-  margin-top:12px;
-}
-.hora{
-  padding:10px;
-  border-radius:10px;
-  text-align:center;
-  background:#e5e7eb;
-}
-.hora.disponivel{background:#16a34a;color:#fff;cursor:pointer}
-.hora.indisponivel{background:#dc2626;color:#fff}
-
-/* NAVBAR */
-nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  display:flex;
-  justify-content:space-around;
-  border-top:1px solid #ddd;
-}
-nav button{
-  flex:1;
-  padding:10px;
-  border:none;
-  background:none;
-  font-size:12px;
-  font-weight:700;
-}
-
-/* POPUP */
-#popup{
-  position:fixed;
-  inset:0;
+/* OVERLAY */
+#overlay{
+  position:fixed;inset:0;
   background:rgba(0,0,0,.55);
   display:none;
   align-items:center;
   justify-content:center;
+  z-index:999;
 }
-#popup .box{
+#overlay div{
   background:#fff;
-  padding:20px;
+  padding:18px 22px;
   border-radius:18px;
-  max-width:340px;
-  text-align:center;
-}
-#popup button{
-  margin-top:12px;
-  padding:10px 20px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
   font-weight:800;
 }
 </style>
@@ -184,49 +116,92 @@ nav button{
 <body>
 
 <header>
-  <img id="logo">
-  <h1 id="nomeLoja">Carregando…</h1>
+  <img id="logoPreview">
+  <h1>Configurar Loja</h1>
 </header>
 
-<div id="perfilCliente" class="card">
-  👤 <strong id="clienteNome">Visitante</strong><br>
-  📱 <span id="clienteWhats"></span>
+<!-- IDENTIDADE -->
+<div class="card">
+  <h3>Identidade visual</h3>
+
+  <label>Nome da loja</label>
+  <input id="nome">
+
+  <label>Logo (URL)</label>
+  <input id="logo_url" placeholder="https://">
+
+  <label>Cor primária</label>
+  <input type="color" id="cor_primaria">
+
+  <label>Cor secundária</label>
+  <input type="color" id="cor_secundaria">
 </div>
 
-<div id="banner">
-  <img id="bannerImg">
-  <span id="bannerTxt"></span>
+<!-- BANNER -->
+<div class="card">
+  <h3>Banner</h3>
+
+  <div class="switch">
+    <label>Banner ativo</label>
+    <input type="checkbox" id="banner_ativo">
+  </div>
+
+  <label>Imagem do banner</label>
+  <input id="banner_url" placeholder="https://">
+
+  <label>Texto do banner</label>
+  <input id="banner_texto">
+
+  <div class="preview" id="bannerPreview"></div>
 </div>
 
-<!-- SERVIÇOS -->
-<div id="servicos" class="section active">
-  <div class="grid" id="listaServicos"></div>
+<!-- POPUP -->
+<div class="card">
+  <h3>Popup inicial</h3>
+
+  <div class="switch">
+    <label>Popup ativo</label>
+    <input type="checkbox" id="popup_ativo">
+  </div>
+
+  <label>Título do popup</label>
+  <input id="popup_titulo">
+
+  <label>Texto do popup</label>
+  <input id="popup_texto">
+
+  <label>Imagem do popup</label>
+  <input id="popup_imagem">
 </div>
 
-<!-- AGENDAR -->
-<div id="agendar" class="section">
-  <div class="dias" id="dias"></div>
-  <div class="horarios" id="horarios"></div>
-</div>
+<!-- PERMISSÕES -->
+<div class="card">
+  <h3>Permissões</h3>
 
-<!-- MEUS AGENDAMENTOS -->
-<div id="meus" class="section">
-  <div id="listaMeus"></div>
-</div>
+  <div class="switch">
+    <label>Mostrar serviços</label>
+    <input type="checkbox" id="mostrar_servicos">
+  </div>
 
-<nav>
-  <button onclick="show('servicos')">Serviços</button>
-  <button onclick="show('agendar')">Agendar</button>
-  <button onclick="show('meus')">Meus horários</button>
-</nav>
+  <div class="switch">
+    <label>Mostrar produtos</label>
+    <input type="checkbox" id="mostrar_produtos">
+  </div>
 
-<div id="popup">
-  <div class="box">
-    <h3 id="popupTitulo"></h3>
-    <p id="popupTexto"></p>
-    <button onclick="popup.style.display='none'">Fechar</button>
+  <div class="switch">
+    <label>Permitir agendamento</label>
+    <input type="checkbox" id="permitir_agendamento">
+  </div>
+
+  <div class="switch">
+    <label>Permitir pedidos</label>
+    <input type="checkbox" id="permitir_pedidos">
   </div>
 </div>
+
+<button onclick="salvar()">Salvar configurações</button>
+
+<div id="overlay"><div>Salvando…</div></div>
 
 <script>
 const sb = supabase.createClient(
@@ -234,131 +209,86 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const lojaId = new URLSearchParams(location.search).get("l");
+let userId = null;
 
-/* NAV */
-function show(id){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-/* LOJA */
-async function carregarLoja(){
-  const {data:perfil} = await sb
-    .from("user_profile")
-    .select("negocio,avatar_url")
-    .eq("user_id",lojaId)
-    .single();
-
-  nomeLoja.innerText = perfil?.negocio || "Agendamento Online";
-  if(perfil?.avatar_url) logo.src = perfil.avatar_url;
-
-  /* PWA */
-  const manifest = {
-    name: perfil?.negocio || "Agendamento",
-    short_name: perfil?.negocio || "Agenda",
-    start_url: location.href,
-    display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ff6a00",
-    icons:[{src:perfil?.avatar_url,sizes:"192x192",type:"image/png"}]
-  };
-  const blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
-  manifestLink.href = URL.createObjectURL(blob);
-
-  const {data:cfg} = await sb
-    .from("config_loja")
-    .select("*")
-    .eq("user_id",lojaId)
-    .single();
-
-  if(cfg?.cor_primaria){
-    document.documentElement.style.setProperty('--primary',cfg.cor_primaria);
-    themeColor.content = cfg.cor_primaria;
-  }
-
-  if(cfg?.banner_ativo){
-    banner.style.display="block";
-    bannerImg.src = cfg.banner_imagem;
-    bannerTxt.innerText = cfg.banner_texto;
-  }
-
-  if(cfg?.popup_ativo){
-    popupTitulo.innerText = cfg.popup_titulo;
-    popupTexto.innerText = cfg.popup_texto;
-    popup.style.display="flex";
-  }
-}
-
-/* SERVIÇOS */
-async function carregarServicos(){
-  const {data} = await sb
-    .from("produtos_servicos")
-    .select("*")
-    .eq("user_id",lojaId)
-    .eq("tipo","SERVICO")
-    .eq("ativo",true);
-
-  listaServicos.innerHTML = data.map(s=>`
-    <div class="item card">
-      <img src="${s.imagem_url}">
-      <strong>${s.nome}</strong><br>
-      R$ ${Number(s.preco).toFixed(2)}
-      <button onclick="show('agendar')">Agendar</button>
-    </div>
-  `).join("");
-}
-
-/* AGENDA */
-async function carregarAgenda(){
-  const hoje = new Date();
-  const diasArr = [];
-
-  for(let i=0;i<7;i++){
-    const d = new Date();
-    d.setDate(hoje.getDate()+i);
-    diasArr.push(d.toISOString().slice(0,10));
-  }
-
-  dias.innerHTML = diasArr.map(d=>`
-    <div class="dia" onclick="selecionarDia('${d}',this)">
-      ${d.slice(8,10)}/${d.slice(5,7)}
-    </div>
-  `).join("");
-}
-
-async function selecionarDia(data,el){
-  document.querySelectorAll('.dia').forEach(d=>d.classList.remove('active'));
-  el.classList.add('active');
-
-  const {data:dia} = await sb
-    .from("agenda_loja")
-    .select("*")
-    .eq("user_id",lojaId)
-    .eq("data",data)
-    .single();
-
-  if(!dia || dia.fechado){
-    horarios.innerHTML = "<p>Fechado</p>";
+/* AUTH */
+(async()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){
+    location.href="login.html";
     return;
   }
+  userId = session.user.id;
+  carregar();
+})();
 
-  const hrs = JSON.parse(dia.horarios || "[]");
+/* LOAD */
+async function carregar(){
+  const {data} = await sb
+    .from("config_loja")
+    .select("*")
+    .eq("user_id",userId)
+    .single();
 
-  horarios.innerHTML = hrs.map(h=>`
-    <div class="hora disponivel">
-      ${h.inicio}
-    </div>
-  `).join("");
+  if(!data) return;
+
+  nome.value = data.nome || "";
+  logo_url.value = data.logo_url || "";
+  cor_primaria.value = data.cor_primaria || "#ff6a00";
+  cor_secundaria.value = data.cor_secundaria || "#520000";
+
+  banner_ativo.checked = data.banner_ativo;
+  banner_url.value = data.banner_url || "";
+  banner_texto.value = data.banner_texto || "";
+
+  popup_ativo.checked = data.popup_ativo;
+  popup_titulo.value = data.popup_titulo || "";
+  popup_texto.value = data.popup_texto || "";
+  popup_imagem.value = data.popup_imagem || "";
+
+  mostrar_servicos.checked = data.mostrar_servicos;
+  mostrar_produtos.checked = data.mostrar_produtos;
+  permitir_agendamento.checked = data.permitir_agendamento;
+  permitir_pedidos.checked = data.permitir_pedidos;
+
+  if(data.logo_url){
+    logoPreview.src = data.logo_url;
+  }
+
+  if(data.banner_url){
+    bannerPreview.innerHTML = `<img src="${data.banner_url}">`;
+  }
 }
 
-/* INIT */
-if(lojaId){
-  carregarLoja();
-  carregarServicos();
-  carregarAgenda();
-}else{
-  document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
+/* SAVE */
+async function salvar(){
+  overlay.style.display="flex";
+
+  const payload = {
+    user_id:userId,
+    nome:nome.value,
+    logo_url:logo_url.value,
+    cor_primaria:cor_primaria.value,
+    cor_secundaria:cor_secundaria.value,
+    banner_ativo:banner_ativo.checked,
+    banner_url:banner_url.value,
+    banner_texto:banner_texto.value,
+    popup_ativo:popup_ativo.checked,
+    popup_titulo:popup_titulo.value,
+    popup_texto:popup_texto.value,
+    popup_imagem:popup_imagem.value,
+    mostrar_servicos:mostrar_servicos.checked,
+    mostrar_produtos:mostrar_produtos.checked,
+    permitir_agendamento:permitir_agendamento.checked,
+    permitir_pedidos:permitir_pedidos.checked
+  };
+
+  await sb
+    .from("config_loja")
+    .upsert(payload,{onConflict:"user_id"});
+
+  overlay.style.display="none";
+  alert("Configurações salvas com sucesso ✅");
 }
 </script>
 
