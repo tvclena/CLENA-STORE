@@ -7,7 +7,6 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
@@ -151,7 +150,7 @@ iframe{
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
-    <strong id="nomeNegocio">Meu Negócio</strong>
+    <strong>Meu Negócio</strong>
   </div>
 
   <div class="content">
@@ -160,40 +159,13 @@ iframe{
 </div>
 
 <script>
-/* =======================
-   SUPABASE CLIENT (ÚNICO)
-   ======================= */
-if (!window.supabaseClient) {
-  window.supabaseClient = supabase.createClient(
-    "https://egxjgmzukjyyxmkukwub.supabase.co",
-    "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-  );
-}
-const sb = window.supabaseClient;
-
-/* =======================
-   PROTEÇÃO DE SESSÃO
-   ======================= */
-(async ()=>{
-  const { data } = await sb.auth.getSession();
-  if(!data.session){
-    location.replace("login.html");
-    return;
-  }
-
-  /* opcional: usar dados do usuário */
-  const user = data.session.user;
-  if(user?.email){
-    document.getElementById("nomeNegocio").innerText = user.email;
-  }
-})();
-
-/* ========= MENU FUNCIONAL ========= */
+/* ========= MENU FUNCIONAL (PURO) ========= */
 
 const frame = document.getElementById("frame");
 const menuItems = document.querySelectorAll(".menu-item[data-page]");
 const submenuItems = document.querySelectorAll(".submenu div");
 
+/* carregar página */
 function carregar(pagina){
   frame.src = pagina;
 }
@@ -226,12 +198,9 @@ submenuItems.forEach(item=>{
 /* página inicial */
 carregar("home.html");
 
-/* =======================
-   LOGOUT CORRETO
-   ======================= */
-async function logout(){
-  await sb.auth.signOut();
-  location.replace("login.html");
+/* logout apenas navegação */
+function logout(){
+  location.href = "login.html";
 }
 </script>
 
