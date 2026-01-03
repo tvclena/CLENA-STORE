@@ -26,67 +26,160 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);height:100vh;display:flex;flex-direction:column}
 
-/* TOP */
+  --topbar-h:56px;
+  --navbar-h:68px;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,body{
+  width:100vw;
+  height:100vh;
+  overflow:hidden; /* impede scroll geral */
+}
+
+/* ================= TOPBAR FIXA ================= */
 .topbar{
-  height:56px;background:#fff;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  position:fixed;
+  top:0;left:0;right:0;
+  height:var(--topbar-h);
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  z-index:10;
 }
-.topbar h1{font-size:18px;font-weight:800}
+
+.topbar h1{
+  font-size:18px;
+  font-weight:800;
+}
+
 .avatar{
-  width:36px;height:36px;border-radius:50%;
+  width:36px;
+  height:36px;
+  border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  display:none;align-items:center;justify-content:center;
-  color:#fff;font-weight:800;cursor:pointer;
+  display:flex; /* SEMPRE VISÍVEL NO HOME */
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
 }
 
-/* IFRAME */
-.iframe-wrap{flex:1;background:#fff}
-iframe{width:100%;height:100%;border:none}
+/* ================= ÁREA DE CONTEÚDO ================= */
+.content{
+  position:fixed;
+  top:var(--topbar-h);
+  bottom:var(--navbar-h);
+  left:0;
+  right:0;
+  background:#fff;
+  overflow-y:auto;
+  overflow-x:hidden;
 
-/* NAV */
+  scrollbar-width:none;
+}
+.content::-webkit-scrollbar{
+  display:none;
+}
+
+iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+/* ================= NAVBAR FIXA ================= */
 .navbar{
-  height:68px;background:#fff;border-top:1px solid var(--border);
-  display:flex;justify-content:space-around;align-items:center;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:var(--navbar-h);
+  background:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  padding-bottom:env(safe-area-inset-bottom);
+  z-index:10;
 }
+
 .nav-item{
-  font-size:11px;color:var(--muted);
-  display:flex;flex-direction:column;align-items:center;
+  font-size:11px;
+  color:var(--muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  cursor:pointer;
 }
+
 .nav-item i{font-size:22px}
 .nav-item.active{color:var(--primary)}
 
-/* OVERLAY */
+/* ================= OVERLAY ================= */
 #overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);
-  display:flex;align-items:center;justify-content:center;z-index:999;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
 }
 
-/* PROFILE MODAL */
+/* ================= PROFILE MODAL ================= */
 #profileModal{
-  position:fixed;inset:0;background:rgba(0,0,0,.4);
-  display:none;align-items:flex-end;z-index:1000;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:flex-end;
+  z-index:1000;
 }
+
 .profile-box{
-  background:#fff;width:100%;border-radius:18px 18px 0 0;
+  width:100%;
+  background:#fff;
+  border-radius:18px 18px 0 0;
   padding:20px;
 }
-.profile-box h3{margin-bottom:12px}
-.profile-box input{
-  width:100%;padding:12px;border-radius:12px;
-  border:1px solid var(--border);margin-bottom:10px;
-}
-.profile-box button{
-  width:100%;padding:14px;border:none;border-radius:999px;
-  background:var(--primary);color:#fff;font-weight:800;
-}
+
 .profile-img{
-  width:80px;height:80px;border-radius:50%;
-  background:#eee;margin:0 auto 12px;
-  background-size:cover;background-position:center;
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:#eee;
+  margin:0 auto 12px;
+  background-size:cover;
+  background-position:center;
+}
+
+.profile-box input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+}
+
+.profile-box button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
 }
 </style>
 </head>
@@ -95,19 +188,28 @@ iframe{width:100%;height:100%;border:none}
 
 <div id="overlay"><div>Validando sessão…</div></div>
 
+<!-- TOPBAR -->
 <div class="topbar">
   <h1>Agenda Fácil</h1>
   <div class="avatar" id="avatar" onclick="openProfile()">A</div>
 </div>
 
-<div class="iframe-wrap">
+<!-- CONTEÚDO -->
+<div class="content">
   <iframe id="frame" src="home.html"></iframe>
 </div>
 
+<!-- NAVBAR -->
 <nav class="navbar">
-  <div class="nav-item active" onclick="go(this,'home.html')"><i class="ri-home-5-line"></i>Home</div>
-  <div class="nav-item" onclick="go(this,'agenda.html')"><i class="ri-calendar-line"></i>Agenda</div>
-  <div class="nav-item" onclick="go(this,'perfil.html')"><i class="ri-user-3-line"></i>Perfil</div>
+  <div class="nav-item active" onclick="go(this,'home.html')">
+    <i class="ri-home-5-line"></i>Home
+  </div>
+  <div class="nav-item" onclick="go(this,'agenda.html')">
+    <i class="ri-calendar-line"></i>Agenda
+  </div>
+  <div class="nav-item" onclick="go(this,'perfil.html')">
+    <i class="ri-user-3-line"></i>Perfil
+  </div>
 </nav>
 
 <!-- PROFILE MODAL -->
@@ -139,11 +241,11 @@ async function proteger(){
   const {data:p} = await sb.from("user_profile")
     .select("*").eq("user_id",user.id).single();
 
-  avatar.innerText=p.negocio[0].toUpperCase();
-  pNegocio.value=p.negocio;
-  pEmail.value=user.email;
-  pWhatsapp.value=p.whatsapp||"";
-  pEmailContato.value=p.email_contato||"";
+  avatar.innerText = p.negocio[0].toUpperCase();
+  pNegocio.value = p.negocio;
+  pEmail.value = user.email;
+  pWhatsapp.value = p.whatsapp || "";
+  pEmailContato.value = p.email_contato || "";
   if(p.avatar_url) profileImg.style.backgroundImage=`url(${p.avatar_url})`;
 
   overlay.style.display="none";
@@ -154,24 +256,23 @@ proteger();
 function go(el,page){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
-  frame.src=page;
-  avatar.style.display = page==="home.html" ? "flex":"none";
+  frame.src = page;
 }
 
 /* PROFILE */
 function openProfile(){ profileModal.style.display="flex"; }
-function closeProfile(e){ profileModal.style.display="none"; }
+function closeProfile(){ profileModal.style.display="none"; }
 
 /* SAVE PROFILE */
 async function salvarPerfil(){
-  let avatarUrl=null;
-  if(pFoto.files.length){
-    const path=`${user.id}.jpg`;
-    await sb.storage.from("avatars").upload(path,pFoto.files[0],{upsert:true});
-    const {data:u}=await sb.storage.from("avatars").createSignedUrl(path,31536000);
-    avatarUrl=u.signedUrl;
+  let avatarUrl = null;
 
-    // atualiza produtos também
+  if(pFoto.files.length){
+    const path = `${user.id}.jpg`;
+    await sb.storage.from("avatars").upload(path,pFoto.files[0],{upsert:true});
+    const {data:u} = await sb.storage.from("avatars").createSignedUrl(path,31536000);
+    avatarUrl = u.signedUrl;
+
     await sb.from("produtos_servicos")
       .update({imagem_url:avatarUrl})
       .eq("user_id",user.id);
