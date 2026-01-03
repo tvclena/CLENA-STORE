@@ -14,7 +14,7 @@
   --bg:#f4f6f9;
   --card:#ffffff;
   --border:#e5e7eb;
-  --radius:18px;
+  --radius:20px;
   --danger:#dc2626;
   --success:#16a34a;
   --warning:#f59e0b;
@@ -22,44 +22,40 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);padding:28px}
+body{background:var(--bg);padding:32px}
 
-.header{max-width:1400px;margin:0 auto 20px}
-.header h1{font-size:26px}
+.header{max-width:1600px;margin:0 auto 24px}
+.header h1{font-size:28px}
 .header span{color:var(--primary)}
 
 .container{
-  max-width:1400px;
+  max-width:1600px;
   margin:auto;
   display:grid;
-  grid-template-columns:420px 1fr;
-  gap:28px;
+  grid-template-columns:460px 1fr;
+  gap:32px;
 }
 
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:26px;
-  box-shadow:0 10px 30px rgba(0,0,0,.06);
+  padding:28px;
+  box-shadow:0 15px 40px rgba(0,0,0,.08);
 }
 
-h3{margin-bottom:14px}
+h3{margin-bottom:16px}
 
 input,textarea,select{
   width:100%;
-  padding:12px;
-  border-radius:12px;
+  padding:13px;
+  border-radius:14px;
   border:1px solid var(--border);
-  margin-bottom:12px;
+  margin-bottom:14px;
 }
 
 textarea{resize:none}
 
-.row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
 .switch{
   display:flex;
@@ -71,54 +67,54 @@ textarea{resize:none}
 
 .upload{
   border:2px dashed var(--border);
-  border-radius:14px;
-  padding:18px;
+  border-radius:16px;
+  padding:20px;
   text-align:center;
   cursor:pointer;
-  margin-bottom:16px;
 }
 .upload img{
   width:100%;
-  height:150px;
+  height:170px;
   object-fit:cover;
-  border-radius:12px;
+  border-radius:14px;
 }
-.upload span{font-size:14px;color:var(--muted)}
 
 button{
-  padding:15px;
+  padding:16px;
   border:none;
-  border-radius:30px;
-  background:var(--primary);
+  border-radius:40px;
+  background:linear-gradient(135deg,#ff6a00,#ff8c3a);
   color:#fff;
-  font-weight:600;
+  font-weight:700;
   cursor:pointer;
   width:100%;
+}
+
+.filters{
+  display:flex;
+  gap:10px;
+  margin-bottom:18px;
 }
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:18px;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:22px;
 }
 
 .item{
-  border:1px solid var(--border);
-  border-radius:18px;
+  border-radius:22px;
   overflow:hidden;
   background:#fff;
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
   display:flex;
   flex-direction:column;
 }
 
-.item img{
-  width:100%;
-  height:160px;
-  object-fit:cover;
-}
+.item img{width:100%;height:180px;object-fit:cover}
 
 .item-body{
-  padding:16px;
+  padding:18px;
   display:flex;
   flex-direction:column;
   gap:6px;
@@ -128,48 +124,30 @@ button{
 
 .badge{
   font-size:11px;
-  padding:4px 10px;
+  padding:4px 12px;
   border-radius:999px;
+  font-weight:700;
   background:#eef2ff;
-  font-weight:600;
 }
-
 .badge.off{background:#fee2e2;color:var(--danger)}
 .badge.low{background:#fff3cd;color:var(--warning)}
 .badge.ok{background:#dcfce7;color:var(--success)}
+.badge.promo{background:#fdf2f8;color:#be185d}
 
-.price{font-weight:700;font-size:16px}
-
+.price{font-size:18px;font-weight:800}
 small{color:var(--muted)}
 
 .actions{
   margin-top:auto;
-  font-size:13px;
+  font-size:14px;
   color:var(--primary);
   cursor:pointer;
-}
-
-#overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-#overlay div{
-  background:#fff;
-  padding:22px 30px;
-  border-radius:16px;
   font-weight:600;
 }
 </style>
 </head>
 
 <body>
-
-<div id="overlay"><div>Salvando…</div></div>
 
 <div class="header">
   <h1>Produtos & <span>Serviços</span></h1>
@@ -187,17 +165,19 @@ small{color:var(--muted)}
 </select>
 
 <input id="nome" placeholder="Nome">
-<textarea id="descricao" placeholder="Descrição"></textarea>
+<textarea id="descricao" placeholder="Descrição">
+</textarea>
+
 <input id="categoria" placeholder="Categoria">
 
-<div class="row">
+<div class="grid2">
   <input id="preco" placeholder="Preço de venda">
   <input id="custo" placeholder="Custo">
 </div>
 
-<div class="row">
+<div class="grid2">
   <input id="precoPromo" placeholder="Preço promocional">
-  <input id="ordem" placeholder="Ordem">
+  <input id="ordem" placeholder="Ordem de exibição">
 </div>
 
 <label class="switch">
@@ -206,7 +186,7 @@ small{color:var(--muted)}
 
 <input id="duracao" type="number" placeholder="Duração (min)">
 
-<div class="row">
+<div class="grid2">
   <input id="estoque" type="number" placeholder="Estoque atual">
   <input id="estoqueMin" type="number" placeholder="Estoque mínimo">
 </div>
@@ -227,7 +207,7 @@ small{color:var(--muted)}
 
 <label class="upload">
   <img id="preview" style="display:none">
-  <span id="uploadText">Clique para selecionar uma imagem</span>
+  <span id="uploadText">Selecionar imagem</span>
   <input id="imagem" type="file" accept="image/*" hidden>
 </label>
 
@@ -236,6 +216,19 @@ small{color:var(--muted)}
 
 <!-- LIST -->
 <div class="card">
+  <div class="filters">
+    <input id="search" placeholder="Buscar por nome">
+    <select id="filtroTipo">
+      <option value="">Todos</option>
+      <option value="PRODUTO">Produtos</option>
+      <option value="SERVICO">Serviços</option>
+    </select>
+    <select id="filtroEstoque">
+      <option value="">Estoque</option>
+      <option value="BAIXO">Estoque baixo</option>
+      <option value="OK">Estoque ok</option>
+    </select>
+  </div>
   <div class="grid" id="lista"></div>
 </div>
 
@@ -270,16 +263,16 @@ imagem.onchange=()=>{
   }
 };
 
-async function salvar(){
-  overlay.style.display="flex";
+search.oninput=filtroTipo.onchange=filtroEstoque.onchange=render;
 
+async function salvar(){
   const payload={
     user_id:userId,
     tipo:tipo.value,
     nome:nome.value,
     descricao:descricao.value,
     categoria:categoria.value,
-    preco:parseFloat(preco.value.replace(',','.')),
+    preco:Number(preco.value.replace(',','.')),
     custo:custo.value||null,
     preco_promocional:precoPromo.value||null,
     promocao_ativa:promoAtiva.checked,
@@ -308,28 +301,37 @@ async function salvar(){
   }
 
   reset();carregar();
-  overlay.style.display="none";
 }
 
 async function carregar(){
   const {data}=await sb.from("produtos_servicos")
     .select("*")
     .order("ordem_exibicao",{ascending:true});
-
   itens=data||[];
+  render();
+}
+
+function render(){
   lista.innerHTML="";
-  itens.forEach(i=>{
+  itens.filter(i=>{
+    if(search.value && !i.nome.toLowerCase().includes(search.value.toLowerCase())) return false;
+    if(filtroTipo.value && i.tipo!==filtroTipo.value) return false;
+    if(filtroEstoque.value==="BAIXO" && !(i.controla_estoque && i.estoque_atual<=i.estoque_minimo)) return false;
+    if(filtroEstoque.value==="OK" && !(i.controla_estoque && i.estoque_atual>i.estoque_minimo)) return false;
+    return true;
+  }).forEach(i=>{
     lista.innerHTML+=`
     <div class="item">
       ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
       <div class="item-body">
         <div class="badges">
           <span class="badge">${i.tipo}</span>
+          ${i.promocao_ativa?`<span class="badge promo">Promo</span>`:""}
           ${!i.ativo?`<span class="badge off">Inativo</span>`:""}
           ${i.controla_estoque && i.estoque_atual<=i.estoque_minimo
             ? `<span class="badge low">Estoque baixo</span>`
             : i.controla_estoque
-              ? `<span class="badge ok">Estoque OK</span>`:""}
+              ? `<span class="badge ok">Estoque ok</span>`:""}
         </div>
         <h4>${i.nome}</h4>
         <div class="price">R$ ${i.preco}</div>
