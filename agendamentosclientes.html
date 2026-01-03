@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Meus Agendamentos</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#fff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --danger:#ef4444;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:Inter,system-ui;
+}
+
+html,body{
+  margin:0;
+  height:100%;
+  background:var(--bg);
+}
+
+/* TOPO */
+.top{
+  height:56px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  position:fixed;
+  top:0;left:0;right:0;
+}
+
+/* CONTEÚDO */
+.wrapper{
+  padding:72px 14px 20px;
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
+  margin-bottom:16px;
+}
+
+.card h3{
+  margin:0 0 8px;
+  font-size:16px;
+}
+
+.info{
+  font-size:14px;
+  color:#444;
+  margin-bottom:12px;
+}
+
+/* AÇÕES */
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.actions button{
+  flex:1;
+  padding:10px;
+  border-radius:999px;
+  border:none;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.edit{background:#fde68a}
+.whats{background:#22c55e;color:#fff}
+.cancel{background:#fee2e2;color:#b91c1c}
+
+.disabled{
+  opacity:.5;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">Meus Agendamentos</div>
+
+<div class="wrapper" id="lista"></div>
+
+<script>
+const sb = supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+
+/* WhatsApp do cliente salvo no agendamento */
+let clienteWhats = localStorage.getItem("CLIENTE_WHATS");
+
+if(!clienteWhats){
+  clienteWhats = prompt("Informe seu WhatsApp usado no agendamento:");
+  if(clienteWhats){
+    clienteWhats = clienteWhats.replace(/\D/g,'');
+    localStorage.setItem("CLIENTE_WHATS",clienteWhats);
+  }
+}
+
+async function carregar(){
+  if(!clienteWhats) return;
+
+  const {data}=await sb.from("agendamentos")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("cliente_whatsapp",clienteWhats)
+    .order("data",{ascending:true});
+
+  const wrap=document.getElementById("lista");
+
+  if(!data.length){
+    wrap.innerHTML="<p>Nenhum agendamento encontrado.</p>";
+    return;
+  }
+
+  wrap.innerHTML=data.map(a=>{
+    const inicio = new Date(`${a.data}T${a.hora_inicio}`);
+    const diffMin = (inicio - new Date())/60000;
+    const podeCancelar = diffMin >= 40 && a.status==="ativo";
+
+    return `
+      <div class="card">
+        <h3>${a.data} às ${a.hora_inicio}</h3>
+        <div class="info">
+          Status: <b>${a.status}</b>
+        </div>
+
+        <div class="actions">
+          <button class="edit" onclick="alterar('${a.id}')">Alterar</button>
+          <button class="whats" onclick="whats('${a.id}')">WhatsApp</button>
+          <button class="cancel ${!podeCancelar?'disabled':''}"
+            onclick="cancelar('${a.id}')">
+            Cancelar
+          </button>
+        </div>
+
+        ${!podeCancelar && a.status==="ativo"
+          ?"<small>Cancelamento permitido até 40 min antes.</small>"
+          :""
+        }
+      </div>
+    `;
+  }).join("");
+}
+
+function alterar(id){
+  const msg = encodeURIComponent(
+    "Olá! Gostaria de solicitar alteração do meu agendamento. Código: "+id
+  );
+  window.open(`https://wa.me/55${clienteWhats}?text=${msg}`);
+}
+
+function whats(id){
+  const msg = encodeURIComponent(
+    "Olá! Tenho dúvidas sobre meu agendamento. Código: "+id
+  );
+  window.open(`https://wa.me/55${clienteWhats}?text=${msg}`);
+}
+
+async function cancelar(id){
+  if(!confirm("Deseja cancelar este agendamento?")) return;
+
+  await sb.from("agendamentos")
+    .update({status:"cancelado"})
+    .eq("id",id);
+
+  carregar();
+}
+
+carregar();
+</script>
+
+</body>
+</html>
