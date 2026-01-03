@@ -166,18 +166,17 @@ iframe{
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-item active" onclick="go(this,'homeclientes.html')">
-    <i class="ri-calendar-check-line"></i>
+    <i class="ri-home-5-line"></i>
     Início
   </div>
-    <div class="nav-item" onclick="go(this,'agendar.html')">
-    <i class="ri-scissors-line"></i>
-    Serviços
+  <div class="nav-item" onclick="go(this,'agendar.html')">
+    <i class="ri-calendar-check-line"></i>
+    Agendar
   </div>
   <div class="nav-item" onclick="go(this,'servicos.html')">
     <i class="ri-scissors-line"></i>
     Serviços
   </div>
-
   <div class="nav-item" onclick="go(this,'sobre.html')">
     <i class="ri-store-2-line"></i>
     Sobre
@@ -190,8 +189,24 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const lojaId = new URLSearchParams(location.search).get("l");
 const frame = document.getElementById("frame");
+
+/* ================= LOJA ID (NUNCA PERDE) ================= */
+function getLojaId(){
+  const urlId = new URLSearchParams(location.search).get("l");
+
+  if(urlId){
+    localStorage.setItem("LOJA_ID", urlId);
+    return urlId;
+  }
+
+  const saved = localStorage.getItem("LOJA_ID");
+  if(saved) return saved;
+
+  return null;
+}
+
+const lojaId = getLojaId();
 
 /* ================= NAV ================= */
 function go(el,page){
@@ -200,16 +215,16 @@ function go(el,page){
   frame.src = `${page}?l=${lojaId}`;
 }
 
-/* ================= LOAD LOJA (user_profile) ================= */
+/* ================= LOAD LOJA ================= */
 async function load(){
   if(!lojaId){
-    alert("Loja não informada");
+    alert("Loja não informada. Acesse pelo link da loja.");
     return;
   }
 
   const { data, error } = await sb
     .from("user_profile")
-    .select("negocio,avatar_url,cidade,uf")
+    .select("negocio,avatar_url")
     .eq("user_id", lojaId)
     .single();
 
@@ -221,7 +236,7 @@ async function load(){
   // Nome da loja
   nomeLoja.innerText = data.negocio || "Agenda Fácil";
 
-  // Avatar / Logo
+  // Logo
   if(data.avatar_url){
     logo.style.backgroundImage = `url(${data.avatar_url})`;
     logo.textContent = "";
