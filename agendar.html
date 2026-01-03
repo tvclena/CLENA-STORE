@@ -17,12 +17,10 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-soft:rgba(255,106,0,.12);
   --bg:#f4f6fb;
   --card:#fff;
   --border:#e5e7eb;
   --text:#111827;
-  --muted:#6b7280;
 }
 
 *{
@@ -48,10 +46,8 @@ html,body{
   align-items:center;
   justify-content:center;
   font-weight:800;
-  font-size:16px;
   position:fixed;
   top:0;left:0;right:0;
-  z-index:10;
 }
 
 /* WRAPPER */
@@ -67,10 +63,10 @@ html,body{
 .chat{
   height:100%;
   overflow-y:auto;
-  padding:20px 16px;
+  padding:16px;
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:12px;
 }
 
 /* MENSAGENS */
@@ -78,77 +74,65 @@ html,body{
 .row.user{justify-content:flex-end}
 
 .msg{
-  max-width:82%;
+  max-width:80%;
   padding:14px 16px;
-  border-radius:20px;
+  border-radius:18px;
   font-size:14px;
-  line-height:1.45;
 }
 
-.bot{
-  background:#fff;
-  border:1px solid var(--border);
-}
+.bot{background:#fff;border:1px solid var(--border)}
+.user{background:var(--primary);color:#fff}
 
-.user{
-  background:var(--primary);
-  color:#fff;
-}
-
-/* CARDS DE SERVIÇO */
-.services{
+/* SERVIÇOS */
+.carousel{
   display:flex;
-  flex-direction:column;
-  gap:16px;
+  gap:14px;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  padding-bottom:6px;
 }
+.carousel::-webkit-scrollbar{display:none}
 
 .service{
+  min-width:240px;
   background:#fff;
-  border-radius:22px;
+  border-radius:20px;
   overflow:hidden;
-  box-shadow:0 16px 40px rgba(0,0,0,.12);
+  box-shadow:0 14px 36px rgba(0,0,0,.12);
   cursor:pointer;
-  transition:.25s ease;
-}
-
-.service:hover{
-  transform:translateY(-2px);
 }
 
 .service img{
   width:100%;
-  height:200px;
+  height:160px;
   object-fit:cover;
-  display:block;
 }
 
 .service-info{
-  padding:16px;
+  padding:14px;
 }
 
 .service-name{
-  font-size:16px;
   font-weight:800;
-  color:var(--text);
+  font-size:16px;
 }
 
 .service-price{
-  margin-top:6px;
-  font-size:15px;
-  font-weight:700;
+  margin-top:4px;
   color:var(--primary);
+  font-weight:700;
 }
 
 /* DIAS */
 .days{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:14px;
+  gap:12px;
 }
 
 .day{
   background:#fff;
-  border-radius:16px;
+  border-radius:14px;
   padding:16px 0;
   text-align:center;
   font-weight:800;
@@ -160,7 +144,7 @@ html,body{
 .times{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
+  gap:12px;
 }
 
 .time{
@@ -205,9 +189,9 @@ html,body{
 /* RESUMO */
 .summary{
   background:#fff;
-  border-radius:22px;
-  padding:18px;
-  box-shadow:0 18px 44px rgba(0,0,0,.16);
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 16px 40px rgba(0,0,0,.16);
 }
 </style>
 </head>
@@ -231,70 +215,40 @@ const sb = supabase.createClient(
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const lojaId = new URLSearchParams(location.search).get("l");
-const STORAGE="CHAT_"+lojaId;
+const lojaId=new URLSearchParams(location.search).get("l");
 const chat=document.getElementById("chat");
 const input=document.getElementById("input");
 
 let etapa="nome";
 let dados={};
 let duracao=0;
-let agenda=[];
-let bloqueado=false;
 
-/* STORAGE */
-function load(){
-  const r=localStorage.getItem(STORAGE);
-  if(!r) return false;
-  const j=JSON.parse(r);
-  if(Date.now()-j.time>7*86400000){localStorage.removeItem(STORAGE);return false;}
-  chat.innerHTML=j.html;
-  etapa=j.etapa;
-  dados=j.dados;
-  scroll();
-  return true;
-}
-function save(){
-  localStorage.setItem(STORAGE,JSON.stringify({
-    time:Date.now(),
-    html:chat.innerHTML,
-    etapa,dados
-  }));
-}
-function scroll(){chat.scrollTop=chat.scrollHeight;}
+/* UTILS */
+const toMin=h=>{const[a,b]=h.split(":").map(Number);return a*60+b}
+const toHour=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")
+const scroll=()=>chat.scrollTop=chat.scrollHeight
 
-function bot(t){
-  chat.innerHTML+=`<div class="row"><div class="msg bot">${t}</div></div>`;
-  save();scroll();
-}
-function user(t){
-  chat.innerHTML+=`<div class="row user"><div class="msg user">${t}</div></div>`;
-  save();scroll();
-}
+const bot=t=>{chat.innerHTML+=`<div class="row"><div class="msg bot">${t}</div></div>`;scroll()}
+const user=t=>{chat.innerHTML+=`<div class="row user"><div class="msg user">${t}</div></div>`;scroll()}
 
 /* INIT */
-if(!load()){
-  bot("Olá 😊 Vamos agendar seu horário?");
-  bot("Qual é o seu nome completo?");
-}
+bot("Olá 😊 Vamos agendar?");
+bot("Qual é o seu nome completo?");
 
 /* SEND */
 function send(){
-  if(bloqueado) return;
   const v=input.value.trim();
-  if(!v) return;
+  if(!v)return;
 
-  user(v);
-  input.value="";
+  user(v); input.value="";
 
   if(etapa==="nome"){
     dados.nome=v;
     etapa="whats";
-    input.type="tel";
-    input.inputMode="numeric";
-    input.oninput=mask;
+    input.type="tel";input.inputMode="numeric";
+    input.oninput=()=>input.value=input.value.replace(/\D/g,'').slice(0,11)
+      .replace(/^(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2");
     bot("Qual seu WhatsApp?");
-    save();
     return;
   }
 
@@ -305,44 +259,34 @@ function send(){
   }
 }
 
-function mask(){
-  input.value=input.value
-    .replace(/\D/g,'')
-    .slice(0,11)
-    .replace(/^(\d{2})(\d)/,"($1) $2")
-    .replace(/(\d{5})(\d)/,"$1-$2");
-}
-
 /* SERVIÇOS */
 async function listarServicos(){
   const {data}=await sb.from("produtos_servicos")
-    .select("*")
-    .eq("user_id",lojaId)
-    .eq("tipo","SERVICO")
-    .eq("ativo",true)
-    .eq("pode_agendar",true);
+    .select("*").eq("user_id",lojaId)
+    .eq("tipo","SERVICO").eq("ativo",true).eq("pode_agendar",true);
 
   bot("Escolha um serviço:");
 
-  chat.innerHTML+=`
-    <div class="services">
-      ${data.map(s=>`
-        <div class="service" onclick="selectServico('${s.id}',${s.duracao_minutos})">
-          <img src="${s.imagem_url||''}">
-          <div class="service-info">
-            <div class="service-name">${s.nome}</div>
-            <div class="service-price">R$ ${s.preco}</div>
-          </div>
-        </div>
-      `).join("")}
-    </div>`;
-  save();scroll();
+  const wrap=document.createElement("div");
+  wrap.className="carousel";
+  wrap.innerHTML=data.map(s=>`
+    <div class="service" onclick="selectServico('${s.id}',${s.duracao_minutos})">
+      <img src="${s.imagem_url||''}">
+      <div class="service-info">
+        <div class="service-name">${s.nome}</div>
+        <div class="service-price">R$ ${s.preco}</div>
+      </div>
+    </div>`).join("");
+
+  chat.appendChild(wrap); scroll();
+
+  // 👉 efeito dica de rolagem
+  setTimeout(()=>{wrap.scrollLeft=40;setTimeout(()=>wrap.scrollLeft=0,400)},300);
 }
 
 function selectServico(id,d){
-  if(dados.servico) return;
-  dados.servico=id;
-  duracao=d;
+  if(dados.servico)return;
+  dados.servico=id; duracao=d;
   listarDias();
 }
 
@@ -350,93 +294,78 @@ function selectServico(id,d){
 async function listarDias(){
   const hoje=new Date().toISOString().split("T")[0];
   const {data}=await sb.from("agenda_loja")
-    .select("*")
-    .eq("user_id",lojaId)
-    .gte("data",hoje)
-    .eq("fechado",false);
+    .select("*").eq("user_id",lojaId)
+    .gte("data",hoje).eq("fechado",false);
 
   bot("Escolha o dia:");
 
   chat.innerHTML+=`
     <div class="days">
       ${data.map(d=>`
-        <div class="day" onclick="selectDia('${d.data}',${JSON.stringify(d.horarios).replace(/"/g,"&quot;")})">
+        <div class="day" onclick="selectDia('${d.data}','${d.horarios.replace(/'/g,"") }')">
           ${new Date(d.data).getDate()}
-        </div>
-      `).join("")}
+        </div>`).join("")}
     </div>`;
-  save();scroll();
+  scroll();
 }
 
+/* DIA → HORÁRIOS DISPONÍVEIS */
+async function selectDia(data,horariosStr){
+  if(dados.data)return;
+  dados.data=data;
 
+  let blocos=JSON.parse(horariosStr);
 
-function selectDia(data, horarios){
-  if(dados.data) return;
+  // busca agendamentos já feitos
+  const {data:ag}=await sb.from("agendamentos")
+    .select("hora_inicio,hora_fim")
+    .eq("user_id",lojaId).eq("data",data);
 
-  dados.data = data;
+  let ocupados=[];
+  ag.forEach(a=>{
+    let s=toMin(a.hora_inicio),e=toMin(a.hora_fim);
+    ocupados.push([s,e]);
+  });
 
-  // 🔒 GARANTE ARRAY
-  let blocos = [];
+  let slots=[];
 
-  if(Array.isArray(horarios)){
-    blocos = horarios;
-  } else if(typeof horarios === "object"){
-    blocos = Object.values(horarios);
-  }
-
-  if(!blocos.length){
-    bot("⚠️ Nenhum horário disponível neste dia.");
-    return;
-  }
-
-  let slots = [];
-
-  blocos.forEach(h => {
-    if(!h.inicio || !h.fim) return;
-
-    let s = toMin(h.inicio),
-        e = toMin(h.fim);
-
-    while(s + duracao <= e){
-      slots.push(toHour(s));
-      s += duracao;
+  blocos.forEach(b=>{
+    let s=toMin(b.inicio),e=toMin(b.fim);
+    while(s+duracao<=e){
+      let conflito=ocupados.some(o=>!(s+duracao<=o[0]||s>=o[1]));
+      if(!conflito) slots.push(toHour(s));
+      s+=duracao;
     }
   });
 
   if(!slots.length){
-    bot("⚠️ Nenhum horário disponível para este serviço.");
+    bot("⚠️ Não há horários disponíveis neste dia.");
     return;
   }
 
-  bot("Escolha o horário:");
+  bot("Horários disponíveis:");
 
-  chat.innerHTML += `
+  chat.innerHTML+=`
     <div class="times">
-      ${slots.map(h => `
-        <div class="time" onclick="confirmar('${h}')">${h}</div>
-      `).join("")}
-    </div>
-  `;
-
-  save();
+      ${slots.map(h=>`<div class="time" onclick="confirmar('${h}')">${h}</div>`).join("")}
+    </div>`;
   scroll();
 }
 
 /* CONFIRMAR */
 async function confirmar(h){
-  if(dados.hora) return;
+  if(dados.hora)return;
   dados.hora=h;
 
   const fim=toHour(toMin(h)+duracao);
 
   bot(`
     <div class="summary">
-      <strong>Resumo do agendamento</strong><br><br>
+      <strong>Agendamento confirmado 🎉</strong><br><br>
       👤 ${dados.nome}<br>
       📅 ${dados.data}<br>
       ⏰ ${h}
-    </div>
-  `);
+    </div>`);
 
   await sb.from("agendamentos").insert({
     user_id:lojaId,
@@ -447,13 +376,7 @@ async function confirmar(h){
     cliente_nome:dados.nome,
     cliente_whatsapp:dados.whats
   });
-
-  bloqueado=true;
-  save();
 }
-
-function toMin(h){const[a,b]=h.split(":").map(Number);return a*60+b;}
-function toHour(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
 </script>
 
 </body>
