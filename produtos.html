@@ -71,10 +71,10 @@ body{
   font-size:12px;
 }
 
-/* ===== GRID ===== */
+/* ===== GRID 3 FIXOS ===== */
 .grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(3, minmax(0,1fr));
   gap:8px;
 }
 
@@ -83,27 +83,38 @@ body{
   border-radius:12px;
   box-shadow:0 4px 12px rgba(0,0,0,.06);
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  height:150px;
 }
 
 .item img{
   width:100%;
-  height:70px;
+  aspect-ratio:1/1;
   object-fit:cover;
   background:#eee;
 }
 
 .item-body{
-  padding:8px;
+  padding:6px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  flex:1;
 }
 .item-body h4{
-  font-size:11px;
+  font-size:10.5px;
   font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .price{
-  font-size:12px;
+  font-size:11px;
   font-weight:800;
 }
 .actions{
+  margin-top:auto;
   font-size:10px;
   color:var(--primary);
   font-weight:700;
@@ -112,22 +123,24 @@ body{
 /* ===== FAB ===== */
 .fab{
   position:fixed;
-  bottom:90px;
   right:16px;
-  width:54px;
-  height:54px;
+  bottom:16px;
+  width:56px;
+  height:56px;
   border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
-  font-size:26px;
+  font-size:28px;
+  font-weight:800;
   border:none;
   display:flex;
   align-items:center;
   justify-content:center;
   box-shadow:0 10px 30px rgba(0,0,0,.25);
+  z-index:900;
 }
 
-/* ===== MODAL ===== */
+/* ===== MODAL / BOTTOM SHEET ===== */
 .modal{
   position:fixed;
   inset:0;
@@ -140,9 +153,9 @@ body{
 
 .sheet{
   width:100%;
-  height:90vh;
+  height:92vh;
   background:#fff;
-  border-radius:20px 20px 0 0;
+  border-radius:22px 22px 0 0;
   display:flex;
   flex-direction:column;
   overflow:hidden;
@@ -155,6 +168,7 @@ body{
   font-weight:800;
   display:flex;
   justify-content:space-between;
+  align-items:center;
 }
 
 /* BODY */
@@ -179,18 +193,26 @@ body{
   padding:8px;
 }
 
-.upload{
-  border:2px dashed var(--border);
-  border-radius:12px;
-  padding:10px;
-  text-align:center;
-  font-size:12px;
-}
-.upload img{
+/* ===== IMAGE CROP ===== */
+.crop-area{
   width:100%;
-  height:120px;
+  aspect-ratio:1/1;
+  background:#f1f1f1;
+  border-radius:12px;
+  overflow:hidden;
+  position:relative;
+  margin-bottom:10px;
+}
+.crop-area img{
+  width:100%;
+  height:100%;
   object-fit:cover;
-  border-radius:10px;
+}
+.crop-hint{
+  position:absolute;
+  inset:0;
+  border:2px dashed rgba(255,255,255,.7);
+  border-radius:12px;
 }
 
 /* FOOTER */
@@ -250,16 +272,24 @@ body{
         <option value="SERVICO">Serviço</option>
         <option value="PRODUTO">Produto</option>
       </select>
+
       <input id="nome" placeholder="Nome">
       <textarea id="descricao" placeholder="Descrição"></textarea>
       <input id="preco" placeholder="Preço">
-      <label><input type="checkbox" id="promoAtiva"> Promoção</label>
 
-      <div class="upload" onclick="imagem.click()">
-        <img id="preview" style="display:none">
-        <span id="uploadText">Selecionar imagem</span>
-        <input type="file" id="imagem" hidden>
+      <label style="font-size:12px">
+        <input type="checkbox" id="promoAtiva"> Promoção
+      </label>
+
+      <!-- IMAGE CROP -->
+      <div class="crop-area" onclick="imagem.click()">
+        <img id="cropPreview" style="display:none">
+        <div class="crop-hint"></div>
+        <input type="file" id="imagem" hidden accept="image/*">
       </div>
+      <small style="font-size:11px;color:#6b7280">
+        Toque para escolher e ajustar a imagem
+      </small>
     </div>
 
     <div class="sheet-footer">
@@ -276,6 +306,7 @@ const sb=supabase.createClient(
 );
 
 let itens=[],userId=null,editId=null;
+let croppedBlob=null;
 
 (async()=>{
   const {data:{session}}=await sb.auth.getSession();
@@ -286,6 +317,7 @@ let itens=[],userId=null,editId=null;
 
 search.oninput=filtroTipo.onchange=render;
 
+/* MODAL */
 function abrirModal(){
   modal.classList.add("show");
 }
@@ -294,15 +326,36 @@ function fecharModal(){
   reset();
 }
 
+/* IMAGE + CROP */
 imagem.onchange=()=>{
-  const f=imagem.files[0];
-  if(f){
-    preview.src=URL.createObjectURL(f);
-    preview.style.display="block";
-    uploadText.style.display="none";
-  }
+  const file=imagem.files[0];
+  if(!file) return;
+
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement("canvas");
+    const size=Math.min(img.width,img.height);
+    canvas.width=canvas.height=600;
+    const ctx=canvas.getContext("2d");
+
+    ctx.drawImage(
+      img,
+      (img.width-size)/2,
+      (img.height-size)/2,
+      size,size,
+      0,0,600,600
+    );
+
+    canvas.toBlob(b=>{
+      croppedBlob=b;
+      cropPreview.src=URL.createObjectURL(b);
+      cropPreview.style.display="block";
+    },"image/jpeg",0.9);
+  };
+  img.src=URL.createObjectURL(file);
 };
 
+/* SAVE */
 async function salvar(){
   const payload={
     user_id:userId,
@@ -315,22 +368,26 @@ async function salvar(){
 
   let data;
   if(editId){
-    ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
+    ({data}=await sb.from("produtos_servicos")
+      .update(payload).eq("id",editId).select().single());
   }else{
-    ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
+    ({data}=await sb.from("produtos_servicos")
+      .insert(payload).select().single());
   }
 
-  if(imagem.files.length){
+  if(croppedBlob){
     const path=`${userId}/${data.id}.jpg`;
-    await sb.storage.from("produtos").upload(path,imagem.files[0],{upsert:true});
+    await sb.storage.from("produtos").upload(path,croppedBlob,{upsert:true});
     const {data:s}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
-    await sb.from("produtos_servicos").update({imagem_url:s.signedUrl}).eq("id",data.id);
+    await sb.from("produtos_servicos")
+      .update({imagem_url:s.signedUrl}).eq("id",data.id);
   }
 
   fecharModal();
   carregar();
 }
 
+/* LOAD */
 async function carregar(){
   const {data}=await sb.from("produtos_servicos").select("*");
   itens=data||[];
@@ -366,19 +423,18 @@ function editar(id){
   preco.value=i.preco;
   promoAtiva.checked=i.promocao_ativa;
   if(i.imagem_url){
-    preview.src=i.imagem_url;
-    preview.style.display="block";
-    uploadText.style.display="none";
+    cropPreview.src=i.imagem_url;
+    cropPreview.style.display="block";
   }
   abrirModal();
 }
 
 function reset(){
   editId=null;
+  croppedBlob=null;
   formTitle.innerText="Novo item";
   document.querySelectorAll(".sheet-body input,.sheet-body textarea").forEach(e=>e.value="");
-  preview.style.display="none";
-  uploadText.style.display="block";
+  cropPreview.style.display="none";
 }
 </script>
 
