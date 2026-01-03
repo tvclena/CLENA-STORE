@@ -282,13 +282,16 @@ async function proteger(){
 proteger();
 
 async function carregarPerfil(){
-  const { data:p } = await sb
+  const { data:p, error } = await sb
     .from("user_profile")
     .select("*")
     .eq("user_id", user.id)
     .single();
 
-  if(!p) return;
+  if(error || !p){
+    console.warn("Perfil não encontrado");
+    return;
+  }
 
   profile = p;
 
@@ -307,15 +310,19 @@ async function carregarPerfil(){
   pCidade.value = p.cidade || "";
   pUf.value = (p.uf || "").toUpperCase();
 
-if(p.avatar_url){
-  const signed = await getSigned(p.avatar_url);
-  if(signed){
-    profileImg.style.backgroundImage = `url(${signed})`;
-    avatar.style.backgroundImage = `url(${signed})`;
-    avatar.textContent = "";
+  if(p.avatar_url){
+    try{
+      const signed = await getSigned(p.avatar_url);
+      if(signed){
+        profileImg.style.backgroundImage = `url(${signed})`;
+        avatar.style.backgroundImage = `url(${signed})`;
+        avatar.textContent = "";
+      }
+    }catch(e){
+      console.warn("Erro ao carregar avatar", e);
+    }
   }
 }
-
 
 
 /* ================= NAV ================= */
