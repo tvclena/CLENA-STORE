@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Meus Agendamentos</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+
+  --ok:#22c55e;
+  --warn:#f97316;
+  --cancel:#ef4444;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+
+body{
+  background:var(--bg);
+  padding:16px;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  margin-bottom:16px;
+}
+.header h1{
+  font-size:20px;
+  font-weight:800;
+}
+.header span{color:var(--primary)}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+  margin-bottom:12px;
+}
+
+/* INPUT */
+input{
+  width:100%;
+  height:46px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  padding:0 14px;
+  font-size:14px;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  height:46px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+  font-size:15px;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+/* ITEM */
+.item{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:10px;
+}
+
+.item-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.item strong{
+  font-size:15px;
+}
+
+.badge{
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.ok{background:#dcfce7;color:#166534}
+.warn{background:#ffedd5;color:#9a3412}
+.cancel{background:#fee2e2;color:#991b1b}
+
+.item small{
+  display:block;
+  color:#6b7280;
+  margin-top:4px;
+  font-size:13px;
+}
+
+.cancel-btn{
+  margin-top:8px;
+  background:#fee2e2;
+  color:#991b1b;
+  font-weight:800;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Meus <span>Agendamentos</span></h1>
+</div>
+
+<!-- IDENTIFICAÇÃO -->
+<div class="card">
+  <p style="margin-bottom:8px;color:#6b7280;font-size:14px">
+    Informe seu WhatsApp para ver seus horários:
+  </p>
+  <input id="whats" placeholder="(77) 99999-9999" inputmode="numeric">
+  <button onclick="buscar()">Buscar agendamentos</button>
+</div>
+
+<!-- LISTA -->
+<div id="lista"></div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+
+/* MASK */
+whats.addEventListener("input", e=>{
+  let v = e.target.value.replace(/\D/g,'').slice(0,11);
+  if(v.length>=2) v=v.replace(/^(\d{2})(\d)/,"($1) $2");
+  if(v.length>=10) v=v.replace(/(\d{5})(\d)/,"$1-$2");
+  e.target.value=v;
+});
+
+/* BUSCAR */
+async function buscar(){
+  const telefone = whats.value.replace(/\D/g,'');
+  if(telefone.length < 10) return alert("Informe um WhatsApp válido.");
+
+  lista.innerHTML = "Carregando…";
+
+  const {data} = await sb
+    .from("agendamentos")
+    .select("*")
+    .eq("loja_id", lojaId)
+    .eq("cliente_whatsapp", telefone)
+    .order("data", {ascending:true});
+
+  if(!data || data.length===0){
+    lista.innerHTML = "<p style='text-align:center;color:#6b7280'>Nenhum agendamento encontrado.</p>";
+    return;
+  }
+
+  lista.innerHTML = "";
+  data.forEach(a=>{
+    let statusClass="warn";
+    let statusText="Pendente";
+
+    if(a.status==="CONFIRMADO"){statusClass="ok";statusText="Confirmado";}
+    if(a.status==="CANCELADO"){statusClass="cancel";statusText="Cancelado";}
+
+    lista.innerHTML+=`
+      <div class="item">
+        <div class="item-top">
+          <strong>${a.servico}</strong>
+          <span class="badge ${statusClass}">${statusText}</span>
+        </div>
+        <small>📅 ${a.data} • ⏰ ${a.horario}</small>
+        ${a.status!=="CANCELADO" ? `
+          <button class="cancel-btn" onclick="cancelar('${a.id}')">
+            Cancelar agendamento
+          </button>` : ""}
+      </div>
+    `;
+  });
+}
+
+/* CANCELAR */
+async function cancelar(id){
+  if(!confirm("Deseja cancelar este agendamento?")) return;
+
+  await sb.from("agendamentos")
+    .update({status:"CANCELADO"})
+    .eq("id",id);
+
+  buscar();
+}
+</script>
+
+</body>
+</html>
