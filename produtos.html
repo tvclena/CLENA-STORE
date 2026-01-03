@@ -9,69 +9,164 @@
 
 <style>
 :root{
---primary:#ff6a00;--bg:#f5f7fb;--card:#fff;--border:#e5e7eb;
---danger:#dc2626;--success:#16a34a;--warning:#f59e0b;
---muted:#6b7280;--shadow:0 14px 34px rgba(0,0,0,.12);
+--primary:#ff6a00;
+--bg:#f5f7fb;
+--card:#fff;
+--border:#e5e7eb;
+--danger:#dc2626;
+--success:#16a34a;
+--warning:#f59e0b;
+--muted:#6b7280;
+--shadow:0 14px 34px rgba(0,0,0,.12);
 --radius:16px
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);height:100vh;overflow:hidden;padding:18px}
+body{background:var(--bg);height:100vh;overflow:hidden;padding:16px}
 
 /* HEADER */
-.header{max-width:1700px;margin:auto}
+.header{max-width:1800px;margin:auto}
 .header h1{font-size:26px;font-weight:800}
 .header span{color:var(--primary)}
 .header p{font-size:12px;color:var(--muted)}
 
-/* KPIs */
+/* KPIS */
 .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:16px 0}
 .kpi{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow)}
 .kpi small{font-size:11px;color:var(--muted)}
 .kpi h2{font-size:22px;font-weight:800}
 
 /* LAYOUT */
-.container{max-width:1700px;margin:auto;display:grid;grid-template-columns:460px 1fr;gap:18px;height:calc(100vh - 200px)}
+.container{
+max-width:1800px;
+margin:auto;
+display:grid;
+grid-template-columns:480px 1fr;
+gap:18px;
+height:calc(100vh - 210px)
+}
 
 /* CARD */
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
-.card h3{font-size:15px;font-weight:800;margin-bottom:10px}
+.card{
+background:var(--card);
+border-radius:var(--radius);
+padding:16px;
+box-shadow:var(--shadow);
+display:flex;
+flex-direction:column;
+overflow:hidden
+}
+.card h3{
+font-size:15px;
+font-weight:800;
+margin-bottom:8px;
+padding-bottom:6px;
+border-bottom:1px solid var(--border)
+}
+
+/* FORM SECTIONS */
+.section{margin-bottom:12px}
+.section-title{
+font-size:11px;
+font-weight:800;
+color:var(--muted);
+margin-bottom:6px;
+text-transform:uppercase
+}
 
 /* FORM */
 input,textarea,select{
-width:100%;height:36px;padding:0 10px;border-radius:10px;
-border:1px solid var(--border);font-size:12px;margin-bottom:8px
+width:100%;
+height:36px;
+padding:0 10px;
+border-radius:10px;
+border:1px solid var(--border);
+font-size:12px;
+margin-bottom:8px
 }
 textarea{padding:8px;height:auto}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .switch{display:flex;align-items:center;gap:6px;font-size:11px;margin:4px 0}
 
-/* BUTTON */
+/* BUTTONS */
+.actions-form{display:flex;gap:10px;margin-top:6px}
 button{
-height:42px;border:none;border-radius:22px;
+flex:1;
+height:42px;
+border:none;
+border-radius:22px;
 background:linear-gradient(135deg,#ff6a00,#ff9a57);
-color:#fff;font-weight:800;font-size:13px;cursor:pointer
+color:#fff;
+font-weight:800;
+cursor:pointer
+}
+button.secondary{
+background:#111;
 }
 
-/* GRID */
-.grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;overflow-y:auto}
+/* LIST */
+.filters{display:flex;gap:8px;margin-bottom:10px}
+.grid{
+flex:1;
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:14px;
+overflow-y:auto
+}
 
 /* ITEM */
-.item{background:#fff;border-radius:var(--radius);box-shadow:0 10px 26px rgba(0,0,0,.12);overflow:hidden;display:flex;flex-direction:column}
-.image{height:90px;display:flex;align-items:center;justify-content:center;background:#f1f5f9}
+.item{
+background:#fff;
+border-radius:var(--radius);
+box-shadow:0 10px 26px rgba(0,0,0,.12);
+overflow:hidden;
+display:flex;
+flex-direction:column
+}
+.image{
+height:90px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#f1f5f9
+}
 .image img{width:100%;height:100%;object-fit:cover}
-.image.no{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff;font-size:30px;font-weight:800}
-.item-body{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.image.no{
+background:linear-gradient(135deg,#ff6a00,#ff9a57);
+color:#fff;
+font-size:30px;
+font-weight:800
+}
+.item-body{
+padding:12px;
+display:flex;
+flex-direction:column;
+gap:4px;
+flex:1
+}
 
 /* BADGES */
 .badges{display:flex;gap:4px;flex-wrap:wrap}
-.badge{font-size:9px;padding:3px 8px;border-radius:999px;font-weight:800}
+.badge{
+font-size:9px;
+padding:3px 8px;
+border-radius:999px;
+font-weight:800
+}
 .badge.low{background:#fff3cd;color:var(--warning)}
 .badge.promo{background:#fde7f3;color:#be185d}
 .badge.off{background:#fee2e2;color:var(--danger)}
 .badge.margin{background:#ecfeff;color:#0369a1}
 
 /* ACTIONS */
-.actions{margin-top:auto;font-size:11px;font-weight:800;color:var(--primary);display:flex;gap:10px;cursor:pointer}
+.actions{
+margin-top:auto;
+font-size:11px;
+font-weight:800;
+color:var(--primary);
+display:flex;
+gap:10px;
+cursor:pointer
+}
 
 /* OVERLAY / TOAST */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:999}
@@ -84,7 +179,7 @@ color:#fff;font-weight:800;font-size:13px;cursor:pointer
 
 <div class="header">
 <h1>Produtos & <span>Serviços</span></h1>
-<p>Gestão profissional de catálogo, estoque, margem e promoções</p>
+<p>Painel completo de gestão de catálogo, preços, estoque, margem e promoções</p>
 
 <div class="kpis">
 <div class="kpi"><small>Total</small><h2 id="kpiTotal">0</h2></div>
@@ -100,40 +195,70 @@ color:#fff;font-weight:800;font-size:13px;cursor:pointer
 
 <!-- FORM -->
 <div class="card">
-<h3>Cadastro / Edição</h3>
+<h3>Gestão do Item</h3>
 
+<div class="section">
+<div class="section-title">Identificação</div>
 <select id="tipo"><option>SERVICO</option><option>PRODUTO</option></select>
 <input id="nome" placeholder="Nome *">
-<textarea id="descricao" placeholder="Descrição"></textarea>
 <input id="categoria" placeholder="Categoria">
+<textarea id="descricao" placeholder="Descrição"></textarea>
+</div>
 
+<div class="section">
+<div class="section-title">Preços & Margem</div>
 <div class="row">
 <input id="preco" placeholder="Preço">
 <input id="custo" placeholder="Custo">
 </div>
-
 <div class="row">
 <input id="precoPromo" placeholder="Preço promocional">
 <input id="ordem" placeholder="Ordem">
 </div>
+</div>
 
+<div class="section">
+<div class="section-title">Promoção</div>
 <label class="switch"><input type="checkbox" id="promoAtiva"> Promoção ativa</label>
-<label class="switch"><input type="checkbox" id="ativo" checked> Ativo</label>
-<label class="switch"><input type="checkbox" id="podeAgendar"> Disponível agenda</label>
+</div>
 
+<div class="section">
+<div class="section-title">Estoque</div>
 <div class="row">
 <input id="estoque" placeholder="Estoque">
 <input id="estoqueMin" placeholder="Estoque mínimo">
 </div>
 <label class="switch"><input type="checkbox" id="controlaEstoque"> Controlar estoque</label>
+</div>
 
-<textarea id="obs" placeholder="Observações internas"></textarea>
+<div class="section">
+<div class="section-title">Status & Agenda</div>
+<label class="switch"><input type="checkbox" id="ativo" checked> Ativo</label>
+<label class="switch"><input type="checkbox" id="podeAgendar"> Disponível agenda</label>
+</div>
 
+<div class="section">
+<div class="section-title">Observações internas</div>
+<textarea id="obs"></textarea>
+</div>
+
+<div class="actions-form">
 <button onclick="salvar()">Salvar</button>
+<button class="secondary" onclick="limpar()">Limpar</button>
+</div>
 </div>
 
 <!-- LIST -->
 <div class="card">
+<div class="filters">
+<input id="search" placeholder="Buscar" oninput="render()">
+<select id="filtroTipo" onchange="render()">
+<option value="">Todos</option>
+<option>SERVICO</option>
+<option>PRODUTO</option>
+</select>
+</div>
+
 <div class="grid" id="lista"></div>
 </div>
 
@@ -149,9 +274,9 @@ const sb=supabase.createClient(
 );
 
 let itens=[],editId=null,userId=null;
-
 const overlay=document.getElementById("overlay");
 const toastEl=document.getElementById("toast");
+
 const toast=msg=>{
 toastEl.innerText=msg;
 toastEl.style.display="block";
@@ -179,14 +304,18 @@ kpiServicos.innerText=itens.filter(i=>i.tipo==="SERVICO").length;
 kpiProdutos.innerText=itens.filter(i=>i.tipo==="PRODUTO").length;
 kpiPromo.innerText=itens.filter(i=>i.promo_ativa).length;
 kpiBaixo.innerText=itens.filter(i=>i.controla_estoque && i.estoque<=i.estoque_min).length;
-
-let margens=itens.filter(i=>i.preco>0).map(i=>((i.preco-i.custo)/i.preco)*100);
-kpiMargem.innerText=margens.length?Math.round(margens.reduce((a,b)=>a+b,0)/margens.length)+"%":"0%";
+let m=itens.filter(i=>i.preco>0).map(i=>((i.preco-i.custo)/i.preco)*100);
+kpiMargem.innerText=m.length?Math.round(m.reduce((a,b)=>a+b,0)/m.length)+"%":"0%";
 }
 
 function render(){
 lista.innerHTML="";
-itens.forEach(i=>{
+const q=search.value.toLowerCase();
+itens.filter(i=>{
+if(q && !i.nome.toLowerCase().includes(q))return false;
+if(filtroTipo.value && i.tipo!==filtroTipo.value)return false;
+return true;
+}).forEach(i=>{
 const margem=i.preco?Math.round(((i.preco-i.custo)/i.preco)*100):0;
 lista.innerHTML+=`
 <div class="item">
@@ -238,18 +367,26 @@ toast("Item excluído");
 carregar();
 }
 
+function limpar(){
+document.querySelectorAll("input,textarea").forEach(i=>i.value="");
+document.querySelectorAll("input[type=checkbox]").forEach(i=>i.checked=false);
+ativo.checked=true;
+editId=null;
+}
+
 async function salvar(){
 if(!nome.value)return toast("Nome obrigatório");
 overlay.style.display="flex";
 
 const dados={
 user_id:userId,tipo:tipo.value,nome:nome.value,
-descricao:descricao.value,categoria:categoria.value,
+categoria:categoria.value,descricao:descricao.value,
 preco:+preco.value||0,custo:+custo.value||0,
 preco_promo:+precoPromo.value||0,promo_ativa:promoAtiva.checked,
 estoque:+estoque.value||0,estoque_min:+estoqueMin.value||0,
-controla_estoque:controlaEstoque.checked,ativo:ativo.checked,
-pode_agendar:podeAgendar.checked,obs:obs.value,ordem:+ordem.value||0
+controla_estoque:controlaEstoque.checked,
+ativo:ativo.checked,pode_agendar:podeAgendar.checked,
+obs:obs.value,ordem:+ordem.value||0
 };
 
 editId
@@ -258,7 +395,7 @@ editId
 
 overlay.style.display="none";
 toast("Salvo com sucesso");
-editId=null;
+limpar();
 carregar();
 }
 </script>
