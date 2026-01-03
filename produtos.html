@@ -20,7 +20,12 @@
   --success:#16a34a;
   --warning:#f59e0b;
   --muted:#6b7280;
-  --shadow:0 16px 40px rgba(0,0,0,.08);
+
+  --shadow-sm:0 4px 12px rgba(0,0,0,.06);
+  --shadow-md:0 12px 32px rgba(0,0,0,.08);
+  --shadow-lg:0 20px 50px rgba(0,0,0,.12);
+
+  --transition:all .25s ease;
 }
 
 /* ================= RESET ================= */
@@ -31,25 +36,25 @@
   font-family:Inter;
 }
 
-/* ================= BODY / VIEWPORT ================= */
 html, body{
   height:100%;
 }
 
 body{
-  background:var(--bg);
-  padding:24px;
-  overflow:hidden; /* 🚫 remove rolagem global */
+  background:linear-gradient(180deg,#f7f8fc,#f1f3f8);
+  padding:20px;
+  overflow:hidden; /* ❌ sem scroll global */
 }
 
 /* ================= HEADER ================= */
 .header{
   max-width:1700px;
-  margin:0 auto 18px;
+  margin:0 auto 14px;
 }
 .header h1{
-  font-size:28px;
+  font-size:26px;
   font-weight:800;
+  letter-spacing:-.3px;
 }
 .header span{color:var(--primary)}
 .header p{
@@ -62,14 +67,19 @@ body{
 .kpis{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:16px;
-  margin-top:14px;
+  gap:14px;
+  margin-top:12px;
 }
 .kpi{
-  background:var(--card);
+  background:linear-gradient(180deg,#fff,#fafafa);
   border-radius:var(--radius);
-  padding:18px;
-  box-shadow:var(--shadow);
+  padding:16px;
+  box-shadow:var(--shadow-sm);
+  transition:var(--transition);
+}
+.kpi:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
 }
 .kpi small{
   font-size:12px;
@@ -82,30 +92,30 @@ body{
   font-weight:800;
 }
 
-/* ================= LAYOUT PRINCIPAL ================= */
+/* ================= LAYOUT ================= */
 .container{
   max-width:1700px;
   margin:auto;
   display:grid;
-  grid-template-columns:440px 1fr;
-  gap:24px;
-  height:calc(100vh - 200px); /* ⬅️ ocupa o restante da tela */
+  grid-template-columns:420px 1fr;
+  gap:22px;
+  height:calc(100vh - 170px);
 }
 
 /* ================= CARD ================= */
 .card{
-  background:var(--card);
+  background:linear-gradient(180deg,#ffffff,#fcfcfd);
   border-radius:var(--radius);
-  padding:22px;
-  box-shadow:var(--shadow);
+  padding:18px;
+  box-shadow:var(--shadow-md);
   display:flex;
   flex-direction:column;
-  overflow:hidden; /* importante */
+  overflow:hidden;
 }
 .card h3{
-  font-size:17px;
+  font-size:16px;
   font-weight:700;
-  margin-bottom:14px;
+  margin-bottom:12px;
 }
 
 /* ================= FORM ================= */
@@ -113,12 +123,22 @@ input,
 textarea,
 select{
   width:100%;
-  height:40px;
+  height:38px;
   padding:0 12px;
   border-radius:12px;
   border:1px solid var(--border);
   font-size:13px;
-  margin-bottom:10px;
+  margin-bottom:8px;
+  transition:var(--transition);
+  background:#fff;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.15);
 }
 
 textarea{
@@ -130,7 +150,7 @@ textarea{
 .row{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:8px;
 }
 
 /* CHECKBOX */
@@ -142,9 +162,8 @@ textarea{
   margin:6px 0;
 }
 .switch input{
-  width:15px;
-  height:15px;
-  margin:0;
+  accent-color:var(--primary);
+  cursor:pointer;
 }
 
 /* ================= UPLOAD ================= */
@@ -152,13 +171,19 @@ textarea{
   margin-top:8px;
   border:2px dashed var(--border);
   border-radius:12px;
-  padding:14px;
+  padding:12px;
   text-align:center;
   cursor:pointer;
+  transition:var(--transition);
+  background:#fafafa;
+}
+.upload:hover{
+  border-color:var(--primary);
+  background:var(--primary-soft);
 }
 .upload img{
   width:100%;
-  height:120px;
+  height:110px;
   object-fit:cover;
   border-radius:10px;
 }
@@ -169,39 +194,44 @@ textarea{
 
 /* ================= BUTTON ================= */
 button{
-  margin-top:12px;
-  height:44px;
+  margin-top:10px;
+  height:42px;
   border:none;
-  border-radius:28px;
+  border-radius:26px;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
   font-weight:700;
   font-size:14px;
   cursor:pointer;
   width:100%;
+  transition:var(--transition);
+}
+button:hover{
+  filter:brightness(1.05);
+  box-shadow:0 10px 25px rgba(255,106,0,.35);
+}
+button:active{
+  transform:scale(.98);
 }
 
 /* ================= FILTERS ================= */
 .filters{
   display:flex;
   gap:10px;
-  margin-bottom:14px;
-}
-.filters input,
-.filters select{
-  height:40px;
+  margin-bottom:12px;
 }
 
-/* ================= GRID (ÁREA COM SCROLL) ================= */
+/* ================= GRID (SCROLL INTERNO) ================= */
 .grid{
+  flex:1;
   display:grid;
-  grid-template-columns:repeat(7, minmax(170px,1fr));
+  grid-template-columns:repeat(7, minmax(150px,1fr));
   gap:14px;
-  overflow-y:auto;          /* ✅ scroll só aqui */
+  overflow-y:auto;
+  overflow-x:hidden;
   padding-right:6px;
 }
 
-/* barra de rolagem discreta */
 .grid::-webkit-scrollbar{
   width:6px;
 }
@@ -214,16 +244,22 @@ button{
 .item{
   background:#fff;
   border-radius:16px;
-  box-shadow:0 6px 18px rgba(0,0,0,.06);
-  overflow:hidden;
+  box-shadow:var(--shadow-sm);
   display:flex;
   flex-direction:column;
+  overflow:hidden;
+  transition:var(--transition);
+  position:relative;
+}
+.item:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-lg);
 }
 
 /* IMAGE */
 .item img{
   width:100%;
-  height:100px;
+  height:95px;
   object-fit:cover;
 }
 
@@ -276,9 +312,13 @@ button{
 .actions{
   margin-top:auto;
   font-size:12px;
-  color:var(--primary);
   font-weight:700;
+  color:var(--primary);
   cursor:pointer;
+  transition:var(--transition);
+}
+.actions:hover{
+  text-decoration:underline;
 }
 
 </style>
