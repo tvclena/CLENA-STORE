@@ -9,166 +9,207 @@
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff6a00">
-<link rel="apple-touch-icon" href="icon-192.png">
-
 <style>
 :root{
   --primary:#ff6a00;
   --bg:#f4f6fb;
-  --card:#fff;
+  --card:#ffffff;
   --border:#e5e7eb;
-  --radius:16px;
   --text:#111827;
   --muted:#6b7280;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);height:100vh;display:flex}
-
-/* ================= DESKTOP ================= */
-@media(min-width:769px){
-  .mobile-header,.mobile-nav{display:none}
-  .sidebar{
-    width:260px;
-    background:#0b1e39;
-    color:#fff;
-    display:flex;
-    flex-direction:column;
-  }
-  .logo{padding:22px;font-weight:800;color:var(--primary)}
-  .menu{flex:1;padding:10px}
-  .menu-item{
-    padding:14px;border-radius:12px;cursor:pointer;
-    display:flex;gap:14px;align-items:center;
-  }
-  .menu-item:hover{background:rgba(255,255,255,.08)}
-  .main{flex:1;display:flex;flex-direction:column}
-  .topbar{
-    height:64px;background:#fff;
-    display:flex;align-items:center;
-    justify-content:space-between;
-    padding:0 24px;border-bottom:1px solid var(--border)
-  }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter, system-ui, -apple-system, sans-serif;
 }
 
-/* ================= MOBILE ================= */
-@media(max-width:768px){
-  .sidebar,.topbar{display:none}
-  body{flex-direction:column}
-  .mobile-header{
-    padding:16px;
-    background:#fff;
-    font-weight:800;
-    font-size:18px;
-    border-bottom:1px solid var(--border)
-  }
-  .iframe-wrap{
-    flex:1;
-    padding-bottom:72px;
-  }
-  .mobile-nav{
-    position:fixed;
-    bottom:0;left:0;right:0;
-    height:72px;
-    background:#fff;
-    border-top:1px solid var(--border);
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-    padding-bottom:env(safe-area-inset-bottom)
-  }
-  .mobile-nav div{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    font-size:11px;
-    color:var(--muted);
-    cursor:pointer;
-  }
-  .mobile-nav i{
-    font-size:22px;
-  }
-  .mobile-nav .active{
-    color:var(--primary);
-  }
+body{
+  background:var(--bg);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-/* IFRAME */
+/* ================= TOP BAR ================= */
+.topbar{
+  height:56px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+}
+
+.topbar h1{
+  font-size:18px;
+  font-weight:800;
+}
+
+.avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:800;
+  display:none; /* só no home */
+}
+
+/* ================= IFRAME ================= */
+.iframe-wrap{
+  flex:1;
+  background:#fff;
+}
+
 iframe{
   width:100%;
   height:100%;
   border:none;
   background:#fff;
 }
-.iframe-wrap{flex:1}
+
+/* ================= NAV BAR ================= */
+.navbar{
+  height:68px;
+  background:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+.nav-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:11px;
+  color:var(--muted);
+  cursor:pointer;
+  position:relative;
+}
+
+.nav-item i{
+  font-size:22px;
+}
+
+.nav-item.active{
+  color:var(--primary);
+}
+
+/* badge */
+.nav-item .badge{
+  position:absolute;
+  top:0;
+  right:-6px;
+  background:var(--primary);
+  color:#fff;
+  font-size:9px;
+  padding:2px 5px;
+  border-radius:999px;
+}
+
+/* ================= OVERLAY ================= */
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#overlay div{
+  background:#fff;
+  padding:22px 32px;
+  border-radius:14px;
+  font-weight:700;
+}
 </style>
 </head>
 
 <body>
 
-<!-- DESKTOP SIDEBAR -->
-<aside class="sidebar">
-  <div class="logo">Agenda Fácil</div>
-  <div class="menu">
-    <div class="menu-item" onclick="openPage('home.html')">
-      <i class="ri-home-5-line"></i> Home
-    </div>
-    <div class="menu-item" onclick="openPage('produtos.html')">
-      <i class="ri-store-2-line"></i> Produtos
-    </div>
-    <div class="menu-item" onclick="openPage('agenda.html')">
-      <i class="ri-calendar-line"></i> Agenda
-    </div>
-    <div class="menu-item" onclick="openPage('config.html')">
-      <i class="ri-settings-3-line"></i> Config
-    </div>
-  </div>
-</aside>
+<div id="overlay"><div>Validando sessão…</div></div>
 
-<!-- MAIN -->
-<div class="main">
-  <div class="topbar">Agenda Fácil</div>
-
-  <div class="mobile-header">Agenda Fácil</div>
-
-  <div class="iframe-wrap">
-    <iframe id="frame" src="home.html"></iframe>
-  </div>
+<!-- TOP -->
+<div class="topbar">
+  <h1 id="pageTitle">Agenda Fácil</h1>
+  <div class="avatar" id="avatar">A</div>
 </div>
 
-<!-- MOBILE NAV -->
-<nav class="mobile-nav">
-  <div class="active" onclick="setNav(this,'home.html')">
-    <i class="ri-home-5-line"></i>Home
+<!-- CONTENT -->
+<div class="iframe-wrap">
+  <iframe id="frame" src="home.html"></iframe>
+</div>
+
+<!-- NAV BAR -->
+<nav class="navbar">
+  <div class="nav-item active" onclick="go(this,'home.html')">
+    <i class="ri-home-5-line"></i>
+    Home
   </div>
-  <div onclick="setNav(this,'produtos.html')">
-    <i class="ri-store-2-line"></i>Serviços
+
+  <div class="nav-item" onclick="go(this,'agenda.html')">
+    <i class="ri-calendar-line"></i>
+    Agenda
   </div>
-  <div onclick="setNav(this,'agenda.html')">
-    <i class="ri-calendar-line"></i>Agenda
+
+  <div class="nav-item" onclick="go(this,'mensagens.html')">
+    <i class="ri-mail-line"></i>
+    Mensagens
+    <span class="badge">2</span>
   </div>
-  <div onclick="setNav(this,'perfil.html')">
-    <i class="ri-user-3-line"></i>Perfil
+
+  <div class="nav-item" onclick="go(this,'perfil.html')">
+    <i class="ri-user-3-line"></i>
+    Perfil
   </div>
 </nav>
 
 <script>
-function openPage(p){
-  frame.src=p;
-}
-function setNav(el,p){
-  document.querySelectorAll('.mobile-nav div')
-    .forEach(i=>i.classList.remove('active'));
-  el.classList.add('active');
-  frame.src=p;
-}
+/* ================= SUPABASE ================= */
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
 
-/* PWA */
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
+/* ================= AUTH ================= */
+async function proteger(){
+  const { data:{session} } = await sb.auth.getSession();
+  if(!session){
+    location.replace("login.html");
+    return;
+  }
+
+  const { data:profile } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", session.user.id)
+    .single();
+
+  avatar.innerText = profile.negocio[0].toUpperCase();
+  document.getElementById("overlay").style.display="none";
+}
+proteger();
+
+/* ================= NAV ================= */
+function go(el,page){
+  document.querySelectorAll(".nav-item")
+    .forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+
+  frame.src = page;
+
+  // avatar só no home
+  avatar.style.display = page === "home.html" ? "flex" : "none";
 }
 </script>
 
