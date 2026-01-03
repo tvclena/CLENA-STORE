@@ -13,7 +13,6 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --secondary:#111827;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
@@ -26,192 +25,97 @@ body{background:var(--bg);color:var(--text)}
 
 /* HEADER */
 header{
-  padding:26px 20px;
-  background:var(--primary);
+  padding:28px 20px;
+  background:linear-gradient(135deg,var(--primary),#ff8c42);
   color:#fff;
   text-align:center;
 }
 header img{
-  width:92px;
-  height:92px;
+  width:96px;
+  height:96px;
   border-radius:50%;
   object-fit:cover;
-  margin-bottom:10px;
   background:#fff;
+  margin-bottom:10px;
 }
-header h1{
-  font-size:22px;
-  font-weight:800;
-}
+header h1{font-size:22px;font-weight:800}
 
 /* CONTAINER */
-.container{
-  padding:20px;
-  max-width:1100px;
-  margin:auto;
-}
+.container{padding:20px;max-width:1100px;margin:auto}
 
 /* SEARCH */
-.search{
-  margin:18px 0 22px;
-}
 .search input{
   width:100%;
-  padding:14px;
-  border-radius:14px;
+  padding:15px;
+  border-radius:16px;
   border:1px solid var(--border);
   font-size:14px;
+  margin-bottom:20px;
 }
 
 /* TABS */
-.tabs{
-  display:flex;
-  gap:10px;
-  margin-bottom:18px;
-}
+.tabs{display:flex;gap:10px;margin-bottom:20px}
 .tabs button{
-  flex:1;
-  padding:12px;
-  border-radius:999px;
-  border:none;
-  font-weight:800;
-  cursor:pointer;
-  background:#e5e7eb;
+  flex:1;padding:12px;border-radius:999px;border:none;
+  font-weight:800;cursor:pointer;background:#e5e7eb
 }
-.tabs button.active{
-  background:var(--primary);
-  color:#fff;
-}
+.tabs button.active{background:var(--primary);color:#fff}
 
-/* SECTIONS */
+/* LISTAS */
 .section{display:none}
 .section.active{display:block}
 
-/* SERVIÇOS */
 .servicos{
-  display:flex;
-  gap:14px;
-  overflow-x:auto;
-  padding-bottom:6px;
+  display:flex;gap:14px;overflow-x:auto;padding-bottom:6px
 }
-.servico{
-  min-width:220px;
-  background:var(--card);
-  border-radius:18px;
-  padding:14px;
-  box-shadow:0 10px 28px rgba(0,0,0,.08);
+.card-item{
+  min-width:220px;background:var(--card);border-radius:18px;
+  padding:14px;box-shadow:0 10px 28px rgba(0,0,0,.08)
 }
-.servico img{
-  width:100%;
-  height:130px;
-  border-radius:12px;
-  object-fit:cover;
+.card-item img{
+  width:100%;height:130px;border-radius:12px;object-fit:cover
 }
-.servico h4{
-  margin:8px 0 2px;
-  font-size:15px;
-}
-.servico small{
-  color:var(--muted);
-}
-.servico button{
-  width:100%;
-  margin-top:8px;
-  padding:11px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
+.card-item h4{margin:8px 0 2px}
+.card-item small{color:var(--muted)}
+.card-item button{
+  width:100%;margin-top:8px;padding:11px;
+  border:none;border-radius:999px;
+  background:var(--primary);color:#fff;font-weight:800
 }
 
-/* PRODUTOS */
 .produtos{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:14px;
-}
-.produto{
-  background:var(--card);
-  border-radius:18px;
-  padding:12px;
-  box-shadow:0 10px 28px rgba(0,0,0,.06);
-}
-.produto img{
-  width:100%;
-  height:120px;
-  border-radius:12px;
-  object-fit:cover;
-}
-.produto h4{
-  margin:6px 0 2px;
-  font-size:14px;
-}
-.produto small{
-  color:var(--muted);
-}
-.produto button{
-  width:100%;
-  margin-top:6px;
-  padding:11px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
+  gap:14px
 }
 
 /* SACOLA */
 #sacolaBtn{
-  position:fixed;
-  bottom:22px;
-  right:22px;
-  background:var(--primary);
-  color:#fff;
-  width:62px;
-  height:62px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  box-shadow:0 14px 34px rgba(0,0,0,.25);
-  cursor:pointer;
+  position:fixed;bottom:22px;right:22px;
+  background:var(--primary);color:#fff;
+  width:64px;height:64px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;box-shadow:0 14px 34px rgba(0,0,0,.25)
 }
 
-/* POPUP */
-#popup{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
+/* MODAIS */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;z-index:999
 }
-#popup .box{
-  background:#fff;
-  padding:22px;
-  border-radius:20px;
-  max-width:360px;
-  text-align:center;
+.modal .box{
+  background:#fff;padding:22px;border-radius:20px;
+  max-width:360px;width:100%
 }
-#popup h3{
-  font-size:18px;
-  margin-bottom:6px;
+.modal h3{margin-bottom:6px}
+.modal input, .modal select{
+  width:100%;padding:12px;margin-top:8px;
+  border-radius:12px;border:1px solid var(--border)
 }
-#popup p{
-  font-size:14px;
-  color:#555;
-  margin-bottom:14px;
-}
-#popup button{
-  padding:12px 20px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
+.modal button{
+  margin-top:14px;width:100%;padding:14px;
+  border:none;border-radius:999px;
+  background:var(--primary);color:#fff;font-weight:800
 }
 </style>
 </head>
@@ -219,14 +123,14 @@ header h1{
 <body>
 
 <header>
-  <img id="logo" src="">
+  <img id="logo">
   <h1 id="nomeLoja">Carregando…</h1>
 </header>
 
 <div class="container">
 
   <div class="search">
-    <input id="search" placeholder="Pesquisar produtos ou serviços">
+    <input id="search" placeholder="Pesquisar serviços ou produtos">
   </div>
 
   <div class="tabs">
@@ -246,11 +150,22 @@ header h1{
 
 <div id="sacolaBtn" onclick="abrirSacola()">🛒</div>
 
-<div id="popup">
+<!-- MODAL AGENDAMENTO -->
+<div id="modalAgendar" class="modal">
+  <div class="box">
+    <h3 id="agendarNome"></h3>
+    <input type="date" id="agendarData">
+    <input type="time" id="agendarHora">
+    <button onclick="confirmarAgendamento()">Confirmar agendamento</button>
+  </div>
+</div>
+
+<!-- POPUP PROMO -->
+<div id="popup" class="modal">
   <div class="box">
     <h3 id="popupTitulo"></h3>
     <p id="popupTexto"></p>
-    <button onclick="fecharPopup()">Fechar</button>
+    <button onclick="popup.style.display='none'">Fechar</button>
   </div>
 </div>
 
@@ -261,7 +176,7 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
-let produtos = [];
+let itens=[], servicoSelecionado=null;
 
 /* TABS */
 function tab(id,btn){
@@ -271,96 +186,87 @@ function tab(id,btn){
   document.getElementById(id).classList.add('active');
 }
 
-/* CONFIG DA LOJA */
+/* CONFIG LOJA */
 async function carregarLoja(){
-  const { data:cfg } = await sb
-    .from("config_loja")
-    .select("*")
-    .eq("user_id", lojaId)
-    .single();
+  const {data} = await sb.from("config_loja").select("*").eq("user_id",lojaId).single();
+  if(!data) return;
 
-  if(!cfg) return;
+  document.documentElement.style.setProperty('--primary',data.cor_primaria);
+  document.getElementById("themeColor").content=data.cor_primaria;
 
-  document.documentElement.style.setProperty('--primary', cfg.cor_primaria);
-  document.documentElement.style.setProperty('--secondary', cfg.cor_secundaria || '#111827');
-  document.getElementById("themeColor").content = cfg.cor_primaria;
+  nomeLoja.innerText=data.nome || "Agendamento Online";
+  if(data.logo_url) logo.src=data.logo_url;
 
-  nomeLoja.innerText = cfg.nome || "Agendamento Online";
-  if(cfg.logo_url) logo.src = cfg.logo_url;
-
-  if(cfg.popup_ativo){
-    popupTitulo.innerText = cfg.popup_titulo || "Promoção";
-    popupTexto.innerText = cfg.popup_texto || "";
-    popup.style.display = "flex";
+  if(data.popup_ativo){
+    popupTitulo.innerText=data.popup_titulo;
+    popupTexto.innerText=data.popup_texto;
+    popup.style.display="flex";
   }
 }
 
-/* PRODUTOS E SERVIÇOS */
+/* ITENS */
 async function carregarItens(){
-  const { data } = await sb
+  const {data} = await sb
     .from("produtos_servicos")
     .select("*")
-    .eq("user_id", lojaId)
-    .eq("ativo", true)
+    .eq("user_id",lojaId)
+    .eq("ativo",true)
     .order("ordem_exibicao");
 
-  produtos = data || [];
-
+  itens=data||[];
   render();
 }
 
 function render(){
-  const q = search.value.toLowerCase();
+  const q=search.value.toLowerCase();
 
-  const servicos = produtos.filter(i =>
-    i.tipo === "SERVICO" &&
-    i.nome.toLowerCase().includes(q)
-  );
+  const servicos=itens.filter(i=>i.tipo==="SERVICO" && i.nome.toLowerCase().includes(q));
+  const produtos=itens.filter(i=>i.tipo==="PRODUTO" && i.nome.toLowerCase().includes(q));
 
-  const prods = produtos.filter(i =>
-    i.tipo === "PRODUTO" &&
-    i.nome.toLowerCase().includes(q)
-  );
-
-  listaServicos.innerHTML = servicos.map(s=>`
-    <div class="servico">
-      <img src="${s.imagem_url || ''}">
+  listaServicos.innerHTML=servicos.map(s=>`
+    <div class="card-item">
+      <img src="${s.imagem_url||''}">
       <h4>${s.nome}</h4>
       <small>R$ ${Number(s.preco).toFixed(2)}</small>
-      <button onclick="agendar('${s.id}')">Agendar</button>
-    </div>
-  `).join("") || "<p>Nenhum serviço disponível</p>";
+      <button onclick="agendar('${s.id}','${s.nome}')">Agendar</button>
+    </div>`).join("") || "<p>Nenhum serviço disponível</p>";
 
-  listaProdutos.innerHTML = prods.map(p=>`
-    <div class="produto">
-      <img src="${p.imagem_url || ''}">
+  listaProdutos.innerHTML=produtos.map(p=>`
+    <div class="card-item">
+      <img src="${p.imagem_url||''}">
       <h4>${p.nome}</h4>
       <small>R$ ${Number(p.preco).toFixed(2)}</small>
       <button onclick="addSacola('${p.id}')">Adicionar</button>
-    </div>
-  `).join("") || "<p>Nenhum produto disponível</p>";
+    </div>`).join("") || "<p>Nenhum produto disponível</p>";
 }
 
-/* BUSCA */
-search.addEventListener("input", render);
+search.addEventListener("input",render);
 
-/* AÇÕES */
-function agendar(id){
-  alert("Agendamento do serviço: " + id);
+/* AGENDAMENTO */
+function agendar(id,nome){
+  servicoSelecionado=id;
+  agendarNome.innerText=nome;
+  modalAgendar.style.display="flex";
 }
-function addSacola(id){
-  alert("Produto adicionado: " + id);
+
+async function confirmarAgendamento(){
+  await sb.from("agenda_loja").insert({
+    user_id: lojaId,
+    servico_id: servicoSelecionado,
+    data: agendarData.value,
+    hora: agendarHora.value
+  });
+  modalAgendar.style.display="none";
+  alert("Agendamento realizado com sucesso!");
 }
-function abrirSacola(){
-  alert("Abrir sacola (próximo passo)");
-}
-function fecharPopup(){
-  popup.style.display="none";
-}
+
+/* SACOLA (placeholder) */
+function addSacola(id){ alert("Produto adicionado à sacola"); }
+function abrirSacola(){ alert("Sacola (próximo passo)"); }
 
 /* INIT */
 if(!lojaId){
-  document.body.innerHTML = "<h2 style='padding:40px;text-align:center'>Loja inválida</h2>";
+  document.body.innerHTML="<h2 style='padding:40px;text-align:center'>Loja inválida</h2>";
 }else{
   carregarLoja();
   carregarItens();
