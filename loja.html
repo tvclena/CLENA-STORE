@@ -20,11 +20,10 @@
   --primary:#ff6a00;
   --secondary:#ff9a57;
   --bg:#f4f6fb;
-  --card:#ffffff;
+  --card:#fff;
   --text:#111827;
   --muted:#6b7280;
   --success:#16a34a;
-  --danger:#dc2626;
 }
 
 *{
@@ -43,7 +42,7 @@ html,body{
 
 /* ===== HEADER ===== */
 header{
-  padding:26px 16px 22px;
+  padding:22px 16px;
   text-align:center;
   color:#fff;
   background:
@@ -52,22 +51,53 @@ header{
     linear-gradient(135deg,var(--primary),var(--secondary));
 }
 header img{
-  width:86px;
-  height:86px;
+  width:78px;
+  height:78px;
   border-radius:50%;
   object-fit:cover;
   background:#fff;
 }
 header h1{
-  margin-top:10px;
-  font-size:22px;
+  margin-top:8px;
+  font-size:20px;
   font-weight:800;
 }
-header small{opacity:.9}
 
-/* ===== CONTENT ===== */
-.section{padding:16px}
+/* ===== TOGGLE + SEARCH ===== */
+.top-controls{
+  padding:14px;
+}
+.toggle{
+  display:flex;
+  background:#fff;
+  border-radius:999px;
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.toggle button{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:none;
+  font-weight:800;
+  color:var(--muted);
+}
+.toggle button.active{
+  background:var(--primary);
+  color:#fff;
+}
+.search{
+  background:#fff;
+  border-radius:999px;
+  padding:12px 16px;
+  border:none;
+  width:100%;
+  font-size:14px;
+}
+
+/* ===== GRID ===== */
 .grid{
+  padding:14px;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
   gap:12px;
@@ -76,7 +106,7 @@ header small{opacity:.9}
   background:var(--card);
   border-radius:18px;
   padding:12px;
-  box-shadow:0 10px 28px rgba(0,0,0,.08);
+  box-shadow:0 10px 26px rgba(0,0,0,.08);
 }
 .card img{
   width:100%;
@@ -103,7 +133,7 @@ header small{opacity:.9}
 /* ===== CTA ===== */
 .cta{
   position:fixed;
-  bottom:90px;
+  bottom:24px;
   left:16px;
   right:16px;
 }
@@ -167,6 +197,20 @@ header small{opacity:.9}
   background:#e5e7eb;
   margin-left:auto;
 }
+.options{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+}
+.options button{
+  padding:10px 14px;
+  border-radius:999px;
+  border:none;
+  background:var(--success);
+  color:#fff;
+  font-weight:800;
+  white-space:nowrap;
+}
 .chat-input{
   display:flex;
   gap:8px;
@@ -187,25 +231,6 @@ header small{opacity:.9}
   color:#fff;
   font-weight:800;
 }
-
-/* ===== OPTIONS ===== */
-.options{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-}
-.options button{
-  padding:10px 14px;
-  border-radius:999px;
-  border:none;
-  background:var(--success);
-  color:#fff;
-  font-weight:800;
-  white-space:nowrap;
-}
-.options button.disabled{
-  background:#ccc;
-}
 </style>
 </head>
 
@@ -214,13 +239,17 @@ header small{opacity:.9}
 <header>
   <img id="logo">
   <h1 id="nomeLoja">Agendamento</h1>
-  <small>Agende seu horário</small>
 </header>
 
-<section class="section">
-  <h3>Serviços</h3>
-  <div class="grid" id="listaServicos"></div>
-</section>
+<div class="top-controls">
+  <div class="toggle">
+    <button id="btnServ" class="active" onclick="setTipo('SERVICO')">Serviços</button>
+    <button id="btnProd" onclick="setTipo('PRODUTO')">Produtos</button>
+  </div>
+  <input class="search" id="busca" placeholder="Buscar serviço ou produto…">
+</div>
+
+<div class="grid" id="lista"></div>
 
 <div class="cta">
   <button onclick="abrirChat()">Agendar agora</button>
@@ -242,7 +271,6 @@ header small{opacity:.9}
 </div>
 
 <script>
-/* 🔒 BLOQUEIA ZOOM */
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('dblclick',e=>e.preventDefault());
 
@@ -253,23 +281,54 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 
-let etapa="nome";
-let cliente={};
-let servico=null;
-let dataSel=null;
+let tipoAtual="SERVICO";
+let todos=[];
 
-/* CHAT HELPERS */
-function delay(fn){ setTimeout(fn,1000); }
+/* ===== TOPO ===== */
+function setTipo(t){
+  tipoAtual=t;
+  btnServ.classList.toggle("active",t==="SERVICO");
+  btnProd.classList.toggle("active",t==="PRODUTO");
+  render();
+}
 
-function addMsg(txt,cls="bot"){
+/* ===== BUSCA ===== */
+busca.oninput=render;
+
+/* ===== LISTAGEM ===== */
+function render(){
+  const q=busca.value.toLowerCase();
+  lista.innerHTML = todos
+    .filter(i=>i.tipo===tipoAtual)
+    .filter(i=>i.nome.toLowerCase().includes(q))
+    .map(i=>`
+      <div class="card">
+        <img src="${i.imagem_url||''}">
+        <strong>${i.nome}</strong>
+        <small>
+          ${i.tipo==="SERVICO"
+            ? `${i.duracao_minutos} min • R$ ${Number(i.preco).toFixed(2)}`
+            : `R$ ${Number(i.preco).toFixed(2)}`
+          }
+        </small>
+        ${i.tipo==="SERVICO"
+          ? `<button onclick="abrirChat()">Agendar</button>`
+          : `<button>Comprar</button>`
+        }
+      </div>
+    `).join("");
+}
+
+/* ===== CHAT ===== */
+let etapa="nome",cliente={},servico=null,dataSel=null;
+function delay(fn){setTimeout(fn,1000)}
+function addMsg(t,c="bot"){
   const d=document.createElement("div");
-  d.className="msg "+cls;
-  d.innerHTML=txt;
+  d.className="msg "+c;
+  d.innerHTML=t;
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
 }
-
-/* CHAT FLOW */
 function abrirChat(){
   chatOverlay.style.display="block";
   chat.innerHTML="";
@@ -279,115 +338,69 @@ function abrirChat(){
     addMsg("Qual é o seu nome?");
   });
 }
-
-function fecharChat(){
-  chatOverlay.style.display="none";
-}
-
+function fecharChat(){chatOverlay.style.display="none"}
 function enviar(){
   const v=input.value.trim();
-  if(!v) return;
+  if(!v)return;
   addMsg(v,"user");
   input.value="";
-
-  if(etapa==="nome"){
-    cliente.nome=v;
-    etapa="whats";
-    delay(()=>addMsg("Agora seu WhatsApp 📱"));
-  }
-  else if(etapa==="whats"){
-    cliente.whats=v.replace(/\D/g,"");
-    etapa="servico";
-    listarServicosChat();
-  }
+  if(etapa==="nome"){cliente.nome=v;etapa="whats";delay(()=>addMsg("Seu WhatsApp 📱"))}
+  else if(etapa==="whats"){cliente.whats=v;listarServicosChat()}
 }
-
-/* SERVIÇOS CHAT */
 async function listarServicosChat(){
-  delay(async ()=>{
+  etapa="servico";
+  delay(()=>{
     addMsg("Escolha um serviço:");
-    const {data}=await sb
-      .from("produtos_servicos")
-      .select("*")
-      .eq("user_id",lojaId)
-      .eq("tipo","SERVICO")
-      .eq("ativo",true);
-
     const wrap=document.createElement("div");
     wrap.className="options";
-
-    data.forEach(s=>{
+    todos.filter(i=>i.tipo==="SERVICO").forEach(s=>{
       const b=document.createElement("button");
       b.innerText=`${s.nome} • R$ ${Number(s.preco).toFixed(2)}`;
-      b.onclick=()=>{
-        servico=s;
-        listarDiasDisponiveis();
-      };
+      b.onclick=()=>{servico=s;listarDias()};
       wrap.appendChild(b);
     });
-
     chat.appendChild(wrap);
   });
 }
-
-/* DIAS DISPONÍVEIS */
-async function listarDiasDisponiveis(){
+async function listarDias(){
+  etapa="dia";
   delay(async ()=>{
-    addMsg("Escolha o dia disponível:");
-    const {data}=await sb
-      .from("agenda_loja")
-      .select("*")
-      .eq("user_id",lojaId)
-      .eq("fechado",false);
-
+    addMsg("Escolha o dia:");
+    const {data}=await sb.from("agenda_loja")
+      .select("*").eq("user_id",lojaId).eq("fechado",false);
     const wrap=document.createElement("div");
     wrap.className="options";
-
     data.forEach(d=>{
-      if(!d.horarios) return;
-      const date=new Date(d.data);
+      if(!d.horarios)return;
       const b=document.createElement("button");
-      b.innerText=`${date.getDate()}/${date.getMonth()+1}`;
-      b.onclick=()=>listarHorarios(d);
+      b.innerText=new Date(d.data).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+      b.onclick=()=>listarHoras(d);
       wrap.appendChild(b);
     });
-
     chat.appendChild(wrap);
   });
 }
-
-/* HORÁRIOS DISPONÍVEIS */
-async function listarHorarios(dia){
-  dataSel=dia.data;
+async function listarHoras(d){
+  etapa="hora";
+  dataSel=d.data;
   delay(async ()=>{
     addMsg("Horários disponíveis:");
-
-    const base=JSON.parse(dia.horarios||"[]");
-
-    const {data:ag}=await sb
-      .from("agendamentos")
-      .select("hora_inicio")
-      .eq("user_id",lojaId)
-      .eq("data",dataSel);
-
+    const base=JSON.parse(d.horarios||"[]");
+    const {data:ag}=await sb.from("agendamentos")
+      .select("hora_inicio").eq("user_id",lojaId).eq("data",dataSel);
     const ocupados=ag.map(a=>a.hora_inicio);
-
     const wrap=document.createElement("div");
     wrap.className="options";
-
     base.forEach(h=>{
-      if(ocupados.includes(h.inicio)) return;
+      if(ocupados.includes(h.inicio))return;
       const b=document.createElement("button");
       b.innerText=h.inicio;
       b.onclick=()=>confirmar(h);
       wrap.appendChild(b);
     });
-
     chat.appendChild(wrap);
   });
 }
-
-/* CONFIRMAR */
 async function confirmar(h){
   await sb.from("agendamentos").insert({
     user_id:lojaId,
@@ -399,60 +412,35 @@ async function confirmar(h){
     hora_inicio:h.inicio,
     hora_fim:h.fim
   });
-
   delay(()=>{
     addMsg("✅ Agendamento confirmado!");
     addMsg(`${servico.nome}<br>${dataSel} às ${h.inicio}`);
   });
 }
 
-/* LOJA */
-async function carregarLoja(){
-  const {data:p}=await sb
-    .from("user_profile")
-    .select("negocio,avatar_url")
-    .eq("user_id",lojaId)
-    .single();
-
+/* ===== LOAD ===== */
+async function init(){
+  const {data:p}=await sb.from("user_profile")
+    .select("negocio,avatar_url").eq("user_id",lojaId).single();
   nomeLoja.innerText=p?.negocio||"Agendamento";
-  if(p?.avatar_url) logo.src=p.avatar_url;
+  if(p?.avatar_url)logo.src=p.avatar_url;
 
-  const {data:cfg}=await sb
-    .from("config_loja")
-    .select("*")
-    .eq("user_id",lojaId)
-    .single();
-
+  const {data:cfg}=await sb.from("config_loja")
+    .select("*").eq("user_id",lojaId).single();
   if(cfg?.cor_primaria){
     document.documentElement.style.setProperty("--primary",cfg.cor_primaria);
     document.documentElement.style.setProperty("--secondary",cfg.cor_secundaria||cfg.cor_primaria);
     themeColor.content=cfg.cor_primaria;
   }
+
+  const {data}=await sb.from("produtos_servicos")
+    .select("*").eq("user_id",lojaId).eq("ativo",true);
+  todos=data||[];
+  render();
 }
 
-async function carregarServicos(){
-  const {data}=await sb
-    .from("produtos_servicos")
-    .select("*")
-    .eq("user_id",lojaId)
-    .eq("tipo","SERVICO")
-    .eq("ativo",true);
-
-  listaServicos.innerHTML=data.map(s=>`
-    <div class="card">
-      <img src="${s.imagem_url||''}">
-      <strong>${s.nome}</strong>
-      <small>${s.duracao_minutos} min • R$ ${Number(s.preco).toFixed(2)}</small>
-    </div>
-  `).join("");
-}
-
-if(lojaId){
-  carregarLoja();
-  carregarServicos();
-}else{
-  document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
-}
+if(lojaId)init();
+else document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
 </script>
 
 </body>
