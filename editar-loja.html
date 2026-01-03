@@ -2,9 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Editar Loja • Agenda Fácil</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agendamento Online</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" id="themeColor">
+
+<link rel="manifest" id="manifestLink">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -13,131 +16,217 @@
   --primary:#ff6a00;
   --bg:#f4f6fb;
   --card:#ffffff;
-  --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
+  --danger:#dc2626;
 }
 
-*{box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);margin:0;padding:20px;color:var(--text)}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);color:var(--text)}
 
-h1{font-size:22px;margin-bottom:10px}
-.section{background:var(--card);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+header{
+  background:var(--primary);
+  color:#fff;
+  padding:18px;
+  text-align:center;
+}
+header img{
+  width:88px;height:88px;border-radius:50%;object-fit:cover;background:#fff;
+}
+header h1{margin-top:8px;font-size:22px;font-weight:800}
 
-label{font-size:13px;font-weight:700}
-input,textarea{
-  width:100%;
-  margin-top:6px;
-  margin-bottom:14px;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid var(--border);
+#perfilCliente{
+  background:#fff;
+  margin:14px;
+  padding:14px;
+  border-radius:14px;
   font-size:14px;
 }
 
-.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-
-.toggle{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-
-button{
+/* BANNER */
+#banner{
+  display:none;
+  margin:14px;
+  border-radius:18px;
+  overflow:hidden;
+  position:relative;
+}
+#banner img{
   width:100%;
-  padding:16px;
+  height:160px;
+  object-fit:cover;
+}
+#banner span{
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:10px;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  font-weight:700;
+}
+
+/* SEÇÕES */
+.section{display:none;padding:14px}
+.section.active{display:block}
+
+/* CARDS */
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+}
+
+/* SERVIÇOS / PRODUTOS */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+}
+.item img{
+  width:100%;
+  height:120px;
+  border-radius:12px;
+  object-fit:cover;
+}
+.item button{
+  width:100%;
+  margin-top:6px;
+  padding:10px;
   border:none;
   border-radius:999px;
   background:var(--primary);
   color:#fff;
   font-weight:800;
-  font-size:15px;
+}
+
+/* CALENDÁRIO */
+.dias{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+}
+.dia{
+  min-width:80px;
+  padding:10px;
+  border-radius:12px;
+  text-align:center;
+  background:#e5e7eb;
   cursor:pointer;
 }
+.dia.active{background:var(--primary);color:#fff}
 
-/* PREVIEW */
-.preview{
-  border-radius:20px;
-  overflow:hidden;
-  background:#fff;
-  margin-top:10px;
+.horarios{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+  gap:8px;
+  margin-top:12px;
 }
-.preview header{
-  padding:20px;
+.hora{
+  padding:10px;
+  border-radius:10px;
   text-align:center;
-  color:#fff;
+  background:#e5e7eb;
 }
-.preview header img{
-  width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:8px
+.hora.disponivel{background:#16a34a;color:#fff;cursor:pointer}
+.hora.indisponivel{background:#dc2626;color:#fff}
+
+/* NAVBAR */
+nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  border-top:1px solid #ddd;
+}
+nav button{
+  flex:1;
+  padding:10px;
+  border:none;
+  background:none;
+  font-size:12px;
+  font-weight:700;
 }
 
-/* OVERLAY */
-#overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);
-  display:none;align-items:center;justify-content:center;z-index:9999;
+/* POPUP */
+#popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
 }
-#overlay div{
-  background:#fff;padding:18px 22px;border-radius:14px;font-weight:800;
+#popup .box{
+  background:#fff;
+  padding:20px;
+  border-radius:18px;
+  max-width:340px;
+  text-align:center;
+}
+#popup button{
+  margin-top:12px;
+  padding:10px 20px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Visual da Loja</h1>
+<header>
+  <img id="logo">
+  <h1 id="nomeLoja">Carregando…</h1>
+</header>
 
-<div class="section">
-  <label>Nome da loja</label>
-  <input id="nome">
+<div id="perfilCliente" class="card">
+  👤 <strong id="clienteNome">Visitante</strong><br>
+  📱 <span id="clienteWhats"></span>
+</div>
 
-  <label>Logo da loja</label>
-  <input type="file" id="logoFile" accept="image/*">
+<div id="banner">
+  <img id="bannerImg">
+  <span id="bannerTxt"></span>
+</div>
 
-  <div class="row">
-    <div>
-      <label>Cor primária</label>
-      <input type="color" id="corPrimaria">
-    </div>
-    <div>
-      <label>Cor do botão</label>
-      <input type="color" id="corBotao">
-    </div>
+<!-- SERVIÇOS -->
+<div id="servicos" class="section active">
+  <div class="grid" id="listaServicos"></div>
+</div>
+
+<!-- AGENDAR -->
+<div id="agendar" class="section">
+  <div class="dias" id="dias"></div>
+  <div class="horarios" id="horarios"></div>
+</div>
+
+<!-- MEUS AGENDAMENTOS -->
+<div id="meus" class="section">
+  <div id="listaMeus"></div>
+</div>
+
+<nav>
+  <button onclick="show('servicos')">Serviços</button>
+  <button onclick="show('agendar')">Agendar</button>
+  <button onclick="show('meus')">Meus horários</button>
+</nav>
+
+<div id="popup">
+  <div class="box">
+    <h3 id="popupTitulo"></h3>
+    <p id="popupTexto"></p>
+    <button onclick="popup.style.display='none'">Fechar</button>
   </div>
 </div>
-
-<div class="section">
-  <div class="toggle">
-    <input type="checkbox" id="bannerAtivo">
-    <label>Banner ativo</label>
-  </div>
-
-  <label>Imagem do banner</label>
-  <input type="file" id="bannerFile" accept="image/*">
-
-  <label>Texto do banner</label>
-  <input id="bannerTexto">
-</div>
-
-<div class="section">
-  <div class="toggle">
-    <input type="checkbox" id="popupAtivo">
-    <label>Popup promocional</label>
-  </div>
-
-  <label>Título</label>
-  <input id="popupTitulo">
-
-  <label>Texto</label>
-  <textarea id="popupTexto"></textarea>
-</div>
-
-<button onclick="salvar()">Aplicar alterações</button>
-
-<h2>Pré-visualização</h2>
-<div class="preview">
-  <header id="previewHeader">
-    <img id="previewLogo">
-    <h3 id="previewNome"></h3>
-  </header>
-</div>
-
-<div id="overlay"><div>Aplicando alterações na loja…</div></div>
 
 <script>
 const sb = supabase.createClient(
@@ -145,72 +234,132 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let user, logoPath=null, bannerPath=null;
+const lojaId = new URLSearchParams(location.search).get("l");
+
+/* NAV */
+function show(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* LOJA */
+async function carregarLoja(){
+  const {data:perfil} = await sb
+    .from("user_profile")
+    .select("negocio,avatar_url")
+    .eq("user_id",lojaId)
+    .single();
+
+  nomeLoja.innerText = perfil?.negocio || "Agendamento Online";
+  if(perfil?.avatar_url) logo.src = perfil.avatar_url;
+
+  /* PWA */
+  const manifest = {
+    name: perfil?.negocio || "Agendamento",
+    short_name: perfil?.negocio || "Agenda",
+    start_url: location.href,
+    display: "standalone",
+    background_color: "#ffffff",
+    theme_color: "#ff6a00",
+    icons:[{src:perfil?.avatar_url,sizes:"192x192",type:"image/png"}]
+  };
+  const blob = new Blob([JSON.stringify(manifest)],{type:"application/json"});
+  manifestLink.href = URL.createObjectURL(blob);
+
+  const {data:cfg} = await sb
+    .from("config_loja")
+    .select("*")
+    .eq("user_id",lojaId)
+    .single();
+
+  if(cfg?.cor_primaria){
+    document.documentElement.style.setProperty('--primary',cfg.cor_primaria);
+    themeColor.content = cfg.cor_primaria;
+  }
+
+  if(cfg?.banner_ativo){
+    banner.style.display="block";
+    bannerImg.src = cfg.banner_imagem;
+    bannerTxt.innerText = cfg.banner_texto;
+  }
+
+  if(cfg?.popup_ativo){
+    popupTitulo.innerText = cfg.popup_titulo;
+    popupTexto.innerText = cfg.popup_texto;
+    popup.style.display="flex";
+  }
+}
+
+/* SERVIÇOS */
+async function carregarServicos(){
+  const {data} = await sb
+    .from("produtos_servicos")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("tipo","SERVICO")
+    .eq("ativo",true);
+
+  listaServicos.innerHTML = data.map(s=>`
+    <div class="item card">
+      <img src="${s.imagem_url}">
+      <strong>${s.nome}</strong><br>
+      R$ ${Number(s.preco).toFixed(2)}
+      <button onclick="show('agendar')">Agendar</button>
+    </div>
+  `).join("");
+}
+
+/* AGENDA */
+async function carregarAgenda(){
+  const hoje = new Date();
+  const diasArr = [];
+
+  for(let i=0;i<7;i++){
+    const d = new Date();
+    d.setDate(hoje.getDate()+i);
+    diasArr.push(d.toISOString().slice(0,10));
+  }
+
+  dias.innerHTML = diasArr.map(d=>`
+    <div class="dia" onclick="selecionarDia('${d}',this)">
+      ${d.slice(8,10)}/${d.slice(5,7)}
+    </div>
+  `).join("");
+}
+
+async function selecionarDia(data,el){
+  document.querySelectorAll('.dia').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+
+  const {data:dia} = await sb
+    .from("agenda_loja")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("data",data)
+    .single();
+
+  if(!dia || dia.fechado){
+    horarios.innerHTML = "<p>Fechado</p>";
+    return;
+  }
+
+  const hrs = JSON.parse(dia.horarios || "[]");
+
+  horarios.innerHTML = hrs.map(h=>`
+    <div class="hora disponivel">
+      ${h.inicio}
+    </div>
+  `).join("");
+}
 
 /* INIT */
-(async()=>{
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session) return location.href="login.html";
-  user = session.user;
-
-  const {data} = await sb.from("config_loja").select("*").eq("user_id", user.id).single();
-  if(!data) return;
-
-  nome.value = data.nome || "";
-  corPrimaria.value = data.cor_primaria || "#ff6a00";
-  corBotao.value = data.cor_botao || "#ff6a00";
-  bannerAtivo.checked = data.banner_ativo;
-  bannerTexto.value = data.banner_texto || "";
-  popupAtivo.checked = data.popup_ativo;
-  popupTitulo.value = data.popup_titulo || "";
-  popupTexto.value = data.popup_texto || "";
-
-  atualizarPreview();
-})();
-
-/* PREVIEW */
-function atualizarPreview(){
-  document.documentElement.style.setProperty('--primary', corPrimaria.value);
-  previewHeader.style.background = corPrimaria.value;
-  previewNome.innerText = nome.value || "Nome da loja";
+if(lojaId){
+  carregarLoja();
+  carregarServicos();
+  carregarAgenda();
+}else{
+  document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
 }
-
-/* UPLOAD */
-async function upload(file, path){
-  await sb.storage.from("produtos").upload(path, file, {upsert:true});
-  return path;
-}
-
-/* SALVAR */
-async function salvar(){
-  overlay.style.display="flex";
-
-  if(logoFile.files[0])
-    logoPath = await upload(logoFile.files[0], `logo/${user.id}.jpg`);
-
-  if(bannerFile.files[0])
-    bannerPath = await upload(bannerFile.files[0], `banner/${user.id}.jpg`);
-
-  await sb.from("config_loja").upsert({
-    user_id: user.id,
-    nome: nome.value,
-    logo_url: logoPath,
-    cor_primaria: corPrimaria.value,
-    cor_botao: corBotao.value,
-    banner_ativo: bannerAtivo.checked,
-    banner_url: bannerPath,
-    banner_texto: bannerTexto.value,
-    popup_ativo: popupAtivo.checked,
-    popup_titulo: popupTitulo.value,
-    popup_texto: popupTexto.value,
-    updated_at: new Date()
-  });
-
-  overlay.style.display="none";
-  alert("Visual da loja atualizado com sucesso!");
-}
-
-document.querySelectorAll("input,textarea").forEach(i=>i.addEventListener("input", atualizarPreview));
 </script>
 
 </body>
