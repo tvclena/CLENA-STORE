@@ -174,10 +174,11 @@ button{
 /* =================================================
    SUPABASE (SEM CONFLITO GLOBAL)
    ================================================= */
-const sb = window.supabase.createClient(
+const sb = window.__sbProdutos ??= window.supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+
 
 let userId = null;
 let itens = [];
