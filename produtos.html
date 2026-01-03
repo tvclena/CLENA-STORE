@@ -498,28 +498,42 @@ function render(){
     return true;
   }).forEach(i=>{
     const margem = i.custo ? (((i.preco - i.custo)/i.preco)*100).toFixed(0) : null;
-    lista.innerHTML+=`
-    <div class="item">
-      ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
-      <div class="item-body">
-        <div class="badges">
-          <span class="badge">${i.tipo}</span>
-          ${i.promocao_ativa?`<span class="badge promo">Promo</span>`:""}
-          ${!i.ativo?`<span class="badge off">Inativo</span>`:""}
-          ${i.controla_estoque && i.estoque_atual<=i.estoque_minimo
+
+   lista.innerHTML+=`
+  <div class="item">
+    
+    <div class="image ${i.imagem_url ? '' : 'no-image'}">
+      ${
+        i.imagem_url 
+          ? `<img src="${i.imagem_url}">`
+          : i.nome.charAt(0)
+      }
+    </div>
+
+    <div class="item-body">
+      <div class="badges">
+        <span class="badge">${i.tipo}</span>
+        ${i.promocao_ativa ? `<span class="badge promo">Promo</span>` : ""}
+        ${!i.ativo ? `<span class="badge off">Inativo</span>` : ""}
+        ${
+          i.controla_estoque && i.estoque_atual <= i.estoque_minimo
             ? `<span class="badge low">Estoque baixo</span>`
             : i.controla_estoque
-              ? `<span class="badge ok">Estoque ok</span>`:""}
-        </div>
-        <h4>${i.nome}</h4>
-        <div class="price">R$ ${i.preco}</div>
-        ${margem?`<div class="margin">Margem ${margem}%</div>`:""}
-        <small>${i.categoria||""}</small>
-        <div class="actions" onclick="editar('${i.id}')">Editar</div>
+              ? `<span class="badge ok">Estoque ok</span>`
+              : ""
+        }
       </div>
-    </div>`;
-  });
-}
+
+      <h4>${i.nome}</h4>
+      <div class="price">R$ ${i.preco}</div>
+      ${margem ? `<div class="margin">Margem ${margem}%</div>` : ""}
+      <small>${i.categoria || ""}</small>
+
+      <div class="actions" onclick="editar('${i.id}')">Editar</div>
+    </div>
+  </div>
+`;
+
 
 function editar(id){
   const i=itens.find(x=>x.id===id);
