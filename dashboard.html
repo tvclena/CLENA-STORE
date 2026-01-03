@@ -255,19 +255,21 @@ let profile = null;
 let fotoBlob = null; // ✅ vamos enviar blob reduzido
 
 /* ================= AUTH ================= */
+/* ================= AUTH ================= */
 async function proteger(){
  const { data:{ session } } = await sb.auth.getSession();
-if(!session){
-  location.href = "login.html";
-  return;
+ if(!session){
+   location.href = "login.html";
+   return;
+ }
+ user = session.user;
+
+ overlay.style.display = "none";
+ carregarPerfil();
 }
-user = session.user;
 
-// ✅ LIBERA A TELA IMEDIATAMENTE
-overlay.style.display = "none";
+proteger();
 
-// ⏳ CARREGA PERFIL EM BACKGROUND
-carregarPerfil();
 
 
 /* ================= NAV ================= */
