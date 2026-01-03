@@ -129,6 +129,10 @@ iframe{width:100%;height:100%;border:none}
   width:100%;padding:14px;border:none;border-radius:999px;
   background:#fee2e2;color:var(--danger);font-weight:900;margin-top:10px;cursor:pointer;
 }
+.btn-primary.loading{
+  opacity:.7;
+  pointer-events:none;
+}
 
 .tip{font-size:12px;color:#6b7280;text-align:center;margin-top:10px;}
 </style>
@@ -231,7 +235,9 @@ iframe{width:100%;height:100%;border:none}
       <input id="pUf" placeholder="BA" maxlength="2" style="text-transform:uppercase">
     </div>
 
-    <button class="btn-primary" onclick="salvarPerfil()">Salvar alterações</button>
+<button class="btn-primary" id="btnSalvar" onclick="salvarPerfil()">
+  Salvar alterações
+</button>
     <button class="btn-logout" onclick="sair()">Sair da conta</button>
 
     <div class="tip">Nada é obrigatório — mas preencher ajuda na organização ✅</div>
@@ -386,7 +392,13 @@ async function getSigned(path){
 
 /* ================= SAVE PROFILE ================= */
 async function salvarPerfil(){
+  const btn = document.getElementById("btnSalvar");
+
+  // 🔒 ATIVA OVERLAY + BOTÃO
+  overlayText.innerText = "Salvando alterações…";
   overlay.style.display = "flex";
+  btn.classList.add("loading");
+  btn.innerText = "Salvando...";
 
   let avatarPath = null;
 
@@ -400,16 +412,9 @@ async function salvarPerfil(){
         .from("produtos")
         .upload(path, file, { upsert:true });
 
-      if(uploadError){
-        console.error(uploadError);
-        throw new Error("Erro ao enviar imagem");
-      }
+      if(uploadError) throw new Error("Erro ao enviar imagem");
 
       avatarPath = path;
-
-      // preview imediato
-      profileImg.style.backgroundImage =
-        `url(${URL.createObjectURL(file)})`;
     }
 
     const { error } = await sb
@@ -428,14 +433,22 @@ async function salvarPerfil(){
       })
       .eq("user_id", user.id);
 
-    if(error){
-      console.error(error);
-      throw new Error("Erro ao salvar perfil");
-    }
+    if(error) throw new Error("Erro ao salvar perfil");
 
     profileModal.style.display = "none";
 
   }catch(err){
+    alert(err.message);
+  }finally{
+    // 🔓 DESATIVA OVERLAY + BOTÃO
+    overlay.style.display = "none";
+    btn.classList.remove("loading");
+    btn.innerText = "Salvar alterações";
+  }
+}
+
+
+  catch(err){
     alert(err.message);
   }finally{
     overlay.style.display = "none";
