@@ -17,68 +17,38 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* ================= BASE ================= */
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter;
-  -webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-  width:100%;
-  height:100%;
-  background:#f4f6fb;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:#f4f6fb}
 
 :root{
   --primary:#ff6a00;
-  --card:#ffffff;
+  --card:#fff;
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
 }
 
-/* ================= HEADER ================= */
-.header{
-  padding:14px;
-}
-.header h1{
-  font-size:18px;
-  font-weight:800;
-}
+/* HEADER */
+.header{padding:16px}
+.header h1{font-size:18px;font-weight:800}
 .header span{color:var(--primary)}
-.header p{
-  font-size:12px;
-  color:var(--muted);
+.header p{font-size:12px;color:var(--muted)}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;padding:0 16px 16px}
+.filters input,.filters select{
+  flex:1;height:38px;border-radius:10px;
+  border:1px solid var(--border);padding:0 10px;font-size:12px
 }
 
-/* ================= FILTERS ================= */
-.filters{
-  display:flex;
-  gap:8px;
-  padding:0 14px 14px;
-}
-.filters input,
-.filters select{
-  flex:1;
-  height:38px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  padding:0 10px;
-  font-size:12px;
-}
-
-/* ================= GRID ================= */
+/* GRID */
 .grid{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:10px;
-  padding:0 14px 100px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;padding:0 16px 120px
 }
 
-/* ================= CARD ================= */
+/* CARD */
 .item{
   background:var(--card);
   border-radius:14px;
@@ -86,191 +56,51 @@ html,body{
   overflow:hidden;
   display:flex;
   flex-direction:column;
-  height:170px;
 }
+.item img{width:100%;height:72px;object-fit:cover;background:#eee}
+.item-body{padding:8px;display:flex;flex-direction:column;gap:4px}
+.item-body h4{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.price{font-size:12px;font-weight:800}
+.actions{margin-top:auto;font-size:10px;color:var(--primary);font-weight:700;cursor:pointer}
 
-/* IMAGEM CONTROLADA */
-.item img{
-  width:100%;
-  height:72px;
-  object-fit:cover;
-  background:#eee;
-}
-
-/* BODY */
-.item-body{
-  padding:8px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  flex:1;
-}
-
-.item-body h4{
-  font-size:11px;
-  font-weight:700;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-/* PREÇO + PROMO */
-.price-row{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-.badge-promo{
-  font-size:9px;
-  padding:2px 6px;
-  border-radius:999px;
-  background:#ffe5d0;
-  color:#b45309;
-  font-weight:800;
-}
-.price{
-  font-size:12px;
-  font-weight:800;
-}
-
-/* ACTION */
-.actions{
-  margin-top:auto;
-  font-size:10px;
-  color:var(--primary);
-  font-weight:700;
-  cursor:pointer;
-}
-
-/* ================= FAB ================= */
+/* FAB */
 .fab{
-  position:fixed;
-  right:16px;
-  bottom:calc(16px + env(safe-area-inset-bottom));
-  width:56px;
-  height:56px;
-  border-radius:50%;
+  position:fixed;right:16px;bottom:16px;
+  width:56px;height:56px;border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  color:#fff;
-  font-size:28px;
-  font-weight:800;
-  border:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 14px 34px rgba(0,0,0,.30);
-  z-index:9999;
+  color:#fff;font-size:28px;border:none;
+  box-shadow:0 14px 34px rgba(0,0,0,.3)
 }
 
-/* ================= MODAL ================= */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  align-items:flex-end;
-  z-index:10000;
-}
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end}
 .modal.show{display:flex}
-
 .sheet{
-  width:100%;
-  height:92vh;
-  background:#fff;
-  border-radius:24px 24px 0 0;
-  display:flex;
-  flex-direction:column;
+  width:100%;height:94vh;background:#fff;
+  border-radius:24px 24px 0 0;display:flex;flex-direction:column
 }
+.sheet-header{padding:16px;border-bottom:1px solid var(--border);font-weight:800;display:flex;justify-content:space-between}
+.sheet-body{flex:1;padding:16px;overflow:auto}
+.sheet-body label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+.sheet-body input,.sheet-body textarea,.sheet-body select{
+  width:100%;height:40px;margin-bottom:12px;
+  padding:0 12px;border-radius:12px;border:1px solid var(--border)
+}
+.sheet-body textarea{height:auto;padding:10px}
+.image-box{height:140px;border-radius:14px;background:#f1f1f1;overflow:hidden;margin-bottom:12px}
+.image-box img{width:100%;height:100%;object-fit:cover}
 
-/* HEADER */
-.sheet-header{
-  padding:16px;
-  border-bottom:1px solid var(--border);
-  font-weight:800;
-  display:flex;
-  justify-content:space-between;
-}
+.sheet-footer{padding:14px;border-top:1px solid var(--border);display:flex;gap:10px}
+.sheet-footer button{flex:1;height:46px;border:none;border-radius:999px;font-weight:800}
+.btn-save{background:var(--primary);color:#fff}
+.btn-cancel{background:#e5e7eb}
 
-/* BODY */
-.sheet-body{
-  flex:1;
-  padding:16px;
-  overflow-y:auto;
-}
-.sheet-body label{
-  font-size:12px;
-  color:var(--muted);
-  margin-bottom:4px;
-  display:block;
-}
-.sheet-body input,
-.sheet-body textarea,
-.sheet-body select{
-  width:100%;
-  height:40px;
-  margin-bottom:12px;
-  padding:0 12px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  font-size:13px;
-}
-.sheet-body textarea{
-  height:auto;
-  padding:10px;
-}
-
-/* IMAGE */
-.image-box{
-  height:140px;
-  border-radius:14px;
-  background:#f1f1f1;
-  overflow:hidden;
-  margin-bottom:12px;
-}
-.image-box img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-/* FOOTER */
-.sheet-footer{
-  padding:14px;
-  border-top:1px solid var(--border);
-  display:flex;
-  gap:10px;
-}
-.sheet-footer button{
-  flex:1;
-  height:46px;
-  border:none;
-  border-radius:999px;
-  font-weight:800;
-}
-.btn-save{
-  background:var(--primary);
-  color:#fff;
-}
-.btn-cancel{
-  background:#e5e7eb;
-}
-
-/* ================= LOADING ================= */
+/* LOADING */
 .loading{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:20000;
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;z-index:9999
 }
-.loading div{
-  background:#fff;
-  padding:26px 34px;
-  border-radius:18px;
-  font-weight:800;
-}
+.loading div{background:#fff;padding:26px 34px;border-radius:18px;font-weight:800}
 </style>
 </head>
 
@@ -287,13 +117,12 @@ html,body{
   <input id="search" placeholder="Buscar">
   <select id="filtroTipo">
     <option value="">Todos</option>
-    <option value="PRODUTO">Produtos</option>
     <option value="SERVICO">Serviços</option>
+    <option value="PRODUTO">Produtos</option>
   </select>
 </div>
 
 <div class="grid" id="lista"></div>
-
 <button class="fab" onclick="abrirModal()">+</button>
 
 <!-- MODAL -->
@@ -306,7 +135,7 @@ html,body{
 
     <div class="sheet-body">
       <label>Tipo</label>
-      <select id="tipo">
+      <select id="tipo" onchange="toggleServico()">
         <option value="SERVICO">Serviço</option>
         <option value="PRODUTO">Produto</option>
       </select>
@@ -318,7 +147,30 @@ html,body{
       <textarea id="descricao"></textarea>
 
       <label>Preço</label>
-      <input id="preco" type="tel" placeholder="R$ 0,00">
+      <input id="preco">
+
+      <!-- SERVIÇO -->
+      <div id="boxServico">
+        <label>Duração (minutos)</label>
+        <input id="duracao" type="number" min="1">
+
+        <label>
+          <input type="checkbox" id="podeAgendar"> Pode agendar
+        </label>
+      </div>
+
+      <!-- PRODUTO -->
+      <div id="boxProduto" style="display:none">
+        <label>
+          <input type="checkbox" id="controlaEstoque"> Controlar estoque
+        </label>
+
+        <label>Estoque atual</label>
+        <input id="estoqueAtual" type="number">
+
+        <label>Estoque mínimo</label>
+        <input id="estoqueMinimo" type="number">
+      </div>
 
       <label>
         <input type="checkbox" id="promoAtiva"> Ativar promoção
@@ -339,130 +191,116 @@ html,body{
 </div>
 
 <script>
-const sb = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+const sb=supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let itens=[],userId=null,editId=null,blob=null;
+let userId,itens=[],editId=null,blob=null;
 
 (async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session) location.href="login.html";
-  userId=session.user.id;
-  carregar();
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session) location.href="login.html";
+ userId=session.user.id;
+ carregar();
 })();
 
-search.oninput=filtroTipo.onchange=render;
-
-/* MASK */
-preco.oninput=e=>{
-  let v=e.target.value.replace(/\D/g,'');
-  v=(v/100).toFixed(2)+'';
-  v=v.replace('.',',');
-  v=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  e.target.value='R$ '+v;
-};
-
-/* MODAL */
-function abrirModal(){ modal.classList.add("show"); }
-function fecharModal(){ modal.classList.remove("show"); reset(); }
-
-/* IMAGE */
-imagem.onchange=()=>{
-  const f=imagem.files[0];
-  if(!f) return;
-  preview.src=URL.createObjectURL(f);
-  preview.style.display="block";
-  blob=f;
-};
-
-/* SAVE */
-async function salvar(){
-  loading.style.display="flex";
-
-  const payload={
-    user_id:userId,
-    tipo:tipo.value,
-    nome:nome.value,
-    descricao:descricao.value,
-    preco:Number(preco.value.replace(/[^\d]/g,''))/100,
-    promocao_ativa:promoAtiva.checked
-  };
-
-  let data;
-  if(editId){
-    ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
-  }else{
-    ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
-  }
-
-  if(blob){
-    const path=`${userId}/${data.id}.jpg`;
-    await sb.storage.from("produtos").upload(path,blob,{upsert:true});
-    const {data:s}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
-    await sb.from("produtos_servicos").update({imagem_url:s.signedUrl}).eq("id",data.id);
-  }
-
-  loading.style.display="none";
-  fecharModal();
-  carregar();
+function toggleServico(){
+ const isServico=tipo.value==="SERVICO";
+ boxServico.style.display=isServico?"block":"none";
+ boxProduto.style.display=isServico?"none":"block";
 }
 
-/* LOAD */
+imagem.onchange=()=>{
+ const f=imagem.files[0];
+ if(!f) return;
+ preview.src=URL.createObjectURL(f);
+ preview.style.display="block";
+ blob=f;
+};
+
+async function salvar(){
+ loading.style.display="flex";
+
+ const payload={
+  user_id:userId,
+  tipo:tipo.value,
+  nome:nome.value,
+  descricao:descricao.value,
+  preco:Number(preco.value.replace(/[^\d]/g,''))/100,
+  promocao_ativa:promoAtiva.checked,
+  duracao_minutos:tipo.value==="SERVICO"?Number(duracao.value||0):null,
+  pode_agendar:tipo.value==="SERVICO"?podeAgendar.checked:false,
+  controla_estoque:tipo.value==="PRODUTO"?controlaEstoque.checked:false,
+  estoque_atual:tipo.value==="PRODUTO"?Number(estoqueAtual.value||0):null,
+  estoque_minimo:tipo.value==="PRODUTO"?Number(estoqueMinimo.value||0):null
+ };
+
+ let data;
+ if(editId){
+  ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
+ }else{
+  ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
+ }
+
+ if(blob){
+  const path=`${userId}/${data.id}.jpg`;
+  await sb.storage.from("produtos").upload(path,blob,{upsert:true});
+  const {data:s}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
+  await sb.from("produtos_servicos").update({imagem_url:s.signedUrl}).eq("id",data.id);
+ }
+
+ loading.style.display="none";
+ fecharModal();
+ carregar();
+}
+
 async function carregar(){
-  const {data}=await sb.from("produtos_servicos").select("*");
-  itens=data||[];
-  render();
+ const {data}=await sb.from("produtos_servicos").select("*").eq("user_id",userId);
+ itens=data||[];
+ render();
 }
 
 function render(){
-  lista.innerHTML="";
-  itens.filter(i=>{
-    if(search.value && !i.nome.toLowerCase().includes(search.value.toLowerCase())) return false;
-    if(filtroTipo.value && i.tipo!==filtroTipo.value) return false;
-    return true;
-  }).forEach(i=>{
-    lista.innerHTML+=`
-      <div class="item">
-        ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
-        <div class="item-body">
-          <h4>${i.nome}</h4>
-          <div class="price-row">
-            ${i.promocao_ativa?`<span class="badge-promo">PROMO</span>`:""}
-            <span class="price">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</span>
-          </div>
-          <div class="actions" onclick="editar('${i.id}')">Editar</div>
-        </div>
-      </div>`;
-  });
+ lista.innerHTML="";
+ itens.filter(i=>{
+  if(search.value && !i.nome.toLowerCase().includes(search.value.toLowerCase())) return false;
+  if(filtroTipo.value && i.tipo!==filtroTipo.value) return false;
+  return true;
+ }).forEach(i=>{
+  lista.innerHTML+=`
+   <div class="item">
+    ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
+    <div class="item-body">
+     <h4>${i.nome}</h4>
+     <span class="price">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</span>
+     <div class="actions" onclick="editar('${i.id}')">Editar</div>
+    </div>
+   </div>`;
+ });
 }
 
 function editar(id){
-  const i=itens.find(x=>x.id===id);
-  editId=id;
-  formTitle.innerText="Editar item";
-  tipo.value=i.tipo;
-  nome.value=i.nome;
-  descricao.value=i.descricao;
-  preco.value='R$ '+Number(i.preco).toFixed(2).replace('.',',');
-  promoAtiva.checked=i.promocao_ativa;
-  if(i.imagem_url){
-    preview.src=i.imagem_url;
-    preview.style.display="block";
-  }
-  abrirModal();
+ const i=itens.find(x=>x.id===id);
+ editId=id;
+ formTitle.innerText="Editar item";
+ tipo.value=i.tipo;
+ toggleServico();
+ nome.value=i.nome;
+ descricao.value=i.descricao;
+ preco.value='R$ '+Number(i.preco).toFixed(2).replace('.',',');
+ duracao.value=i.duracao_minutos||"";
+ podeAgendar.checked=i.pode_agendar;
+ controlaEstoque.checked=i.controla_estoque;
+ estoqueAtual.value=i.estoque_atual||"";
+ estoqueMinimo.value=i.estoque_minimo||"";
+ promoAtiva.checked=i.promocao_ativa;
+ if(i.imagem_url){preview.src=i.imagem_url;preview.style.display="block"}
+ abrirModal();
 }
 
-function reset(){
-  editId=null;
-  blob=null;
-  formTitle.innerText="Novo item";
-  document.querySelectorAll(".sheet-body input,.sheet-body textarea")
-    .forEach(e=>e.value="");
-  promoAtiva.checked=false;
-  preview.style.display="none";
-}
+function abrirModal(){modal.classList.add("show")}
+function fecharModal(){modal.classList.remove("show");editId=null;blob=null;preview.style.display="none"}
 </script>
 
 </body>
