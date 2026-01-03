@@ -2,24 +2,30 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Agendamento</title>
+<title>Entrar • Agenda Fácil</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" id="themeColor">
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#ff6a00">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
-  --secondary:#ff9a57;
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --text:#111827;
+  --border:#e5e7eb;
+  --radius:22px;
+  --danger:#c62828;
   --muted:#6b7280;
-  --success:#16a34a;
-  --danger:#dc2626;
 }
 
 *{
@@ -30,541 +36,336 @@
   -webkit-tap-highlight-color:transparent;
 }
 
-html,body{
-  background:var(--bg);
-  color:var(--text);
-  overscroll-behavior:none;
-  touch-action:manipulation;
+body{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  background:#000;
 }
 
-/* ===== HERO ===== */
-.hero{
-  padding:36px 20px 46px;
-  text-align:center;
-  color:#fff;
+/* ===== FUNDO COM FOTO ===== */
+.left{
+  background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=1600&q=80")
+  center/cover no-repeat;
   position:relative;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,.35), transparent 40%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,.25), transparent 45%),
-    linear-gradient(135deg,var(--primary),var(--secondary));
+  color:#fff;
 }
-
-.hero::after{
+.left::after{
   content:"";
   position:absolute;
   inset:0;
-  background-image:
-    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.6), transparent),
-    radial-gradient(2px 2px at 80% 60%, rgba(255,255,255,.4), transparent),
-    radial-gradient(1.5px 1.5px at 50% 80%, rgba(255,255,255,.5), transparent);
-  opacity:.4;
+  background:linear-gradient(
+    120deg,
+    rgba(0,0,0,.75),
+    rgba(0,0,0,.35)
+  );
 }
-
-.hero .wrap{
+.left div{
   position:relative;
   z-index:2;
+  padding:80px;
 }
+.left span{color:var(--primary)}
 
-.hero img{
-  width:96px;
-  height:96px;
-  border-radius:50%;
-  object-fit:cover;
-  background:#fff;
-}
-
-.hero h1{
-  margin-top:14px;
-  font-size:24px;
-  font-weight:800;
-}
-
-.hero p{
-  margin-top:6px;
-  font-size:14px;
-  opacity:.9;
-}
-
-/* ===== CTA ===== */
-.hero button{
-  margin-top:18px;
-  padding:14px 24px;
-  border:none;
-  border-radius:999px;
-  font-size:15px;
-  font-weight:800;
-  background:#fff;
-  color:var(--primary);
-}
-
-/* ===== TOGGLE ===== */
-.toggle{
-  margin:16px;
-  background:#fff;
-  border-radius:999px;
+/* ===== ÁREA DO CARD ===== */
+.right{
   display:flex;
-  overflow:hidden;
-}
-
-.toggle button{
-  flex:1;
-  padding:12px;
-  border:none;
-  background:none;
-  font-weight:800;
-  color:var(--muted);
-}
-
-.toggle button.active{
-  background:var(--primary);
-  color:#fff;
-}
-
-/* ===== SEARCH ===== */
-.search{
-  margin:0 16px 10px;
-}
-
-.search input{
-  width:100%;
-  padding:14px 18px;
-  border-radius:999px;
-  border:none;
+  align-items:center;
+  justify-content:center;
   background:#fff;
-  font-size:14px;
-}
-
-/* ===== GRID ===== */
-.grid{
-  padding:16px;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:14px;
 }
 
 .card{
-  background:var(--card);
-  border-radius:18px;
-  padding:12px;
-  box-shadow:0 10px 26px rgba(0,0,0,.08);
-}
-
-.card img{
   width:100%;
-  height:120px;
-  object-fit:cover;
-  border-radius:14px;
+  max-width:460px;
+  padding:44px;
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
 }
 
-.card strong{
+.card h2{
+  margin-bottom:6px;
+}
+
+.card p{
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+/* ===== FORM ===== */
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+
+/* LOADING */
+button.loading{
+  pointer-events:none;
+  opacity:.85;
+}
+button.loading::after{
+  content:"";
+  width:22px;
+  height:22px;
+  border:3px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  border-radius:50%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+
+/* ===== ERRO ===== */
+.msg{
+  background:#ffe5e5;
+  color:var(--danger);
+  padding:12px;
+  border-radius:12px;
+  font-size:14px;
+  margin-bottom:14px;
+  display:none;
+}
+
+/* LINKS */
+.links{
+  text-align:center;
+  margin-top:18px;
+  font-size:13px;
+}
+.links a{
   display:block;
+  color:var(--primary);
+  text-decoration:none;
   margin-top:8px;
 }
 
-.card small{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.card button{
-  width:100%;
-  margin-top:10px;
-  padding:10px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-}
-
-/* ===== NAVBAR ===== */
-.navbar{
+/* ===== MODAIS ===== */
+#overlay,#welcome{
   position:fixed;
-  bottom:14px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#fff;
-  border-radius:999px;
-  display:flex;
-  gap:20px;
-  padding:12px 22px;
-  box-shadow:0 10px 30px rgba(0,0,0,.18);
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
 }
 
-.navbar span{
-  font-size:13px;
-  font-weight:700;
+.modal{
+  background:#fff;
+  padding:36px;
+  border-radius:22px;
+  text-align:center;
+  max-width:380px;
+}
+
+.modal h3{
+  margin-bottom:6px;
+}
+.modal p{
   color:var(--muted);
+  font-size:14px;
+}
+
+/* ========================= */
+/* 📱 MOBILE FIRST (CELULAR) */
+/* ========================= */
+@media (max-width: 900px){
+
+  body{
+    grid-template-columns:1fr;
+    overflow:hidden;
+  }
+
+  .left{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    filter:blur(7px);
+    transform:scale(1.08);
+  }
+
+  .left::after{
+    background:rgba(0,0,0,.55);
+  }
+
+  .left div{
+    display:none;
+  }
+
+  .right{
+    position:relative;
+    z-index:2;
+    min-height:100vh;
+    padding:24px 14px env(safe-area-inset-bottom);
+    align-items:flex-end;
+    background:transparent;
+  }
+
+  .card{
+    width:100%;
+    max-width:520px;
+    padding:28px 22px 30px;
+    border-radius:28px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,.25),
+      0 10px 30px rgba(0,0,0,.12);
+    animation:slideUp .4s ease;
+  }
+}
+
+/* ANIMAÇÃO */
+@keyframes slideUp{
+  from{
+    transform:translateY(40px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="hero">
-  <div class="wrap">
-    <img id="logo">
-    <h1 id="nomeLoja">Sua Empresa</h1>
-    <p>Agende seu horário</p>
-    <button onclick="abrirAgendamento()">Agendar agora</button>
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="modal">Validando acesso…</div>
+</div>
+
+<!-- WELCOME -->
+<div id="welcome">
+  <div class="modal">
+    <h3 id="welcomeTitle">Bem-vindo 👋</h3>
+    <p>Estamos preparando seu painel</p>
   </div>
 </div>
 
-<div class="toggle">
-  <button id="tabServ" class="active" onclick="setTipo('SERVICO')">Serviços</button>
-  <button id="tabProd" onclick="setTipo('PRODUTO')">Produtos</button>
+<!-- FUNDO -->
+<div class="left">
+  <div>
+    <h1>A gestão do seu salão<br>começa com um <span>login</span></h1>
+    <p>Agenda, clientes e controle em um só lugar.</p>
+  </div>
 </div>
 
-<div class="search">
-  <input id="busca" placeholder="Buscar serviço ou produto">
-</div>
+<!-- CARD -->
+<div class="right">
+  <div class="card">
 
-<div class="grid" id="lista"></div>
+    <h2>Entrar</h2>
+    <p>Use seu e-mail e senha para continuar</p>
 
-<div class="navbar">
-  <span>Perfil</span>
-  <span>Agendamentos</span>
-  <span>Produtos</span>
-</div>
-<!-- ===== MODAL AGENDAMENTO ===== -->
-<div id="overlay" style="
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.55);
-  display:none; z-index:5000;
-">
-  <div id="modal" style="
-    position:absolute; bottom:0; left:0; right:0;
-    height:88vh;
-    background:#fff;
-    border-radius:22px 22px 0 0;
-    display:flex; flex-direction:column;
-  ">
-    <div style="
-      padding:14px 16px;
-      border-bottom:1px solid #eee;
-      display:flex; align-items:center; justify-content:space-between;
-    ">
-      <div style="display:flex;align-items:center;gap:10px">
-        <img id="modalLogo" style="width:38px;height:38px;border-radius:50%;object-fit:cover">
-        <strong id="modalTitulo">Agendamento</strong>
-      </div>
-      <span onclick="fecharAgendamento()" style="font-size:22px">✕</span>
+    <div id="errorBox" class="msg"></div>
+
+    <form id="loginForm">
+      <input id="email" type="email" placeholder="E-mail" required>
+      <input id="senha" type="password" placeholder="Senha" required>
+      <button id="btnLogin" type="submit">Entrar</button>
+    </form>
+
+    <div class="links">
+      <a href="#" id="resetSenha">Esqueci minha senha</a>
+      <a href="cadastro.html">Cadastrar meu negócio</a>
     </div>
 
-    <div id="chat" style="
-      flex:1;
-      overflow-y:auto;
-      padding:16px;
-    "></div>
-
-    <div style="
-      display:flex; gap:8px;
-      padding:12px;
-      border-top:1px solid #eee;
-    ">
-      <input
-        id="input"
-        placeholder="Digite aqui…"
-        style="
-          flex:1;
-          padding:14px;
-          border-radius:999px;
-          border:1px solid #ddd;
-        "
-        inputmode="text"
-      >
-      <button onclick="enviar()" style="
-        padding:14px 20px;
-        border:none;
-        border-radius:999px;
-        background:var(--primary);
-        color:#fff;
-        font-weight:800;
-      ">Enviar</button>
-    </div>
   </div>
 </div>
 
 <script>
-/* ========= BLOQUEIOS ========= */
-document.addEventListener('gesturestart',e=>e.preventDefault());
-document.addEventListener('dblclick',e=>e.preventDefault());
-
-/* ========= SUPABASE ========= */
 const sb = supabase.createClient(
- "https://egxjgmzukjyyxmkukwub.supabase.co",
- "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const lojaId = new URLSearchParams(location.search).get("l");
+const overlay = document.getElementById("overlay");
+const welcome = document.getElementById("welcome");
+const errorBox = document.getElementById("errorBox");
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
+const btnLogin = document.getElementById("btnLogin");
 
-/* ========= ESTADO ========= */
-let tipoAtual="SERVICO";
-let itens=[];
-let etapa="nome";
-let cliente={};
-let servicoSelecionado=null;
-let dataSelecionada=null;
+/* LOGIN */
+document.getElementById("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  errorBox.style.display="none";
+  btnLogin.classList.add("loading");
+  overlay.style.display="flex";
 
-/* ========= UTIL ========= */
-function delay(fn){ setTimeout(fn,1000); }
-function scrollChat(){ chat.scrollTop = chat.scrollHeight; }
-
-function msg(text,who="bot"){
-  const d=document.createElement("div");
-  d.style.maxWidth="85%";
-  d.style.padding="12px 14px";
-  d.style.borderRadius="18px";
-  d.style.marginBottom="10px";
-  d.style.fontSize="14px";
-  d.style.background = who==="bot"
-    ? "linear-gradient(135deg,var(--primary),var(--secondary))"
-    : "#e5e7eb";
-  d.style.color = who==="bot" ? "#fff" : "#111";
-  if(who==="user") d.style.marginLeft="auto";
-  d.innerHTML=text;
-  chat.appendChild(d);
-  scrollChat();
-}
-
-/* ========= LISTAGEM ========= */
-function setTipo(t){
-  tipoAtual=t;
-  tabServ.classList.toggle("active",t==="SERVICO");
-  tabProd.classList.toggle("active",t==="PRODUTO");
-  render();
-}
-
-busca.oninput=render;
-
-function render(){
-  const q=busca.value.toLowerCase();
-  lista.innerHTML = itens
-    .filter(i=>i.tipo===tipoAtual)
-    .filter(i=>i.nome.toLowerCase().includes(q))
-    .map(i=>`
-      <div class="card">
-        <img src="${i.imagem_url||''}">
-        <strong>${i.nome}</strong>
-        <small>
-          ${i.tipo==="SERVICO"
-            ? `${i.duracao_minutos} min • R$ ${Number(i.preco).toFixed(2)}`
-            : `R$ ${Number(i.preco).toFixed(2)}`
-          }
-        </small>
-        ${i.tipo==="SERVICO"
-          ? `<button onclick="abrirAgendamento(${i.id})">Agendar</button>`
-          : `<button>Comprar</button>`
-        }
-      </div>
-    `).join("");
-}
-
-/* ========= AGENDAMENTO ========= */
-function abrirAgendamento(id=null){
-  overlay.style.display="block";
-  chat.innerHTML="";
-  etapa="nome";
-  cliente={};
-  servicoSelecionado = itens.find(i=>i.id===id) || null;
-
-  delay(()=>{
-    msg("Olá! Vamos agendar seu horário 😊");
-    if(servicoSelecionado){
-      msg(`Serviço selecionado:<br><strong>${servicoSelecionado.nome}</strong>`);
-    }
-    msg("Qual é o seu nome?");
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: emailInput.value.trim().toLowerCase(),
+    password: senhaInput.value.trim()
   });
-}
 
-function fecharAgendamento(){
+  if(error){
+    overlay.style.display="none";
+    btnLogin.classList.remove("loading");
+    errorBox.innerText="E-mail ou senha inválidos.";
+    errorBox.style.display="block";
+    return;
+  }
+
+  const { data:profile } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", data.user.id)
+    .single();
+
   overlay.style.display="none";
-}
+  welcome.style.display="flex";
 
-/* ========= ENVIO ========= */
-function enviar(){
-  let v=input.value.trim();
-  if(!v) return;
-  msg(v,"user");
-  input.value="";
+  document.getElementById("welcomeTitle").innerText =
+    `Bem-vindo ao ${profile?.negocio || "Agenda Fácil"} 👋`;
 
-  if(etapa==="nome"){
-    cliente.nome=v;
-    etapa="whats";
-    delay(()=>msg("Agora seu WhatsApp 📱"));
-    input.inputMode="numeric";
-    input.oninput=()=>input.value=maskWhats(input.value);
-  }
-  else if(etapa==="whats"){
-    const limpo=v.replace(/\D/g,'');
-    if(limpo.length<10){
-      delay(()=>msg("Digite um WhatsApp válido"));
-      return;
-    }
-    cliente.whats=limpo;
-    input.oninput=null;
-    servicoSelecionado ? listarDias() : listarServicos();
-  }
-}
+  setTimeout(()=>{
+    window.location.replace("dashboard.html");
+  },1600);
+});
 
-/* ========= SERVIÇOS CHAT ========= */
-function listarServicos(){
-  etapa="servico";
-  delay(()=>{
-    msg("Escolha um serviço:");
-    const wrap=document.createElement("div");
-    wrap.style.display="flex";
-    wrap.style.gap="12px";
-    wrap.style.overflowX="auto";
-    itens.filter(i=>i.tipo==="SERVICO").forEach(s=>{
-      const c=document.createElement("div");
-      c.style.minWidth="200px";
-      c.style.background="#fff";
-      c.style.borderRadius="14px";
-      c.style.boxShadow="0 8px 20px rgba(0,0,0,.12)";
-      c.innerHTML=`
-        <img src="${s.imagem_url||''}" style="width:100%;height:100px;object-fit:cover;border-radius:14px 14px 0 0">
-        <div style="padding:8px">
-          <strong>${s.nome}</strong>
-          <small style="color:var(--success)">R$ ${Number(s.preco).toFixed(2)}</small>
-        </div>
-      `;
-      c.onclick=()=>{servicoSelecionado=s;listarDias()};
-      wrap.appendChild(c);
-    });
-    chat.appendChild(wrap);
-    scrollChat();
-  });
-}
-
-/* ========= DIAS ========= */
-async function listarDias(){
-  etapa="dia";
-  delay(async()=>{
-    msg("Escolha o dia:");
-    const {data}=await sb.from("agenda_loja")
-      .select("*")
-      .eq("user_id",lojaId)
-      .eq("fechado",false);
-
-    const wrap=document.createElement("div");
-    wrap.style.display="flex";
-    wrap.style.gap="10px";
-    wrap.style.overflowX="auto";
-
-    data.forEach(d=>{
-      const b=document.createElement("button");
-      b.style.padding="10px 14px";
-      b.style.borderRadius="999px";
-      b.style.border="none";
-      b.style.background="var(--success)";
-      b.style.color="#fff";
-      b.innerText=new Date(d.data).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
-      b.onclick=()=>listarHoras(d);
-      wrap.appendChild(b);
-    });
-    chat.appendChild(wrap);
-    scrollChat();
-  });
-}
-
-/* ========= HORAS ========= */
-async function listarHoras(d){
-  dataSelecionada=d.data;
-  delay(async()=>{
-    msg("Horários disponíveis:");
-    const base=JSON.parse(d.horarios||"[]");
-    const {data:ag}=await sb.from("agendamentos")
-      .select("hora_inicio")
-      .eq("user_id",lojaId)
-      .eq("data",dataSelecionada);
-
-    const ocupados=ag.map(a=>a.hora_inicio);
-    const wrap=document.createElement("div");
-    wrap.style.display="flex";
-    wrap.style.gap="10px";
-    wrap.style.overflowX="auto";
-
-    base.forEach(h=>{
-      if(ocupados.includes(h.inicio)) return;
-      const b=document.createElement("button");
-      b.style.padding="10px 14px";
-      b.style.borderRadius="999px";
-      b.style.border="none";
-      b.style.background="var(--primary)";
-      b.style.color="#fff";
-      b.innerText=h.inicio;
-      b.onclick=()=>confirmar(h);
-      wrap.appendChild(b);
-    });
-    chat.appendChild(wrap);
-    scrollChat();
-  });
-}
-
-/* ========= CONFIRMAR ========= */
-async function confirmar(h){
-  await sb.from("agendamentos").insert({
-    user_id:lojaId,
-    cliente_nome:cliente.nome,
-    cliente_whats:cliente.whats,
-    servico_id:servicoSelecionado.id,
-    servico_nome:servicoSelecionado.nome,
-    data:dataSelecionada,
-    hora_inicio:h.inicio,
-    hora_fim:h.fim
-  });
-
-  delay(()=>{
-    msg("✅ Agendamento confirmado!");
-    msg(`
-      <img src="${servicoSelecionado.imagem_url||''}" style="width:100%;border-radius:12px;margin:6px 0">
-      <strong>${servicoSelecionado.nome}</strong><br>
-      ${dataSelecionada} às ${h.inicio}
-    `);
-  });
-}
-
-/* ========= MASK ========= */
-function maskWhats(v){
-  v=v.replace(/\D/g,'').slice(0,11);
-  if(v.length>=11) return v.replace(/^(\d{2})(\d{5})(\d{4})$/,"($1) $2-$3");
-  if(v.length>=7) return v.replace(/^(\d{2})(\d{5})(\d+)/,"($1) $2-$3");
-  if(v.length>=3) return v.replace(/^(\d{2})(\d+)/,"($1) $2");
-  return v;
-}
-
-/* ========= INIT ========= */
-async function init(){
-  const {data:p}=await sb.from("user_profile")
-    .select("negocio,avatar_url")
-    .eq("user_id",lojaId).single();
-
-  nomeLoja.innerText=p?.negocio||"Agendamento";
-  modalTitulo.innerText=p?.negocio||"Agendamento";
-  if(p?.avatar_url){
-    logo.src=p.avatar_url;
-    modalLogo.src=p.avatar_url;
+/* RESET SENHA */
+document.getElementById("resetSenha").addEventListener("click", async e=>{
+  e.preventDefault();
+  if(!emailInput.value){
+    errorBox.innerText="Informe seu e-mail.";
+    errorBox.style.display="block";
+    return;
   }
 
-  const {data:cfg}=await sb.from("config_loja")
-    .select("*").eq("user_id",lojaId).single();
+  overlay.style.display="flex";
+  await sb.auth.resetPasswordForEmail(
+    emailInput.value.trim().toLowerCase(),
+    { redirectTo: location.origin + "/login.html" }
+  );
+  overlay.style.display="none";
 
-  if(cfg?.cor_primaria){
-    document.documentElement.style.setProperty("--primary",cfg.cor_primaria);
-    document.documentElement.style.setProperty("--secondary",cfg.cor_secundaria||cfg.cor_primaria);
-    themeColor.content=cfg.cor_primaria;
-  }
-
-  const {data}=await sb.from("produtos_servicos")
-    .select("*").eq("user_id",lojaId).eq("ativo",true);
-
-  itens=data||[];
-  render();
-}
-
-if(lojaId) init();
-else document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
+  errorBox.innerText="E-mail de recuperação enviado.";
+  errorBox.style.display="block";
+});
 </script>
 
 </body>
