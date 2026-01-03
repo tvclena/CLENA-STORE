@@ -2,359 +2,174 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>AgendaBeauty • Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda Fácil</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6a00">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-dark:#e55d00;
-  --bg:#f6f7fb;
-  --sidebar1:#0b1e39;
-  --sidebar2:#102a43;
-  --text:#1f2937;
-  --muted:#6b7280;
+  --bg:#f4f6fb;
+  --card:#fff;
+  --border:#e5e7eb;
   --radius:16px;
+  --text:#111827;
+  --muted:#6b7280;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);height:100vh;display:flex}
 
-body{
-  background:var(--bg);
-  height:100vh;
-  display:flex;
-}
-
-/* ================= SIDEBAR ================= */
-.sidebar{
-  width:260px;
-  background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
-  color:#fff;
-  display:flex;
-  flex-direction:column;
-  transition:.3s;
-}
-.sidebar.collapsed{ width:78px; }
-
-.logo{
-  padding:22px;
-  font-size:20px;
-  font-weight:800;
-  color:var(--primary);
-  white-space:nowrap;
-}
-
-.menu{
-  flex:1;
-  padding:10px;
+/* ================= DESKTOP ================= */
+@media(min-width:769px){
+  .mobile-header,.mobile-nav{display:none}
+  .sidebar{
+    width:260px;
+    background:#0b1e39;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+  }
+  .logo{padding:22px;font-weight:800;color:var(--primary)}
+  .menu{flex:1;padding:10px}
+  .menu-item{
+    padding:14px;border-radius:12px;cursor:pointer;
+    display:flex;gap:14px;align-items:center;
+  }
+  .menu-item:hover{background:rgba(255,255,255,.08)}
+  .main{flex:1;display:flex;flex-direction:column}
+  .topbar{
+    height:64px;background:#fff;
+    display:flex;align-items:center;
+    justify-content:space-between;
+    padding:0 24px;border-bottom:1px solid var(--border)
+  }
 }
 
-.menu-item{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:14px;
-  border-radius:12px;
-  cursor:pointer;
-  margin-bottom:6px;
-  transition:.25s;
-  white-space:nowrap;
-}
-.menu-item:hover{
-  background:rgba(255,255,255,.08);
-}
-.menu-item.active{
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-}
-
-.menu-item i{
-  font-size:20px;
-  min-width:20px;
-}
-
-.sidebar.collapsed span{
-  display:none;
-}
-
-/* SUBMENU */
-.submenu{
-  margin-left:36px;
-  display:none;
-}
-.submenu a{
-  display:block;
-  padding:10px 14px;
-  font-size:14px;
-  color:#d1d5db;
-  text-decoration:none;
-  border-radius:10px;
-}
-.submenu a:hover{
-  background:rgba(255,255,255,.08);
+/* ================= MOBILE ================= */
+@media(max-width:768px){
+  .sidebar,.topbar{display:none}
+  body{flex-direction:column}
+  .mobile-header{
+    padding:16px;
+    background:#fff;
+    font-weight:800;
+    font-size:18px;
+    border-bottom:1px solid var(--border)
+  }
+  .iframe-wrap{
+    flex:1;
+    padding-bottom:72px;
+  }
+  .mobile-nav{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    height:72px;
+    background:#fff;
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding-bottom:env(safe-area-inset-bottom)
+  }
+  .mobile-nav div{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    font-size:11px;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .mobile-nav i{
+    font-size:22px;
+  }
+  .mobile-nav .active{
+    color:var(--primary);
+  }
 }
 
-/* FOOTER */
-.sidebar-footer{
-  padding:16px;
-  border-top:1px solid rgba(255,255,255,.1);
-}
-.logout{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:12px;
-  border-radius:12px;
-  cursor:pointer;
-}
-.logout:hover{
-  background:rgba(255,255,255,.08);
-}
-
-/* ================= MAIN ================= */
-.main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-/* TOPBAR */
-.topbar{
-  height:64px;
-  background:#fff;
-  border-bottom:1px solid #e5e7eb;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 24px;
-}
-
-.toggle{
-  font-size:22px;
-  cursor:pointer;
-}
-
-/* USER AVATAR */
-.user-area{
-  position:relative;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  cursor:pointer;
-}
-
-.avatar{
-  width:36px;
-  height:36px;
-  border-radius:50%;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-weight:800;
-}
-
-/* PROFILE POPUP */
-.profile-popup{
-  position:absolute;
-  top:48px;
-  right:0;
-  width:240px;
-  background:#fff;
-  border-radius:14px;
-  box-shadow:0 12px 30px rgba(0,0,0,.15);
-  padding:14px;
-  display:none;
-  z-index:99;
-}
-
-.profile-popup.active{
-  display:block;
-}
-
-.profile-popup strong{
-  display:block;
-  font-size:14px;
-}
-.profile-popup small{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.profile-popup button{
-  width:100%;
-  margin-top:12px;
-  padding:10px;
-  border:none;
-  border-radius:999px;
-  background:#f3f4f6;
-  cursor:pointer;
-  font-weight:700;
-}
-.profile-popup button:hover{
-  background:#e5e7eb;
-}
-
-/* CONTENT */
-.content{
-  flex:1;
-}
+/* IFRAME */
 iframe{
   width:100%;
   height:100%;
   border:none;
   background:#fff;
 }
-
-/* LOADER */
-#overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-#overlay div{
-  background:#fff;
-  padding:26px 36px;
-  border-radius:14px;
-  font-weight:700;
-}
+.iframe-wrap{flex:1}
 </style>
 </head>
 
 <body>
 
-<div id="overlay"><div>Validando sessão…</div></div>
-
-<!-- ================= SIDEBAR ================= -->
-<aside class="sidebar" id="sidebar">
-  <div class="logo">AgendaBeauty</div>
-
+<!-- DESKTOP SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Agenda Fácil</div>
   <div class="menu">
-    <div class="menu-item active" onclick="loadPage('home.html', this)">
-      <i class="ri-home-5-line"></i><span>Home</span>
+    <div class="menu-item" onclick="openPage('home.html')">
+      <i class="ri-home-5-line"></i> Home
     </div>
-
-    <div class="menu-item" onclick="toggleSub(this)">
-      <i class="ri-calendar-line"></i><span>Cadastro</span>
+    <div class="menu-item" onclick="openPage('produtos.html')">
+      <i class="ri-store-2-line"></i> Produtos
     </div>
-    <div class="submenu">
-      <a onclick="loadPage('agenda.html', this)">Meus horários</a>
-      <a onclick="loadPage('produtos.html', this)">Produtos e serviços</a>
+    <div class="menu-item" onclick="openPage('agenda.html')">
+      <i class="ri-calendar-line"></i> Agenda
     </div>
-
-    <div class="menu-item" onclick="toggleSub(this)">
-      <i class="ri-user-3-line"></i><span>Clientes</span>
-    </div>
-    <div class="submenu">
-      <a onclick="loadPage('clientes.html', this)">Todos os clientes</a>
-      <a onclick="loadPage('creditos.html', this)">Créditos</a>
-    </div>
-
-    <div class="menu-item" onclick="toggleSub(this)">
-      <i class="ri-currency-line"></i><span>Financeiro</span>
-    </div>
-    <div class="submenu">
-      <a onclick="loadPage('caixa.html', this)">Caixa</a>
-      <a onclick="loadPage('despesas.html', this)">Despesas</a>
-    </div>
-
-    <div class="menu-item" onclick="loadPage('config.html', this)">
-      <i class="ri-settings-3-line"></i><span>Configurações</span>
-    </div>
-  </div>
-
-  <div class="sidebar-footer">
-    <div class="logout" onclick="logout()">
-      <i class="ri-logout-box-line"></i><span>Sair</span>
+    <div class="menu-item" onclick="openPage('config.html')">
+      <i class="ri-settings-3-line"></i> Config
     </div>
   </div>
 </aside>
 
-<!-- ================= MAIN ================= -->
+<!-- MAIN -->
 <div class="main">
-  <div class="topbar">
-    <i class="ri-menu-line toggle" onclick="toggleMenu()"></i>
+  <div class="topbar">Agenda Fácil</div>
 
-    <div class="user-area" onclick="toggleProfile(event)">
-      <div class="avatar" id="avatarLetter">U</div>
+  <div class="mobile-header">Agenda Fácil</div>
 
-      <div class="profile-popup" id="profilePopup">
-        <strong id="popupNegocio">Negócio</strong>
-        <small id="popupEmail">email@email.com</small>
-        <button onclick="logout()">Sair</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="content">
+  <div class="iframe-wrap">
     <iframe id="frame" src="home.html"></iframe>
   </div>
 </div>
 
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="active" onclick="setNav(this,'home.html')">
+    <i class="ri-home-5-line"></i>Home
+  </div>
+  <div onclick="setNav(this,'produtos.html')">
+    <i class="ri-store-2-line"></i>Serviços
+  </div>
+  <div onclick="setNav(this,'agenda.html')">
+    <i class="ri-calendar-line"></i>Agenda
+  </div>
+  <div onclick="setNav(this,'perfil.html')">
+    <i class="ri-user-3-line"></i>Perfil
+  </div>
+</nav>
+
 <script>
-const supabaseUrl = "https://egxjgmzukjyyxmkukwub.supabase.co";
-const supabaseKey = "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi";
-const sb = supabase.createClient(supabaseUrl, supabaseKey);
-
-/* PROTEÇÃO */
-async function protegerDashboard(){
-  const { data: { session } } = await sb.auth.getSession();
-  if(!session){
-    window.location.replace("login.html");
-    return;
-  }
-
-  const { data: profile } = await sb
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id", session.user.id)
-    .single();
-
-  document.getElementById("popupNegocio").innerText = profile.negocio;
-  document.getElementById("popupEmail").innerText = session.user.email;
-  document.getElementById("avatarLetter").innerText = profile.negocio[0].toUpperCase();
-
-  document.getElementById("overlay").style.display = "none";
+function openPage(p){
+  frame.src=p;
+}
+function setNav(el,p){
+  document.querySelectorAll('.mobile-nav div')
+    .forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  frame.src=p;
 }
 
-/* MENU */
-function toggleMenu(){
-  sidebar.classList.toggle("collapsed");
+/* PWA */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
 }
-function toggleSub(el){
-  const sub = el.nextElementSibling;
-  sub.style.display = sub.style.display === "block" ? "none" : "block";
-}
-function loadPage(page, el){
-  document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
-  el.classList.add("active");
-  frame.src = page;
-}
-
-/* PROFILE */
-function toggleProfile(e){
-  e.stopPropagation();
-  profilePopup.classList.toggle("active");
-}
-document.addEventListener("click",()=>{
-  profilePopup.classList.remove("active");
-});
-
-/* LOGOUT */
-async function logout(){
-  await sb.auth.signOut();
-  window.location.replace("login.html");
-}
-
-protegerDashboard();
 </script>
 
 </body>
