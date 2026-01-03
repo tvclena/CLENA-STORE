@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,82 +9,204 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root{--primary:#ff6a00;--primary-soft:#fff1e6;--bg:#f5f7fb;--card:#ffffff;--border:#e5e7eb;--radius:14px;--danger:#dc2626;--success:#16a34a;--warning:#f59e0b;--muted:#6b7280;--shadow:0 10px 28px rgba(0,0,0,.1)}
+:root{
+  --primary:#ff6a00;
+  --primary-soft:#fff1e6;
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --radius:20px;
+  --danger:#dc2626;
+  --success:#16a34a;
+  --warning:#f59e0b;
+  --muted:#6b7280;
+  --shadow:0 18px 45px rgba(0,0,0,.08);
+}
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{height:100%}
-body{background:var(--bg);padding:20px;overflow:hidden}
+body{background:var(--bg);padding:32px}
 
 /* HEADER */
-.header{max-width:1700px;margin:0 auto 12px}
-.header h1{font-size:26px;font-weight:800}
+.header{
+  max-width:1700px;
+  margin:0 auto 28px;
+}
+.header h1{
+  font-size:30px;
+  font-weight:800;
+}
 .header span{color:var(--primary)}
-.header p{font-size:12px;color:var(--muted)}
+.header p{
+  color:var(--muted);
+  margin-top:6px;
+}
 
-/* KPIS */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}
-.kpi{background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
-.kpi small{font-size:11px;color:var(--muted);font-weight:600}
-.kpi h2{font-size:20px;font-weight:800}
+/* KPIs */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+  margin-top:20px;
+}
+.kpi{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+.kpi small{
+  color:var(--muted);
+  font-weight:600;
+}
+.kpi h2{
+  margin-top:6px;
+  font-size:26px;
+}
 
 /* LAYOUT */
-.container{max-width:1700px;margin:auto;display:grid;grid-template-columns:400px 1fr;gap:20px;height:calc(100vh - 160px)}
+.container{
+  max-width:1700px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:460px 1fr;
+  gap:34px;
+  margin-top:34px;
+}
 
 /* CARD */
-.card{background:var(--card);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
-.card h3{font-size:15px;font-weight:700;margin-bottom:10px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:var(--shadow);
+}
+.card h3{
+  margin-bottom:18px;
+  font-size:18px;
+}
 
 /* FORM */
-input,textarea,select{width:100%;height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--border);font-size:12px;margin-bottom:8px}
-textarea{height:auto;padding:8px 10px;resize:none}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.switch{display:flex;align-items:center;gap:6px;font-size:11px;margin:4px 0}
-.switch input{width:13px;height:13px}
+input,textarea,select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  margin-bottom:14px;
+  font-size:14px;
+}
+textarea{resize:none}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.switch{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:14px;
+  margin-bottom:12px;
+}
 
 /* UPLOAD */
-.upload{border:2px dashed var(--border);border-radius:10px;padding:10px;text-align:center;cursor:pointer}
-.upload img{width:100%;height:90px;object-fit:cover;border-radius:8px}
-.upload span{font-size:11px;color:var(--muted)}
+.upload{
+  border:2px dashed var(--border);
+  border-radius:18px;
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+}
+.upload img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  border-radius:14px;
+}
+.upload span{color:var(--muted)}
 
-/* BUTTON */
-button{height:40px;border:none;border-radius:22px;background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+button{
+  padding:16px;
+  border:none;
+  border-radius:40px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  width:100%;
+}
 
-/* FILTERS */
-.filters{display:flex;gap:8px;margin-bottom:10px}
-.filters input,.filters select{height:36px}
+/* LIST / FILTER */
+.filters{
+  display:flex;
+  gap:12px;
+  margin-bottom:20px;
+}
 
-/* GRID */
-.grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;overflow-y:auto;overflow-x:hidden;padding-right:6px}
-.grid::-webkit-scrollbar{width:5px}
-.grid::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:10px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:18px;
+}
+
 
 /* ITEM */
-.item{height:210px;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.1);overflow:hidden;display:flex;flex-direction:column;transition:.2s}
-.item:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(0,0,0,.14)}
+.item{
+  background:#fff;
+  border-radius:22px;
+  box-shadow:0 10px 28px rgba(0,0,0,.07);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.item img{
+  width:100%;
+  height:190px;
+  object-fit:cover;
+}
+.item-body{
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
 
-/* IMAGE */
-.image{width:100%;height:80px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f1f5f9,#e5e7eb);overflow:hidden;border-radius:14px 14px 0 0}
-.image img{width:100%;height:100%;object-fit:cover}
-.image.no-image{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff;font-size:32px;font-weight:800}
-
-/* BODY */
-.item-body{padding:10px;display:flex;flex-direction:column;gap:3px;flex:1}
-
-/* BADGES */
-.badges{display:flex;gap:4px;flex-wrap:wrap}
-.badge{font-size:9px;padding:2px 7px;border-radius:999px;font-weight:700;background:#eef2ff}
+.badges{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.badge{
+  font-size:11px;
+  padding:4px 12px;
+  border-radius:999px;
+  font-weight:700;
+  background:#eef2ff;
+}
 .badge.off{background:#fee2e2;color:var(--danger)}
 .badge.low{background:#fff3cd;color:var(--warning)}
 .badge.ok{background:#dcfce7;color:var(--success)}
 .badge.promo{background:#fdf2f8;color:#be185d}
 
-/* TEXT */
-.item-body h4{font-size:12px;font-weight:700}
-.price{font-size:13px;font-weight:800}
-.margin{font-size:10px;color:var(--muted)}
-.item-body small{font-size:10px;color:var(--muted)}
+.price{
+  font-size:18px;
+  font-weight:800;
+}
 
-/* ACTION */
-.actions{margin-top:auto;font-size:11px;color:var(--primary);font-weight:700;cursor:pointer}
+.margin{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.actions{
+  margin-top:auto;
+  font-size:14px;
+  color:var(--primary);
+  cursor:pointer;
+  font-weight:600;
+}
 </style>
 </head>
 
@@ -107,25 +228,47 @@ button{height:40px;border:none;border-radius:22px;background:linear-gradient(135
 
 <!-- FORM -->
 <div class="card">
-<h3>Cadastrar item</h3>
-<select id="tipo"><option value="SERVICO">Serviço</option><option value="PRODUTO">Produto</option></select>
+<h3 id="formTitle">Cadastrar item</h3>
+
+<select id="tipo">
+  <option value="SERVICO">Serviço</option>
+  <option value="PRODUTO">Produto</option>
+</select>
+
 <input id="nome" placeholder="Nome">
 <textarea id="descricao" placeholder="Descrição"></textarea>
 <input id="categoria" placeholder="Categoria">
-<div class="row"><input id="preco" placeholder="Preço"><input id="custo" placeholder="Custo"></div>
-<div class="row"><input id="precoPromo" placeholder="Preço promo"><input id="ordem" placeholder="Ordem"></div>
+
+<div class="row">
+  <input id="preco" placeholder="Preço de venda">
+  <input id="custo" placeholder="Custo">
+</div>
+
+<div class="row">
+  <input id="precoPromo" placeholder="Preço promocional">
+  <input id="ordem" placeholder="Ordem de exibição">
+</div>
+
 <label class="switch"><input type="checkbox" id="promoAtiva"> Promoção ativa</label>
-<input id="duracao" placeholder="Duração (min)">
-<div class="row"><input id="estoque" placeholder="Estoque"><input id="estoqueMin" placeholder="Estoque mínimo"></div>
+<input id="duracao" type="number" placeholder="Duração (min)">
+
+<div class="row">
+  <input id="estoque" type="number" placeholder="Estoque atual">
+  <input id="estoqueMin" type="number" placeholder="Estoque mínimo">
+</div>
+
 <label class="switch"><input type="checkbox" id="controlaEstoque"> Controlar estoque</label>
 <label class="switch"><input type="checkbox" id="ativo" checked> Ativo</label>
-<label class="switch"><input type="checkbox" id="podeAgendar"> Disponível agenda</label>
+<label class="switch"><input type="checkbox" id="podeAgendar"> Disponível para agenda</label>
+
 <textarea id="obs" placeholder="Observações internas"></textarea>
+
 <label class="upload">
   <img id="preview" style="display:none">
   <span id="uploadText">Selecionar imagem</span>
-  <input id="imagem" type="file" hidden>
+  <input id="imagem" type="file" accept="image/*" hidden>
 </label>
+
 <button onclick="salvar()">Salvar</button>
 </div>
 
@@ -133,29 +276,168 @@ button{height:40px;border:none;border-radius:22px;background:linear-gradient(135
 <div class="card">
   <div class="filters">
     <input id="search" placeholder="Buscar">
-    <select id="filtroTipo"><option value="">Todos</option><option value="PRODUTO">Produtos</option><option value="SERVICO">Serviços</option></select>
-    <select id="filtroEstoque"><option value="">Estoque</option><option value="BAIXO">Baixo</option><option value="OK">Ok</option></select>
+    <select id="filtroTipo">
+      <option value="">Todos</option>
+      <option value="PRODUTO">Produtos</option>
+      <option value="SERVICO">Serviços</option>
+    </select>
+    <select id="filtroEstoque">
+      <option value="">Estoque</option>
+      <option value="BAIXO">Baixo</option>
+      <option value="OK">Ok</option>
+    </select>
   </div>
+
   <div class="grid" id="lista"></div>
 </div>
 
 </div>
 
 <script>
-const sb=supabase.createClient("https://egxjgmzukjyyxmkukwub.supabase.co","sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi");
-let itens=[],userId=null;
-(async()=>{const{data:{session}}=await sb.auth.getSession();if(!session)return;userId=session.user.id;carregar();})();
-async function carregar(){const{data}=await sb.from("produtos_servicos").select("*");itens=data||[];render();}
-function render(){lista.innerHTML="";itens.forEach(i=>{lista.innerHTML+=`
-<div class="item">
-  <div class="image ${i.imagem_url?'':'no-image'}">${i.imagem_url?`<img src="${i.imagem_url}">`:i.nome.charAt(0)}</div>
-  <div class="item-body">
-    <div class="badges"><span class="badge">${i.tipo}</span></div>
-    <h4>${i.nome}</h4>
-    <div class="price">R$ ${i.preco||0}</div>
-    <div class="actions">Editar</div>
-  </div>
-</div>`})}
+const sb = window.__sbProdutos ??= window.supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+let userId=null,itens=[],editId=null;
+
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session) return location.href="login.html";
+  userId=session.user.id;
+  carregar();
+})();
+
+tipo.onchange=()=>{
+  duracao.style.display = tipo.value==="SERVICO"?"block":"none";
+  controlaEstoque.checked = tipo.value==="PRODUTO";
+};
+
+imagem.onchange=()=>{
+  const f=imagem.files[0];
+  if(f){
+    preview.src=URL.createObjectURL(f);
+    preview.style.display="block";
+    uploadText.style.display="none";
+  }
+};
+
+search.oninput=filtroTipo.onchange=filtroEstoque.onchange=render;
+
+async function salvar(){
+  const payload={
+    user_id:userId,
+    tipo:tipo.value,
+    nome:nome.value,
+    descricao:descricao.value,
+    categoria:categoria.value,
+    preco:Number(preco.value.replace(',','.')),
+    custo:custo.value||null,
+    preco_promocional:precoPromo.value||null,
+    promocao_ativa:promoAtiva.checked,
+    duracao_minutos:tipo.value==="SERVICO"?duracao.value:null,
+    estoque_atual:estoque.value||null,
+    estoque_minimo:estoqueMin.value||null,
+    controla_estoque:controlaEstoque.checked,
+    ativo:ativo.checked,
+    pode_agendar:podeAgendar.checked,
+    ordem_exibicao:ordem.value||0,
+    observacoes_internas:obs.value
+  };
+
+  let data;
+  if(editId){
+    ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
+  }else{
+    ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
+  }
+
+  if(imagem.files.length){
+    const path=`${userId}/${data.id}.jpg`;
+    await sb.storage.from("produtos").upload(path,imagem.files[0],{upsert:true});
+    const {data:signed}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
+    await sb.from("produtos_servicos").update({imagem_url:signed.signedUrl}).eq("id",data.id);
+  }
+
+  reset();carregar();
+}
+
+async function carregar(){
+  const {data}=await sb.from("produtos_servicos")
+    .select("*")
+    .order("ordem_exibicao",{ascending:true});
+
+  itens=data||[];
+  atualizarKPIs();
+  render();
+}
+
+function atualizarKPIs(){
+  kpiTotal.innerText = itens.length;
+  kpiServicos.innerText = itens.filter(i=>i.tipo==="SERVICO" && i.ativo).length;
+  kpiBaixo.innerText = itens.filter(i=>i.controla_estoque && i.estoque_atual<=i.estoque_minimo).length;
+  kpiPromo.innerText = itens.filter(i=>i.promocao_ativa).length;
+}
+
+function render(){
+  lista.innerHTML="";
+  itens.filter(i=>{
+    if(search.value && !i.nome.toLowerCase().includes(search.value.toLowerCase())) return false;
+    if(filtroTipo.value && i.tipo!==filtroTipo.value) return false;
+    if(filtroEstoque.value==="BAIXO" && !(i.controla_estoque && i.estoque_atual<=i.estoque_minimo)) return false;
+    if(filtroEstoque.value==="OK" && !(i.controla_estoque && i.estoque_atual>i.estoque_minimo)) return false;
+    return true;
+  }).forEach(i=>{
+    const margem = i.custo ? (((i.preco - i.custo)/i.preco)*100).toFixed(0) : null;
+    lista.innerHTML+=`
+    <div class="item">
+      ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
+      <div class="item-body">
+        <div class="badges">
+          <span class="badge">${i.tipo}</span>
+          ${i.promocao_ativa?`<span class="badge promo">Promo</span>`:""}
+          ${!i.ativo?`<span class="badge off">Inativo</span>`:""}
+          ${i.controla_estoque && i.estoque_atual<=i.estoque_minimo
+            ? `<span class="badge low">Estoque baixo</span>`
+            : i.controla_estoque
+              ? `<span class="badge ok">Estoque ok</span>`:""}
+        </div>
+        <h4>${i.nome}</h4>
+        <div class="price">R$ ${i.preco}</div>
+        ${margem?`<div class="margin">Margem ${margem}%</div>`:""}
+        <small>${i.categoria||""}</small>
+        <div class="actions" onclick="editar('${i.id}')">Editar</div>
+      </div>
+    </div>`;
+  });
+}
+
+function editar(id){
+  const i=itens.find(x=>x.id===id);
+  editId=id;
+  tipo.value=i.tipo; tipo.onchange();
+  nome.value=i.nome;
+  descricao.value=i.descricao;
+  categoria.value=i.categoria||"";
+  preco.value=i.preco;
+  custo.value=i.custo||"";
+  precoPromo.value=i.preco_promocional||"";
+  promoAtiva.checked=i.promocao_ativa;
+  duracao.value=i.duracao_minutos||"";
+  estoque.value=i.estoque_atual||"";
+  estoqueMin.value=i.estoque_minimo||"";
+  controlaEstoque.checked=i.controla_estoque;
+  ativo.checked=i.ativo;
+  podeAgendar.checked=i.pode_agendar;
+  ordem.value=i.ordem_exibicao||0;
+  obs.value=i.observacoes_internas||"";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function reset(){
+  editId=null;
+  document.querySelectorAll("input,textarea").forEach(e=>e.value="");
+}
 </script>
 
 </body>
