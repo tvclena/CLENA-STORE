@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Produtos & Serviços • AgendaBeauty</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#dc2626;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);padding:28px}
+
+/* HEADER */
+.header{max-width:1300px;margin:0 auto 20px}
+.header h1{font-size:26px}
+.header span{color:var(--primary)}
+
+/* LAYOUT */
+.container{
+  max-width:1300px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:24px;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+/* FORM */
+input,textarea,select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:12px;
+}
+input[type=file]{display:none}
+
+.upload{
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  margin-bottom:14px;
+}
+.upload img{
+  max-width:100%;
+  height:140px;
+  object-fit:cover;
+  border-radius:12px;
+}
+.upload span{color:#6b7280;font-size:14px}
+
+button{
+  padding:14px;
+  border:none;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  width:100%;
+}
+
+/* LIST */
+.list-header{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:16px;
+}
+.item{
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  background:#fff;
+  position:relative;
+}
+.item img{width:100%;height:150px;object-fit:cover}
+.check{position:absolute;top:10px;right:10px}
+.item-body{padding:14px}
+.badge{font-size:11px;padding:4px 10px;border-radius:999px;background:#eaf1ff}
+.price{font-weight:700;margin-top:6px}
+.actions span{font-size:13px;color:var(--primary);cursor:pointer}
+
+/* OVERLAY */
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#overlay div{
+  background:#fff;
+  padding:22px 30px;
+  border-radius:16px;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<div id="overlay"><div>Salvando…</div></div>
+
+<div class="header">
+  <h1>Produtos & <span>Serviços</span></h1>
+</div>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div class="card">
+    <h3 id="formTitle">Cadastrar item</h3>
+
+    <select id="tipo">
+      <option value="SERVICO">Serviço</option>
+      <option value="PRODUTO">Produto</option>
+    </select>
+
+    <input id="nome" placeholder="Nome">
+    <textarea id="descricao" placeholder="Descrição"></textarea>
+    <input id="preco" placeholder="Preço">
+    <input id="duracao" type="number" placeholder="Duração (min)">
+
+    <label class="upload" for="imagem">
+      <img id="preview" style="display:none">
+      <span id="uploadText">Clique para selecionar uma imagem</span>
+    </label>
+    <input id="imagem" type="file" accept="image/*">
+
+    <button onclick="salvar()">Salvar</button>
+  </div>
+
+  <!-- LIST -->
+  <div class="card">
+    <div class="list-header">
+      <input id="search" placeholder="Buscar produto ou serviço">
+      <button id="btnExcluir" style="display:none;background:#fee2e2;color:#dc2626"
+        onclick="excluirSelecionados()">Excluir</button>
+    </div>
+
+    <div id="lista" class="grid"></div>
+  </div>
+
+</div>
+
+<script>
+/* =================================================
+   SUPABASE (SEM CONFLITO GLOBAL)
+   ================================================= */
+const sb = window.__sbProdutos ??= window.supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+
+let userId = null;
+let itens = [];
+let editId = null;
+
+/* =================================================
+   INIT / PROTEÇÃO
+   ================================================= */
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = "login.html";
+    return;
+  }
+  userId = session.user.id;
+  carregar();
+})();
+
+/* =================================================
+   UI
+   ================================================= */
+tipo.onchange = () => {
+  duracao.style.display = tipo.value === "SERVICO" ? "block" : "none";
+};
+tipo.onchange();
+
+imagem.onchange = () => {
+  const f = imagem.files[0];
+  if (f) {
+    preview.src = URL.createObjectURL(f);
+    preview.style.display = "block";
+    uploadText.style.display = "none";
+  }
+};
+
+preco.oninput = e => {
+  let v = e.target.value.replace(/\D/g, '');
+  v = (v / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  e.target.value = v;
+};
+
+/* =================================================
+   SALVAR
+   ================================================= */
+async function salvar() {
+  overlay.style.display = "flex";
+
+  const valor = parseFloat(preco.value.replace(/\./g, '').replace(',', '.'));
+
+  const payload = {
+    user_id: userId,
+    tipo: tipo.value,
+    nome: nome.value,
+    descricao: descricao.value,
+    preco: valor,
+    duracao_minutos: tipo.value === "SERVICO" ? duracao.value : null
+  };
+
+  let data;
+  if (editId) {
+    ({ data } = await sb
+      .from("produtos_servicos")
+      .update(payload)
+      .eq("id", editId)
+      .select()
+      .single());
+  } else {
+    ({ data } = await sb
+      .from("produtos_servicos")
+      .insert(payload)
+      .select()
+      .single());
+  }
+
+  if (imagem.files.length) {
+    const path = `${userId}/${data.id}.jpg`;
+    await sb.storage.from("produtos")
+      .upload(path, imagem.files[0], { upsert: true });
+
+const { data: signed } = await sb.storage
+  .from("produtos")
+  .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 ano
+
+const url = signed.signedUrl;
+
+
+    await sb.from("produtos_servicos")
+      .update({ imagem_url: url })
+      .eq("id", data.id);
+  }
+
+  reset();
+  carregar();
+  overlay.style.display = "none";
+}
+
+/* =================================================
+   LISTAR
+   ================================================= */
+async function carregar() {
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  itens = data || [];
+  lista.innerHTML = "";
+  itens.forEach(renderItem);
+}
+
+function renderItem(i) {
+  lista.innerHTML += `
+    <div class="item">
+      <input type="checkbox" class="check" value="${i.id}">
+      ${i.imagem_url ? `<img src="${i.imagem_url}">` : ""}
+      <div class="item-body">
+        <span class="badge">${i.tipo}</span>
+        <h4>${i.nome}</h4>
+        <div class="price">R$ ${i.preco.toFixed(2).replace('.', ',')}</div>
+        ${i.duracao_minutos ? `<small>${i.duracao_minutos} min</small>` : ""}
+        <div class="actions">
+          <span onclick="editar('${i.id}')">Editar</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* =================================================
+   EDITAR / RESET
+   ================================================= */
+function editar(id) {
+  const i = itens.find(x => x.id === id);
+  editId = id;
+  tipo.value = i.tipo;
+  tipo.onchange();
+  nome.value = i.nome;
+  descricao.value = i.descricao;
+  preco.value = i.preco.toFixed(2).replace('.', ',');
+  duracao.value = i.duracao_minutos || "";
+  formTitle.innerText = "Editar item";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function reset() {
+  editId = null;
+  formTitle.innerText = "Cadastrar item";
+  nome.value = descricao.value = preco.value = duracao.value = "";
+  imagem.value = "";
+  preview.style.display = "none";
+  uploadText.style.display = "block";
+}
+</script>
+
+
+</body>
+</html>
