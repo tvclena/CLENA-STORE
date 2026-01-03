@@ -17,10 +17,12 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --soft:rgba(255,106,0,.15);
+  --primary-soft:rgba(255,106,0,.12);
   --bg:#f4f6fb;
   --card:#fff;
   --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
 }
 
 *{
@@ -46,6 +48,7 @@ html,body{
   align-items:center;
   justify-content:center;
   font-weight:800;
+  font-size:16px;
   position:fixed;
   top:0;left:0;right:0;
   z-index:10;
@@ -55,7 +58,7 @@ html,body{
 .wrapper{
   position:fixed;
   top:56px;
-  bottom:86px;
+  bottom:96px;
   left:0;right:0;
   overflow:hidden;
 }
@@ -64,21 +67,22 @@ html,body{
 .chat{
   height:100%;
   overflow-y:auto;
-  padding:16px;
+  padding:20px 16px;
   display:flex;
   flex-direction:column;
-  gap:12px;
+  gap:14px;
 }
 
 /* MENSAGENS */
-.msg-row{display:flex}
-.msg-row.user{justify-content:flex-end}
+.row{display:flex}
+.row.user{justify-content:flex-end}
 
 .msg{
-  max-width:78%;
-  padding:12px 14px;
-  border-radius:18px;
+  max-width:82%;
+  padding:14px 16px;
+  border-radius:20px;
   font-size:14px;
+  line-height:1.45;
 }
 
 .bot{
@@ -91,56 +95,61 @@ html,body{
   color:#fff;
 }
 
-/* SERVIÇOS */
-.carousel{
+/* CARDS DE SERVIÇO */
+.services{
   display:flex;
-  gap:14px;
-  overflow-x:auto;
+  flex-direction:column;
+  gap:16px;
 }
 
 .service{
-  min-width:180px;
   background:#fff;
-  border-radius:18px;
+  border-radius:22px;
   overflow:hidden;
-  box-shadow:0 10px 24px rgba(0,0,0,.1);
+  box-shadow:0 16px 40px rgba(0,0,0,.12);
   cursor:pointer;
-  position:relative;
+  transition:.25s ease;
+}
+
+.service:hover{
+  transform:translateY(-2px);
 }
 
 .service img{
   width:100%;
-  height:110px;
+  height:200px;
   object-fit:cover;
+  display:block;
 }
 
-.service div{
-  padding:12px;
+.service-info{
+  padding:16px;
+}
+
+.service-name{
+  font-size:16px;
+  font-weight:800;
+  color:var(--text);
+}
+
+.service-price{
+  margin-top:6px;
+  font-size:15px;
   font-weight:700;
-}
-
-.price{
-  position:absolute;
-  top:8px;
-  right:8px;
-  background:var(--primary);
-  color:#fff;
-  padding:4px 10px;
-  border-radius:999px;
-  font-size:11px;
+  color:var(--primary);
 }
 
 /* DIAS */
 .days{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .day{
   background:#fff;
-  border-radius:14px;
-  padding:14px 0;
+  border-radius:16px;
+  padding:16px 0;
   text-align:center;
   font-weight:800;
   border:1px solid var(--border);
@@ -151,13 +160,13 @@ html,body{
 .times{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .time{
   background:#fff;
   border-radius:999px;
-  padding:12px;
+  padding:14px;
   text-align:center;
   font-weight:700;
   border:1px solid var(--border);
@@ -168,23 +177,24 @@ html,body{
 .input{
   position:fixed;
   bottom:0;left:0;right:0;
-  height:86px;
+  height:96px;
   background:#fff;
   border-top:1px solid var(--border);
   display:flex;
-  gap:10px;
-  padding:14px;
+  gap:12px;
+  padding:16px;
 }
 
 .input input{
   flex:1;
-  padding:14px 18px;
+  padding:16px 20px;
   border-radius:999px;
   border:1px solid var(--border);
+  font-size:15px;
 }
 
 .input button{
-  width:48px;
+  width:52px;
   border:none;
   border-radius:50%;
   background:var(--primary);
@@ -195,9 +205,9 @@ html,body{
 /* RESUMO */
 .summary{
   background:#fff;
-  border-radius:18px;
-  padding:16px;
-  box-shadow:0 14px 36px rgba(0,0,0,.14);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 18px 44px rgba(0,0,0,.16);
 }
 </style>
 </head>
@@ -222,9 +232,9 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
-const STORAGE = "CHAT_"+lojaId;
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
+const STORAGE="CHAT_"+lojaId;
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
 
 let etapa="nome";
 let dados={};
@@ -232,40 +242,33 @@ let duracao=0;
 let agenda=[];
 let bloqueado=false;
 
-/* STORAGE 7 DIAS */
+/* STORAGE */
 function load(){
   const r=localStorage.getItem(STORAGE);
   if(!r) return false;
   const j=JSON.parse(r);
-  if(Date.now()-j.time>7*86400000){
-    localStorage.removeItem(STORAGE);
-    return false;
-  }
+  if(Date.now()-j.time>7*86400000){localStorage.removeItem(STORAGE);return false;}
   chat.innerHTML=j.html;
   etapa=j.etapa;
   dados=j.dados;
   scroll();
   return true;
 }
-
 function save(){
   localStorage.setItem(STORAGE,JSON.stringify({
     time:Date.now(),
     html:chat.innerHTML,
-    etapa,
-    dados
+    etapa,dados
   }));
 }
-
 function scroll(){chat.scrollTop=chat.scrollHeight;}
 
 function bot(t){
-  chat.innerHTML+=`<div class="msg-row"><div class="msg bot">${t}</div></div>`;
+  chat.innerHTML+=`<div class="row"><div class="msg bot">${t}</div></div>`;
   save();scroll();
 }
-
 function user(t){
-  chat.innerHTML+=`<div class="msg-row user"><div class="msg user">${t}</div></div>`;
+  chat.innerHTML+=`<div class="row user"><div class="msg user">${t}</div></div>`;
   save();scroll();
 }
 
@@ -322,12 +325,14 @@ async function listarServicos(){
   bot("Escolha um serviço:");
 
   chat.innerHTML+=`
-    <div class="carousel">
+    <div class="services">
       ${data.map(s=>`
         <div class="service" onclick="selectServico('${s.id}',${s.duracao_minutos})">
-          <span class="price">R$ ${s.preco}</span>
           <img src="${s.imagem_url||''}">
-          <div>${s.nome}</div>
+          <div class="service-info">
+            <div class="service-name">${s.nome}</div>
+            <div class="service-price">R$ ${s.preco}</div>
+          </div>
         </div>
       `).join("")}
     </div>`;
@@ -397,7 +402,7 @@ async function confirmar(h){
 
   bot(`
     <div class="summary">
-      <strong>Resumo</strong><br><br>
+      <strong>Resumo do agendamento</strong><br><br>
       👤 ${dados.nome}<br>
       📅 ${dados.data}<br>
       ⏰ ${h}
