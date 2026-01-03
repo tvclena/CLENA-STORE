@@ -16,33 +16,35 @@
   --border:#e5e7eb;
   --radius:18px;
   --danger:#dc2626;
+  --success:#16a34a;
+  --warning:#f59e0b;
+  --muted:#6b7280;
 }
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);padding:28px}
 
-/* HEADER */
-.header{max-width:1300px;margin:0 auto 20px}
+.header{max-width:1400px;margin:0 auto 20px}
 .header h1{font-size:26px}
 .header span{color:var(--primary)}
 
-/* LAYOUT */
 .container{
-  max-width:1300px;
+  max-width:1400px;
   margin:auto;
   display:grid;
-  grid-template-columns:380px 1fr;
-  gap:24px;
+  grid-template-columns:420px 1fr;
+  gap:28px;
 }
 
-/* CARD */
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:24px;
+  padding:26px;
   box-shadow:0 10px 30px rgba(0,0,0,.06);
 }
 
-/* FORM */
+h3{margin-bottom:14px}
+
 input,textarea,select{
   width:100%;
   padding:12px;
@@ -50,26 +52,41 @@ input,textarea,select{
   border:1px solid var(--border);
   margin-bottom:12px;
 }
-input[type=file]{display:none}
+
+textarea{resize:none}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.switch{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:14px;
+  margin-bottom:12px;
+}
 
 .upload{
   border:2px dashed var(--border);
   border-radius:14px;
-  padding:20px;
+  padding:18px;
   text-align:center;
   cursor:pointer;
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
 .upload img{
-  max-width:100%;
-  height:140px;
+  width:100%;
+  height:150px;
   object-fit:cover;
   border-radius:12px;
 }
-.upload span{color:#6b7280;font-size:14px}
+.upload span{font-size:14px;color:var(--muted)}
 
 button{
-  padding:14px;
+  padding:15px;
   border:none;
   border-radius:30px;
   background:var(--primary);
@@ -79,33 +96,59 @@ button{
   width:100%;
 }
 
-/* LIST */
-.list-header{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:16px;
-}
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;
 }
+
 .item{
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:18px;
   overflow:hidden;
   background:#fff;
-  position:relative;
+  display:flex;
+  flex-direction:column;
 }
-.item img{width:100%;height:150px;object-fit:cover}
-.check{position:absolute;top:10px;right:10px}
-.item-body{padding:14px}
-.badge{font-size:11px;padding:4px 10px;border-radius:999px;background:#eaf1ff}
-.price{font-weight:700;margin-top:6px}
-.actions span{font-size:13px;color:var(--primary);cursor:pointer}
 
-/* OVERLAY */
+.item img{
+  width:100%;
+  height:160px;
+  object-fit:cover;
+}
+
+.item-body{
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+
+.badge{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#eef2ff;
+  font-weight:600;
+}
+
+.badge.off{background:#fee2e2;color:var(--danger)}
+.badge.low{background:#fff3cd;color:var(--warning)}
+.badge.ok{background:#dcfce7;color:var(--success)}
+
+.price{font-weight:700;font-size:16px}
+
+small{color:var(--muted)}
+
+.actions{
+  margin-top:auto;
+  font-size:13px;
+  color:var(--primary);
+  cursor:pointer;
+}
+
 #overlay{
   position:fixed;
   inset:0;
@@ -134,205 +177,196 @@ button{
 
 <div class="container">
 
-  <!-- FORM -->
-  <div class="card">
-    <h3 id="formTitle">Cadastrar item</h3>
+<!-- FORM -->
+<div class="card">
+<h3 id="formTitle">Cadastrar item</h3>
 
-    <select id="tipo">
-      <option value="SERVICO">Serviço</option>
-      <option value="PRODUTO">Produto</option>
-    </select>
+<select id="tipo">
+  <option value="SERVICO">Serviço</option>
+  <option value="PRODUTO">Produto</option>
+</select>
 
-    <input id="nome" placeholder="Nome">
-    <textarea id="descricao" placeholder="Descrição"></textarea>
-    <input id="preco" placeholder="Preço">
-    <input id="duracao" type="number" placeholder="Duração (min)">
+<input id="nome" placeholder="Nome">
+<textarea id="descricao" placeholder="Descrição"></textarea>
+<input id="categoria" placeholder="Categoria">
 
-    <label class="upload" for="imagem">
-      <img id="preview" style="display:none">
-      <span id="uploadText">Clique para selecionar uma imagem</span>
-    </label>
-    <input id="imagem" type="file" accept="image/*">
+<div class="row">
+  <input id="preco" placeholder="Preço de venda">
+  <input id="custo" placeholder="Custo">
+</div>
 
-    <button onclick="salvar()">Salvar</button>
-  </div>
+<div class="row">
+  <input id="precoPromo" placeholder="Preço promocional">
+  <input id="ordem" placeholder="Ordem">
+</div>
 
-  <!-- LIST -->
-  <div class="card">
-    <div class="list-header">
-      <input id="search" placeholder="Buscar produto ou serviço">
-      <button id="btnExcluir" style="display:none;background:#fee2e2;color:#dc2626"
-        onclick="excluirSelecionados()">Excluir</button>
-    </div>
+<label class="switch">
+  <input type="checkbox" id="promoAtiva"> Promoção ativa
+</label>
 
-    <div id="lista" class="grid"></div>
-  </div>
+<input id="duracao" type="number" placeholder="Duração (min)">
+
+<div class="row">
+  <input id="estoque" type="number" placeholder="Estoque atual">
+  <input id="estoqueMin" type="number" placeholder="Estoque mínimo">
+</div>
+
+<label class="switch">
+  <input type="checkbox" id="controlaEstoque"> Controlar estoque
+</label>
+
+<label class="switch">
+  <input type="checkbox" id="ativo" checked> Ativo
+</label>
+
+<label class="switch">
+  <input type="checkbox" id="podeAgendar"> Disponível para agenda
+</label>
+
+<textarea id="obs" placeholder="Observações internas"></textarea>
+
+<label class="upload">
+  <img id="preview" style="display:none">
+  <span id="uploadText">Clique para selecionar uma imagem</span>
+  <input id="imagem" type="file" accept="image/*" hidden>
+</label>
+
+<button onclick="salvar()">Salvar</button>
+</div>
+
+<!-- LIST -->
+<div class="card">
+  <div class="grid" id="lista"></div>
+</div>
 
 </div>
 
 <script>
-/* =================================================
-   SUPABASE (SEM CONFLITO GLOBAL)
-   ================================================= */
 const sb = window.__sbProdutos ??= window.supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
+let userId=null,itens=[],editId=null;
 
-let userId = null;
-let itens = [];
-let editId = null;
-
-/* =================================================
-   INIT / PROTEÇÃO
-   ================================================= */
-(async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = "login.html";
-    return;
-  }
-  userId = session.user.id;
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session) return location.href="login.html";
+  userId=session.user.id;
   carregar();
 })();
 
-/* =================================================
-   UI
-   ================================================= */
-tipo.onchange = () => {
-  duracao.style.display = tipo.value === "SERVICO" ? "block" : "none";
+tipo.onchange=()=>{
+  duracao.style.display = tipo.value==="SERVICO"?"block":"none";
+  controlaEstoque.checked = tipo.value==="PRODUTO";
 };
-tipo.onchange();
 
-imagem.onchange = () => {
-  const f = imagem.files[0];
-  if (f) {
-    preview.src = URL.createObjectURL(f);
-    preview.style.display = "block";
-    uploadText.style.display = "none";
+imagem.onchange=()=>{
+  const f=imagem.files[0];
+  if(f){
+    preview.src=URL.createObjectURL(f);
+    preview.style.display="block";
+    uploadText.style.display="none";
   }
 };
 
-preco.oninput = e => {
-  let v = e.target.value.replace(/\D/g, '');
-  v = (v / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-  e.target.value = v;
-};
+async function salvar(){
+  overlay.style.display="flex";
 
-/* =================================================
-   SALVAR
-   ================================================= */
-async function salvar() {
-  overlay.style.display = "flex";
-
-  const valor = parseFloat(preco.value.replace(/\./g, '').replace(',', '.'));
-
-  const payload = {
-    user_id: userId,
-    tipo: tipo.value,
-    nome: nome.value,
-    descricao: descricao.value,
-    preco: valor,
-    duracao_minutos: tipo.value === "SERVICO" ? duracao.value : null
+  const payload={
+    user_id:userId,
+    tipo:tipo.value,
+    nome:nome.value,
+    descricao:descricao.value,
+    categoria:categoria.value,
+    preco:parseFloat(preco.value.replace(',','.')),
+    custo:custo.value||null,
+    preco_promocional:precoPromo.value||null,
+    promocao_ativa:promoAtiva.checked,
+    duracao_minutos:tipo.value==="SERVICO"?duracao.value:null,
+    estoque_atual:estoque.value||null,
+    estoque_minimo:estoqueMin.value||null,
+    controla_estoque:controlaEstoque.checked,
+    ativo:ativo.checked,
+    pode_agendar:podeAgendar.checked,
+    ordem_exibicao:ordem.value||0,
+    observacoes_internas:obs.value
   };
 
   let data;
-  if (editId) {
-    ({ data } = await sb
-      .from("produtos_servicos")
-      .update(payload)
-      .eq("id", editId)
-      .select()
-      .single());
-  } else {
-    ({ data } = await sb
-      .from("produtos_servicos")
-      .insert(payload)
-      .select()
-      .single());
+  if(editId){
+    ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
+  }else{
+    ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
   }
 
-  if (imagem.files.length) {
-    const path = `${userId}/${data.id}.jpg`;
-    await sb.storage.from("produtos")
-      .upload(path, imagem.files[0], { upsert: true });
-
-const { data: signed } = await sb.storage
-  .from("produtos")
-  .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 ano
-
-const url = signed.signedUrl;
-
-
-    await sb.from("produtos_servicos")
-      .update({ imagem_url: url })
-      .eq("id", data.id);
+  if(imagem.files.length){
+    const path=`${userId}/${data.id}.jpg`;
+    await sb.storage.from("produtos").upload(path,imagem.files[0],{upsert:true});
+    const {data:signed}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
+    await sb.from("produtos_servicos").update({imagem_url:signed.signedUrl}).eq("id",data.id);
   }
 
-  reset();
-  carregar();
-  overlay.style.display = "none";
+  reset();carregar();
+  overlay.style.display="none";
 }
 
-/* =================================================
-   LISTAR
-   ================================================= */
-async function carregar() {
-  const { data } = await sb
-    .from("produtos_servicos")
+async function carregar(){
+  const {data}=await sb.from("produtos_servicos")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("ordem_exibicao",{ascending:true});
 
-  itens = data || [];
-  lista.innerHTML = "";
-  itens.forEach(renderItem);
-}
-
-function renderItem(i) {
-  lista.innerHTML += `
+  itens=data||[];
+  lista.innerHTML="";
+  itens.forEach(i=>{
+    lista.innerHTML+=`
     <div class="item">
-      <input type="checkbox" class="check" value="${i.id}">
-      ${i.imagem_url ? `<img src="${i.imagem_url}">` : ""}
+      ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
       <div class="item-body">
-        <span class="badge">${i.tipo}</span>
-        <h4>${i.nome}</h4>
-        <div class="price">R$ ${i.preco.toFixed(2).replace('.', ',')}</div>
-        ${i.duracao_minutos ? `<small>${i.duracao_minutos} min</small>` : ""}
-        <div class="actions">
-          <span onclick="editar('${i.id}')">Editar</span>
+        <div class="badges">
+          <span class="badge">${i.tipo}</span>
+          ${!i.ativo?`<span class="badge off">Inativo</span>`:""}
+          ${i.controla_estoque && i.estoque_atual<=i.estoque_minimo
+            ? `<span class="badge low">Estoque baixo</span>`
+            : i.controla_estoque
+              ? `<span class="badge ok">Estoque OK</span>`:""}
         </div>
+        <h4>${i.nome}</h4>
+        <div class="price">R$ ${i.preco}</div>
+        <small>${i.categoria||""}</small>
+        <div class="actions" onclick="editar('${i.id}')">Editar</div>
       </div>
-    </div>
-  `;
+    </div>`;
+  });
 }
 
-/* =================================================
-   EDITAR / RESET
-   ================================================= */
-function editar(id) {
-  const i = itens.find(x => x.id === id);
-  editId = id;
-  tipo.value = i.tipo;
-  tipo.onchange();
-  nome.value = i.nome;
-  descricao.value = i.descricao;
-  preco.value = i.preco.toFixed(2).replace('.', ',');
-  duracao.value = i.duracao_minutos || "";
-  formTitle.innerText = "Editar item";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function editar(id){
+  const i=itens.find(x=>x.id===id);
+  editId=id;
+  tipo.value=i.tipo; tipo.onchange();
+  nome.value=i.nome;
+  descricao.value=i.descricao;
+  categoria.value=i.categoria||"";
+  preco.value=i.preco;
+  custo.value=i.custo||"";
+  precoPromo.value=i.preco_promocional||"";
+  promoAtiva.checked=i.promocao_ativa;
+  duracao.value=i.duracao_minutos||"";
+  estoque.value=i.estoque_atual||"";
+  estoqueMin.value=i.estoque_minimo||"";
+  controlaEstoque.checked=i.controla_estoque;
+  ativo.checked=i.ativo;
+  podeAgendar.checked=i.pode_agendar;
+  ordem.value=i.ordem_exibicao||0;
+  obs.value=i.observacoes_internas||"";
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function reset() {
-  editId = null;
-  formTitle.innerText = "Cadastrar item";
-  nome.value = descricao.value = preco.value = duracao.value = "";
-  imagem.value = "";
-  preview.style.display = "none";
-  uploadText.style.display = "block";
+function reset(){
+  editId=null;
+  document.querySelectorAll("input,textarea").forEach(e=>e.value="");
 }
 </script>
-
 
 </body>
 </html>
