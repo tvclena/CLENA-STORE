@@ -2,9 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Agendamento Online</title>
+<title>Agendamento</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no">
+
 <meta name="theme-color" id="themeColor">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -21,16 +26,24 @@
   --success:#16a34a;
   --danger:#dc2626;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+  touch-action:manipulation;
+}
+
+html,body{
   background:var(--bg);
   color:var(--text);
-  padding-bottom:120px;
+  overscroll-behavior:none;
 }
 
 /* ===== HEADER ===== */
 header{
-  padding:28px 16px 24px;
+  padding:26px 16px 22px;
   text-align:center;
   color:#fff;
   background:
@@ -39,8 +52,8 @@ header{
     linear-gradient(135deg,var(--primary),var(--secondary));
 }
 header img{
-  width:88px;
-  height:88px;
+  width:86px;
+  height:86px;
   border-radius:50%;
   object-fit:cover;
   background:#fff;
@@ -50,42 +63,33 @@ header h1{
   font-size:22px;
   font-weight:800;
 }
-header small{
-  opacity:.9;
-}
+header small{opacity:.9}
 
 /* ===== CONTENT ===== */
-.section{
-  padding:16px;
-}
-.card{
-  background:var(--card);
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:12px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
-}
-
-/* ===== SERVICES / PRODUCTS ===== */
+.section{padding:16px}
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
   gap:12px;
 }
-.item img{
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+}
+.card img{
   width:100%;
   height:120px;
   object-fit:cover;
   border-radius:14px;
 }
-.item strong{
+.card strong{
   display:block;
   margin-top:6px;
 }
-.item small{
-  color:var(--muted);
-}
-.item button{
+.card small{color:var(--muted)}
+.card button{
   width:100%;
   margin-top:8px;
   padding:10px;
@@ -99,7 +103,7 @@ header small{
 /* ===== CTA ===== */
 .cta{
   position:fixed;
-  bottom:88px;
+  bottom:90px;
   left:16px;
   right:16px;
 }
@@ -130,7 +134,7 @@ header small{
   bottom:0;
   left:0;
   right:0;
-  height:88vh;
+  height:85vh;
   background:#fff;
   border-radius:22px 22px 0 0;
   display:flex;
@@ -184,24 +188,23 @@ header small{
   font-weight:800;
 }
 
-/* ===== NAV ===== */
-nav{
-  position:fixed;
-  bottom:16px;
-  left:16px;
-  right:16px;
-  background:#fff;
-  border-radius:22px;
+/* ===== OPTIONS ===== */
+.options{
   display:flex;
-  justify-content:space-around;
-  padding:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,.15);
+  gap:8px;
+  overflow-x:auto;
 }
-nav button{
-  background:none;
+.options button{
+  padding:10px 14px;
+  border-radius:999px;
   border:none;
-  font-weight:700;
-  color:var(--muted);
+  background:var(--success);
+  color:#fff;
+  font-weight:800;
+  white-space:nowrap;
+}
+.options button.disabled{
+  background:#ccc;
 }
 </style>
 </head>
@@ -210,18 +213,13 @@ nav button{
 
 <header>
   <img id="logo">
-  <h1 id="nomeLoja">Sua Empresa</h1>
+  <h1 id="nomeLoja">Agendamento</h1>
   <small>Agende seu horário</small>
 </header>
 
 <section class="section">
   <h3>Serviços</h3>
   <div class="grid" id="listaServicos"></div>
-</section>
-
-<section class="section">
-  <h3>Produtos</h3>
-  <div class="grid" id="listaProdutos"></div>
 </section>
 
 <div class="cta">
@@ -243,132 +241,153 @@ nav button{
   </div>
 </div>
 
-<nav>
-  <button>Agendar</button>
-  <button>Meus horários</button>
-  <button>Perfil</button>
-  <button>Produtos</button>
-</nav>
-
 <script>
+/* 🔒 BLOQUEIA ZOOM */
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault());
+
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
+
 let etapa="nome";
 let cliente={};
 let servico=null;
 let dataSel=null;
 
-/* CHAT */
-function addMsg(t,c="bot"){
+/* CHAT HELPERS */
+function delay(fn){ setTimeout(fn,1000); }
+
+function addMsg(txt,cls="bot"){
   const d=document.createElement("div");
-  d.className="msg "+c;
-  d.innerHTML=t;
+  d.className="msg "+cls;
+  d.innerHTML=txt;
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
 }
+
+/* CHAT FLOW */
 function abrirChat(){
   chatOverlay.style.display="block";
   chat.innerHTML="";
-  addMsg(`Olá! Vamos agendar seu horário 😊`);
-  addMsg("Qual é o seu nome?");
+  etapa="nome";
+  delay(()=>{
+    addMsg("Olá! Vamos agendar seu horário 😊");
+    addMsg("Qual é o seu nome?");
+  });
 }
+
 function fecharChat(){
   chatOverlay.style.display="none";
 }
+
 function enviar(){
   const v=input.value.trim();
   if(!v) return;
   addMsg(v,"user");
   input.value="";
+
   if(etapa==="nome"){
     cliente.nome=v;
-    addMsg("Agora seu WhatsApp 📱");
     etapa="whats";
-  }else if(etapa==="whats"){
+    delay(()=>addMsg("Agora seu WhatsApp 📱"));
+  }
+  else if(etapa==="whats"){
     cliente.whats=v.replace(/\D/g,"");
+    etapa="servico";
     listarServicosChat();
   }
 }
 
 /* SERVIÇOS CHAT */
 async function listarServicosChat(){
-  etapa="servico";
-  addMsg("Escolha um serviço:");
-  const {data}=await sb.from("produtos_servicos")
-    .select("*").eq("user_id",lojaId).eq("tipo","SERVICO").eq("ativo",true);
-  const wrap=document.createElement("div");
-  wrap.style.display="flex";
-  wrap.style.gap="10px";
-  wrap.style.overflowX="auto";
-  data.forEach(s=>{
-    const b=document.createElement("button");
-    b.innerText=s.nome;
-    b.style.padding="10px";
-    b.style.borderRadius="999px";
-    b.style.border="none";
-    b.style.background="var(--primary)";
-    b.style.color="#fff";
-    b.onclick=()=>{servico=s;listarDias()};
-    wrap.appendChild(b);
+  delay(async ()=>{
+    addMsg("Escolha um serviço:");
+    const {data}=await sb
+      .from("produtos_servicos")
+      .select("*")
+      .eq("user_id",lojaId)
+      .eq("tipo","SERVICO")
+      .eq("ativo",true);
+
+    const wrap=document.createElement("div");
+    wrap.className="options";
+
+    data.forEach(s=>{
+      const b=document.createElement("button");
+      b.innerText=`${s.nome} • R$ ${Number(s.preco).toFixed(2)}`;
+      b.onclick=()=>{
+        servico=s;
+        listarDiasDisponiveis();
+      };
+      wrap.appendChild(b);
+    });
+
+    chat.appendChild(wrap);
   });
-  chat.appendChild(wrap);
 }
 
-/* DIAS */
-function listarDias(){
-  addMsg("Escolha o dia:");
-  const wrap=document.createElement("div");
-  wrap.style.display="flex";
-  wrap.style.gap="10px";
-  wrap.style.overflowX="auto";
-  for(let i=0;i<7;i++){
-    const d=new Date();d.setDate(d.getDate()+i);
-    const iso=d.toISOString().slice(0,10);
-    const b=document.createElement("button");
-    b.innerText=d.getDate()+"/"+(d.getMonth()+1);
-    b.style.padding="10px";
-    b.style.borderRadius="999px";
-    b.style.border="1px solid #ddd";
-    b.onclick=()=>listarHorarios(iso);
-    wrap.appendChild(b);
-  }
-  chat.appendChild(wrap);
-}
+/* DIAS DISPONÍVEIS */
+async function listarDiasDisponiveis(){
+  delay(async ()=>{
+    addMsg("Escolha o dia disponível:");
+    const {data}=await sb
+      .from("agenda_loja")
+      .select("*")
+      .eq("user_id",lojaId)
+      .eq("fechado",false);
 
-/* HORÁRIOS */
-async function listarHorarios(data){
-  dataSel=data;
-  const {data:dia}=await sb.from("agenda_loja")
-    .select("*").eq("user_id",lojaId).eq("data",data).single();
-  if(!dia||dia.fechado){
-    addMsg("Fechado nesse dia 😔");
-    return;
-  }
-  const horarios=JSON.parse(dia.horarios||"[]");
-  addMsg("Horários disponíveis:");
-  const wrap=document.createElement("div");
-  wrap.style.display="grid";
-  wrap.style.gridTemplateColumns="repeat(3,1fr)";
-  wrap.style.gap="8px";
-  horarios.forEach(h=>{
-    const b=document.createElement("button");
-    b.innerText=h.inicio;
-    b.style.padding="10px";
-    b.style.borderRadius="10px";
-    b.style.border="none";
-    b.style.background="var(--success)";
-    b.style.color="#fff";
-    b.onclick=()=>confirmar(h);
-    wrap.appendChild(b);
+    const wrap=document.createElement("div");
+    wrap.className="options";
+
+    data.forEach(d=>{
+      if(!d.horarios) return;
+      const date=new Date(d.data);
+      const b=document.createElement("button");
+      b.innerText=`${date.getDate()}/${date.getMonth()+1}`;
+      b.onclick=()=>listarHorarios(d);
+      wrap.appendChild(b);
+    });
+
+    chat.appendChild(wrap);
   });
-  chat.appendChild(wrap);
 }
 
-/* CONFIRMA */
+/* HORÁRIOS DISPONÍVEIS */
+async function listarHorarios(dia){
+  dataSel=dia.data;
+  delay(async ()=>{
+    addMsg("Horários disponíveis:");
+
+    const base=JSON.parse(dia.horarios||"[]");
+
+    const {data:ag}=await sb
+      .from("agendamentos")
+      .select("hora_inicio")
+      .eq("user_id",lojaId)
+      .eq("data",dataSel);
+
+    const ocupados=ag.map(a=>a.hora_inicio);
+
+    const wrap=document.createElement("div");
+    wrap.className="options";
+
+    base.forEach(h=>{
+      if(ocupados.includes(h.inicio)) return;
+      const b=document.createElement("button");
+      b.innerText=h.inicio;
+      b.onclick=()=>confirmar(h);
+      wrap.appendChild(b);
+    });
+
+    chat.appendChild(wrap);
+  });
+}
+
+/* CONFIRMAR */
 async function confirmar(h){
   await sb.from("agendamentos").insert({
     user_id:lojaId,
@@ -380,42 +399,57 @@ async function confirmar(h){
     hora_inicio:h.inicio,
     hora_fim:h.fim
   });
-  addMsg("✅ Agendamento confirmado!");
-  addMsg(`${servico.nome}<br>${dataSel} às ${h.inicio}`);
+
+  delay(()=>{
+    addMsg("✅ Agendamento confirmado!");
+    addMsg(`${servico.nome}<br>${dataSel} às ${h.inicio}`);
+  });
 }
 
 /* LOJA */
 async function carregarLoja(){
-  const {data:p}=await sb.from("user_profile").select("negocio,avatar_url").eq("user_id",lojaId).single();
+  const {data:p}=await sb
+    .from("user_profile")
+    .select("negocio,avatar_url")
+    .eq("user_id",lojaId)
+    .single();
+
   nomeLoja.innerText=p?.negocio||"Agendamento";
   if(p?.avatar_url) logo.src=p.avatar_url;
-  const {data:cfg}=await sb.from("config_loja").select("*").eq("user_id",lojaId).single();
+
+  const {data:cfg}=await sb
+    .from("config_loja")
+    .select("*")
+    .eq("user_id",lojaId)
+    .single();
+
   if(cfg?.cor_primaria){
     document.documentElement.style.setProperty("--primary",cfg.cor_primaria);
     document.documentElement.style.setProperty("--secondary",cfg.cor_secundaria||cfg.cor_primaria);
     themeColor.content=cfg.cor_primaria;
   }
 }
-async function carregarListas(){
-  const {data:s}=await sb.from("produtos_servicos").select("*").eq("user_id",lojaId).eq("tipo","SERVICO").eq("ativo",true);
-  listaServicos.innerHTML=s.map(i=>`
-    <div class="item card">
-      <img src="${i.imagem_url||''}">
-      <strong>${i.nome}</strong>
-      <small>${i.duracao_minutos} min • R$ ${i.preco}</small>
-    </div>`).join("");
-  const {data:p}=await sb.from("produtos_servicos").select("*").eq("user_id",lojaId).eq("tipo","PRODUTO").eq("ativo",true);
-  listaProdutos.innerHTML=p.map(i=>`
-    <div class="item card">
-      <img src="${i.imagem_url||''}">
-      <strong>${i.nome}</strong>
-      <small>R$ ${i.preco}</small>
-    </div>`).join("");
+
+async function carregarServicos(){
+  const {data}=await sb
+    .from("produtos_servicos")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("tipo","SERVICO")
+    .eq("ativo",true);
+
+  listaServicos.innerHTML=data.map(s=>`
+    <div class="card">
+      <img src="${s.imagem_url||''}">
+      <strong>${s.nome}</strong>
+      <small>${s.duracao_minutos} min • R$ ${Number(s.preco).toFixed(2)}</small>
+    </div>
+  `).join("");
 }
 
 if(lojaId){
   carregarLoja();
-  carregarListas();
+  carregarServicos();
 }else{
   document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
 }
