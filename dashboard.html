@@ -269,23 +269,6 @@ overlay.style.display = "none";
 // ⏳ CARREGA PERFIL EM BACKGROUND
 carregarPerfil();
 
- async function proteger(){
-  const { data:{ session } } = await sb.auth.getSession();
-  if(!session){
-    location.href = "login.html";
-    return;
-  }
-
-  user = session.user;
-
-  // some rápido
-  overlay.style.display = "none";
-
-  // carrega perfil sem travar
-  carregarPerfil();
-}
-
-proteger();
 
 /* ================= NAV ================= */
 function go(el,page){
