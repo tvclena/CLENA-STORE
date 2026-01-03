@@ -20,6 +20,7 @@
   --bg:#f4f6f9;
   --card:#fff;
   --border:#e5e7eb;
+  --muted:#6b7280;
   --danger:#dc2626;
 }
 
@@ -60,31 +61,46 @@ html,body{
   font-weight:700;
 }
 
-/* ===== WEEK ===== */
-.week{
+/* ===== CALENDAR ===== */
+.calendar{
+  padding:10px;
+  overflow-y:auto;
+  height:calc(100vh - 52px);
+}
+
+.weekdays{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  font-size:10px;
+  color:var(--muted);
+  text-align:center;
+  margin-bottom:6px;
+}
+
+.days{
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:6px;
-  padding:10px;
 }
 
 .day{
   background:#fff;
-  border-radius:12px;
   border:1px solid var(--border);
+  border-radius:12px;
   padding:6px 4px;
+  min-height:78px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  min-height:90px;
+  justify-content:flex-start;
 }
 
-.day small{
-  font-size:10px;
-  color:#6b7280;
+.day.inactive{
+  opacity:.35;
 }
+
 .day strong{
-  font-size:14px;
+  font-size:13px;
 }
 
 .badge{
@@ -118,16 +134,33 @@ html,body{
   z-index:1000;
 }
 
-.modal-box{
+.sheet{
   background:#fff;
   width:100%;
+  height:88vh;
   border-radius:18px 18px 0 0;
-  padding:16px;
+  display:flex;
+  flex-direction:column;
 }
 
-.modal-box h3{
-  font-size:16px;
-  margin-bottom:10px;
+.sheet-header{
+  padding:14px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+}
+
+.sheet-body{
+  flex:1;
+  padding:14px;
+  overflow-y:auto;
+}
+
+.sheet-body label{
+  font-size:12px;
+  display:block;
+  margin-bottom:6px;
 }
 
 .horario{
@@ -154,18 +187,35 @@ html,body{
   background:#eef2ff;
   border:none;
   border-radius:12px;
-  margin-top:6px;
+  margin-top:8px;
 }
 
-.save-btn{
-  width:100%;
+.replica{
+  margin-top:12px;
+  font-size:12px;
+}
+
+.sheet-footer{
   padding:12px;
-  background:var(--primary);
-  color:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
+  gap:10px;
+}
+
+.sheet-footer button{
+  flex:1;
+  height:44px;
   border:none;
   border-radius:999px;
-  margin-top:10px;
   font-weight:800;
+}
+
+.btn-save{
+  background:var(--primary);
+  color:#fff;
+}
+.btn-close{
+  background:#e5e7eb;
 }
 </style>
 </head>
@@ -173,25 +223,43 @@ html,body{
 <body>
 
 <div class="header">
-  <button onclick="changeWeek(-7)">◀</button>
-  <h1 id="weekLabel"></h1>
-  <button onclick="changeWeek(7)">▶</button>
+  <button onclick="changeMonth(-1)">◀</button>
+  <h1 id="monthLabel"></h1>
+  <button onclick="changeMonth(1)">▶</button>
 </div>
 
-<div class="week" id="week"></div>
+<div class="calendar">
+  <div class="weekdays">
+    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div>
+    <div>Qui</div><div>Sex</div><div>Sáb</div>
+  </div>
+  <div class="days" id="days"></div>
+</div>
 
 <!-- MODAL -->
 <div id="modal">
-  <div class="modal-box">
-    <h3 id="modalDate"></h3>
-    <label>
-      <input type="checkbox" id="fechado"> Dia fechado
-    </label>
+  <div class="sheet">
+    <div class="sheet-header">
+      <span id="modalDate"></span>
+      <span onclick="fecharModal()">✕</span>
+    </div>
 
-    <div id="horarios"></div>
+    <div class="sheet-body">
+      <label><input type="checkbox" id="fechado"> Dia fechado</label>
 
-    <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
-    <button class="save-btn" onclick="salvar()">Salvar</button>
+      <div id="horarios"></div>
+
+      <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
+
+      <div class="replica">
+        <label><input type="checkbox" id="replicaSemana"> Replicar para todas as <span id="replicaDia"></span></label>
+      </div>
+    </div>
+
+    <div class="sheet-footer">
+      <button class="btn-close" onclick="fecharModal()">Fechar</button>
+      <button class="btn-save" onclick="salvar()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -201,7 +269,7 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let userId, agenda={}, start=new Date(), selected="";
+let userId, agenda={}, current=new Date(), selected="", dirty=false;
 
 (async()=>{
   const {data:{session}}=await sb.auth.getSession();
@@ -210,8 +278,8 @@ let userId, agenda={}, start=new Date(), selected="";
   carregar();
 })();
 
-function changeWeek(v){
-  start.setDate(start.getDate()+v);
+function changeMonth(v){
+  current.setMonth(current.getMonth()+v);
   carregar();
 }
 
@@ -223,29 +291,22 @@ async function carregar(){
 }
 
 function render(){
-  const week=document.getElementById("week");
-  week.innerHTML="";
+  days.innerHTML="";
+  const y=current.getFullYear(), m=current.getMonth();
+  monthLabel.innerText=current.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
 
-  const d=new Date(start);
-  d.setDate(d.getDate()-d.getDay());
+  const first=new Date(y,m,1).getDay();
+  const total=new Date(y,m+1,0).getDate();
 
-  weekLabel.innerText =
-    d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})+" - "+
-    new Date(d.getTime()+6*86400000).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
+  for(let i=0;i<first;i++) days.innerHTML+=`<div class="day inactive"></div>`;
 
-  for(let i=0;i<7;i++){
-    const date=new Date(d);
-    date.setDate(d.getDate()+i);
-    const key=date.toISOString().slice(0,10);
-
+  for(let d=1;d<=total;d++){
+    const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const div=document.createElement("div");
     div.className="day";
     div.onclick=()=>open(key);
 
-    div.innerHTML=`
-      <small>${date.toLocaleDateString("pt-BR",{weekday:"short"})}</small>
-      <strong>${date.getDate()}</strong>
-    `;
+    div.innerHTML=`<strong>${d}</strong>`;
 
     if(agenda[key]){
       if(agenda[key].fechado){
@@ -256,21 +317,32 @@ function render(){
         });
       }
     }
-
-    week.appendChild(div);
+    days.appendChild(div);
   }
 }
 
 function open(key){
   selected=key;
+  dirty=false;
   modal.style.display="flex";
-  modalDate.innerText=new Date(key).toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  const date=new Date(key);
+  modalDate.innerText=date.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  replicaDia.innerText=date.toLocaleDateString("pt-BR",{weekday:"long"});
   fechado.checked=agenda[key]?.fechado||false;
   horarios.innerHTML="";
   (agenda[key]?.horarios||[{inicio:"",fim:""}]).forEach(h=>addHorario(h.inicio,h.fim));
 }
 
+function fecharModal(){
+  if(dirty && confirm("Deseja salvar as alterações?")){
+    salvar();
+  }else{
+    modal.style.display="none";
+  }
+}
+
 function addHorario(i="",f=""){
+  dirty=true;
   const div=document.createElement("div");
   div.className="horario";
   div.innerHTML=`
@@ -289,14 +361,27 @@ async function salvar(){
     if(i&&f) horariosVal.push({inicio:i,fim:f});
   });
 
-  await sb.from("agenda_loja").upsert({
-    user_id:userId,
-    data:selected,
-    fechado:fechadoVal,
-    horarios:horariosVal
-  },{onConflict:"user_id,data"});
+  const base={fechado:fechadoVal,horarios:horariosVal};
+
+  const updates=[selected];
+
+  if(replicaSemana.checked){
+    const wd=new Date(selected).getDay();
+    Object.keys(agenda).forEach(d=>{
+      if(new Date(d).getDay()===wd) updates.push(d);
+    });
+  }
+
+  for(const d of updates){
+    await sb.from("agenda_loja").upsert({
+      user_id:userId,
+      data:d,
+      ...base
+    },{onConflict:"user_id,data"});
+  }
 
   modal.style.display="none";
+  replicaSemana.checked=false;
   carregar();
 }
 </script>
