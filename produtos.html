@@ -5,13 +5,14 @@
 <title>Produtos & Serviços • AgendaBeauty</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
-  --bg:#f4f6f9;
+  --primary-soft:#fff1e6;
+  --bg:#f5f7fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --radius:20px;
@@ -19,43 +20,87 @@
   --success:#16a34a;
   --warning:#f59e0b;
   --muted:#6b7280;
+  --shadow:0 18px 45px rgba(0,0,0,.08);
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);padding:32px}
 
-.header{max-width:1600px;margin:0 auto 24px}
-.header h1{font-size:28px}
+/* HEADER */
+.header{
+  max-width:1700px;
+  margin:0 auto 28px;
+}
+.header h1{
+  font-size:30px;
+  font-weight:800;
+}
 .header span{color:var(--primary)}
+.header p{
+  color:var(--muted);
+  margin-top:6px;
+}
 
+/* KPIs */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+  margin-top:20px;
+}
+.kpi{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+.kpi small{
+  color:var(--muted);
+  font-weight:600;
+}
+.kpi h2{
+  margin-top:6px;
+  font-size:26px;
+}
+
+/* LAYOUT */
 .container{
-  max-width:1600px;
+  max-width:1700px;
   margin:auto;
   display:grid;
   grid-template-columns:460px 1fr;
-  gap:32px;
+  gap:34px;
+  margin-top:34px;
 }
 
+/* CARD */
 .card{
   background:var(--card);
   border-radius:var(--radius);
   padding:28px;
-  box-shadow:0 15px 40px rgba(0,0,0,.08);
+  box-shadow:var(--shadow);
+}
+.card h3{
+  margin-bottom:18px;
+  font-size:18px;
 }
 
-h3{margin-bottom:16px}
-
+/* FORM */
 input,textarea,select{
   width:100%;
-  padding:13px;
+  padding:14px;
   border-radius:14px;
   border:1px solid var(--border);
   margin-bottom:14px;
+  font-size:14px;
 }
-
 textarea{resize:none}
 
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
 
 .switch{
   display:flex;
@@ -65,35 +110,39 @@ textarea{resize:none}
   margin-bottom:12px;
 }
 
+/* UPLOAD */
 .upload{
   border:2px dashed var(--border);
-  border-radius:16px;
+  border-radius:18px;
   padding:20px;
   text-align:center;
   cursor:pointer;
 }
 .upload img{
   width:100%;
-  height:170px;
+  height:180px;
   object-fit:cover;
   border-radius:14px;
 }
+.upload span{color:var(--muted)}
 
 button{
   padding:16px;
   border:none;
   border-radius:40px;
-  background:linear-gradient(135deg,#ff6a00,#ff8c3a);
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
   font-weight:700;
+  font-size:15px;
   cursor:pointer;
   width:100%;
 }
 
+/* LIST / FILTER */
 .filters{
   display:flex;
-  gap:10px;
-  margin-bottom:18px;
+  gap:12px;
+  margin-bottom:20px;
 }
 
 .grid{
@@ -102,17 +151,20 @@ button{
   gap:22px;
 }
 
+/* ITEM */
 .item{
-  border-radius:22px;
-  overflow:hidden;
   background:#fff;
-  box-shadow:0 8px 24px rgba(0,0,0,.06);
+  border-radius:22px;
+  box-shadow:0 10px 28px rgba(0,0,0,.07);
+  overflow:hidden;
   display:flex;
   flex-direction:column;
 }
-
-.item img{width:100%;height:180px;object-fit:cover}
-
+.item img{
+  width:100%;
+  height:190px;
+  object-fit:cover;
+}
 .item-body{
   padding:18px;
   display:flex;
@@ -120,8 +172,11 @@ button{
   gap:6px;
 }
 
-.badges{display:flex;gap:6px;flex-wrap:wrap}
-
+.badges{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
 .badge{
   font-size:11px;
   padding:4px 12px;
@@ -134,8 +189,15 @@ button{
 .badge.ok{background:#dcfce7;color:var(--success)}
 .badge.promo{background:#fdf2f8;color:#be185d}
 
-.price{font-size:18px;font-weight:800}
-small{color:var(--muted)}
+.price{
+  font-size:18px;
+  font-weight:800;
+}
+
+.margin{
+  font-size:13px;
+  color:var(--muted);
+}
 
 .actions{
   margin-top:auto;
@@ -151,6 +213,14 @@ small{color:var(--muted)}
 
 <div class="header">
   <h1>Produtos & <span>Serviços</span></h1>
+  <p>Gerencie serviços, produtos, estoque, promoções e preços</p>
+
+  <div class="kpis">
+    <div class="kpi"><small>Itens cadastrados</small><h2 id="kpiTotal">0</h2></div>
+    <div class="kpi"><small>Serviços ativos</small><h2 id="kpiServicos">0</h2></div>
+    <div class="kpi"><small>Estoque baixo</small><h2 id="kpiBaixo">0</h2></div>
+    <div class="kpi"><small>Promoções ativas</small><h2 id="kpiPromo">0</h2></div>
+  </div>
 </div>
 
 <div class="container">
@@ -165,43 +235,30 @@ small{color:var(--muted)}
 </select>
 
 <input id="nome" placeholder="Nome">
-<textarea id="descricao" placeholder="Descrição">
-</textarea>
-
+<textarea id="descricao" placeholder="Descrição"></textarea>
 <input id="categoria" placeholder="Categoria">
 
-<div class="grid2">
+<div class="row">
   <input id="preco" placeholder="Preço de venda">
   <input id="custo" placeholder="Custo">
 </div>
 
-<div class="grid2">
+<div class="row">
   <input id="precoPromo" placeholder="Preço promocional">
   <input id="ordem" placeholder="Ordem de exibição">
 </div>
 
-<label class="switch">
-  <input type="checkbox" id="promoAtiva"> Promoção ativa
-</label>
-
+<label class="switch"><input type="checkbox" id="promoAtiva"> Promoção ativa</label>
 <input id="duracao" type="number" placeholder="Duração (min)">
 
-<div class="grid2">
+<div class="row">
   <input id="estoque" type="number" placeholder="Estoque atual">
   <input id="estoqueMin" type="number" placeholder="Estoque mínimo">
 </div>
 
-<label class="switch">
-  <input type="checkbox" id="controlaEstoque"> Controlar estoque
-</label>
-
-<label class="switch">
-  <input type="checkbox" id="ativo" checked> Ativo
-</label>
-
-<label class="switch">
-  <input type="checkbox" id="podeAgendar"> Disponível para agenda
-</label>
+<label class="switch"><input type="checkbox" id="controlaEstoque"> Controlar estoque</label>
+<label class="switch"><input type="checkbox" id="ativo" checked> Ativo</label>
+<label class="switch"><input type="checkbox" id="podeAgendar"> Disponível para agenda</label>
 
 <textarea id="obs" placeholder="Observações internas"></textarea>
 
@@ -217,7 +274,7 @@ small{color:var(--muted)}
 <!-- LIST -->
 <div class="card">
   <div class="filters">
-    <input id="search" placeholder="Buscar por nome">
+    <input id="search" placeholder="Buscar">
     <select id="filtroTipo">
       <option value="">Todos</option>
       <option value="PRODUTO">Produtos</option>
@@ -225,10 +282,11 @@ small{color:var(--muted)}
     </select>
     <select id="filtroEstoque">
       <option value="">Estoque</option>
-      <option value="BAIXO">Estoque baixo</option>
-      <option value="OK">Estoque ok</option>
+      <option value="BAIXO">Baixo</option>
+      <option value="OK">Ok</option>
     </select>
   </div>
+
   <div class="grid" id="lista"></div>
 </div>
 
@@ -307,8 +365,17 @@ async function carregar(){
   const {data}=await sb.from("produtos_servicos")
     .select("*")
     .order("ordem_exibicao",{ascending:true});
+
   itens=data||[];
+  atualizarKPIs();
   render();
+}
+
+function atualizarKPIs(){
+  kpiTotal.innerText = itens.length;
+  kpiServicos.innerText = itens.filter(i=>i.tipo==="SERVICO" && i.ativo).length;
+  kpiBaixo.innerText = itens.filter(i=>i.controla_estoque && i.estoque_atual<=i.estoque_minimo).length;
+  kpiPromo.innerText = itens.filter(i=>i.promocao_ativa).length;
 }
 
 function render(){
@@ -320,6 +387,7 @@ function render(){
     if(filtroEstoque.value==="OK" && !(i.controla_estoque && i.estoque_atual>i.estoque_minimo)) return false;
     return true;
   }).forEach(i=>{
+    const margem = i.custo ? (((i.preco - i.custo)/i.preco)*100).toFixed(0) : null;
     lista.innerHTML+=`
     <div class="item">
       ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
@@ -335,6 +403,7 @@ function render(){
         </div>
         <h4>${i.nome}</h4>
         <div class="price">R$ ${i.preco}</div>
+        ${margem?`<div class="margin">Margem ${margem}%</div>`:""}
         <small>${i.categoria||""}</small>
         <div class="actions" onclick="editar('${i.id}')">Editar</div>
       </div>
