@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>Agendamento Online</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="theme-color" content="#ff6a00">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" id="themeColor">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,6 +13,7 @@
 <style>
 :root{
   --primary:#ff6a00;
+  --secondary:#111827;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
@@ -20,225 +21,280 @@
   --muted:#6b7280;
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);color:var(--text)}
 
-body{
-  background:var(--bg);
-  min-height:100vh;
-}
-
-/* ================= HERO ================= */
-.hero{
-  padding:48px 20px 32px;
+header{
+  padding:20px;
+  background:var(--primary);
+  color:#fff;
   text-align:center;
 }
 
-.logo{
-  width:96px;
-  height:96px;
+header img{
+  width:90px;
+  height:90px;
   border-radius:50%;
-  margin:0 auto 14px;
-  background:#eee;
-  background-size:cover;
-  background-position:center;
-  box-shadow:0 12px 30px rgba(0,0,0,.15);
+  object-fit:cover;
+  margin-bottom:10px;
 }
 
-.hero h1{
-  font-size:22px;
-  font-weight:800;
+.container{
+  padding:20px;
+  max-width:1100px;
+  margin:auto;
 }
 
-.hero p{
-  font-size:14px;
-  color:var(--muted);
-  margin-top:6px;
+.search{
+  margin:20px 0;
 }
-
-/* ================= CARD ================= */
-.card{
-  background:var(--card);
-  border-radius:20px;
-  margin:0 16px;
-  padding:22px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
-}
-
-.card h2{
-  font-size:18px;
-  margin-bottom:14px;
-}
-
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  margin-bottom:14px;
-}
-
-.field label{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.field input{
-  height:42px;
-  padding:0 12px;
-  border-radius:12px;
+.search input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
   border:1px solid var(--border);
   font-size:14px;
 }
 
-.btn{
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+.tabs button{
+  flex:1;
+  padding:12px;
+  border-radius:999px;
+  border:none;
+  font-weight:700;
+  cursor:pointer;
+  background:#e5e7eb;
+}
+.tabs button.active{
+  background:var(--primary);
+  color:#fff;
+}
+
+.section{
+  display:none;
+}
+.section.active{
+  display:block;
+}
+
+/* SERVIÇOS */
+.servicos{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+}
+.servico{
+  min-width:220px;
+  background:var(--card);
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+.servico img{
   width:100%;
-  height:46px;
+  height:130px;
+  border-radius:12px;
+  object-fit:cover;
+}
+.servico h4{margin:8px 0 4px}
+.servico button{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
   border:none;
   border-radius:999px;
   background:var(--primary);
   color:#fff;
-  font-weight:800;
-  font-size:15px;
+  font-weight:700;
+}
+
+/* PRODUTOS */
+.produtos{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;
+}
+.produto{
+  background:var(--card);
+  border-radius:16px;
+  padding:12px;
+}
+.produto img{
+  width:100%;
+  height:120px;
+  border-radius:12px;
+  object-fit:cover;
+}
+.produto button{
+  width:100%;
+  margin-top:6px;
+  padding:10px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
+}
+
+/* SACOLA */
+#sacolaBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:var(--primary);
+  color:#fff;
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
   cursor:pointer;
 }
 
-/* ================= OVERLAY ================= */
-#overlay{
+#popup{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.45);
+  background:rgba(0,0,0,.5);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:999;
 }
-
-#overlay div{
+#popup .box{
   background:#fff;
-  padding:18px 22px;
-  border-radius:14px;
-  font-weight:800;
+  padding:20px;
+  border-radius:20px;
+  max-width:360px;
+  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<div id="overlay"><div>Entrando…</div></div>
+<header id="header">
+  <img id="logo">
+  <h1 id="nomeLoja"></h1>
+</header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="logo" id="logo"></div>
-  <h1 id="nomeLoja">Carregando…</h1>
-  <p id="msgLoja">Agendamento online</p>
-</section>
+<div class="container">
 
-<!-- CARD -->
-<section class="card">
-  <h2>Bem-vindo 👋</h2>
-
-  <div class="field">
-    <label>Nome completo</label>
-    <input id="nomeCliente" placeholder="Digite seu nome">
+  <div class="search">
+    <input id="search" placeholder="Pesquisar produtos ou serviços">
   </div>
 
-  <div class="field">
-    <label>WhatsApp</label>
-    <input id="whatsCliente" placeholder="(00) 00000-0000" inputmode="numeric">
+  <div class="tabs">
+    <button class="active" onclick="tab('servicos')">Serviços</button>
+    <button onclick="tab('produtos')">Produtos</button>
   </div>
 
-  <button class="btn" onclick="entrar()">Continuar</button>
-</section>
+  <div id="servicos" class="section active">
+    <div class="servicos" id="listaServicos"></div>
+  </div>
+
+  <div id="produtos" class="section">
+    <div class="produtos" id="listaProdutos"></div>
+  </div>
+
+</div>
+
+<div id="sacolaBtn" onclick="abrirSacola()">🛒</div>
+
+<div id="popup">
+  <div class="box">
+    <h3 id="popupTitulo"></h3>
+    <p id="popupTexto"></p>
+    <button onclick="fecharPopup()">Fechar</button>
+  </div>
+</div>
 
 <script>
-/* ================= SUPABASE ================= */
 const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-/* ================= VARS ================= */
-const params = new URLSearchParams(location.search);
-const lojaId = params.get("l");
+const lojaId = new URLSearchParams(location.search).get("l");
 
-const overlay = document.getElementById("overlay");
-const logo = document.getElementById("logo");
-const nomeLoja = document.getElementById("nomeLoja");
+/* TABS */
+function tab(id){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
-/* ================= MASK WHATS ================= */
-whatsCliente.addEventListener("input", e=>{
-  let v = e.target.value.replace(/\D/g,'').slice(0,11);
-  v = v.replace(/^(\d{2})(\d)/,"($1) $2")
-       .replace(/(\d{5})(\d)/,"$1-$2");
-  e.target.value = v;
-});
-
-/* ================= LOAD LOJA ================= */
+/* CARREGAR CONFIG */
 async function carregarLoja(){
-  if(!lojaId){
-    nomeLoja.innerText = "Loja inválida";
-    return;
-  }
-
-  const {data, error} = await sb
-    .from("user_profile")
-    .select("negocio, avatar_url")
+  const { data:cfg } = await sb
+    .from("config_loja")
+    .select("*")
     .eq("user_id", lojaId)
     .single();
 
-  if(error){
-    nomeLoja.innerText = "Loja não encontrada";
-    return;
-  }
+  if(!cfg) return;
 
-  nomeLoja.innerText = data.negocio;
+  document.documentElement.style.setProperty('--primary', cfg.cor_primaria);
+  document.documentElement.style.setProperty('--secondary', cfg.cor_secundaria);
+  document.getElementById("themeColor").content = cfg.cor_primaria;
 
-  if(data.avatar_url){
-    logo.style.backgroundImage = `url(${data.avatar_url})`;
-  }else{
-    logo.innerHTML = data.negocio[0].toUpperCase();
-    logo.style.display="flex";
-    logo.style.alignItems="center";
-    logo.style.justifyContent="center";
-    logo.style.fontSize="42px";
-    logo.style.fontWeight="800";
-    logo.style.color="#fff";
-    logo.style.background="linear-gradient(135deg,#ff6a00,#ff9a57)";
+  nomeLoja.innerText = cfg.nome;
+  logo.src = cfg.logo_url;
+
+  if(cfg.popup_ativo){
+    popupTitulo.innerText = cfg.popup_titulo;
+    popupTexto.innerText = cfg.popup_texto;
+    popup.style.display = "flex";
   }
 }
+
+/* SERVIÇOS */
+async function carregarServicos(){
+  const { data } = await sb
+    .from("servicos")
+    .select("*")
+    .eq("user_id", lojaId)
+    .eq("ativo", true);
+
+  listaServicos.innerHTML = data.map(s=>`
+    <div class="servico">
+      <img src="${s.imagem}">
+      <h4>${s.nome}</h4>
+      <small>R$ ${s.valor}</small>
+      <button onclick="agendar('${s.id}')">Agendar</button>
+    </div>
+  `).join("");
+}
+
+/* PRODUTOS */
+async function carregarProdutos(){
+  const { data } = await sb
+    .from("produtos")
+    .select("*")
+    .eq("user_id", lojaId)
+    .eq("ativo", true);
+
+  listaProdutos.innerHTML = data.map(p=>`
+    <div class="produto">
+      <img src="${p.imagem}">
+      <h4>${p.nome}</h4>
+      <small>R$ ${p.valor}</small>
+      <button onclick="addSacola('${p.id}')">Adicionar</button>
+    </div>
+  `).join("");
+}
+
+function fecharPopup(){ popup.style.display="none"; }
 
 carregarLoja();
-
-/* ================= ENTRAR ================= */
-async function entrar(){
-  const nome = nomeCliente.value.trim();
-  const whats = whatsCliente.value.replace(/\D/g,'');
-
-  if(!nome || whats.length < 10){
-    alert("Informe nome e WhatsApp.");
-    return;
-  }
-
-  overlay.style.display="flex";
-
-  await sb.from("clientes_loja").insert({
-    loja_id: lojaId,
-    nome,
-    whatsapp: whats
-  });
-
-  // Guarda cliente localmente (sessão simples)
-  localStorage.setItem("cliente_nome", nome);
-  localStorage.setItem("cliente_whats", whats);
-  localStorage.setItem("loja_id", lojaId);
-
-  // 👉 Próxima tela (agendamento)
-  location.href = `agendar.html?l=${lojaId}`;
-}
+carregarServicos();
+carregarProdutos();
 </script>
 
 </body>
