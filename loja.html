@@ -42,28 +42,42 @@ html,body{
 
 /* ===== HEADER ===== */
 header{
-  padding:22px 16px;
+  padding:26px 16px 30px;
   text-align:center;
   color:#fff;
+  position:relative;
   background:
     radial-gradient(circle at 20% 30%, rgba(255,255,255,.35), transparent 40%),
     radial-gradient(circle at 80% 20%, rgba(255,255,255,.25), transparent 45%),
     linear-gradient(135deg,var(--primary),var(--secondary));
 }
+header::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-size:cover;
+  background-position:center;
+  opacity:.18;
+  z-index:0;
+}
+header .wrap{
+  position:relative;
+  z-index:2;
+}
 header img{
-  width:78px;
-  height:78px;
+  width:84px;
+  height:84px;
   border-radius:50%;
   object-fit:cover;
   background:#fff;
 }
 header h1{
-  margin-top:8px;
-  font-size:20px;
+  margin-top:10px;
+  font-size:22px;
   font-weight:800;
 }
 
-/* ===== TOGGLE + SEARCH ===== */
+/* ===== CONTROLS ===== */
 .top-controls{
   padding:14px;
 }
@@ -133,7 +147,7 @@ header h1{
 /* ===== CTA ===== */
 .cta{
   position:fixed;
-  bottom:24px;
+  bottom:22px;
   left:16px;
   right:16px;
 }
@@ -164,7 +178,7 @@ header h1{
   bottom:0;
   left:0;
   right:0;
-  height:85vh;
+  height:86vh;
   background:#fff;
   border-radius:22px 22px 0 0;
   display:flex;
@@ -172,10 +186,21 @@ header h1{
 }
 .chat-header{
   padding:14px;
-  font-weight:800;
   border-bottom:1px solid #eee;
   display:flex;
   justify-content:space-between;
+  align-items:center;
+}
+.chat-header-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.chat-header-left img{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  object-fit:cover;
 }
 .chat{
   flex:1;
@@ -199,8 +224,28 @@ header h1{
 }
 .options{
   display:flex;
-  gap:8px;
+  gap:10px;
   overflow-x:auto;
+}
+.chat-card{
+  min-width:220px;
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12);
+  overflow:hidden;
+}
+.chat-card img{
+  width:100%;
+  height:100px;
+  object-fit:cover;
+}
+.chat-card div{
+  padding:8px;
+}
+.chat-card strong{display:block}
+.chat-card small{
+  color:var(--success);
+  font-weight:800;
 }
 .options button{
   padding:10px 14px;
@@ -209,7 +254,6 @@ header h1{
   background:var(--success);
   color:#fff;
   font-weight:800;
-  white-space:nowrap;
 }
 .chat-input{
   display:flex;
@@ -237,8 +281,10 @@ header h1{
 <body>
 
 <header>
-  <img id="logo">
-  <h1 id="nomeLoja">Agendamento</h1>
+  <div class="wrap">
+    <img id="logo">
+    <h1 id="nomeLoja">Agendamento</h1>
+  </div>
 </header>
 
 <div class="top-controls">
@@ -259,7 +305,10 @@ header h1{
 <div id="chatOverlay">
   <div id="chatBox">
     <div class="chat-header">
-      Agendamento
+      <div class="chat-header-left">
+        <img id="chatLogo">
+        <strong id="chatTitulo">Agendamento</strong>
+      </div>
       <span onclick="fecharChat()">✕</span>
     </div>
     <div class="chat" id="chat"></div>
@@ -283,19 +332,17 @@ const lojaId = new URLSearchParams(location.search).get("l");
 
 let tipoAtual="SERVICO";
 let todos=[];
+let servicoSelecionado=null;
 
-/* ===== TOPO ===== */
+/* ===== LISTAGEM ===== */
 function setTipo(t){
   tipoAtual=t;
   btnServ.classList.toggle("active",t==="SERVICO");
   btnProd.classList.toggle("active",t==="PRODUTO");
   render();
 }
-
-/* ===== BUSCA ===== */
 busca.oninput=render;
 
-/* ===== LISTAGEM ===== */
 function render(){
   const q=busca.value.toLowerCase();
   lista.innerHTML = todos
@@ -312,7 +359,7 @@ function render(){
           }
         </small>
         ${i.tipo==="SERVICO"
-          ? `<button onclick="abrirChat()">Agendar</button>`
+          ? `<button onclick="abrirChat(${i.id})">Agendar</button>`
           : `<button>Comprar</button>`
         }
       </div>
@@ -320,7 +367,7 @@ function render(){
 }
 
 /* ===== CHAT ===== */
-let etapa="nome",cliente={},servico=null,dataSel=null;
+let etapa="nome",cliente={},dataSel=null;
 function delay(fn){setTimeout(fn,1000)}
 function addMsg(t,c="bot"){
   const d=document.createElement("div");
@@ -329,24 +376,41 @@ function addMsg(t,c="bot"){
   chat.appendChild(d);
   chat.scrollTop=chat.scrollHeight;
 }
-function abrirChat(){
+function abrirChat(id=null){
   chatOverlay.style.display="block";
   chat.innerHTML="";
   etapa="nome";
+  servicoSelecionado = todos.find(s=>s.id===id) || null;
+
   delay(()=>{
     addMsg("Olá! Vamos agendar seu horário 😊");
-    addMsg("Qual é o seu nome?");
+    if(servicoSelecionado){
+      addMsg(`Serviço selecionado:<br><strong>${servicoSelecionado.nome}</strong>`);
+      addMsg("Qual é o seu nome?");
+    }else{
+      addMsg("Qual é o seu nome?");
+    }
   });
 }
 function fecharChat(){chatOverlay.style.display="none"}
+
 function enviar(){
   const v=input.value.trim();
   if(!v)return;
   addMsg(v,"user");
   input.value="";
-  if(etapa==="nome"){cliente.nome=v;etapa="whats";delay(()=>addMsg("Seu WhatsApp 📱"))}
-  else if(etapa==="whats"){cliente.whats=v;listarServicosChat()}
+
+  if(etapa==="nome"){
+    cliente.nome=v;
+    etapa="whats";
+    delay(()=>addMsg("Seu WhatsApp 📱"));
+  }
+  else if(etapa==="whats"){
+    cliente.whats=v;
+    servicoSelecionado ? listarDias() : listarServicosChat();
+  }
 }
+
 async function listarServicosChat(){
   etapa="servico";
   delay(()=>{
@@ -354,17 +418,24 @@ async function listarServicosChat(){
     const wrap=document.createElement("div");
     wrap.className="options";
     todos.filter(i=>i.tipo==="SERVICO").forEach(s=>{
-      const b=document.createElement("button");
-      b.innerText=`${s.nome} • R$ ${Number(s.preco).toFixed(2)}`;
-      b.onclick=()=>{servico=s;listarDias()};
-      wrap.appendChild(b);
+      const c=document.createElement("div");
+      c.className="chat-card";
+      c.innerHTML=`
+        <img src="${s.imagem_url||''}">
+        <div>
+          <strong>${s.nome}</strong>
+          <small>R$ ${Number(s.preco).toFixed(2)}</small>
+        </div>`;
+      c.onclick=()=>{servicoSelecionado=s;listarDias()};
+      wrap.appendChild(c);
     });
     chat.appendChild(wrap);
   });
 }
+
 async function listarDias(){
   etapa="dia";
-  delay(async ()=>{
+  delay(async()=>{
     addMsg("Escolha o dia:");
     const {data}=await sb.from("agenda_loja")
       .select("*").eq("user_id",lojaId).eq("fechado",false);
@@ -380,10 +451,10 @@ async function listarDias(){
     chat.appendChild(wrap);
   });
 }
+
 async function listarHoras(d){
-  etapa="hora";
   dataSel=d.data;
-  delay(async ()=>{
+  delay(async()=>{
     addMsg("Horários disponíveis:");
     const base=JSON.parse(d.horarios||"[]");
     const {data:ag}=await sb.from("agendamentos")
@@ -401,40 +472,56 @@ async function listarHoras(d){
     chat.appendChild(wrap);
   });
 }
+
 async function confirmar(h){
   await sb.from("agendamentos").insert({
     user_id:lojaId,
     cliente_nome:cliente.nome,
     cliente_whats:cliente.whats,
-    servico_id:servico.id,
-    servico_nome:servico.nome,
+    servico_id:servicoSelecionado.id,
+    servico_nome:servicoSelecionado.nome,
     data:dataSel,
     hora_inicio:h.inicio,
     hora_fim:h.fim
   });
   delay(()=>{
     addMsg("✅ Agendamento confirmado!");
-    addMsg(`${servico.nome}<br>${dataSel} às ${h.inicio}`);
+    addMsg(`
+      <img src="${servicoSelecionado.imagem_url||''}" style="width:100%;border-radius:12px;margin:6px 0">
+      <strong>${servicoSelecionado.nome}</strong><br>
+      ${dataSel} às ${h.inicio}
+    `);
   });
 }
 
-/* ===== LOAD ===== */
+/* ===== INIT ===== */
 async function init(){
   const {data:p}=await sb.from("user_profile")
     .select("negocio,avatar_url").eq("user_id",lojaId).single();
+
   nomeLoja.innerText=p?.negocio||"Agendamento";
-  if(p?.avatar_url)logo.src=p.avatar_url;
+  chatTitulo.innerText=p?.negocio||"Agendamento";
+  if(p?.avatar_url){
+    logo.src=p.avatar_url;
+    chatLogo.src=p.avatar_url;
+  }
 
   const {data:cfg}=await sb.from("config_loja")
     .select("*").eq("user_id",lojaId).single();
+
   if(cfg?.cor_primaria){
     document.documentElement.style.setProperty("--primary",cfg.cor_primaria);
     document.documentElement.style.setProperty("--secondary",cfg.cor_secundaria||cfg.cor_primaria);
     themeColor.content=cfg.cor_primaria;
   }
+  if(cfg?.banner_url){
+    document.querySelector("header::after");
+    document.querySelector("header").style.setProperty("--bgimg",`url(${cfg.banner_url})`);
+  }
 
   const {data}=await sb.from("produtos_servicos")
     .select("*").eq("user_id",lojaId).eq("ativo",true);
+
   todos=data||[];
   render();
 }
