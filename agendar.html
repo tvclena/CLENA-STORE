@@ -23,6 +23,7 @@
   --text:#111827;
 }
 
+/* RESET */
 *{
   box-sizing:border-box;
   font-family:Inter,system-ui;
@@ -48,6 +49,7 @@ html,body{
   font-weight:800;
   position:fixed;
   top:0;left:0;right:0;
+  z-index:10;
 }
 
 /* WRAPPER */
@@ -63,88 +65,161 @@ html,body{
 .chat{
   height:100%;
   overflow-y:auto;
-  padding:16px;
+  padding:18px 14px;
   display:flex;
   flex-direction:column;
-  gap:12px;
+  gap:14px;
 }
 
-/* MENSAGENS */
-.row{display:flex}
-.row.user{justify-content:flex-end}
+/* ===============================
+   BALÕES DE CONVERSA (CHAT REAL)
+   =============================== */
 
+.row{
+  display:flex;
+  position:relative;
+}
+
+.row.user{
+  justify-content:flex-end;
+}
+
+/* BASE DO BALÃO */
 .msg{
-  max-width:80%;
+  max-width:78%;
   padding:14px 16px;
   border-radius:18px;
   font-size:14px;
+  line-height:1.45;
+  position:relative;
+  word-wrap:break-word;
 }
 
-.bot{background:#fff;border:1px solid var(--border)}
-.user{background:var(--primary);color:#fff}
+/* BOT */
+.bot{
+  background:#fff;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-bottom-left-radius:6px;
+}
 
-/* SERVIÇOS */
+/* “PONTA” DO BALÃO BOT */
+.bot::before{
+  content:"";
+  position:absolute;
+  left:-8px;
+  bottom:0;
+  width:12px;
+  height:12px;
+  background:#fff;
+  border-left:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  transform:rotate(45deg);
+}
+
+/* USER */
+.user{
+  background:var(--primary);
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+
+/* “PONTA” DO BALÃO USER */
+.user::before{
+  content:"";
+  position:absolute;
+  right:-8px;
+  bottom:0;
+  width:12px;
+  height:12px;
+  background:var(--primary);
+  transform:rotate(45deg);
+}
+
+/* ===============================
+   CARROSSEL DE SERVIÇOS (MAIOR)
+   =============================== */
+
 .carousel{
   display:flex;
-  gap:14px;
+  gap:16px;
   overflow-x:auto;
   scroll-behavior:smooth;
-  padding-bottom:6px;
+  padding:8px 2px 14px;
 }
-.carousel::-webkit-scrollbar{display:none}
+.carousel::-webkit-scrollbar{
+  display:none;
+}
 
+/* CARD DE SERVIÇO */
 .service{
-  min-width:240px;
+  min-width:280px;              /* 🔼 MAIS LARGO */
   background:#fff;
-  border-radius:20px;
+  border-radius:24px;
   overflow:hidden;
-  box-shadow:0 14px 36px rgba(0,0,0,.12);
+  box-shadow:0 18px 44px rgba(0,0,0,.14);
   cursor:pointer;
+  transition:.25s ease;
 }
 
+.service:hover{
+  transform:translateY(-3px);
+}
+
+/* IMAGEM MAIOR */
 .service img{
   width:100%;
-  height:160px;
+  height:200px;                 /* 🔼 MAIS ALTO */
   object-fit:cover;
+  display:block;
 }
 
+/* INFO */
 .service-info{
-  padding:14px;
+  padding:18px;
 }
 
 .service-name{
   font-weight:800;
-  font-size:16px;
+  font-size:17px;
+  color:var(--text);
 }
 
 .service-price{
-  margin-top:4px;
-  color:var(--primary);
+  margin-top:6px;
+  font-size:16px;
   font-weight:700;
+  color:var(--primary);
 }
 
-/* DIAS */
+/* ===============================
+   DIAS
+   =============================== */
+
 .days{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .day{
   background:#fff;
-  border-radius:14px;
-  padding:16px 0;
+  border-radius:16px;
+  padding:18px 0;
   text-align:center;
   font-weight:800;
   border:1px solid var(--border);
   cursor:pointer;
 }
 
-/* HORÁRIOS */
+/* ===============================
+   HORÁRIOS
+   =============================== */
+
 .times{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .time{
@@ -157,7 +232,10 @@ html,body{
   cursor:pointer;
 }
 
-/* INPUT */
+/* ===============================
+   INPUT
+   =============================== */
+
 .input{
   position:fixed;
   bottom:0;left:0;right:0;
@@ -186,13 +264,24 @@ html,body{
   font-size:18px;
 }
 
-/* RESUMO */
+/* ===============================
+   RESUMO
+   =============================== */
+
 .summary{
   background:#fff;
-  border-radius:20px;
-  padding:16px;
-  box-shadow:0 16px 40px rgba(0,0,0,.16);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 18px 44px rgba(0,0,0,.18);
 }
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
