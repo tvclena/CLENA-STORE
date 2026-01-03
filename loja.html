@@ -25,10 +25,11 @@
   --success:#16a34a;
   --danger:#dc2626;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:var(--text);padding-bottom:74px}
 
-/* ================= LOGIN ================= */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);color:var(--text);padding-bottom:84px}
+
+/* ===== LOGIN ===== */
 #login{
   position:fixed;inset:0;
   background:var(--bg);
@@ -40,35 +41,22 @@ body{background:var(--bg);color:var(--text);padding-bottom:74px}
 .login-box{
   background:#fff;
   padding:26px;
-  border-radius:18px;
+  border-radius:22px;
   width:90%;
   max-width:340px;
   box-shadow:0 20px 50px rgba(0,0,0,.15);
 }
-.login-box h2{
-  text-align:center;
-  margin-bottom:16px;
-}
+.login-box h2{text-align:center;margin-bottom:16px}
 .login-box input{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  margin-bottom:10px;
-  font-size:14px;
+  width:100%;padding:14px;border-radius:14px;
+  border:1px solid #ddd;margin-bottom:10px;font-size:14px;
 }
 .login-box button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-  font-size:15px;
+  width:100%;padding:14px;border:none;border-radius:999px;
+  background:var(--primary);color:#fff;font-weight:800;
 }
 
-/* ================= APP ================= */
+/* ===== APP ===== */
 #app{display:none}
 
 /* TOPO */
@@ -85,71 +73,69 @@ body{background:var(--bg);color:var(--text);padding-bottom:74px}
   background:#fff;
   margin:14px;
   padding:14px;
-  border-radius:16px;
+  border-radius:18px;
   display:flex;
   align-items:center;
   justify-content:space-between;
 }
-.profile-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+.profile-left{display:flex;align-items:center;gap:12px}
 .avatar{
   width:44px;height:44px;border-radius:50%;
-  background:var(--primary);
-  color:#fff;font-weight:800;
+  background:var(--primary);color:#fff;font-weight:800;
   display:flex;align-items:center;justify-content:center;
 }
 .profile small{color:var(--muted)}
-.logout{
-  font-size:12px;
-  color:var(--danger);
-  font-weight:800;
-  cursor:pointer;
-}
+.logout{font-size:12px;color:var(--danger);font-weight:800}
 
 /* BANNER */
-#banner{
-  display:none;
-  margin:14px;
-  border-radius:18px;
-  overflow:hidden;
-  position:relative;
-}
+#banner{display:none;margin:14px;border-radius:18px;overflow:hidden}
 #banner img{width:100%;height:160px;object-fit:cover}
 #banner span{
-  position:absolute;
-  bottom:0;left:0;right:0;
-  padding:10px;
-  background:rgba(0,0,0,.55);
-  color:#fff;
-  font-weight:800;
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px;background:rgba(0,0,0,.55);color:#fff;font-weight:800;
 }
 
-/* SEÇÕES */
-.section{display:none;padding:14px}
-.section.active{display:block}
+/* TABS */
+.tabs{
+  display:flex;
+  margin:0 14px 14px;
+  background:#fff;
+  border-radius:999px;
+  overflow:hidden;
+}
+.tabs button{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:none;
+  font-weight:800;
+  color:var(--muted);
+}
+.tabs button.active{
+  background:var(--primary);
+  color:#fff;
+}
 
 /* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:12px;
+  padding:0 14px;
 }
 
 /* ITEM */
 .item{
   background:#fff;
-  border-radius:16px;
+  border-radius:18px;
   padding:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,.08);
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
 }
 .item img{
   width:100%;
   height:120px;
   object-fit:cover;
-  border-radius:12px;
+  border-radius:14px;
 }
 .item strong{display:block;margin-top:6px}
 .item small{color:var(--muted)}
@@ -164,30 +150,44 @@ body{background:var(--bg);color:var(--text);padding-bottom:74px}
   font-weight:800;
 }
 
-/* NAVBAR */
-nav{
-  position:fixed;
-  bottom:0;left:0;right:0;
+/* MODAL AGENDA */
+#modalAgenda{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:flex-end;
+  z-index:2000;
+}
+.modal-box{
   background:#fff;
-  border-top:1px solid #ddd;
-  display:flex;
+  width:100%;
+  max-height:85vh;
+  border-radius:24px 24px 0 0;
+  padding:16px;
 }
-nav button{
-  flex:1;
+.modal-box h3{margin-bottom:8px}
+.horarios{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.horarios button{
   padding:10px;
-  border:none;
-  background:none;
-  font-size:11px;
-  font-weight:800;
-  color:var(--muted);
+  border-radius:12px;
+  border:1px solid #ddd;
+  background:#fff;
+  font-weight:700;
 }
-nav button.active{color:var(--primary)}
+.horarios button.active{
+  background:var(--primary);
+  color:#fff;
+}
 </style>
 </head>
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="login">
   <div class="login-box">
     <h2>Entrar</h2>
@@ -197,7 +197,7 @@ nav button.active{color:var(--primary)}
   </div>
 </div>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <div id="app">
 
 <div class="top" id="nomeLoja">Agendamento</div>
@@ -218,15 +218,26 @@ nav button.active{color:var(--primary)}
   <span id="bannerTxt"></span>
 </div>
 
-<!-- SERVIÇOS -->
-<div id="servicos" class="section active">
-  <div class="grid" id="listaServicos"></div>
+<div class="tabs">
+  <button id="tabServicos" class="active" onclick="mostrar('servicos')">Serviços</button>
+  <button id="tabProdutos" onclick="mostrar('produtos')">Produtos</button>
 </div>
 
-<nav>
-  <button class="active">Serviços</button>
-</nav>
+<!-- SERVIÇOS -->
+<div id="servicos" class="grid"></div>
 
+<!-- PRODUTOS -->
+<div id="produtos" class="grid" style="display:none"></div>
+
+</div>
+
+<!-- MODAL AGENDA -->
+<div id="modalAgenda">
+  <div class="modal-box">
+    <h3 id="servicoNome"></h3>
+    <p style="color:#6b7280;margin-bottom:10px">Escolha um horário disponível</p>
+    <div class="horarios" id="listaHorarios"></div>
+  </div>
 </div>
 
 <script>
@@ -237,101 +248,88 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 
-/* ================= LOGIN ================= */
+/* LOGIN */
 function entrar(){
-  const nome = loginNome.value.trim();
-  const whats = loginWhats.value.trim();
-  if(!nome || !whats){
-    alert("Informe nome e WhatsApp");
-    return;
-  }
-  localStorage.setItem("cliente_nome",nome);
-  localStorage.setItem("cliente_whats",whats);
+  localStorage.setItem("cliente_nome",loginNome.value);
+  localStorage.setItem("cliente_whats",loginWhats.value);
   iniciar();
 }
-
 function sair(){
-  localStorage.removeItem("cliente_nome");
-  localStorage.removeItem("cliente_whats");
-  login.style.display="flex";
-  app.style.display="none";
+  localStorage.clear();
+  location.reload();
 }
 
-/* ================= INIT ================= */
+/* INIT */
 function iniciar(){
   const nome = localStorage.getItem("cliente_nome");
-  const whats = localStorage.getItem("cliente_whats");
-
-  if(!nome || !whats){
-    login.style.display="flex";
-    app.style.display="none";
-    return;
-  }
-
+  if(!nome){ login.style.display="flex"; return; }
   login.style.display="none";
   app.style.display="block";
-
   clienteNome.innerText = nome;
-  clienteWhats.innerText = whats;
+  clienteWhats.innerText = localStorage.getItem("cliente_whats");
   avatar.innerText = nome[0].toUpperCase();
-
   carregarLoja();
   carregarServicos();
+  carregarProdutos();
 }
 
-/* ================= LOJA ================= */
+/* LOJA */
 async function carregarLoja(){
-  const {data:p} = await sb
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id",lojaId)
-    .single();
-
+  const {data:p} = await sb.from("user_profile").select("negocio").eq("user_id",lojaId).single();
   nomeLoja.innerText = p?.negocio || "Agendamento";
-
-  const {data:cfg} = await sb
-    .from("config_loja")
-    .select("*")
-    .eq("user_id",lojaId)
-    .single();
-
-  if(cfg?.cor_primaria){
-    document.documentElement.style.setProperty('--primary',cfg.cor_primaria);
-    themeColor.content = cfg.cor_primaria;
-  }
-
-  if(cfg?.banner_ativo){
-    banner.style.display="block";
-    bannerImg.src = cfg.banner_url;
-    bannerTxt.innerText = cfg.banner_texto || "";
-  }
 }
 
-/* ================= SERVIÇOS ================= */
+/* SERVIÇOS */
 async function carregarServicos(){
-  const {data} = await sb
-    .from("produtos_servicos")
-    .select("*")
-    .eq("user_id",lojaId)
-    .eq("tipo","SERVICO")
-    .eq("ativo",true);
+  const {data} = await sb.from("produtos_servicos")
+    .select("*").eq("user_id",lojaId).eq("tipo","SERVICO").eq("ativo",true);
 
-  listaServicos.innerHTML = (data||[]).map(s=>`
+  servicos.innerHTML = (data||[]).map(s=>`
     <div class="item">
       <img src="${s.imagem_url||''}">
       <strong>${s.nome}</strong>
-      <small>${s.duracao_minutos||0} min • R$ ${Number(s.preco).toFixed(2)}</small>
-      <button>Agendar</button>
+      <small>${s.duracao_minutos} min • R$ ${Number(s.preco).toFixed(2)}</small>
+      <button onclick="abrirAgenda('${s.nome}')">Agendar</button>
     </div>
   `).join("");
 }
 
-/* ================= START ================= */
-if(!lojaId){
- document.body.innerHTML="<h2 style='padding:40px'>Loja inválida</h2>";
-}else{
- iniciar();
+/* PRODUTOS */
+async function carregarProdutos(){
+  const {data} = await sb.from("produtos_servicos")
+    .select("*").eq("user_id",lojaId).eq("tipo","PRODUTO").eq("ativo",true);
+
+  produtos.innerHTML = (data||[]).map(p=>`
+    <div class="item">
+      <img src="${p.imagem_url||''}">
+      <strong>${p.nome}</strong>
+      <small>R$ ${Number(p.preco).toFixed(2)}</small>
+      <button>Comprar</button>
+    </div>
+  `).join("");
 }
+
+/* TABS */
+function mostrar(sec){
+  servicos.style.display = sec==="servicos"?"grid":"none";
+  produtos.style.display = sec==="produtos"?"grid":"none";
+  tabServicos.classList.toggle("active",sec==="servicos");
+  tabProdutos.classList.toggle("active",sec==="produtos");
+}
+
+/* AGENDA (visual) */
+function abrirAgenda(nome){
+  servicoNome.innerText = nome;
+  listaHorarios.innerHTML = ["09:00","10:00","11:00","14:00","15:00","16:00"]
+    .map(h=>`<button>${h}</button>`).join("");
+  modalAgenda.style.display="flex";
+}
+modalAgenda.onclick=e=>{
+  if(e.target.id==="modalAgenda") modalAgenda.style.display="none";
+}
+
+/* START */
+if(lojaId) iniciar();
 </script>
 
 </body>
