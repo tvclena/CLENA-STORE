@@ -10,71 +10,112 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body{margin:0;font-family:Inter;background:#f4f6fb}
-.chat{padding:14px;max-width:520px;margin:auto}
-.msg{max-width:80%;margin-bottom:10px;padding:12px 14px;border-radius:18px;font-size:14px}
-.bot{background:#fff}
-.user{background:#ff6a00;color:#fff;margin-left:auto}
-
-.carousel{
-  display:flex;
-  gap:12px;
-  overflow-x:auto;
-  padding:10px 0;
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
 }
+
+*{box-sizing:border-box;font-family:Inter}
+
+body{
+  margin:0;
+  background:var(--bg);
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ===== CHAT ===== */
+.chat{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:14px;
+  padding-bottom:90px; /* espaço do input */
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.msg{
+  max-width:80%;
+  margin-bottom:10px;
+  padding:12px 14px;
+  border-radius:18px;
+  font-size:14px;
+}
+
+.bot{background:#fff}
+.user{
+  background:var(--primary);
+  color:#fff;
+  margin-left:auto;
+}
+
+/* ===== OPTIONS ===== */
+.options{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin:10px 0;
+}
+
 .card{
-  min-width:160px;
   background:#fff;
   border-radius:16px;
   overflow:hidden;
   cursor:pointer;
 }
+
 .card img{
   width:100%;
   height:100px;
   object-fit:cover;
 }
+
 .card div{
   padding:10px;
   font-weight:800;
   font-size:13px;
 }
 
-.options{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-top:8px;
-}
-.option{
+.day,.time{
   background:#fff;
   border-radius:999px;
   padding:10px;
   text-align:center;
-  font-weight:800;
   cursor:pointer;
+  font-weight:700;
 }
 
+/* ===== INPUT ===== */
 .input{
   position:fixed;
-  bottom:0;left:0;right:0;
-  background:#fff;
+  left:0;
+  right:0;
+  bottom:0;
   padding:10px;
+  background:#fff;
   display:flex;
   gap:10px;
+  border-top:1px solid #eee;
 }
+
 .input input{
   flex:1;
-  padding:12px;
+  padding:12px 16px;
   border-radius:999px;
   border:1px solid #ddd;
+  font-size:15px;
 }
+
 .input button{
   width:44px;
   border:none;
   border-radius:50%;
-  background:#ff6a00;
+  background:var(--primary);
   color:#fff;
+  font-size:18px;
 }
 </style>
 </head>
@@ -83,42 +124,64 @@ body{margin:0;font-family:Inter;background:#f4f6fb}
 
 <div class="chat" id="chat"></div>
 
-<div class="input">
-  <input id="input" placeholder="Digite aqui">
+<div class="input" id="inputBar">
+  <input id="text" placeholder="Digite aqui">
   <button onclick="send()">➤</button>
 </div>
 
 <script>
+/* ================= SUPABASE ================= */
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
 /* ================= CONTEXTO ================= */
-function getLojaId(){
-  const q = new URLSearchParams(location.search).get("l");
-  if(q){ localStorage.setItem("LOJA_ID", q); return q; }
-  return localStorage.getItem("LOJA_ID");
-}
-const lojaId = getLojaId();
-
+const lojaId = new URLSearchParams(location.search).get("l");
 let etapa="nome";
 let dados={};
-let agendaDia=[];
-let duracao=0;
+let agendaAtual=[];
 
 const chat=document.getElementById("chat");
-const input=document.getElementById("input");
+const input=document.getElementById("text");
+const inputBar=document.getElementById("inputBar");
+
+/* ================= SCROLL FIX (TECLADO) ================= */
+function ajustarPadding(){
+  const h = inputBar.offsetHeight;
+  chat.style.paddingBottom = (h + 16) + "px";
+  scrollFinal();
+}
+
+function scrollFinal(){
+  chat.scrollTop = chat.scrollHeight;
+}
+
+window.visualViewport?.addEventListener("resize",()=>{
+  setTimeout(scrollFinal,50);
+});
+
+input.addEventListener("focus",()=>setTimeout(scrollFinal,300));
 
 /* ================= UTIL ================= */
 function delay(ms=1000){ return new Promise(r=>setTimeout(r,ms)); }
-function bot(t){ delay().then(()=>{ chat.innerHTML+=`<div class="msg bot">${t}</div>`; chat.scrollTop=chat.scrollHeight; }); }
-function user(t){ chat.innerHTML+=`<div class="msg user">${t}</div>`; chat.scrollTop=chat.scrollHeight; }
-function toMin(h){ const[a,b]=h.split(":").map(Number); return a*60+b; }
-function toHour(m){ return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); }
 
-/* ================= INÍCIO ================= */
-bot("Olá 😊 Vamos fazer seu agendamento?");
+function bot(t){
+  delay().then(()=>{
+    chat.innerHTML+=`<div class="msg bot">${t}</div>`;
+    scrollFinal();
+  });
+}
+function user(t){
+  chat.innerHTML+=`<div class="msg user">${t}</div>`;
+  scrollFinal();
+}
+
+function toMin(h){const[a,b]=h.split(":").map(Number);return a*60+b;}
+function toHour(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
+
+/* ================= START ================= */
+bot("Olá 😊 Vamos agendar seu horário?");
 bot("Qual é o seu nome completo?");
 
 /* ================= SEND ================= */
@@ -131,7 +194,6 @@ async function send(){
   if(etapa==="nome"){
     dados.nome=v;
     etapa="whats";
-    await delay();
     bot(`Prazer, <b>${dados.nome}</b>! Qual seu WhatsApp?`);
     input.type="tel";
     input.inputMode="numeric";
@@ -141,7 +203,6 @@ async function send(){
   if(etapa==="whats"){
     dados.whatsapp=v.replace(/\D/g,'');
     etapa="servico";
-    await delay();
     bot("Escolha um serviço:");
     listarServicos();
   }
@@ -157,7 +218,7 @@ async function listarServicos(){
     .eq("pode_agendar",true);
 
   chat.innerHTML+=`
-    <div class="carousel">
+    <div class="options">
       ${data.map(s=>`
         <div class="card" onclick="selectServico('${s.id}',${s.duracao_minutos})">
           <img src="${s.imagem_url||''}">
@@ -165,16 +226,16 @@ async function listarServicos(){
         </div>
       `).join("")}
     </div>`;
+  scrollFinal();
 }
 
 /* ================= DIAS ================= */
 async function selectServico(id,d){
   dados.servico_id=id;
-  duracao=d;
-  await delay();
+  dados.duracao=d;
   bot("Agora escolha o dia disponível:");
-
   const hoje=new Date().toISOString().split("T")[0];
+
   const {data}=await sb.from("agenda_loja")
     .select("*")
     .eq("user_id",lojaId)
@@ -184,41 +245,42 @@ async function selectServico(id,d){
   chat.innerHTML+=`
     <div class="options">
       ${data.map(d=>`
-        <div class="option" onclick='selectDia("${d.data}",${JSON.stringify(d.horarios)})'>
-          ${new Date(d.data).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}
+        <div class="day" onclick='selectDia("${d.data}",${JSON.stringify(d.horarios).replace(/"/g,"&quot;")})'>
+          ${new Date(d.data).toLocaleDateString("pt-BR",{weekday:"short",day:"numeric"})}
         </div>
       `).join("")}
     </div>`;
+  scrollFinal();
 }
 
 /* ================= HORÁRIOS ================= */
-async function selectDia(data,horarios){
+function selectDia(data,horarios){
   dados.data=data;
-  agendaDia=horarios;
-  await delay();
-  bot("Perfeito! Escolha um horário:");
+  agendaAtual=horarios;
+  bot("Agora escolha um horário:");
 
   let slots=[];
-  agendaDia.forEach(h=>{
+  agendaAtual.forEach(h=>{
     let s=toMin(h.inicio), e=toMin(h.fim);
-    while(s+duracao<=e){
+    while(s+dados.duracao<=e){
       slots.push(toHour(s));
-      s+=duracao;
+      s+=dados.duracao;
     }
   });
 
   chat.innerHTML+=`
     <div class="options">
       ${slots.map(h=>`
-        <div class="option" onclick='confirmar("${h}")'>${h}</div>
+        <div class="time" onclick="confirmar('${h}')">${h}</div>
       `).join("")}
     </div>`;
+  scrollFinal();
 }
 
 /* ================= CONFIRMAR ================= */
 async function confirmar(h){
   dados.hora_inicio=h;
-  dados.hora_fim=toHour(toMin(h)+duracao);
+  dados.hora_fim=toHour(toMin(h)+dados.duracao);
 
   await sb.from("agendamentos").insert({
     user_id:lojaId,
@@ -230,10 +292,11 @@ async function confirmar(h){
     cliente_whatsapp:dados.whatsapp
   });
 
-  await delay();
   bot("✅ Agendamento confirmado!");
   bot(`${dados.data} às ${dados.hora_inicio}`);
 }
+
+ajustarPadding();
 </script>
 
 </body>
