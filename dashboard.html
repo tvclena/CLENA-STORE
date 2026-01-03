@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>AgendaBeauty • Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --primary-dark:#e55d00;
+  --bg:#f6f7fb;
+  --sidebar1:#0b1e39;
+  --sidebar2:#102a43;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --radius:16px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+
+body{
+  background:var(--bg);
+  height:100vh;
+  display:flex;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+  width:260px;
+  background:linear-gradient(180deg,var(--sidebar1),var(--sidebar2));
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  transition:.3s;
+}
+.sidebar.collapsed{ width:78px; }
+
+.logo{
+  padding:22px;
+  font-size:20px;
+  font-weight:800;
+  color:var(--primary);
+  white-space:nowrap;
+}
+
+.menu{
+  flex:1;
+  padding:10px;
+}
+
+.menu-item{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px;
+  border-radius:12px;
+  cursor:pointer;
+  margin-bottom:6px;
+  transition:.25s;
+  white-space:nowrap;
+}
+.menu-item:hover{
+  background:rgba(255,255,255,.08);
+}
+.menu-item.active{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+}
+
+.menu-item i{
+  font-size:20px;
+  min-width:20px;
+}
+
+.sidebar.collapsed span{
+  display:none;
+}
+
+/* SUBMENU */
+.submenu{
+  margin-left:36px;
+  display:none;
+}
+.submenu a{
+  display:block;
+  padding:10px 14px;
+  font-size:14px;
+  color:#d1d5db;
+  text-decoration:none;
+  border-radius:10px;
+}
+.submenu a:hover{
+  background:rgba(255,255,255,.08);
+}
+
+/* FOOTER */
+.sidebar-footer{
+  padding:16px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.logout{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:12px;
+  border-radius:12px;
+  cursor:pointer;
+}
+.logout:hover{
+  background:rgba(255,255,255,.08);
+}
+
+/* ================= MAIN ================= */
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOPBAR */
+.topbar{
+  height:64px;
+  background:#fff;
+  border-bottom:1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+}
+
+.toggle{
+  font-size:22px;
+  cursor:pointer;
+}
+
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:600;
+}
+
+/* CONTENT */
+.content{
+  flex:1;
+  padding:0;
+}
+iframe{
+  width:100%;
+  height:100%;
+  border:none;
+  background:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">AgendaBeauty</div>
+
+  <div class="menu">
+
+    <div class="menu-item active" onclick="loadPage('home.html')">
+      <i class="ri-home-5-line"></i><span>Home</span>
+    </div>
+
+    <div class="menu-item" onclick="toggleSub(this)">
+      <i class="ri-calendar-line"></i><span>Cadastro</span>
+    </div>
+    <div class="submenu">
+      <a onclick="loadPage('agenda.html')">Meus horários</a>
+      <a onclick="loadPage('produtos.html')">Produtos e serviços</a>
+    </div>
+
+    <div class="menu-item" onclick="toggleSub(this)">
+      <i class="ri-user-3-line"></i><span>Clientes</span>
+    </div>
+    <div class="submenu">
+      <a onclick="loadPage('clientes.html')">Todos os clientes</a>
+      <a onclick="loadPage('creditos.html')">Créditos</a>
+    </div>
+
+    <div class="menu-item" onclick="toggleSub(this)">
+      <i class="ri-currency-line"></i><span>Financeiro</span>
+    </div>
+    <div class="submenu">
+      <a onclick="loadPage('caixa.html')">Caixa</a>
+      <a onclick="loadPage('despesas.html')">Despesas</a>
+    </div>
+
+    <div class="menu-item" onclick="loadPage('config.html')">
+      <i class="ri-settings-3-line"></i><span>Configurações</span>
+    </div>
+
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="logout" onclick="logout()">
+      <i class="ri-logout-box-line"></i><span>Sair</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ================= MAIN ================= -->
+<div class="main">
+  <div class="topbar">
+    <i class="ri-menu-line toggle" onclick="toggleMenu()"></i>
+    <div class="user" id="nomeNegocio"></div>
+  </div>
+
+  <div class="content">
+    <iframe id="frame" src=""></iframe>
+  </div>
+</div>
+
+<script>
+/* 🔐 PROTEÇÃO */
+const negocio = JSON.parse(localStorage.getItem("negocioLogado"));
+if(!negocio){
+  window.location.href = "login.html";
+}
+
+/* NOME */
+document.getElementById("nomeNegocio").innerText = negocio.negocio;
+
+/* MENU */
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("collapsed");
+}
+
+function toggleSub(el){
+  const sub = el.nextElementSibling;
+  sub.style.display = sub.style.display === "block" ? "none" : "block";
+}
+
+/* LOAD IFRAME */
+function loadPage(page){
+  document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+  document.getElementById("frame").src = page;
+}
+
+/* LOGOUT */
+function logout(){
+  localStorage.removeItem("negocioLogado");
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

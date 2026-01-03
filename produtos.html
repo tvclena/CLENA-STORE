@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Produtos & Serviços • AgendaBeauty</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#dc2626;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);padding:28px}
+
+/* HEADER */
+.header{
+  max-width:1300px;
+  margin:0 auto 20px;
+}
+.header h1{font-size:26px}
+.header span{color:var(--primary)}
+
+/* LAYOUT */
+.container{
+  max-width:1300px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:24px;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+.card h3{margin-bottom:16px}
+
+/* FORM */
+input,textarea,select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:12px;
+}
+
+input[type="file"]{display:none}
+
+.upload{
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  margin-bottom:14px;
+}
+.upload img{
+  max-width:100%;
+  height:140px;
+  object-fit:cover;
+  border-radius:12px;
+}
+.upload span{
+  color:#6b7280;
+  font-size:14px;
+}
+
+button{
+  padding:14px;
+  border:none;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  width:100%;
+}
+
+/* LIST HEADER */
+.list-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  gap:12px;
+}
+
+.list-header input{
+  max-width:300px;
+}
+
+#btnExcluir{
+  display:none;
+  background:#fee2e2;
+  color:var(--danger);
+  padding:10px 16px;
+  border-radius:12px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:16px;
+}
+
+.item{
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  background:#fff;
+  position:relative;
+}
+
+.item img{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+}
+
+/* CHECKBOX */
+.check{
+  position:absolute;
+  top:12px;
+  right:12px;
+  transform:scale(1.2);
+  z-index:10;
+}
+
+.item-body{
+  padding:14px;
+}
+
+.badge{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#eaf1ff;
+  display:inline-block;
+  margin-bottom:6px;
+}
+
+.price{
+  font-weight:700;
+  margin-top:6px;
+}
+
+.actions span{
+  font-size:13px;
+  cursor:pointer;
+  color:var(--primary);
+}
+
+/* OVERLAY */
+#overlaySalvar{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+#overlaySalvar div{
+  background:#fff;
+  padding:22px 30px;
+  border-radius:16px;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<!-- OVERLAY -->
+<div id="overlaySalvar">
+  <div>Salvando…</div>
+</div>
+
+<div class="header">
+  <h1>Produtos & <span>Serviços</span></h1>
+</div>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div class="card">
+    <h3 id="formTitle">Cadastrar item</h3>
+
+    <select id="tipo">
+      <option value="SERVICO">Serviço</option>
+      <option value="PRODUTO">Produto</option>
+    </select>
+
+    <input id="nome" placeholder="Nome">
+    <textarea id="descricao" placeholder="Descrição"></textarea>
+    <input id="preco" placeholder="Preço">
+    <input id="duracao" type="number" placeholder="Duração (min)">
+
+    <label class="upload" for="imagem">
+      <img id="preview" style="display:none">
+      <span id="uploadText">Clique para selecionar uma imagem</span>
+    </label>
+    <input id="imagem" type="file" accept="image/*">
+
+    <button onclick="salvar()">Salvar</button>
+  </div>
+
+  <!-- LIST -->
+  <div class="card">
+    <div class="list-header">
+      <input id="search" placeholder="Buscar produto ou serviço">
+      <button id="btnExcluir" onclick="excluirSelecionados()">Excluir selecionados</button>
+    </div>
+
+    <div id="statusLista"></div>
+    <div class="grid" id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+/* 🔐 PROTEÇÃO */
+const negocio = JSON.parse(localStorage.getItem("negocioLogado"));
+if(!negocio) location.href="login.html";
+const LOJA_ID = negocio.id;
+
+/* SUPABASE */
+const supabase = window.supabase.createClient(
+  "https://ssmsjryjwhnrbjyzklno.supabase.co",
+  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
+);
+
+let itens=[], editId=null;
+
+/* TIPO */
+tipo.onchange=()=>{
+  duracao.style.display = tipo.value==="SERVICO" ? "block" : "none";
+};
+tipo.onchange();
+
+/* PREVIEW */
+imagem.onchange=()=>{
+  const f=imagem.files[0];
+  if(f){
+    preview.src=URL.createObjectURL(f);
+    preview.style.display="block";
+    uploadText.style.display="none";
+  }
+};
+
+/* MÁSCARA */
+preco.oninput=e=>{
+  let v=e.target.value.replace(/\D/g,'');
+  v=(v/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  e.target.value=v;
+};
+
+/* BOTÃO EXCLUIR */
+function atualizarBotaoExcluir(){
+  const qtd=document.querySelectorAll(".check:checked").length;
+  btnExcluir.style.display = qtd>0 ? "inline-block" : "none";
+}
+
+/* SALVAR */
+async function salvar(){
+  overlaySalvar.style.display="flex";
+
+  const valor=parseFloat(preco.value.replace(/\./g,'').replace(',','.'));
+
+  let payload={
+    loja_id:LOJA_ID,
+    tipo:tipo.value,
+    nome:nome.value,
+    descricao:descricao.value,
+    preco:valor,
+    duracao_minutos:tipo.value==="SERVICO"?duracao.value:null
+  };
+
+  let data;
+  if(editId){
+    ({data}=await supabase.from("produtos_servicos")
+      .update(payload).eq("id",editId).select().single());
+  }else{
+    ({data}=await supabase.from("produtos_servicos")
+      .insert([payload]).select().single());
+  }
+
+  if(imagem.files.length){
+    const path=`${LOJA_ID}/${data.id}.jpg`;
+    await supabase.storage.from("produtos")
+      .upload(path,imagem.files[0],{upsert:true});
+    const url=supabase.storage.from("produtos").getPublicUrl(path).data.publicUrl;
+    await supabase.from("produtos_servicos")
+      .update({imagem_url:url}).eq("id",data.id);
+  }
+
+  resetForm();
+  await carregar();
+  overlaySalvar.style.display="none";
+}
+
+/* LISTAR */
+async function carregar(){
+  statusLista.style.display = "block";
+  statusLista.innerHTML = "🔄 Buscando seus produtos e serviços…";
+
+  const { data, error } = await supabase
+    .from("produtos_servicos")
+    .select("*")
+    .eq("loja_id", LOJA_ID)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    statusLista.innerHTML = "Erro ao carregar produtos.";
+    return;
+  }
+
+  itens = data || [];
+
+  if(itens.length === 0){
+    statusLista.innerHTML = `
+      <h3 style="margin-bottom:8px;color:#111">
+        Nenhum produto ou serviço cadastrado
+      </h3>
+      <p>
+        Comece cadastrando seu primeiro produto ou serviço
+        utilizando o formulário ao lado 👈
+      </p>
+    `;
+    lista.innerHTML = "";
+    return;
+  }
+
+  statusLista.style.display = "none";
+
+  lista.innerHTML = "";
+  let index = 0;
+  const intervalo = setInterval(()=>{
+    if(index >= itens.length){
+      clearInterval(intervalo);
+      atualizarBotaoExcluir();
+      return;
+    }
+
+    renderItem(itens[index]);
+    index++;
+  }, 80); // velocidade do efeito
+}
+
+/* RENDER */
+function renderItem(i){
+  lista.innerHTML += `
+    <div class="item">
+      <input class="check" type="checkbox" value="${i.id}" onchange="atualizarBotaoExcluir()">
+      ${i.imagem_url ? `<img src="${i.imagem_url}">` : ""}
+      <div class="item-body">
+        <span class="badge">${i.tipo}</span>
+        <h4>${i.nome}</h4>
+        <div class="price">
+          R$ ${i.preco.toLocaleString('pt-BR',{minimumFractionDigits:2})}
+        </div>
+        ${i.duracao_minutos ? `<small>${i.duracao_minutos} min</small>` : ""}
+        <div class="actions">
+          <span onclick="editar('${i.id}')">Editar</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* EDITAR */
+function editar(id){
+  const i=itens.find(x=>x.id===id);
+  editId=id;
+  tipo.value=i.tipo;
+  tipo.onchange();
+  nome.value=i.nome;
+  descricao.value=i.descricao;
+  preco.value=i.preco.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  duracao.value=i.duracao_minutos||"";
+  formTitle.innerText="Editar item";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* EXCLUIR */
+async function excluirSelecionados(){
+  const ids=[...document.querySelectorAll(".check:checked")].map(c=>c.value);
+  if(!ids.length) return;
+
+  if(!confirm(`Deseja realmente excluir ${ids.length} item(ns)?`)) return;
+
+  await supabase.from("produtos_servicos").delete().in("id",ids);
+  carregar();
+}
+
+/* RESET */
+function resetForm(){
+  editId=null;
+  formTitle.innerText="Cadastrar item";
+  nome.value=descricao.value=preco.value=duracao.value="";
+  imagem.value="";
+  preview.style.display="none";
+  uploadText.style.display="block";
+}
+
+carregar();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Produtos & Serviços • AgendaBeauty</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#dc2626;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);padding:28px}
+
+/* HEADER */
+.header{
+  max-width:1300px;
+  margin:0 auto 20px;
+}
+.header h1{font-size:26px}
+.header span{color:var(--primary)}
+
+/* LAYOUT */
+.container{
+  max-width:1300px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:24px;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+.card h3{margin-bottom:16px}
+
+/* FORM */
+input,textarea,select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:12px;
+}
+
+input[type="file"]{display:none}
+
+.upload{
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:20px;
+  text-align:center;
+  cursor:pointer;
+  margin-bottom:14px;
+}
+.upload img{
+  max-width:100%;
+  height:140px;
+  object-fit:cover;
+  border-radius:12px;
+}
+.upload span{
+  color:#6b7280;
+  font-size:14px;
+}
+
+button{
+  padding:14px;
+  border:none;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  width:100%;
+}
+
+/* LIST HEADER */
+.list-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  gap:12px;
+}
+
+.list-header input{
+  max-width:300px;
+}
+
+#btnExcluir{
+  display:none;
+  background:#fee2e2;
+  color:var(--danger);
+  padding:10px 16px;
+  border-radius:12px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:16px;
+}
+
+.item{
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  background:#fff;
+  position:relative;
+}
+
+.item img{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+}
+
+/* CHECKBOX */
+.check{
+  position:absolute;
+  top:12px;
+  right:12px;
+  transform:scale(1.2);
+  z-index:10;
+}
+
+.item-body{
+  padding:14px;
+}
+
+.badge{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#eaf1ff;
+  display:inline-block;
+  margin-bottom:6px;
+}
+
+.price{
+  font-weight:700;
+  margin-top:6px;
+}
+
+.actions span{
+  font-size:13px;
+  cursor:pointer;
+  color:var(--primary);
+}
+
+/* OVERLAY */
+#overlaySalvar{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+#overlaySalvar div{
+  background:#fff;
+  padding:22px 30px;
+  border-radius:16px;
+  font-weight:600;
+}
+</style>
+</head>
+
+<body>
+
+<!-- OVERLAY -->
+<div id="overlaySalvar">
+  <div>Salvando…</div>
+</div>
+
+<div class="header">
+  <h1>Produtos & <span>Serviços</span></h1>
+</div>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div class="card">
+    <h3 id="formTitle">Cadastrar item</h3>
+
+    <select id="tipo">
+      <option value="SERVICO">Serviço</option>
+      <option value="PRODUTO">Produto</option>
+    </select>
+
+    <input id="nome" placeholder="Nome">
+    <textarea id="descricao" placeholder="Descrição"></textarea>
+    <input id="preco" placeholder="Preço">
+    <input id="duracao" type="number" placeholder="Duração (min)">
+
+    <label class="upload" for="imagem">
+      <img id="preview" style="display:none">
+      <span id="uploadText">Clique para selecionar uma imagem</span>
+    </label>
+    <input id="imagem" type="file" accept="image/*">
+
+    <button onclick="salvar()">Salvar</button>
+  </div>
+
+  <!-- LIST -->
+  <div class="card">
+    <div class="list-header">
+      <input id="search" placeholder="Buscar produto ou serviço">
+      <button id="btnExcluir" onclick="excluirSelecionados()">Excluir selecionados</button>
+    </div>
+
+    <div class="grid" id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+/* 🔐 PROTEÇÃO */
+const negocio = JSON.parse(localStorage.getItem("negocioLogado"));
+if(!negocio) location.href="login.html";
+const LOJA_ID = negocio.id;
+
+/* SUPABASE */
+const supabase = window.supabase.createClient(
+  "https://ssmsjryjwhnrbjyzklno.supabase.co",
+  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
+);
+
+let itens=[], editId=null;
+
+/* TIPO */
+tipo.onchange=()=>{
+  duracao.style.display = tipo.value==="SERVICO" ? "block" : "none";
+};
+tipo.onchange();
+
+/* PREVIEW */
+imagem.onchange=()=>{
+  const f=imagem.files[0];
+  if(f){
+    preview.src=URL.createObjectURL(f);
+    preview.style.display="block";
+    uploadText.style.display="none";
+  }
+};
+
+/* MÁSCARA */
+preco.oninput=e=>{
+  let v=e.target.value.replace(/\D/g,'');
+  v=(v/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  e.target.value=v;
+};
+
+/* BOTÃO EXCLUIR */
+function atualizarBotaoExcluir(){
+  const qtd=document.querySelectorAll(".check:checked").length;
+  btnExcluir.style.display = qtd>0 ? "inline-block" : "none";
+}
+
+/* SALVAR */
+async function salvar(){
+  overlaySalvar.style.display="flex";
+
+  const valor=parseFloat(preco.value.replace(/\./g,'').replace(',','.'));
+
+  let payload={
+    loja_id:LOJA_ID,
+    tipo:tipo.value,
+    nome:nome.value,
+    descricao:descricao.value,
+    preco:valor,
+    duracao_minutos:tipo.value==="SERVICO"?duracao.value:null
+  };
+
+  let data;
+  if(editId){
+    ({data}=await supabase.from("produtos_servicos")
+      .update(payload).eq("id",editId).select().single());
+  }else{
+    ({data}=await supabase.from("produtos_servicos")
+      .insert([payload]).select().single());
+  }
+
+  if(imagem.files.length){
+    const path=`${LOJA_ID}/${data.id}.jpg`;
+    await supabase.storage.from("produtos")
+      .upload(path,imagem.files[0],{upsert:true});
+    const url=supabase.storage.from("produtos").getPublicUrl(path).data.publicUrl;
+    await supabase.from("produtos_servicos")
+      .update({imagem_url:url}).eq("id",data.id);
+  }
+
+  resetForm();
+  await carregar();
+  overlaySalvar.style.display="none";
+}
+
+/* LISTAR */
+async function carregar(){
+  const {data}=await supabase.from("produtos_servicos")
+    .select("*").eq("loja_id",LOJA_ID)
+    .order("created_at",{ascending:false});
+
+  itens=data||[];
+  render();
+}
+
+/* RENDER */
+function render(){
+  lista.innerHTML="";
+  const q=search.value.toLowerCase();
+
+  itens.filter(i=>i.nome.toLowerCase().includes(q)).forEach(i=>{
+    lista.innerHTML+=`
+    <div class="item">
+      <input class="check" type="checkbox" value="${i.id}" onchange="atualizarBotaoExcluir()">
+      ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
+      <div class="item-body">
+        <span class="badge">${i.tipo}</span>
+        <h4>${i.nome}</h4>
+        <div class="price">R$ ${i.preco.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+        ${i.duracao_minutos?`<small>${i.duracao_minutos} min</small>`:""}
+        <div class="actions">
+          <span onclick="editar('${i.id}')">Editar</span>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  atualizarBotaoExcluir();
+}
+
+search.oninput=render;
+
+/* EDITAR */
+function editar(id){
+  const i=itens.find(x=>x.id===id);
+  editId=id;
+  tipo.value=i.tipo;
+  tipo.onchange();
+  nome.value=i.nome;
+  descricao.value=i.descricao;
+  preco.value=i.preco.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  duracao.value=i.duracao_minutos||"";
+  formTitle.innerText="Editar item";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* EXCLUIR */
+async function excluirSelecionados(){
+  const ids=[...document.querySelectorAll(".check:checked")].map(c=>c.value);
+  if(!ids.length) return;
+
+  if(!confirm(`Deseja realmente excluir ${ids.length} item(ns)?`)) return;
+
+  await supabase.from("produtos_servicos").delete().in("id",ids);
+  carregar();
+}
+
+/* RESET */
+function resetForm(){
+  editId=null;
+  formTitle.innerText="Cadastrar item";
+  nome.value=descricao.value=preco.value=duracao.value="";
+  imagem.value="";
+  preview.style.display="none";
+  uploadText.style.display="block";
+}
+
+carregar();
+</script>
+
+</body>
+</html>

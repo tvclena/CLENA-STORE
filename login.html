@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Entrar • AgendaBeauty</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#c62828;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+  text-transform:uppercase;
+}
+
+body{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+}
+
+/* LEFT */
+.left{
+  background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250")
+  center/cover no-repeat;
+  position:relative;
+  color:#fff;
+}
+.left::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,rgba(0,0,0,.75),rgba(0,0,0,.3));
+}
+.left div{
+  position:relative;
+  z-index:2;
+  padding:80px;
+}
+.left h1{
+  font-size:40px;
+}
+.left span{
+  color:var(--primary);
+}
+
+/* RIGHT */
+.right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.card{
+  width:100%;
+  max-width:460px;
+  padding:44px;
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+  border-radius:var(--radius);
+  background:#fff;
+}
+
+.card small{
+  color:var(--primary);
+  font-weight:600;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.links{
+  text-align:center;
+  margin-top:18px;
+  font-size:13px;
+}
+.links a{
+  display:block;
+  color:var(--primary);
+  text-decoration:none;
+  margin-top:8px;
+}
+
+/* ERROR */
+.error{
+  background:#ffe5e5;
+  color:var(--danger);
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+  margin-bottom:14px;
+  display:none;
+}
+
+/* OVERLAY */
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#overlay div{
+  background:#fff;
+  padding:30px 40px;
+  border-radius:16px;
+  font-weight:700;
+}
+</style>
+</head>
+
+<body>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div>Validando acesso…</div>
+</div>
+
+<div class="left">
+  <div>
+    <h1>A gestão do seu salão<br>começa com um <span>login</span></h1>
+    <p style="margin-top:12px">
+      Controle agenda, clientes e profissionais em um só lugar.
+    </p>
+  </div>
+</div>
+
+<div class="right">
+  <div class="card">
+
+    <small>Acesso à plataforma</small>
+    <h2 style="margin:10px 0 6px">Entrar</h2>
+    <p style="color:#6b7280;margin-bottom:18px">
+      Use seu e-mail e senha para continuar
+    </p>
+
+    <div id="errorBox" class="error"></div>
+
+    <form onsubmit="login(event)">
+      <label>E-mail</label>
+      <input id="email" type="email" required style="text-transform:none">
+
+      <label>Senha</label>
+      <input id="senha" type="password" required style="text-transform:none">
+
+      <button>Entrar</button>
+    </form>
+
+    <div class="links">
+      <a href="contato.html">Esqueci minha senha</a>
+      <a href="cadastro.html">Cadastrar meu negócio</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://ssmsjryjwhnrbjyzklno.supabase.co",
+  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
+);
+
+const overlay = document.getElementById("overlay");
+const errorBox = document.getElementById("errorBox");
+
+function showError(msg){
+  errorBox.innerText = msg;
+  errorBox.style.display = "block";
+}
+
+async function login(e){
+  e.preventDefault();
+  errorBox.style.display = "none";
+  overlay.style.display = "flex";
+
+  const emailVal = email.value.trim();
+  const senhaVal = senha.value.trim();
+
+  const { data, error } = await supabase
+    .from("negocios")
+    .select("*")
+    .eq("email", emailVal)
+    .eq("senha", senhaVal)
+    .single();
+
+  overlay.style.display = "none";
+
+  if(error || !data){
+    showError("E-mail ou senha inválidos");
+    return;
+  }
+
+  // 🔐 SALVA SESSÃO SIMPLES
+  localStorage.setItem("negocioLogado", JSON.stringify(data));
+
+  // 👉 REDIRECIONA
+  window.location.href = "dashboard.html";
+}
+</script>
+
+</body>
+</html>

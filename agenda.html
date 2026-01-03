@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agenda • AgendaBeauty</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --radius:18px;
+  --danger:#dc2626;
+  --holiday:#2563eb;
+  --soft:#fff7ed;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+
+body{background:var(--bg);padding:32px}
+
+/* HEADER */
+.header{max-width:1200px;margin:0 auto 20px}
+.header h1{font-size:26px}
+.header span{color:var(--primary)}
+
+/* CALENDAR */
+.calendar{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:30px;
+  max-width:1200px;
+  margin:auto;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+.calendar-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+}
+
+.calendar-header button{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:12px;
+  padding:10px 18px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.weekdays,.days{display:grid;grid-template-columns:repeat(7,1fr)}
+.weekdays div{text-align:center;font-weight:600;color:#6b7280;padding-bottom:12px}
+
+.day{
+  border:1px solid var(--border);
+  min-height:160px;
+  padding:10px;
+  border-radius:14px;
+  background:#fff;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+}
+.day:hover{background:var(--soft)}
+
+.day-number{font-weight:700;margin-bottom:6px}
+
+.badge{
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:999px;
+  display:inline-block;
+  margin-bottom:6px;
+}
+.badge.holiday{background:#e0e7ff;color:var(--holiday)}
+.badge.closed{background:#fee2e2;color:var(--danger)}
+
+.times{
+  margin-top:auto;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.time-pill{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:6px 8px;
+  font-size:12px;
+  text-align:center;
+}
+
+/* MODAL */
+#modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+
+.modal-box{
+  background:#fff;
+  padding:30px;
+  border-radius:20px;
+  width:100%;
+  max-width:480px;
+}
+
+.modal-box h3{margin-bottom:14px}
+
+.toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.horario{
+  display:flex;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.horario input{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+}
+
+.horario button{
+  background:#fee2e2;
+  border:none;
+  border-radius:10px;
+  padding:0 12px;
+  cursor:pointer;
+}
+
+.add-btn{
+  background:#eaf1ff;
+  border:none;
+  border-radius:12px;
+  padding:10px;
+  width:100%;
+  cursor:pointer;
+}
+
+.replica{
+  margin-top:14px;
+  display:flex;
+  gap:8px;
+  font-size:14px;
+}
+
+.save-btn{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:30px;
+  padding:14px;
+  width:100%;
+  margin-top:18px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Agenda <span>do Negócio</span></h1>
+</div>
+
+<div class="calendar">
+  <div class="calendar-header">
+    <button onclick="changeMonth(-1)">◀</button>
+    <h2 id="monthYear"></h2>
+    <button onclick="changeMonth(1)">▶</button>
+  </div>
+
+  <div class="weekdays">
+    <div>Dom</div><div>Seg</div><div>Ter</div>
+    <div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+  </div>
+
+  <div class="days" id="days"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+    <h3 id="modalDate"></h3>
+
+    <div class="toggle">
+      <input type="checkbox" id="fechado" onchange="toggleFechado()">
+      <label>Dia fechado</label>
+    </div>
+
+    <div id="horariosBox">
+      <div id="horarios"></div>
+      <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
+    </div>
+
+    <div class="replica">
+      <input type="checkbox" id="replicar">
+      <label>Replicar para todas as semanas do mês</label>
+    </div>
+
+    <button class="save-btn" onclick="salvarAgenda()">Salvar</button>
+  </div>
+</div>
+
+<script>
+/* ================= SUPABASE ================= */
+const supabase = window.supabase.createClient(
+  "https://ssmsjryjwhnrbjyzklno.supabase.co",
+  "sb_publishable_5Xe5sBRsp-6aLLvMwiTsCA_vRcPpNnV"
+);
+
+/* TEMPORÁRIO: depois vem do login */
+const LOJA_ID = localStorage.getItem("loja_id") ||
+"00000000-0000-0000-0000-000000000001";
+
+/* ================= FERIADOS ================= */
+function calcularPascoa(ano){
+  const a=ano%19,b=Math.floor(ano/100),c=ano%100;
+  const d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25);
+  const g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451);
+  const mes=Math.floor((h+l-7*m+114)/31);
+  const dia=((h+l-7*m+114)%31)+1;
+  return new Date(ano,mes-1,dia);
+}
+
+function feriadosBrasil(ano){
+  const p=calcularPascoa(ano);
+  const f={};
+
+  const fixos={
+    "01-01":"Confraternização Universal",
+    "04-21":"Tiradentes",
+    "05-01":"Dia do Trabalho",
+    "09-07":"Independência",
+    "10-12":"Nossa Senhora Aparecida",
+    "11-02":"Finados",
+    "11-15":"Proclamação da República",
+    "12-25":"Natal"
+  };
+
+  Object.entries(fixos).forEach(([k,v])=>f[`${ano}-${k}`]=v);
+
+  const carnaval=new Date(p);carnaval.setDate(p.getDate()-47);
+  const sextaSanta=new Date(p);sextaSanta.setDate(p.getDate()-2);
+  const corpus=new Date(p);corpus.setDate(p.getDate()+60);
+
+  f[carnaval.toISOString().slice(0,10)]="Carnaval";
+  f[sextaSanta.toISOString().slice(0,10)]="Paixão de Cristo";
+  f[p.toISOString().slice(0,10)]="Páscoa";
+  f[corpus.toISOString().slice(0,10)]="Corpus Christi";
+
+  return f;
+}
+
+/* ================= AGENDA ================= */
+let agenda={},currentDate=new Date(),selectedDate="",selectedWeekDay=0;
+let feriadosAno=feriadosBrasil(currentDate.getFullYear());
+
+const daysEl=document.getElementById("days");
+const monthYearEl=document.getElementById("monthYear");
+const modal=document.getElementById("modal");
+const modalDate=document.getElementById("modalDate");
+const horariosEl=document.getElementById("horarios");
+const horariosBox=document.getElementById("horariosBox");
+const fechadoEl=document.getElementById("fechado");
+const replicarEl=document.getElementById("replicar");
+
+/* ================= CALENDÁRIO ================= */
+function renderCalendar(){
+  daysEl.innerHTML="";
+  const y=currentDate.getFullYear(),m=currentDate.getMonth();
+  feriadosAno=feriadosBrasil(y);
+
+  monthYearEl.innerText=currentDate.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+  const firstDay=new Date(y,m,1).getDay();
+  const lastDate=new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<firstDay;i++) daysEl.innerHTML+="<div></div>";
+
+  for(let d=1;d<=lastDate;d++){
+    const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const el=document.createElement("div");
+    el.className="day";
+    el.onclick=()=>openDay(y,m,d);
+    el.innerHTML=`<div class="day-number">${d}</div>`;
+
+    if(feriadosAno[key])
+      el.innerHTML+=`<div class="badge holiday">${feriadosAno[key]}</div>`;
+
+    if(agenda[key]){
+      if(agenda[key].fechado){
+        el.innerHTML+=`<div class="badge closed">Fechado</div>`;
+      }else{
+        const t=document.createElement("div");
+        t.className="times";
+        agenda[key].horarios.forEach(h=>
+          t.innerHTML+=`<div class="time-pill">${h.inicio} - ${h.fim}</div>`
+        );
+        el.appendChild(t);
+      }
+    }
+    daysEl.appendChild(el);
+  }
+}
+
+function changeMonth(v){
+  currentDate.setMonth(currentDate.getMonth()+v);
+  renderCalendar();
+}
+
+/* ================= MODAL ================= */
+function openDay(y,m,d){
+  selectedDate=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  selectedWeekDay=new Date(y,m,d).getDay();
+  modalDate.innerText=new Date(y,m,d).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+  horariosEl.innerHTML="";
+  fechadoEl.checked=false;
+  replicarEl.checked=false;
+
+  if(agenda[selectedDate]){
+    fechadoEl.checked=agenda[selectedDate].fechado;
+    agenda[selectedDate].horarios.forEach(h=>addHorario(h.inicio,h.fim));
+  }else addHorario();
+
+  toggleFechado();
+  modal.style.display="flex";
+}
+
+function toggleFechado(){
+  horariosBox.style.display=fechadoEl.checked?"none":"block";
+}
+
+function addHorario(i="",f=""){
+  const div=document.createElement("div");
+  div.className="horario";
+  div.innerHTML=`
+    <input type="time" value="${i}">
+    <input type="time" value="${f}">
+    <button onclick="this.parentElement.remove()">✕</button>`;
+  horariosEl.appendChild(div);
+}
+
+/* ================= SALVAR ================= */
+async function salvarAgenda(){
+  let slots=[];
+  if(!fechadoEl.checked){
+    document.querySelectorAll(".horario").forEach(h=>{
+      const i=h.children[0].value,f=h.children[1].value;
+      if(i&&f) slots.push({inicio:i,fim:f});
+    });
+
+    slots.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    for(let x=1;x<slots.length;x++){
+      if(slots[x].inicio<=slots[x-1].fim){
+        alert("Horários não podem encostar.");
+        return;
+      }
+    }
+  }
+
+  const base={loja_id:LOJA_ID,fechado:fechadoEl.checked,horarios:slots};
+  const registros=[];
+
+  if(replicarEl.checked){
+    const y=currentDate.getFullYear(),m=currentDate.getMonth();
+    for(let d=1;d<=31;d++){
+      const dt=new Date(y,m,d);
+      if(dt.getMonth()===m && dt.getDay()===selectedWeekDay){
+        registros.push({...base,data:dt.toISOString().slice(0,10)});
+      }
+    }
+  }else registros.push({...base,data:selectedDate});
+
+  await supabase.from("agenda_loja")
+    .upsert(registros,{onConflict:"loja_id,data"});
+
+  modal.style.display="none";
+  carregarAgenda();
+}
+
+/* ================= LOAD ================= */
+async function carregarAgenda(){
+  const {data}=await supabase
+    .from("agenda_loja")
+    .select("*")
+    .eq("loja_id",LOJA_ID);
+
+  agenda={};
+  data?.forEach(r=>{
+    agenda[r.data]={fechado:r.fechado,horarios:r.horarios||[]};
+  });
+
+  renderCalendar();
+}
+
+carregarAgenda();
+</script>
+
+</body>
+</html>
