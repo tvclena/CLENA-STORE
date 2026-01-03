@@ -91,6 +91,11 @@ html,body{
   background:#eee;
   background-size:cover;
   background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  color:#fff;
 }
 
 /* ================= CONTENT ================= */
@@ -150,7 +155,7 @@ iframe{
 <!-- TOPBAR -->
 <div class="topbar">
   <h1 id="nomeLoja">Agenda Fácil</h1>
-  <div class="avatar" id="logo"></div>
+  <div class="avatar" id="logo">A</div>
 </div>
 
 <!-- CONTENT -->
@@ -190,7 +195,7 @@ function go(el,page){
   frame.src = `${page}?l=${lojaId}`;
 }
 
-/* ================= LOAD IDENTIDADE ================= */
+/* ================= LOAD LOJA (user_profile) ================= */
 async function load(){
   if(!lojaId){
     alert("Loja não informada");
@@ -198,8 +203,8 @@ async function load(){
   }
 
   const { data, error } = await sb
-    .from("identidade_loja")
-    .select("nome_loja,logo_url")
+    .from("user_profile")
+    .select("negocio,avatar_url,cidade,uf")
     .eq("user_id", lojaId)
     .single();
 
@@ -208,12 +213,19 @@ async function load(){
     return;
   }
 
-  nomeLoja.innerText = data.nome_loja;
+  // Nome da loja
+  nomeLoja.innerText = data.negocio || "Agenda Fácil";
 
-  if(data.logo_url){
-    logo.style.backgroundImage = `url(${data.logo_url})`;
+  // Avatar / Logo
+  if(data.avatar_url){
+    logo.style.backgroundImage = `url(${data.avatar_url})`;
+    logo.textContent = "";
+  }else{
+    logo.textContent = (data.negocio?.[0] || "A").toUpperCase();
+    logo.style.background = "linear-gradient(135deg,#ff6a00,#ff9a57)";
   }
 
+  // Primeira tela
   frame.src = `homeclientes.html?l=${lojaId}`;
 }
 
