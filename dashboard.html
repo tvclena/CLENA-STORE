@@ -386,46 +386,61 @@ async function getSigned(path){
 
 /* ================= SAVE PROFILE ================= */
 async function salvarPerfil(){
-  overlayText.innerText = "Salvando perfil…";
   overlay.style.display = "flex";
 
-  let avatarPath = profile?.avatar_path || null;
+  let avatarPath = null;
 
-  // upload se tiver foto nova
-  if(fotoBlob){
-    avatarPath = `${user.id}/perfil.jpg`;
+  try{
+    if(pFoto.files.length){
+      const file = pFoto.files[0];
+      const path = `perfil/${user.id}.jpg`;
 
-    const { error: upErr } = await sb.storage
-      .from("produtos")
-      .upload(avatarPath, fotoBlob, { upsert:true, contentType:"image/jpeg" });
+      const { error: uploadError } = await sb
+        .storage
+        .from("produtos")
+        .upload(path, file, { upsert:true });
 
-    if(upErr){
-      overlay.style.display="none";
-      alert("Não consegui enviar a foto. Verifique as permissões do Storage.");
-      return;
+      if(uploadError){
+        console.error(uploadError);
+        throw new Error("Erro ao enviar imagem");
+      }
+
+      avatarPath = path;
+
+      // preview imediato
+      profileImg.style.backgroundImage =
+        `url(${URL.createObjectURL(file)})`;
     }
+
+    const { error } = await sb
+      .from("user_profile")
+      .update({
+        negocio: pNegocio.value || null,
+        whatsapp: pWhatsapp.value || null,
+        email_contato: pEmailContato.value || null,
+        avatar_url: avatarPath,
+        cep: pCep.value || null,
+        rua: pRua.value || null,
+        numero: pNumero.value || null,
+        bairro: pBairro.value || null,
+        cidade: pCidade.value || null,
+        uf: pUf.value || null
+      })
+      .eq("user_id", user.id);
+
+    if(error){
+      console.error(error);
+      throw new Error("Erro ao salvar perfil");
+    }
+
+    profileModal.style.display = "none";
+
+  }catch(err){
+    alert(err.message);
+  }finally{
+    overlay.style.display = "none";
   }
-
-  // Atualiza perfil (nada obrigatório)
-  const payload = {
-    negocio: pNegocio.value || null,
-    whatsapp: pWhatsapp.value.replace(/\D/g,'') || null,
-    email_contato: pEmailContato.value || null,
-    avatar_path: avatarPath || null, // ✅ salva o PATH (não signedUrl)
-    cep: pCep.value || null,
-    rua: pRua.value || null,
-    numero: pNumero.value || null,
-    bairro: pBairro.value || null,
-    cidade: pCidade.value || null,
-    uf: (pUf.value || "").toUpperCase() || null
-  };
-
-  const { error: updErr } = await sb.from("user_profile")
-    .update(payload)
-    .eq("user_id", user.id);
-
-  overlay.style.display="none";
-
+}
   if(updErr){
     alert("Erro ao salvar no banco (user_profile).");
     return;
