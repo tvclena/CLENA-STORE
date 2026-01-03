@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agendar horário</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+
+  --ok:#22c55e;
+  --warn:#f97316;
+  --closed:#ef4444;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+
+body{
+  background:var(--bg);
+  padding:16px;
+}
+
+/* HEADER */
+.header{
+  text-align:center;
+  margin-bottom:14px;
+}
+.header h1{
+  font-size:20px;
+  font-weight:800;
+}
+.header span{color:var(--primary)}
+
+/* CALENDAR */
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-bottom:14px;
+}
+
+.day{
+  background:#fff;
+  border-radius:10px;
+  padding:10px 0;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  border:2px solid transparent;
+}
+
+.day.ok{background:#dcfce7;color:#166534}
+.day.warn{background:#ffedd5;color:#9a3412}
+.day.closed{background:#fee2e2;color:#991b1b}
+
+.day.active{
+  border-color:var(--primary);
+}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+  margin-bottom:12px;
+}
+
+/* HORÁRIOS */
+.times{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.time{
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 0;
+  text-align:center;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+}
+.time.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+/* SERVICES */
+.services{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+}
+.service{
+  min-width:160px;
+  background:#f9fafb;
+  border-radius:14px;
+  padding:12px;
+  border:2px solid transparent;
+  cursor:pointer;
+}
+.service.active{
+  border-color:var(--primary);
+}
+.service h4{
+  font-size:14px;
+}
+.service small{
+  color:var(--muted);
+}
+
+/* BUTTON */
+.btn{
+  width:100%;
+  height:48px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+  font-size:15px;
+  cursor:pointer;
+}
+
+/* POPUP */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+.popup-box{
+  background:#fff;
+  border-radius:18px;
+  padding:20px;
+  width:90%;
+  max-width:340px;
+  text-align:center;
+}
+.popup-box button{
+  margin-top:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Agendar em <span id="nomeLoja">…</span></h1>
+</div>
+
+<!-- CALENDÁRIO -->
+<div class="calendar" id="calendar"></div>
+
+<!-- HORÁRIOS -->
+<div class="card">
+  <h3>Horários disponíveis</h3>
+  <div class="times" id="times"></div>
+</div>
+
+<!-- SERVIÇOS -->
+<div class="card">
+  <h3>Escolha o serviço</h3>
+  <div class="services" id="services"></div>
+</div>
+
+<button class="btn" onclick="confirmar()">Confirmar agendamento</button>
+
+<!-- POPUP -->
+<div class="popup" id="popup">
+  <div class="popup-box">
+    <strong>Escolha um serviço</strong>
+    <p style="margin-top:6px;color:#6b7280;font-size:14px">
+      Para continuar, selecione o serviço desejado.
+    </p>
+    <button class="btn" onclick="popup.style.display='none'">Ok</button>
+  </div>
+</div>
+
+<script>
+/* SUPABASE */
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+
+let diaSelecionado = null;
+let horarioSelecionado = null;
+let servicoSelecionado = null;
+
+/* LOAD */
+(async ()=>{
+  const {data:loja} = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id",lojaId)
+    .single();
+
+  nomeLoja.innerText = loja?.negocio || "";
+
+  carregarCalendario();
+  carregarServicos();
+})();
+
+/* CALENDÁRIO */
+function carregarCalendario(){
+  calendar.innerHTML="";
+  const hoje = new Date();
+
+  for(let i=0;i<14;i++){
+    const d = new Date();
+    d.setDate(hoje.getDate()+i);
+
+    const el = document.createElement("div");
+    el.className="day ok";
+    el.innerText=d.getDate();
+
+    el.onclick=()=>{
+      document.querySelectorAll(".day").forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      diaSelecionado=d.toISOString().slice(0,10);
+      carregarHorarios();
+    };
+
+    calendar.appendChild(el);
+  }
+}
+
+/* HORÁRIOS */
+function carregarHorarios(){
+  times.innerHTML="";
+  ["09:00","10:00","11:00","14:00","15:00","16:00"].forEach(h=>{
+    const el=document.createElement("div");
+    el.className="time";
+    el.innerText=h;
+    el.onclick=()=>{
+      document.querySelectorAll(".time").forEach(t=>t.classList.remove("active"));
+      el.classList.add("active");
+      horarioSelecionado=h;
+    };
+    times.appendChild(el);
+  });
+}
+
+/* SERVIÇOS */
+async function carregarServicos(){
+  const {data} = await sb
+    .from("produtos_servicos")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("ativo",true);
+
+  services.innerHTML="";
+  data.forEach(s=>{
+    const el=document.createElement("div");
+    el.className="service";
+    el.innerHTML=`<h4>${s.nome}</h4><small>R$ ${s.preco}</small>`;
+    el.onclick=()=>{
+      document.querySelectorAll(".service").forEach(x=>x.classList.remove("active"));
+      el.classList.add("active");
+      servicoSelecionado=s;
+    };
+    services.appendChild(el);
+  });
+}
+
+/* CONFIRMAR */
+async function confirmar(){
+  if(!servicoSelecionado){
+    popup.style.display="flex";
+    return;
+  }
+
+  await sb.from("agendamentos").insert({
+    loja_id: lojaId,
+    data: diaSelecionado,
+    horario: horarioSelecionado,
+    servico: servicoSelecionado.nome,
+    preco: servicoSelecionado.preco
+  });
+
+  alert("Agendamento realizado com sucesso!");
+  location.reload();
+}
+</script>
+
+</body>
+</html>
