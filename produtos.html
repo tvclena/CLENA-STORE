@@ -45,7 +45,7 @@ body{background:#f4f6fb}
 .grid{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;padding:0 16px 120px
+  gap:10px;padding:0 16px 140px
 }
 
 /* CARD */
@@ -54,14 +54,16 @@ body{background:#f4f6fb}
   border-radius:14px;
   box-shadow:0 6px 16px rgba(0,0,0,.06);
   overflow:hidden;
-  display:flex;
-  flex-direction:column;
 }
 .item img{width:100%;height:72px;object-fit:cover;background:#eee}
 .item-body{padding:8px;display:flex;flex-direction:column;gap:4px}
 .item-body h4{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px}
+.badge.servico{background:#e0f2fe;color:#0369a1}
+.badge.produto{background:#ecfeff;color:#0f766e}
+.badge.promo{background:#fff7ed;color:#c2410c}
 .price{font-size:12px;font-weight:800}
-.actions{margin-top:auto;font-size:10px;color:var(--primary);font-weight:700;cursor:pointer}
+.actions{font-size:10px;color:var(--primary);font-weight:700;cursor:pointer}
 
 /* FAB */
 .fab{
@@ -110,7 +112,7 @@ body{background:#f4f6fb}
 
 <div class="header">
   <h1>Produtos & <span>Serviços</span></h1>
-  <p>Cadastro e edição</p>
+  <p>Cadastro completo</p>
 </div>
 
 <div class="filters">
@@ -135,7 +137,7 @@ body{background:#f4f6fb}
 
     <div class="sheet-body">
       <label>Tipo</label>
-      <select id="tipo" onchange="toggleServico()">
+      <select id="tipo" onchange="toggleTipo()">
         <option value="SERVICO">Serviço</option>
         <option value="PRODUTO">Produto</option>
       </select>
@@ -146,13 +148,26 @@ body{background:#f4f6fb}
       <label>Descrição</label>
       <textarea id="descricao"></textarea>
 
+      <label>Categoria</label>
+      <input id="categoria">
+
       <label>Preço</label>
       <input id="preco">
+
+      <label>Custo</label>
+      <input id="custo">
+
+      <label>
+        <input type="checkbox" id="promoAtiva"> Promoção ativa
+      </label>
+
+      <label>Preço promocional</label>
+      <input id="precoPromo">
 
       <!-- SERVIÇO -->
       <div id="boxServico">
         <label>Duração (minutos)</label>
-        <input id="duracao" type="number" min="1">
+        <input id="duracao" type="number">
 
         <label>
           <input type="checkbox" id="podeAgendar"> Pode agendar
@@ -172,9 +187,15 @@ body{background:#f4f6fb}
         <input id="estoqueMinimo" type="number">
       </div>
 
+      <label>Ordem de exibição</label>
+      <input id="ordem" type="number">
+
       <label>
-        <input type="checkbox" id="promoAtiva"> Ativar promoção
+        <input type="checkbox" id="ativo"> Item ativo
       </label>
+
+      <label>Observações internas</label>
+      <textarea id="obs"></textarea>
 
       <label>Imagem</label>
       <div class="image-box" onclick="imagem.click()">
@@ -205,7 +226,7 @@ let userId,itens=[],editId=null,blob=null;
  carregar();
 })();
 
-function toggleServico(){
+function toggleTipo(){
  const isServico=tipo.value==="SERVICO";
  boxServico.style.display=isServico?"block":"none";
  boxProduto.style.display=isServico?"none":"block";
@@ -227,13 +248,19 @@ async function salvar(){
   tipo:tipo.value,
   nome:nome.value,
   descricao:descricao.value,
+  categoria:categoria.value,
   preco:Number(preco.value.replace(/[^\d]/g,''))/100,
+  custo:Number(custo.value.replace(/[^\d]/g,''))/100,
+  preco_promocional:Number(precoPromo.value.replace(/[^\d]/g,''))/100||null,
   promocao_ativa:promoAtiva.checked,
   duracao_minutos:tipo.value==="SERVICO"?Number(duracao.value||0):null,
-  pode_agendar:tipo.value==="SERVICO"?podeAgendar.checked:false,
-  controla_estoque:tipo.value==="PRODUTO"?controlaEstoque.checked:false,
-  estoque_atual:tipo.value==="PRODUTO"?Number(estoqueAtual.value||0):null,
-  estoque_minimo:tipo.value==="PRODUTO"?Number(estoqueMinimo.value||0):null
+  pode_agendar:podeAgendar.checked,
+  controla_estoque:controlaEstoque.checked,
+  estoque_atual:Number(estoqueAtual.value||0),
+  estoque_minimo:Number(estoqueMinimo.value||0),
+  ordem_exibicao:Number(ordem.value||0),
+  ativo:ativo.checked,
+  observacoes_internas:obs.value
  };
 
  let data;
@@ -256,7 +283,7 @@ async function salvar(){
 }
 
 async function carregar(){
- const {data}=await sb.from("produtos_servicos").select("*").eq("user_id",userId);
+ const {data}=await sb.from("produtos_servicos").select("*").eq("user_id",userId).order("ordem_exibicao");
  itens=data||[];
  render();
 }
@@ -273,6 +300,8 @@ function render(){
     ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
     <div class="item-body">
      <h4>${i.nome}</h4>
+     <div class="badge ${i.tipo==="SERVICO"?"servico":"produto"}">${i.tipo}</div>
+     ${i.promocao_ativa?`<div class="badge promo">PROMO</div>`:""}
      <span class="price">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</span>
      <div class="actions" onclick="editar('${i.id}')">Editar</div>
     </div>
@@ -284,17 +313,22 @@ function editar(id){
  const i=itens.find(x=>x.id===id);
  editId=id;
  formTitle.innerText="Editar item";
- tipo.value=i.tipo;
- toggleServico();
+ tipo.value=i.tipo;toggleTipo();
  nome.value=i.nome;
  descricao.value=i.descricao;
- preco.value='R$ '+Number(i.preco).toFixed(2).replace('.',',');
+ categoria.value=i.categoria||"";
+ preco.value=i.preco;
+ custo.value=i.custo||"";
+ precoPromo.value=i.preco_promocional||"";
+ promoAtiva.checked=i.promocao_ativa;
  duracao.value=i.duracao_minutos||"";
  podeAgendar.checked=i.pode_agendar;
  controlaEstoque.checked=i.controla_estoque;
  estoqueAtual.value=i.estoque_atual||"";
  estoqueMinimo.value=i.estoque_minimo||"";
- promoAtiva.checked=i.promocao_ativa;
+ ordem.value=i.ordem_exibicao||0;
+ ativo.checked=i.ativo;
+ obs.value=i.observacoes_internas||"";
  if(i.imagem_url){preview.src=i.imagem_url;preview.style.display="block"}
  abrirModal();
 }
