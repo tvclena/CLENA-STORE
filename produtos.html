@@ -22,7 +22,6 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --radius:14px;
 }
 
 *{
@@ -42,15 +41,9 @@ html,body{
 body{
   background:var(--bg);
   padding:12px;
-  overflow-y:auto;
-  scrollbar-width:none;
 }
-body::-webkit-scrollbar{display:none}
 
 /* ===== HEADER ===== */
-.header{
-  margin-bottom:12px;
-}
 .header h1{
   font-size:18px;
   font-weight:800;
@@ -59,29 +52,7 @@ body::-webkit-scrollbar{display:none}
 .header p{
   font-size:12px;
   color:var(--muted);
-}
-
-/* ===== KPIs ===== */
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin:12px 0;
-}
-.kpi{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:10px;
-  text-align:center;
-  box-shadow:0 4px 12px rgba(0,0,0,.06);
-}
-.kpi small{
-  font-size:10px;
-  color:var(--muted);
-}
-.kpi h2{
-  font-size:16px;
-  font-weight:800;
+  margin-bottom:12px;
 }
 
 /* ===== FILTERS ===== */
@@ -100,21 +71,18 @@ body::-webkit-scrollbar{display:none}
   font-size:12px;
 }
 
-/* ===== GRID 3 COL ===== */
+/* ===== GRID ===== */
 .grid{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-template-columns:repeat(3,1fr);
   gap:8px;
 }
 
-/* ===== ITEM ===== */
 .item{
-  background:var(--card);
+  background:#fff;
   border-radius:12px;
   box-shadow:0 4px 12px rgba(0,0,0,.06);
   overflow:hidden;
-  display:flex;
-  flex-direction:column;
 }
 
 .item img{
@@ -126,57 +94,36 @@ body::-webkit-scrollbar{display:none}
 
 .item-body{
   padding:8px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
 }
-
-.badges{
-  display:flex;
-  flex-wrap:wrap;
-  gap:4px;
-}
-.badge{
-  font-size:8px;
-  padding:2px 6px;
-  border-radius:999px;
-  background:#f1f5f9;
-}
-.badge.promo{background:#fde68a}
-
 .item-body h4{
   font-size:11px;
   font-weight:700;
-  line-height:1.2;
 }
-
 .price{
   font-size:12px;
   font-weight:800;
 }
-
 .actions{
-  margin-top:auto;
   font-size:10px;
   color:var(--primary);
   font-weight:700;
 }
 
-/* ===== FLOAT BUTTON ===== */
+/* ===== FAB ===== */
 .fab{
   position:fixed;
   bottom:90px;
   right:16px;
-  width:52px;
-  height:52px;
+  width:54px;
+  height:54px;
   border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
   font-size:26px;
+  border:none;
   display:flex;
   align-items:center;
   justify-content:center;
-  border:none;
   box-shadow:0 10px 30px rgba(0,0,0,.25);
 }
 
@@ -187,39 +134,49 @@ body::-webkit-scrollbar{display:none}
   background:rgba(0,0,0,.45);
   display:none;
   align-items:flex-end;
-  z-index:999;
+  z-index:1000;
 }
 .modal.show{display:flex}
 
-.modal-card{
+.sheet{
   width:100%;
+  height:90vh;
   background:#fff;
-  border-radius:18px 18px 0 0;
-  padding:16px;
+  border-radius:20px 20px 0 0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 
-.modal-card input,
-.modal-card textarea,
-.modal-card select{
+/* HEADER */
+.sheet-header{
+  padding:14px;
+  border-bottom:1px solid var(--border);
+  font-weight:800;
+  display:flex;
+  justify-content:space-between;
+}
+
+/* BODY */
+.sheet-body{
+  flex:1;
+  padding:14px;
+  overflow-y:auto;
+}
+.sheet-body input,
+.sheet-body textarea,
+.sheet-body select{
   width:100%;
   height:38px;
-  margin-bottom:8px;
+  margin-bottom:10px;
   padding:0 10px;
   border-radius:10px;
   border:1px solid var(--border);
   font-size:12px;
 }
-.modal-card textarea{height:auto;padding:8px}
-
-.modal-card button{
-  width:100%;
-  height:42px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-  margin-top:8px;
+.sheet-body textarea{
+  height:auto;
+  padding:8px;
 }
 
 .upload{
@@ -231,9 +188,31 @@ body::-webkit-scrollbar{display:none}
 }
 .upload img{
   width:100%;
-  height:100px;
+  height:120px;
   object-fit:cover;
   border-radius:10px;
+}
+
+/* FOOTER */
+.sheet-footer{
+  padding:12px;
+  border-top:1px solid var(--border);
+  display:flex;
+  gap:10px;
+}
+.sheet-footer button{
+  flex:1;
+  height:44px;
+  border:none;
+  border-radius:999px;
+  font-weight:800;
+}
+.btn-save{
+  background:var(--primary);
+  color:#fff;
+}
+.btn-cancel{
+  background:#e5e7eb;
 }
 </style>
 </head>
@@ -242,13 +221,7 @@ body::-webkit-scrollbar{display:none}
 
 <div class="header">
   <h1>Produtos & <span>Serviços</span></h1>
-  <p>Gerencie seus itens</p>
-</div>
-
-<div class="kpis">
-  <div class="kpi"><small>Total</small><h2 id="kpiTotal">0</h2></div>
-  <div class="kpi"><small>Serviços</small><h2 id="kpiServicos">0</h2></div>
-  <div class="kpi"><small>Promo</small><h2 id="kpiPromo">0</h2></div>
+  <p>Cadastro e edição</p>
 </div>
 
 <div class="filters">
@@ -266,29 +239,38 @@ body::-webkit-scrollbar{display:none}
 
 <!-- MODAL -->
 <div class="modal" id="modal">
-  <div class="modal-card">
-    <select id="tipo">
-      <option value="SERVICO">Serviço</option>
-      <option value="PRODUTO">Produto</option>
-    </select>
-    <input id="nome" placeholder="Nome">
-    <textarea id="descricao" placeholder="Descrição"></textarea>
-    <input id="preco" placeholder="Preço">
-    <label><input type="checkbox" id="promoAtiva"> Promoção</label>
-
-    <div class="upload" onclick="imagem.click()">
-      <img id="preview" style="display:none">
-      <span id="uploadText">Selecionar imagem</span>
-      <input type="file" id="imagem" hidden>
+  <div class="sheet">
+    <div class="sheet-header">
+      <span id="formTitle">Novo item</span>
+      <span onclick="fecharModal()">✕</span>
     </div>
 
-    <button onclick="salvar()">Salvar</button>
-    <button onclick="fecharModal()" style="background:#e5e7eb;color:#111">Cancelar</button>
+    <div class="sheet-body">
+      <select id="tipo">
+        <option value="SERVICO">Serviço</option>
+        <option value="PRODUTO">Produto</option>
+      </select>
+      <input id="nome" placeholder="Nome">
+      <textarea id="descricao" placeholder="Descrição"></textarea>
+      <input id="preco" placeholder="Preço">
+      <label><input type="checkbox" id="promoAtiva"> Promoção</label>
+
+      <div class="upload" onclick="imagem.click()">
+        <img id="preview" style="display:none">
+        <span id="uploadText">Selecionar imagem</span>
+        <input type="file" id="imagem" hidden>
+      </div>
+    </div>
+
+    <div class="sheet-footer">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-save" onclick="salvar()">Salvar</button>
+    </div>
   </div>
 </div>
 
 <script>
-const sb = supabase.createClient(
+const sb=supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
@@ -304,8 +286,13 @@ let itens=[],userId=null,editId=null;
 
 search.oninput=filtroTipo.onchange=render;
 
-function abrirModal(){ modal.classList.add("show"); }
-function fecharModal(){ modal.classList.remove("show"); reset(); }
+function abrirModal(){
+  modal.classList.add("show");
+}
+function fecharModal(){
+  modal.classList.remove("show");
+  reset();
+}
 
 imagem.onchange=()=>{
   const f=imagem.files[0];
@@ -347,9 +334,6 @@ async function salvar(){
 async function carregar(){
   const {data}=await sb.from("produtos_servicos").select("*");
   itens=data||[];
-  kpiTotal.innerText=itens.length;
-  kpiServicos.innerText=itens.filter(i=>i.tipo==="SERVICO").length;
-  kpiPromo.innerText=itens.filter(i=>i.promocao_ativa).length;
   render();
 }
 
@@ -364,10 +348,6 @@ function render(){
       <div class="item">
         ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
         <div class="item-body">
-          <div class="badges">
-            <span class="badge">${i.tipo}</span>
-            ${i.promocao_ativa?`<span class="badge promo">Promo</span>`:""}
-          </div>
           <h4>${i.nome}</h4>
           <div class="price">R$ ${i.preco}</div>
           <div class="actions" onclick="editar('${i.id}')">Editar</div>
@@ -379,6 +359,7 @@ function render(){
 function editar(id){
   const i=itens.find(x=>x.id===id);
   editId=id;
+  formTitle.innerText="Editar item";
   tipo.value=i.tipo;
   nome.value=i.nome;
   descricao.value=i.descricao;
@@ -394,7 +375,8 @@ function editar(id){
 
 function reset(){
   editId=null;
-  document.querySelectorAll(".modal-card input,.modal-card textarea").forEach(e=>e.value="");
+  formTitle.innerText="Novo item";
+  document.querySelectorAll(".sheet-body input,.sheet-body textarea").forEach(e=>e.value="");
   preview.style.display="none";
   uploadText.style.display="block";
 }
