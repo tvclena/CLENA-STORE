@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agendar</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+}
+
+body{
+  background:var(--bg);
+  padding:16px;
+}
+
+/* ================= BANNER ================= */
+.banner{
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  border-radius:22px;
+  padding:18px;
+  color:#fff;
+  margin-bottom:16px;
+}
+
+.banner-top{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+
+.banner-logo{
+  width:64px;
+  height:64px;
+  border-radius:16px;
+  background:#fff;
+  background-size:cover;
+  background-position:center;
+}
+
+.banner h1{
+  font-size:18px;
+  font-weight:800;
+}
+
+.banner p{
+  font-size:13px;
+  opacity:.9;
+}
+
+.banner-chips{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+  flex-wrap:wrap;
+}
+
+.chip{
+  background:rgba(255,255,255,.2);
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+}
+
+/* ================= SEARCH ================= */
+.search{
+  margin:16px 0;
+}
+
+.search input{
+  width:100%;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+
+/* ================= TABS ================= */
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.tabs button{
+  padding:10px 18px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:700;
+}
+
+.tabs button.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+/* ================= GRID ================= */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.card img{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+}
+
+.badge{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:var(--primary);
+  color:#fff;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.card-body{
+  padding:12px;
+}
+
+.card-body strong{
+  display:block;
+  margin-bottom:6px;
+}
+
+.meta{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+.price{
+  font-weight:900;
+  color:var(--text);
+}
+
+.old{
+  text-decoration:line-through;
+  color:#9ca3af;
+  margin-right:6px;
+}
+
+.card button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+}
+</style>
+</head>
+
+<body>
+
+<!-- BANNER -->
+<div class="banner">
+  <div class="banner-top">
+    <div class="banner-logo" id="logo"></div>
+    <div>
+      <h1 id="nomeLoja">Carregando…</h1>
+      <p id="cidadeLoja"></p>
+    </div>
+  </div>
+
+  <div class="banner-chips">
+    <div class="chip">⚡ Atendimento rápido</div>
+    <div class="chip">📲 Confirmação WhatsApp</div>
+    <div class="chip">💳 Pagamento facilitado</div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="search">
+  <input id="busca" placeholder="Buscar serviço">
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="active">Serviços</button>
+</div>
+
+<!-- GRID -->
+<div id="grid" class="grid"></div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+let servicos = [];
+
+/* ================= LOAD ================= */
+async function load(){
+  const { data: loja } = await sb
+    .from("user_profile")
+    .select("negocio,avatar_url,cidade,uf")
+    .eq("user_id", lojaId)
+    .single();
+
+  if(loja){
+    nomeLoja.innerText = loja.negocio;
+    cidadeLoja.innerText = `${loja.cidade || ""} • ${loja.uf || ""}`;
+    if(loja.avatar_url){
+      logo.style.backgroundImage = `url(${loja.avatar_url})`;
+    }
+  }
+
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("*")
+    .eq("user_id", lojaId)
+    .eq("tipo", "SERVICO")
+    .eq("ativo", true)
+    .eq("pode_agendar", true)
+    .order("ordem_exibicao");
+
+  servicos = data || [];
+  render();
+}
+
+function render(){
+  const q = busca.value.toLowerCase();
+
+  grid.innerHTML = servicos
+    .filter(s => s.nome.toLowerCase().includes(q))
+    .map(s => `
+      <div class="card">
+        <div style="position:relative">
+          ${s.promocao_ativa ? `<div class="badge">Promoção</div>` : ``}
+          <img src="${s.imagem_url || ''}">
+        </div>
+        <div class="card-body">
+          <strong>${s.nome}</strong>
+          <div class="meta">
+            <span>⏱ ${s.duracao_minutos || 0} min</span>
+            <span class="price">
+              ${
+                s.promocao_ativa
+                  ? `<span class="old">R$ ${Number(s.preco).toFixed(0)}</span> R$ ${Number(s.preco_promocional).toFixed(0)}`
+                  : `R$ ${Number(s.preco).toFixed(0)}`
+              }
+            </span>
+          </div>
+          <button onclick="agendar('${s.id}')">Agendar</button>
+        </div>
+      </div>
+    `).join("");
+}
+
+busca.addEventListener("input", render);
+
+function agendar(id){
+  alert("Serviço selecionado: " + id + "\n(próxima tela: calendário)");
+}
+
+load();
+</script>
+
+</body>
+</html>
