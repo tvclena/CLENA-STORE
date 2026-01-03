@@ -256,50 +256,35 @@ let fotoBlob = null; // ✅ vamos enviar blob reduzido
 
 /* ================= AUTH ================= */
 async function proteger(){
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session){ location.href="login.html"; return; }
-  user = session.user;
+ const { data:{ session } } = await sb.auth.getSession();
+if(!session){
+  location.href = "login.html";
+  return;
+}
+user = session.user;
 
-  const {data:p, error} = await sb.from("user_profile")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
+// ✅ LIBERA A TELA IMEDIATAMENTE
+overlay.style.display = "none";
 
-  profile = p || {};
+// ⏳ CARREGA PERFIL EM BACKGROUND
+carregarPerfil();
 
-  // Avatar letra / imagem
-  const letra = (profile?.negocio?.[0] || user.email?.[0] || "A").toUpperCase();
-  avatar.textContent = letra;
-
-  pEmail.value = user.email || "";
-  pNegocio.value = profile.negocio || "";
-  pWhatsapp.value = maskWhats(profile.whatsapp || "");
-  pEmailContato.value = profile.email_contato || "";
-
-  pCep.value = profile.cep || "";
-  pRua.value = profile.rua || "";
-  pNumero.value = profile.numero || "";
-  pBairro.value = profile.bairro || "";
-  pCidade.value = profile.cidade || "";
-  pUf.value = (profile.uf || "").toUpperCase();
-
-  // Se tiver avatar_path, gera signed url
-  if(profile.avatar_path){
-    const url = await getSigned(profile.avatar_path);
-    if(url){
-      profileImg.style.backgroundImage = `url(${url})`;
-      avatar.style.backgroundImage = `url(${url})`;
-      avatar.textContent = ""; // some letra
-    }
-  } else if(profile.avatar_url){
-    // compatibilidade caso já tenha avatar_url antigo
-    profileImg.style.backgroundImage = `url(${profile.avatar_url})`;
-    avatar.style.backgroundImage = `url(${profile.avatar_url})`;
-    avatar.textContent = "";
+ async function proteger(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){
+    location.href = "login.html";
+    return;
   }
 
-  overlay.style.display="none";
+  user = session.user;
+
+  // some rápido
+  overlay.style.display = "none";
+
+  // carrega perfil sem travar
+  carregarPerfil();
 }
+
 proteger();
 
 /* ================= NAV ================= */
