@@ -4,44 +4,117 @@
 <meta charset="UTF-8">
 <title>Editar Loja • Agenda Fácil</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body{font-family:Inter;background:#f4f6fb;padding:20px}
-.card{background:#fff;border-radius:16px;padding:20px;margin-bottom:16px}
-label{font-weight:700;font-size:13px}
-input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px}
-button{margin-top:14px;padding:14px;border:none;border-radius:999px;background:#ff6a00;color:#fff;font-weight:800}
-.toggle{display:flex;align-items:center;gap:8px}
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);margin:0;padding:20px;color:var(--text)}
+
+h1{font-size:22px;margin-bottom:10px}
+.section{background:var(--card);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+
+label{font-size:13px;font-weight:700}
+input,textarea{
+  width:100%;
+  margin-top:6px;
+  margin-bottom:14px;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+.toggle{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+
+button{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
+}
+
+/* PREVIEW */
+.preview{
+  border-radius:20px;
+  overflow:hidden;
+  background:#fff;
+  margin-top:10px;
+}
+.preview header{
+  padding:20px;
+  text-align:center;
+  color:#fff;
+}
+.preview header img{
+  width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:8px
+}
+
+/* OVERLAY */
+#overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:none;align-items:center;justify-content:center;z-index:9999;
+}
+#overlay div{
+  background:#fff;padding:18px 22px;border-radius:14px;font-weight:800;
+}
 </style>
 </head>
 
 <body>
 
-<h2>Visual da Loja</h2>
+<h1>Visual da Loja</h1>
 
-<div class="card">
-  <label>Cor primária</label>
-  <input type="color" id="corPrimaria">
+<div class="section">
+  <label>Nome da loja</label>
+  <input id="nome">
 
-  <label>Cor do botão</label>
-  <input type="color" id="corBotao">
+  <label>Logo da loja</label>
+  <input type="file" id="logoFile" accept="image/*">
+
+  <div class="row">
+    <div>
+      <label>Cor primária</label>
+      <input type="color" id="corPrimaria">
+    </div>
+    <div>
+      <label>Cor do botão</label>
+      <input type="color" id="corBotao">
+    </div>
+  </div>
 </div>
 
-<div class="card">
+<div class="section">
   <div class="toggle">
     <input type="checkbox" id="bannerAtivo">
     <label>Banner ativo</label>
   </div>
 
   <label>Imagem do banner</label>
-  <input id="bannerImagem">
+  <input type="file" id="bannerFile" accept="image/*">
 
   <label>Texto do banner</label>
   <input id="bannerTexto">
 </div>
 
-<div class="card">
+<div class="section">
   <div class="toggle">
     <input type="checkbox" id="popupAtivo">
     <label>Popup promocional</label>
@@ -54,54 +127,90 @@ button{margin-top:14px;padding:14px;border:none;border-radius:999px;background:#
   <textarea id="popupTexto"></textarea>
 </div>
 
-<button onclick="salvar()">Salvar alterações</button>
+<button onclick="salvar()">Aplicar alterações</button>
+
+<h2>Pré-visualização</h2>
+<div class="preview">
+  <header id="previewHeader">
+    <img id="previewLogo">
+    <h3 id="previewNome"></h3>
+  </header>
+</div>
+
+<div id="overlay"><div>Aplicando alterações na loja…</div></div>
 
 <script>
 const sb = supabase.createClient(
- "https://egxjgmzukjyyxmkukwub.supabase.co",
- "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let user;
+let user, logoPath=null, bannerPath=null;
 
-async function init(){
+/* INIT */
+(async()=>{
   const {data:{session}} = await sb.auth.getSession();
-  if(!session) location.href="login.html";
+  if(!session) return location.href="login.html";
   user = session.user;
 
-  const {data} = await sb
-    .from("config_loja")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
+  const {data} = await sb.from("config_loja").select("*").eq("user_id", user.id).single();
+  if(!data) return;
 
-  if(data){
-    corPrimaria.value = data.cor_primaria;
-    corBotao.value = data.cor_botao;
-    bannerAtivo.checked = data.banner_ativo;
-    bannerImagem.value = data.banner_imagem || "";
-    bannerTexto.value = data.banner_texto || "";
-    popupAtivo.checked = data.popup_ativo;
-    popupTitulo.value = data.popup_titulo || "";
-    popupTexto.value = data.popup_texto || "";
-  }
+  nome.value = data.nome || "";
+  corPrimaria.value = data.cor_primaria || "#ff6a00";
+  corBotao.value = data.cor_botao || "#ff6a00";
+  bannerAtivo.checked = data.banner_ativo;
+  bannerTexto.value = data.banner_texto || "";
+  popupAtivo.checked = data.popup_ativo;
+  popupTitulo.value = data.popup_titulo || "";
+  popupTexto.value = data.popup_texto || "";
+
+  atualizarPreview();
+})();
+
+/* PREVIEW */
+function atualizarPreview(){
+  document.documentElement.style.setProperty('--primary', corPrimaria.value);
+  previewHeader.style.background = corPrimaria.value;
+  previewNome.innerText = nome.value || "Nome da loja";
 }
-init();
 
+/* UPLOAD */
+async function upload(file, path){
+  await sb.storage.from("produtos").upload(path, file, {upsert:true});
+  return path;
+}
+
+/* SALVAR */
 async function salvar(){
+  overlay.style.display="flex";
+
+  if(logoFile.files[0])
+    logoPath = await upload(logoFile.files[0], `logo/${user.id}.jpg`);
+
+  if(bannerFile.files[0])
+    bannerPath = await upload(bannerFile.files[0], `banner/${user.id}.jpg`);
+
   await sb.from("config_loja").upsert({
     user_id: user.id,
+    nome: nome.value,
+    logo_url: logoPath,
     cor_primaria: corPrimaria.value,
     cor_botao: corBotao.value,
     banner_ativo: bannerAtivo.checked,
-    banner_imagem: bannerImagem.value,
+    banner_url: bannerPath,
     banner_texto: bannerTexto.value,
     popup_ativo: popupAtivo.checked,
     popup_titulo: popupTitulo.value,
-    popup_texto: popupTexto.value
+    popup_texto: popupTexto.value,
+    updated_at: new Date()
   });
-  alert("Configurações salvas!");
+
+  overlay.style.display="none";
+  alert("Visual da loja atualizado com sucesso!");
 }
+
+document.querySelectorAll("input,textarea").forEach(i=>i.addEventListener("input", atualizarPreview));
 </script>
 
 </body>
