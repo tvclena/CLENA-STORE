@@ -98,6 +98,24 @@ html,body{
   opacity:.5;
   pointer-events:none;
 }
+
+/* INPUT WHATS */
+.ask-whats{
+  margin-top:20px;
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
+}
+
+.ask-whats input{
+  width:100%;
+  padding:14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:15px;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -114,38 +132,73 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
+const container = document.getElementById("lista");
 
-/* WhatsApp do cliente salvo no agendamento */
+/* ===== IDENTIFICAÇÃO INTELIGENTE ===== */
+
 let clienteWhats = localStorage.getItem("CLIENTE_WHATS");
 
-if(!clienteWhats){
-  clienteWhats = prompt("Informe seu WhatsApp usado no agendamento:");
+/* inicia */
+init();
+
+async function init(){
   if(clienteWhats){
-    clienteWhats = clienteWhats.replace(/\D/g,'');
-    localStorage.setItem("CLIENTE_WHATS",clienteWhats);
+    const achou = await carregarAgendamentos(clienteWhats);
+    if(achou) return;
+    // se não achou nada, limpa e pede
+    localStorage.removeItem("CLIENTE_WHATS");
+    clienteWhats = null;
   }
+
+  pedirWhats();
 }
 
-async function carregar(){
-  if(!clienteWhats) return;
+/* ===== PEDE WHATS APENAS SE NECESSÁRIO ===== */
+function pedirWhats(){
+  container.innerHTML = `
+    <div class="ask-whats">
+      <strong>Para localizar seus agendamentos</strong>
+      <p>Informe o WhatsApp usado no agendamento:</p>
+      <input id="whats" placeholder="(77) 99999-9999" inputmode="numeric">
+    </div>
+  `;
 
-  const {data}=await sb.from("agendamentos")
+  const input = document.getElementById("whats");
+  input.oninput = () => {
+    input.value = input.value
+      .replace(/\D/g,'')
+      .slice(0,11)
+      .replace(/^(\d{2})(\d)/,"($1) $2")
+      .replace(/(\d{5})(\d)/,"$1-$2");
+  };
+
+  input.addEventListener("keydown", async e=>{
+    if(e.key==="Enter"){
+      const v = input.value.replace(/\D/g,'');
+      if(v.length<10) return;
+      localStorage.setItem("CLIENTE_WHATS", v);
+      clienteWhats = v;
+      await carregarAgendamentos(v);
+    }
+  });
+}
+
+/* ===== CARREGA AGENDAMENTOS ===== */
+async function carregarAgendamentos(whats){
+  const {data} = await sb.from("agendamentos")
     .select("*")
-    .eq("user_id",lojaId)
-    .eq("cliente_whatsapp",clienteWhats)
+    .eq("user_id", lojaId)
+    .eq("cliente_whatsapp", whats)
     .order("data",{ascending:true});
 
-  const wrap=document.getElementById("lista");
-
-  if(!data.length){
-    wrap.innerHTML="<p>Nenhum agendamento encontrado.</p>";
-    return;
+  if(!data || !data.length){
+    return false;
   }
 
-  wrap.innerHTML=data.map(a=>{
+  container.innerHTML = data.map(a=>{
     const inicio = new Date(`${a.data}T${a.hora_inicio}`);
     const diffMin = (inicio - new Date())/60000;
-    const podeCancelar = diffMin >= 40 && a.status==="ativo";
+    const podeCancelar = diffMin >= 40 && a.status === "ativo";
 
     return `
       <div class="card">
@@ -170,8 +223,11 @@ async function carregar(){
       </div>
     `;
   }).join("");
+
+  return true;
 }
 
+/* ===== AÇÕES ===== */
 function alterar(id){
   const msg = encodeURIComponent(
     "Olá! Gostaria de solicitar alteração do meu agendamento. Código: "+id
@@ -193,10 +249,8 @@ async function cancelar(id){
     .update({status:"cancelado"})
     .eq("id",id);
 
-  carregar();
+  carregarAgendamentos(clienteWhats);
 }
-
-carregar();
 </script>
 
 </body>
