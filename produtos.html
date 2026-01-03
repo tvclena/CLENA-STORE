@@ -4,27 +4,17 @@
 <meta charset="UTF-8">
 <title>Produtos & Serviços • AgendaBeauty</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
---primary:#ff6a00;
---primary-soft:#fff1e6;
---bg:#f5f7fb;
---card:#ffffff;
---border:#e5e7eb;
---radius:14px;
---danger:#dc2626;
---success:#16a34a;
---warning:#f59e0b;
---muted:#6b7280;
---shadow:0 12px 30px rgba(0,0,0,.1)
+--primary:#ff6a00;--bg:#f5f7fb;--card:#fff;--border:#e5e7eb;
+--danger:#dc2626;--success:#16a34a;--warning:#f59e0b;
+--muted:#6b7280;--radius:14px;--shadow:0 12px 30px rgba(0,0,0,.1)
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{height:100%}
-body{background:var(--bg);padding:18px;overflow:hidden}
+body{background:var(--bg);padding:18px;height:100vh;overflow:hidden}
 
 /* HEADER */
 .header{max-width:1700px;margin:auto}
@@ -35,140 +25,53 @@ body{background:var(--bg);padding:18px;overflow:hidden}
 /* KPIs */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
 .kpi{background:var(--card);padding:16px;border-radius:14px;box-shadow:var(--shadow)}
-.kpi small{font-size:11px;color:var(--muted);font-weight:600}
+.kpi small{font-size:11px;color:var(--muted)}
 .kpi h2{font-size:22px;font-weight:800}
 
 /* LAYOUT */
-.container{
-max-width:1700px;
-margin:auto;
-display:grid;
-grid-template-columns:420px 1fr;
-gap:18px;
-height:calc(100vh - 180px)
-}
+.container{max-width:1700px;margin:auto;display:grid;grid-template-columns:420px 1fr;gap:18px;height:calc(100vh - 180px)}
 
 /* CARD */
-.card{
-background:var(--card);
-border-radius:14px;
-padding:16px;
-box-shadow:var(--shadow);
-display:flex;
-flex-direction:column;
-overflow:hidden
-}
+.card{background:var(--card);border-radius:14px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
 .card h3{font-size:15px;font-weight:700;margin-bottom:10px}
 
 /* FORM */
 input,textarea,select{
-width:100%;
-height:36px;
-padding:0 10px;
-border-radius:10px;
-border:1px solid var(--border);
-font-size:12px;
-margin-bottom:8px
+width:100%;height:36px;padding:0 10px;border-radius:10px;
+border:1px solid var(--border);font-size:12px;margin-bottom:8px
 }
-textarea{height:auto;padding:8px;resize:none}
+textarea{height:auto;padding:8px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .switch{display:flex;align-items:center;gap:6px;font-size:11px;margin:4px 0}
-.switch input{width:14px;height:14px}
-
-/* UPLOAD */
-.upload{
-border:2px dashed var(--border);
-border-radius:10px;
-padding:10px;
-text-align:center;
-cursor:pointer
-}
-.upload img{width:100%;height:90px;object-fit:cover;border-radius:8px}
-.upload span{font-size:11px;color:var(--muted)}
 
 /* BUTTON */
-button{
-height:42px;
-border:none;
-border-radius:22px;
+button{height:42px;border:none;border-radius:22px;
 background:linear-gradient(135deg,#ff6a00,#ff9a57);
-color:#fff;
-font-weight:800;
-font-size:13px;
-cursor:pointer;
-margin-top:6px
-}
-
-/* FILTERS */
-.filters{display:flex;gap:8px;margin-bottom:10px}
-.filters input,.filters select{height:36px}
+color:#fff;font-weight:800;cursor:pointer}
 
 /* GRID */
-.grid{
-flex:1;
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-gap:12px;
-overflow-y:auto;
-padding-right:6px
-}
-.grid::-webkit-scrollbar{width:5px}
-.grid::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:10px}
+.grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;overflow-y:auto}
 
 /* ITEM */
-.item{
-height:220px;
-background:#fff;
-border-radius:14px;
-box-shadow:0 8px 22px rgba(0,0,0,.1);
-overflow:hidden;
-display:flex;
-flex-direction:column;
-transition:.2s
-}
-.item:hover{transform:translateY(-4px)}
-
-/* IMAGE */
-.image{
-width:100%;
-height:90px;
-display:flex;
-align-items:center;
-justify-content:center;
-background:linear-gradient(135deg,#f1f5f9,#e5e7eb)
-}
+.item{background:#fff;border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.1);overflow:hidden;display:flex;flex-direction:column}
+.image{height:90px;display:flex;align-items:center;justify-content:center;background:#f1f5f9}
 .image img{width:100%;height:100%;object-fit:cover}
-.image.no-image{
-background:linear-gradient(135deg,#ff6a00,#ff9a57);
-color:#fff;font-size:32px;font-weight:800
-}
-
-/* BODY */
+.image.no{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff;font-size:32px;font-weight:800}
 .item-body{padding:10px;display:flex;flex-direction:column;gap:4px;flex:1}
-
-/* BADGES */
 .badges{display:flex;gap:4px;flex-wrap:wrap}
-.badge{
-font-size:9px;
-padding:2px 7px;
-border-radius:999px;
-font-weight:700
-}
+.badge{font-size:9px;padding:2px 7px;border-radius:999px;font-weight:700}
+.badge.low{background:#fff3cd;color:var(--warning)}
 .badge.promo{background:#fde7f3;color:#be185d}
 .badge.off{background:#fee2e2;color:var(--danger)}
-.badge.low{background:#fff3cd;color:var(--warning)}
-.badge.ok{background:#dcfce7;color:var(--success)}
+.actions{margin-top:auto;font-size:11px;font-weight:700;color:var(--primary);display:flex;gap:8px;cursor:pointer}
 
-/* TEXT */
-.item-body h4{font-size:12px;font-weight:700}
-.price{font-size:14px;font-weight:800}
-.actions{
-margin-top:auto;
-font-size:11px;
-color:var(--primary);
-font-weight:700;
-cursor:pointer
-}
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:999}
+.overlay div{background:#fff;padding:20px;border-radius:14px;font-weight:700}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:#111;color:#fff;
+padding:10px 16px;border-radius:12px;font-size:12px;display:none}
 </style>
 </head>
 
@@ -176,13 +79,13 @@ cursor:pointer
 
 <div class="header">
 <h1>Produtos & <span>Serviços</span></h1>
-<p>Gerencie serviços, produtos, estoque, promoções e preços</p>
+<p>Controle completo de serviços, produtos, estoque e promoções</p>
 
 <div class="kpis">
-<div class="kpi"><small>Itens cadastrados</small><h2 id="kpiTotal">0</h2></div>
+<div class="kpi"><small>Total</small><h2 id="kpiTotal">0</h2></div>
 <div class="kpi"><small>Serviços ativos</small><h2 id="kpiServicos">0</h2></div>
 <div class="kpi"><small>Estoque baixo</small><h2 id="kpiBaixo">0</h2></div>
-<div class="kpi"><small>Promoções ativas</small><h2 id="kpiPromo">0</h2></div>
+<div class="kpi"><small>Promoções</small><h2 id="kpiPromo">0</h2></div>
 </div>
 </div>
 
@@ -190,49 +93,43 @@ cursor:pointer
 
 <!-- FORM -->
 <div class="card">
-<h3>Cadastrar item</h3>
+<h3>Cadastro</h3>
 <select id="tipo"><option>SERVICO</option><option>PRODUTO</option></select>
-<input id="nome" placeholder="Nome">
+<input id="nome" placeholder="Nome *">
 <textarea id="descricao" placeholder="Descrição"></textarea>
 <input id="categoria" placeholder="Categoria">
-<div class="row"><input id="preco" placeholder="Preço"><input id="custo" placeholder="Custo"></div>
-<div class="row"><input id="precoPromo" placeholder="Preço promo"><input id="ordem" placeholder="Ordem"></div>
+<div class="row">
+<input id="preco" placeholder="Preço">
+<input id="custo" placeholder="Custo">
+</div>
+<div class="row">
+<input id="precoPromo" placeholder="Preço promo">
+<input id="ordem" placeholder="Ordem">
+</div>
+
 <label class="switch"><input type="checkbox" id="promoAtiva"> Promoção ativa</label>
 <input id="duracao" placeholder="Duração (min)">
-<div class="row"><input id="estoque" placeholder="Estoque"><input id="estoqueMin" placeholder="Estoque mínimo"></div>
+<div class="row">
+<input id="estoque" placeholder="Estoque">
+<input id="estoqueMin" placeholder="Estoque mínimo">
+</div>
 <label class="switch"><input type="checkbox" id="controlaEstoque"> Controlar estoque</label>
 <label class="switch"><input type="checkbox" id="ativo" checked> Ativo</label>
 <label class="switch"><input type="checkbox" id="podeAgendar"> Disponível agenda</label>
 <textarea id="obs" placeholder="Observações internas"></textarea>
-
-<label class="upload" onclick="imagem.click()">
-<img id="preview" style="display:none">
-<span id="uploadText">Selecionar imagem</span>
-<input id="imagem" type="file" hidden>
-</label>
 
 <button onclick="salvar()">Salvar</button>
 </div>
 
 <!-- LIST -->
 <div class="card">
-<div class="filters">
-<input id="search" placeholder="Buscar" oninput="render()">
-<select id="filtroTipo" onchange="render()">
-<option value="">Todos</option>
-<option>SERVICO</option>
-<option>PRODUTO</option>
-</select>
-<select id="filtroEstoque" onchange="render()">
-<option value="">Estoque</option>
-<option value="BAIXO">Baixo</option>
-<option value="OK">Ok</option>
-</select>
-</div>
 <div class="grid" id="lista"></div>
 </div>
 
 </div>
+
+<div class="overlay" id="overlay"><div>Processando...</div></div>
+<div class="toast" id="toast"></div>
 
 <script>
 const sb=supabase.createClient(
@@ -242,15 +139,20 @@ const sb=supabase.createClient(
 
 let itens=[],editId=null,userId=null;
 
+const toast=(msg)=>{toastEl.innerText=msg;toastEl.style.display="block";setTimeout(()=>toastEl.style.display="none",3000)}
+const toastEl=document.getElementById("toast");
+const overlay=document.getElementById("overlay");
+
 (async()=>{
-const{data:{session}}=await sb.auth.getSession();
+const {data:{session}}=await sb.auth.getSession();
 if(!session)return;
 userId=session.user.id;
 carregar();
 })();
 
 async function carregar(){
-const{data}=await sb.from("produtos_servicos").select("*").eq("user_id",userId);
+const {data}=await sb.from("produtos_servicos")
+.select("*").eq("user_id",userId).order("ordem",{ascending:true});
 itens=data||[];
 atualizarKPIs();
 render();
@@ -265,25 +167,23 @@ kpiBaixo.innerText=itens.filter(i=>i.controla_estoque && i.estoque<=i.estoque_mi
 
 function render(){
 lista.innerHTML="";
-const q=search.value.toLowerCase();
-itens.filter(i=>{
-if(q && !i.nome.toLowerCase().includes(q))return false;
-if(filtroTipo.value && i.tipo!==filtroTipo.value)return false;
-if(filtroEstoque.value==="BAIXO" && i.estoque>i.estoque_min)return false;
-return true;
-}).forEach(i=>{
+itens.forEach(i=>{
 lista.innerHTML+=`
 <div class="item">
-<div class="image ${i.imagem_url?'':'no-image'}">${i.imagem_url?`<img src="${i.imagem_url}">`:i.nome[0]}</div>
+<div class="image ${i.imagem_url?'':'no'}">${i.imagem_url?`<img src="${i.imagem_url}">`:i.nome[0]}</div>
 <div class="item-body">
 <div class="badges">
 ${i.promo_ativa?'<span class="badge promo">Promo</span>':''}
 ${!i.ativo?'<span class="badge off">Inativo</span>':''}
 ${i.controla_estoque && i.estoque<=i.estoque_min?'<span class="badge low">Estoque baixo</span>':''}
 </div>
-<h4>${i.nome}</h4>
-<div class="price">R$ ${i.preco||0}</div>
-<div class="actions" onclick="editar('${i.id}')">Editar</div>
+<strong>${i.nome}</strong>
+<span>R$ ${i.preco}</span>
+<div class="actions">
+<span onclick="editar('${i.id}')">Editar</span>
+<span onclick="duplicar('${i.id}')">Duplicar</span>
+<span onclick="excluir('${i.id}')">Excluir</span>
+</div>
 </div>
 </div>`;
 });
@@ -292,45 +192,51 @@ ${i.controla_estoque && i.estoque<=i.estoque_min?'<span class="badge low">Estoqu
 function editar(id){
 const i=itens.find(x=>x.id===id);
 editId=id;
-for(let k in i){if(document.getElementById(k))document.getElementById(k).value=i[k]}
+Object.keys(i).forEach(k=>{
+if(document.getElementById(k))document.getElementById(k).value=i[k];
+});
 promoAtiva.checked=i.promo_ativa;
 ativo.checked=i.ativo;
 controlaEstoque.checked=i.controla_estoque;
 podeAgendar.checked=i.pode_agendar;
 }
 
-async function salvar(){
-let imagemUrl=null;
-if(imagem.files[0]){
-const nome=`${userId}/${Date.now()}_${imagem.files[0].name}`;
-await sb.storage.from("produtos").upload(nome,imagem.files[0],{upsert:true});
-imagemUrl=sb.storage.from("produtos").getPublicUrl(nome).data.publicUrl;
+async function duplicar(id){
+const i=itens.find(x=>x.id===id);
+delete i.id;
+i.nome+=" (Cópia)";
+await sb.from("produtos_servicos").insert(i);
+toast("Item duplicado");
+carregar();
 }
+
+async function excluir(id){
+if(!confirm("Deseja excluir este item?"))return;
+await sb.from("produtos_servicos").delete().eq("id",id);
+toast("Item removido");
+carregar();
+}
+
+async function salvar(){
+if(!nome.value)return toast("Nome obrigatório");
+overlay.style.display="flex";
 
 const dados={
 user_id:userId,
-tipo:tipo.value,
-nome:nome.value,
-descricao:descricao.value,
-categoria:categoria.value,
-preco:+preco.value||0,
-custo:+custo.value||0,
-preco_promo:+precoPromo.value||0,
-promo_ativa:promoAtiva.checked,
-duracao:+duracao.value||0,
-estoque:+estoque.value||0,
-estoque_min:+estoqueMin.value||0,
-controla_estoque:controlaEstoque.checked,
-ativo:ativo.checked,
-pode_agendar:podeAgendar.checked,
-obs:obs.value,
-imagem_url:imagemUrl
+tipo:tipo.value,nome:nome.value,descricao:descricao.value,categoria:categoria.value,
+preco:+preco.value||0,custo:+custo.value||0,preco_promo:+precoPromo.value||0,
+promo_ativa:promoAtiva.checked,duracao:+duracao.value||0,
+estoque:+estoque.value||0,estoque_min:+estoqueMin.value||0,
+controla_estoque:controlaEstoque.checked,ativo:ativo.checked,
+pode_agendar:podeAgendar.checked,obs:obs.value,ordem:+ordem.value||0
 };
 
 editId
 ?await sb.from("produtos_servicos").update(dados).eq("id",editId)
 :await sb.from("produtos_servicos").insert(dados);
 
+overlay.style.display="none";
+toast("Salvo com sucesso");
 editId=null;
 carregar();
 }
