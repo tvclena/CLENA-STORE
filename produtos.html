@@ -17,7 +17,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* ================= RESET / BASE ================= */
+/* ================= BASE ================= */
 *{
   margin:0;
   padding:0;
@@ -29,11 +29,9 @@
 html,body{
   width:100%;
   height:100%;
-  overflow-x:hidden;
   background:#f4f6fb;
 }
 
-/* ================= TOKENS ================= */
 :root{
   --primary:#ff6a00;
   --card:#ffffff;
@@ -44,7 +42,7 @@ html,body{
 
 /* ================= HEADER ================= */
 .header{
-  padding:12px;
+  padding:14px;
 }
 .header h1{
   font-size:18px;
@@ -60,12 +58,12 @@ html,body{
 .filters{
   display:flex;
   gap:8px;
-  padding:0 12px 12px;
+  padding:0 14px 14px;
 }
 .filters input,
 .filters select{
   flex:1;
-  height:36px;
+  height:38px;
   border-radius:10px;
   border:1px solid var(--border);
   padding:0 10px;
@@ -76,48 +74,66 @@ html,body{
 .grid{
   display:grid;
   grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:8px;
-  padding:0 12px 90px;
+  gap:10px;
+  padding:0 14px 100px;
 }
 
+/* ================= CARD ================= */
 .item{
   background:var(--card);
-  border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,.06);
+  border-radius:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.06);
   overflow:hidden;
   display:flex;
   flex-direction:column;
-  height:150px;
+  height:170px;
 }
 
+/* IMAGEM CONTROLADA */
 .item img{
   width:100%;
-  aspect-ratio:1/1;
+  height:72px;
   object-fit:cover;
   background:#eee;
 }
 
+/* BODY */
 .item-body{
-  padding:6px;
+  padding:8px;
   display:flex;
   flex-direction:column;
-  gap:2px;
+  gap:4px;
   flex:1;
 }
 
 .item-body h4{
-  font-size:10.5px;
+  font-size:11px;
   font-weight:700;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 
+/* PREÇO + PROMO */
+.price-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.badge-promo{
+  font-size:9px;
+  padding:2px 6px;
+  border-radius:999px;
+  background:#ffe5d0;
+  color:#b45309;
+  font-weight:800;
+}
 .price{
-  font-size:11px;
+  font-size:12px;
   font-weight:800;
 }
 
+/* ACTION */
 .actions{
   margin-top:auto;
   font-size:10px;
@@ -142,9 +158,8 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 12px 32px rgba(0,0,0,.28);
+  box-shadow:0 14px 34px rgba(0,0,0,.30);
   z-index:9999;
-  transform:translateZ(0);
 }
 
 /* ================= MODAL ================= */
@@ -162,55 +177,57 @@ html,body{
   width:100%;
   height:92vh;
   background:#fff;
-  border-radius:22px 22px 0 0;
+  border-radius:24px 24px 0 0;
   display:flex;
   flex-direction:column;
-  overflow:hidden;
 }
 
 /* HEADER */
 .sheet-header{
-  padding:14px;
+  padding:16px;
   border-bottom:1px solid var(--border);
   font-weight:800;
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 
 /* BODY */
 .sheet-body{
   flex:1;
-  padding:14px;
+  padding:16px;
   overflow-y:auto;
+}
+.sheet-body label{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:4px;
+  display:block;
 }
 .sheet-body input,
 .sheet-body textarea,
 .sheet-body select{
   width:100%;
-  height:38px;
-  margin-bottom:10px;
-  padding:0 10px;
-  border-radius:10px;
+  height:40px;
+  margin-bottom:12px;
+  padding:0 12px;
+  border-radius:12px;
   border:1px solid var(--border);
-  font-size:12px;
+  font-size:13px;
 }
 .sheet-body textarea{
   height:auto;
-  padding:8px;
+  padding:10px;
 }
 
-/* IMAGE PREVIEW */
-.crop-area{
-  width:100%;
-  aspect-ratio:1/1;
+/* IMAGE */
+.image-box{
+  height:140px;
+  border-radius:14px;
   background:#f1f1f1;
-  border-radius:12px;
   overflow:hidden;
-  position:relative;
-  margin-bottom:8px;
+  margin-bottom:12px;
 }
-.crop-area img{
+.image-box img{
   width:100%;
   height:100%;
   object-fit:cover;
@@ -218,14 +235,14 @@ html,body{
 
 /* FOOTER */
 .sheet-footer{
-  padding:12px;
+  padding:14px;
   border-top:1px solid var(--border);
   display:flex;
   gap:10px;
 }
 .sheet-footer button{
   flex:1;
-  height:44px;
+  height:46px;
   border:none;
   border-radius:999px;
   font-weight:800;
@@ -237,10 +254,29 @@ html,body{
 .btn-cancel{
   background:#e5e7eb;
 }
+
+/* ================= LOADING ================= */
+.loading{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:20000;
+}
+.loading div{
+  background:#fff;
+  padding:26px 34px;
+  border-radius:18px;
+  font-weight:800;
+}
 </style>
 </head>
 
 <body>
+
+<div class="loading" id="loading"><div>Salvando item…</div></div>
 
 <div class="header">
   <h1>Produtos & <span>Serviços</span></h1>
@@ -269,27 +305,30 @@ html,body{
     </div>
 
     <div class="sheet-body">
+      <label>Tipo</label>
       <select id="tipo">
         <option value="SERVICO">Serviço</option>
         <option value="PRODUTO">Produto</option>
       </select>
 
-      <input id="nome" placeholder="Nome">
-      <textarea id="descricao" placeholder="Descrição"></textarea>
-      <input id="preco" placeholder="Preço">
+      <label>Nome</label>
+      <input id="nome">
 
-      <label style="font-size:12px">
-        <input type="checkbox" id="promoAtiva"> Promoção
+      <label>Descrição</label>
+      <textarea id="descricao"></textarea>
+
+      <label>Preço</label>
+      <input id="preco" type="tel" placeholder="R$ 0,00">
+
+      <label>
+        <input type="checkbox" id="promoAtiva"> Ativar promoção
       </label>
 
-      <div class="crop-area" onclick="imagem.click()">
-        <img id="cropPreview" style="display:none">
+      <label>Imagem</label>
+      <div class="image-box" onclick="imagem.click()">
+        <img id="preview" style="display:none">
         <input type="file" id="imagem" hidden accept="image/*">
       </div>
-
-      <small style="font-size:11px;color:#6b7280">
-        Toque para escolher a imagem
-      </small>
     </div>
 
     <div class="sheet-footer">
@@ -300,14 +339,13 @@ html,body{
 </div>
 
 <script>
-const sb=supabase.createClient(
+const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
 let itens=[],userId=null,editId=null,blob=null;
 
-/* INIT */
 (async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(!session) location.href="login.html";
@@ -317,6 +355,15 @@ let itens=[],userId=null,editId=null,blob=null;
 
 search.oninput=filtroTipo.onchange=render;
 
+/* MASK */
+preco.oninput=e=>{
+  let v=e.target.value.replace(/\D/g,'');
+  v=(v/100).toFixed(2)+'';
+  v=v.replace('.',',');
+  v=v.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  e.target.value='R$ '+v;
+};
+
 /* MODAL */
 function abrirModal(){ modal.classList.add("show"); }
 function fecharModal(){ modal.classList.remove("show"); reset(); }
@@ -325,52 +372,39 @@ function fecharModal(){ modal.classList.remove("show"); reset(); }
 imagem.onchange=()=>{
   const f=imagem.files[0];
   if(!f) return;
-  const img=new Image();
-  img.onload=()=>{
-    const c=document.createElement("canvas");
-    c.width=c.height=600;
-    const s=Math.min(img.width,img.height);
-    c.getContext("2d").drawImage(
-      img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,600,600
-    );
-    c.toBlob(b=>{
-      blob=b;
-      cropPreview.src=URL.createObjectURL(b);
-      cropPreview.style.display="block";
-    },"image/jpeg",0.9);
-  };
-  img.src=URL.createObjectURL(f);
+  preview.src=URL.createObjectURL(f);
+  preview.style.display="block";
+  blob=f;
 };
 
 /* SAVE */
 async function salvar(){
+  loading.style.display="flex";
+
   const payload={
     user_id:userId,
     tipo:tipo.value,
     nome:nome.value,
     descricao:descricao.value,
-    preco:Number(preco.value.replace(',','.')),
+    preco:Number(preco.value.replace(/[^\d]/g,''))/100,
     promocao_ativa:promoAtiva.checked
   };
 
   let data;
   if(editId){
-    ({data}=await sb.from("produtos_servicos")
-      .update(payload).eq("id",editId).select().single());
+    ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
   }else{
-    ({data}=await sb.from("produtos_servicos")
-      .insert(payload).select().single());
+    ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
   }
 
   if(blob){
     const path=`${userId}/${data.id}.jpg`;
     await sb.storage.from("produtos").upload(path,blob,{upsert:true});
-    const {data:s}=await sb.storage.from("produtos")
-      .createSignedUrl(path,31536000);
-    await sb.from("produtos_servicos")
-      .update({imagem_url:s.signedUrl}).eq("id",data.id);
+    const {data:s}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
+    await sb.from("produtos_servicos").update({imagem_url:s.signedUrl}).eq("id",data.id);
   }
 
+  loading.style.display="none";
   fecharModal();
   carregar();
 }
@@ -394,7 +428,10 @@ function render(){
         ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
         <div class="item-body">
           <h4>${i.nome}</h4>
-          <div class="price">R$ ${i.preco}</div>
+          <div class="price-row">
+            ${i.promocao_ativa?`<span class="badge-promo">PROMO</span>`:""}
+            <span class="price">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</span>
+          </div>
           <div class="actions" onclick="editar('${i.id}')">Editar</div>
         </div>
       </div>`;
@@ -408,11 +445,11 @@ function editar(id){
   tipo.value=i.tipo;
   nome.value=i.nome;
   descricao.value=i.descricao;
-  preco.value=i.preco;
+  preco.value='R$ '+Number(i.preco).toFixed(2).replace('.',',');
   promoAtiva.checked=i.promocao_ativa;
   if(i.imagem_url){
-    cropPreview.src=i.imagem_url;
-    cropPreview.style.display="block";
+    preview.src=i.imagem_url;
+    preview.style.display="block";
   }
   abrirModal();
 }
@@ -423,7 +460,8 @@ function reset(){
   formTitle.innerText="Novo item";
   document.querySelectorAll(".sheet-body input,.sheet-body textarea")
     .forEach(e=>e.value="");
-  cropPreview.style.display="none";
+  promoAtiva.checked=false;
+  preview.style.display="none";
 }
 </script>
 
