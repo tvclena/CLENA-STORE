@@ -2,76 +2,45 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Perfil da Loja</title>
+<title>Loja</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-dark:#e85f00;
   --bg:#f4f6fb;
-  --card:#ffffff;
+  --card:#fff;
   --text:#111827;
   --muted:#6b7280;
   --border:#e5e7eb;
 }
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);color:var(--text)}
 
-/* ================= BANNER ================= */
+/* ===== BANNER ===== */
 .banner{
   height:260px;
-  background:
-    linear-gradient(to right, rgba(255,106,0,.92), rgba(255,106,0,.75)),
-    url("https://images.unsplash.com/photo-1503951914875-452162b0f3f1") center/cover;
-  color:#fff;
   padding:24px;
+  color:#fff;
   display:flex;
   flex-direction:column;
   justify-content:space-between;
 }
-
-.banner-top{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.banner-top img{
-  width:68px;
-  height:68px;
-  border-radius:16px;
-  background:#fff;
-}
-
-.banner-info h1{
-  font-size:22px;
-  font-weight:800;
-}
-
-.banner-info p{
-  font-size:14px;
-  opacity:.95;
-}
-
-.banner-links{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
+.banner-top{display:flex;gap:14px;align-items:center}
+.banner-top img{width:70px;height:70px;border-radius:16px;background:#fff}
+.banner-links{display:flex;gap:10px;flex-wrap:wrap}
 .banner-links span{
-  background:rgba(255,255,255,.2);
+  background:rgba(255,255,255,.25);
   padding:8px 14px;
   border-radius:999px;
   font-size:13px;
 }
 
-/* ================= PERFIL CLIENTE ================= */
-.client-card{
+/* ===== PROFILE ===== */
+.profile{
   background:#fff;
   border-radius:22px;
   margin:-60px auto 24px;
@@ -81,88 +50,31 @@ body{background:var(--bg);color:var(--text)}
   gap:20px;
   box-shadow:0 25px 60px rgba(0,0,0,.15);
 }
+.profile img{width:120px;border-radius:20px}
+.profile h2{font-size:22px}
+.profile p{color:var(--muted)}
+.tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.tags span{background:#f3f4f6;padding:8px 14px;border-radius:999px;font-size:13px}
 
-.client-card img{
-  width:120px;
-  border-radius:20px;
-}
+/* ===== CONTAINER ===== */
+.container{max-width:1000px;margin:auto;padding:0 16px 100px}
 
-.client-info h2{
-  font-size:22px;
-  font-weight:800;
-}
-
-.client-info p{
-  color:var(--muted);
-  margin:4px 0 8px;
-}
-
-.stars{
-  color:#facc15;
-  font-size:18px;
-}
-
-.client-tags{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
-
-.client-tags span{
-  background:#f3f4f6;
-  padding:8px 14px;
-  border-radius:999px;
-  font-size:13px;
-}
-
-/* ================= CONTAINER ================= */
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:0 16px 120px;
-}
-
-/* ================= BUSCA ================= */
-.search{
-  margin-bottom:20px;
-}
-
+/* ===== SEARCH / TABS ===== */
 .search input{
-  width:100%;
-  padding:16px;
-  border-radius:16px;
-  border:1px solid var(--border);
-  font-size:15px;
+  width:100%;padding:16px;border-radius:16px;border:1px solid var(--border);margin-bottom:20px
 }
-
-/* ================= TABS ================= */
-.tabs{
-  display:flex;
-  gap:10px;
-  margin-bottom:20px;
-}
-
+.tabs{display:flex;gap:10px;margin-bottom:20px}
 .tabs button{
-  padding:12px 18px;
-  border-radius:999px;
-  border:none;
-  background:#e5e7eb;
-  font-weight:700;
+  padding:12px 18px;border-radius:999px;border:none;background:#e5e7eb;font-weight:700
 }
+.tabs .active{background:#111;color:#fff}
 
-.tabs .active{
-  background:#111;
-  color:#fff;
-}
-
-/* ================= GRID ================= */
+/* ===== GRID ===== */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
   gap:20px;
 }
-
 .card{
   background:#fff;
   border-radius:22px;
@@ -170,110 +82,33 @@ body{background:var(--bg);color:var(--text)}
   box-shadow:0 12px 30px rgba(0,0,0,.1);
   position:relative;
 }
-
 .badge{
   position:absolute;
-  top:12px;
-  left:12px;
+  top:12px;left:12px;
   background:var(--primary);
   color:#fff;
   padding:6px 12px;
   border-radius:999px;
   font-size:12px;
-  font-weight:700;
 }
-
-.discount{
-  background:#111;
-}
-
-.card img{
-  width:100%;
-  height:160px;
-  object-fit:cover;
-}
-
-.card-body{
-  padding:16px;
-}
-
-.card-body strong{
-  font-size:16px;
-}
-
-.meta{
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-  color:var(--muted);
-  margin:6px 0 14px;
-}
-
-.price{
-  font-size:20px;
-  font-weight:800;
-}
-
-.old{
-  text-decoration:line-through;
-  color:#9ca3af;
-  font-size:14px;
-  margin-right:6px;
-}
-
+.card img{width:100%;height:160px;object-fit:cover}
+.card-body{padding:16px}
+.meta{display:flex;justify-content:space-between;color:var(--muted);margin:6px 0 14px}
+.price{font-size:20px;font-weight:800}
+.old{color:#9ca3af;text-decoration:line-through;font-size:14px;margin-right:6px}
 .card button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-  font-size:15px;
-}
-
-.card button:hover{
-  background:var(--primary-dark);
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:var(--primary);color:#fff;font-weight:800
 }
 </style>
 </head>
 
 <body>
 
-<!-- BANNER -->
-<section class="banner">
-  <div class="banner-top">
-    <img src="https://placehold.co/100">
-    <div class="banner-info">
-      <h1>Villa Barber Shop</h1>
-      <p>R. das Flores, 123 · Centro</p>
-    </div>
-  </div>
+<section id="banner" class="banner"></section>
 
-  <div class="banner-links">
-    <span>⏱ Seg à Sáb · 8h às 20h</span>
-    <span>📍 Centro, SP</span>
-    <span>📞 WhatsApp</span>
-  </div>
-</section>
+<div id="profile" class="profile"></div>
 
-<!-- PERFIL CLIENTE -->
-<div class="client-card">
-  <img src="https://images.unsplash.com/photo-1607746882042-944635dfe10e">
-  <div class="client-info">
-    <h2>Marcos Oliveira</h2>
-    <p>Especialista em corte masculino</p>
-    <div class="stars">★★★★★ <span style="color:#6b7280;font-size:14px">4.9 (120)</span></div>
-
-    <div class="client-tags">
-      <span>⚡ Atendimento rápido</span>
-      <span>📱 Confirmação WhatsApp</span>
-      <span>💳 Pagamento facilitado</span>
-    </div>
-  </div>
-</div>
-
-<!-- CONTEÚDO -->
 <div class="container">
 
   <div class="search">
@@ -281,66 +116,103 @@ body{background:var(--bg);color:var(--text)}
   </div>
 
   <div class="tabs">
-    <button class="active">Serviços</button>
-    <button>Produtos</button>
+    <button class="active" onclick="show('SERVICO',this)">Serviços</button>
+    <button onclick="show('PRODUTO',this)">Produtos</button>
   </div>
 
-  <div class="grid">
+  <div id="grid" class="grid"></div>
 
-    <div class="card">
-      <div class="badge">Mais pedido</div>
-      <img src="https://images.unsplash.com/photo-1517832606299-7ae9b720a186">
-      <div class="card-body">
-        <strong>Corte Masculino</strong>
-        <div class="meta">
-          <span>⏱ 50 min</span>
-          <span class="price">R$ 45</span>
-        </div>
-        <button>Agendar</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="badge discount">15% OFF</div>
-      <img src="https://images.unsplash.com/photo-1621605810052-809b48c2c56b">
-      <div class="card-body">
-        <strong>Barba</strong>
-        <div class="meta">
-          <span>⏱ 40 min</span>
-          <span class="price"><span class="old">R$ 48</span>R$ 34</span>
-        </div>
-        <button>Agendar</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="badge">Promoção</div>
-      <img src="https://images.unsplash.com/photo-1516826957135-700dedea698c">
-      <div class="card-body">
-        <strong>Corte + Barba</strong>
-        <div class="meta">
-          <span>⏱ 75 min</span>
-          <span class="price">R$ 70</span>
-        </div>
-        <button>Agendar</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="badge">Promoção</div>
-      <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a">
-      <div class="card-body">
-        <strong>Sobrancelha</strong>
-        <div class="meta">
-          <span>⏱ 30 min</span>
-          <span class="price">R$ 20</span>
-        </div>
-        <button>Agendar</button>
-      </div>
-    </div>
-
-  </div>
 </div>
+
+<script>
+const sb = supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+let allItems=[], currentType="SERVICO";
+
+function show(type,el){
+  currentType=type;
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+async function load(){
+  if(!lojaId) return alert("Loja não informada");
+
+  const {data:loja}=await sb.from("user_profile")
+    .select("*").eq("user_id",lojaId).single();
+
+  document.getElementById("banner").style.background =
+    `linear-gradient(to right,rgba(255,106,0,.9),rgba(255,106,0,.7)),url(${loja.banner_url}) center/cover`;
+
+  document.getElementById("banner").innerHTML=`
+    <div class="banner-top">
+      <img src="${loja.avatar_url}">
+      <div>
+        <h1>${loja.negocio}</h1>
+        <p>${loja.endereco}</p>
+      </div>
+    </div>
+    <div class="banner-links">
+      <span>⏱ ${loja.horario}</span>
+      <span>📍 ${loja.cidade}</span>
+      <span>📱 ${loja.whatsapp}</span>
+    </div>
+  `;
+
+  const {data:prof}=await sb.from("profissionais")
+    .select("*").eq("user_id",lojaId).limit(1).single();
+
+  document.getElementById("profile").innerHTML=`
+    <img src="${prof.foto}">
+    <div>
+      <h2>${prof.nome}</h2>
+      <p>${prof.especialidade}</p>
+      <div class="tags">
+        <span>⭐ ${prof.avaliacao} (${prof.avaliacoes})</span>
+        <span>📱 WhatsApp</span>
+        <span>💳 Pagamento fácil</span>
+      </div>
+    </div>
+  `;
+
+  const {data}=await sb.from("produtos_servicos")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("ativo",true);
+
+  allItems=data;
+  render();
+}
+
+function render(){
+  grid.innerHTML = allItems
+    .filter(i=>i.tipo===currentType)
+    .map(i=>`
+      <div class="card">
+        ${i.badge?`<div class="badge">${i.badge}</div>`:''}
+        <img src="${i.imagem_url}">
+        <div class="card-body">
+          <strong>${i.nome}</strong>
+          <div class="meta">
+            <span>${i.duracao?`⏱ ${i.duracao} min`:''}</span>
+            <span class="price">
+              ${i.preco_antigo?`<span class="old">R$ ${i.preco_antigo}</span>`:''}
+              R$ ${i.preco}
+            </span>
+          </div>
+          <button>Agendar</button>
+        </div>
+      </div>
+    `).join("");
+}
+
+load();
+</script>
 
 </body>
 </html>
