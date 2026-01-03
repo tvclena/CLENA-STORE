@@ -257,16 +257,27 @@ let fotoBlob = null; // ✅ vamos enviar blob reduzido
 /* ================= AUTH ================= */
 /* ================= AUTH ================= */
 async function proteger(){
- const { data:{ session } } = await sb.auth.getSession();
- if(!session){
-   location.href = "login.html";
-   return;
- }
- user = session.user;
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
 
- overlay.style.display = "none";
- carregarPerfil();
+    if(!session){
+      location.href = "login.html";
+      return;
+    }
+
+    user = session.user;
+
+  }catch(err){
+    console.error("Erro na sessão:", err);
+  }finally{
+    // 🔐 GARANTE que o overlay SOME SEMPRE
+    overlay.style.display = "none";
+
+    // carrega perfil sem travar UI
+    carregarPerfil().catch(e=>console.warn(e));
+  }
 }
+
 
 proteger();
 
