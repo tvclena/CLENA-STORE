@@ -221,7 +221,7 @@ body::-webkit-scrollbar{
 </div>
 
 <script>
-const sbHome = window.supabase.createClient(
+const sbHome = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
@@ -232,48 +232,49 @@ async function carregarHome(){
   const { data:{ session } } = await sbHome.auth.getSession();
   if(!session) return;
 
-  const userId = session.user.id;
+  const lojaId = session.user.id;
 
-  // 📅 data de hoje
+  // 📅 datas
   const hoje = new Date().toISOString().split("T")[0];
-
-  /* ================= KPIs ================= */
-
-  // Agendamentos hoje
-  const { count: qtdHoje } = await sbHome
-    .from("agendamentos")
-    .select("*", { count:"exact", head:true })
-    .eq("user_id", userId)
-    .eq("data", hoje);
-
-  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
-
-  // Clientes
-  const { count: qtdClientes } = await sbHome
-    .from("clientes")
-    .select("*", { count:"exact", head:true })
-    .eq("user_id", userId);
-
-  document.getElementById("kpiClientes").innerText = qtdClientes || 0;
-
-  // Serviços ativos
-  const { count: qtdServicos } = await sbHome
-    .from("servicos")
-    .select("*", { count:"exact", head:true })
-    .eq("user_id", userId)
-    .eq("ativo", true);
-
-  document.getElementById("kpiServicos").innerText = qtdServicos || 0;
-
-  // 💰 Faturamento do mês
   const inicioMes = new Date();
   inicioMes.setDate(1);
   const inicio = inicioMes.toISOString().split("T")[0];
 
+  /* ================= KPIs ================= */
+
+  // 📅 Agendamentos hoje (não cancelados)
+  const { count: qtdHoje } = await sbHome
+    .from("agenda_loja")
+    .select("*", { count:"exact", head:true })
+    .eq("loja_id", lojaId)
+    .eq("data", hoje)
+    .neq("status", "cancelado");
+
+  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
+
+  // 👥 Clientes cadastrados
+  const { count: qtdClientes } = await sbHome
+    .from("clientes_loja")
+    .select("*", { count:"exact", head:true })
+    .eq("loja_id", lojaId);
+
+  document.getElementById("kpiClientes").innerText = qtdClientes || 0;
+
+  // ✂️ Serviços ativos
+  const { count: qtdServicos } = await sbHome
+    .from("produtos_servicos")
+    .select("*", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("ativo", true)
+    .eq("tipo", "SERVICO");
+
+  document.getElementById("kpiServicos").innerText = qtdServicos || 0;
+
+  // 💰 Faturamento do mês (somente CONCLUÍDOS)
   const { data: faturamento } = await sbHome
-    .from("agendamentos")
+    .from("agenda_loja")
     .select("valor")
-    .eq("user_id", userId)
+    .eq("loja_id", lojaId)
     .gte("data", inicio)
     .eq("status", "concluido");
 
@@ -284,10 +285,11 @@ async function carregarHome(){
   /* ================= AGENDA DE HOJE ================= */
 
   const { data: agenda } = await sbHome
-    .from("agendamentos")
+    .from("agenda_loja")
     .select("hora, cliente_nome, servico_nome")
-    .eq("user_id", userId)
+    .eq("loja_id", lojaId)
     .eq("data", hoje)
+    .neq("status", "cancelado")
     .order("hora",{ascending:true});
 
   const box = document.getElementById("agendaHoje");
@@ -295,18 +297,28 @@ async function carregarHome(){
 
   if(!agenda || agenda.length === 0){
     box.innerHTML = `<div class="empty">Nenhum horário agendado hoje</div>`;
-    return;
+  } else {
+    agenda.forEach(a=>{
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <span>${a.hora} • ${a.cliente_nome}</span>
+        <span class="badge">${a.servico_nome}</span>
+      `;
+      box.appendChild(div);
+    });
   }
 
-  agenda.forEach(a=>{
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <span>${a.hora} • ${a.cliente_nome}</span>
-      <span class="badge">${a.servico_nome}</span>
-    `;
-    box.appendChild(div);
-  });
+  /* ================= CANCELAMENTOS (NOVO) ================= */
+
+  const { count: qtdCancelados } = await sbHome
+    .from("agenda_loja")
+    .select("*", { count:"exact", head:true })
+    .eq("loja_id", lojaId)
+    .eq("status", "cancelado");
+
+  // Se quiser exibir depois:
+  // document.getElementById("kpiCancelados").innerText = qtdCancelados || 0;
 }
 
 carregarHome();
