@@ -233,20 +233,29 @@ document.getElementById("days").innerHTML = DIAS_VALIDOS.map((d,i)=>`
   </div>
 `).join("");
 
-
+} 
 /* ================= HORÁRIOS ================= */
-async function selecionarDia(data,horariosStr){
-  dados.data=data;
+async function selecionarDia(index){
+  const dia = DIAS_VALIDOS[index];
+  dados.data = dia.data;
+
   document.getElementById("times").innerHTML="";
   document.getElementById("final").innerHTML="";
 
-  const blocos = JSON.parse(horariosStr);
-  const {data:ag} = await sb.from("agendamentos")
-    .select("hora_inicio,hora_fim")
-    .eq("user_id",lojaId)
-    .eq("data",data);
+  const blocos = typeof dia.horarios === "string"
+    ? JSON.parse(dia.horarios)
+    : dia.horarios;
 
-  let ocupados = ag.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
+  const { data: ag } = await sb.from("agendamentos")
+    .select("hora_inicio,hora_fim")
+    .eq("user_id", lojaId)
+    .eq("data", dia.data);
+
+  let ocupados = ag.map(a=>[
+    toMin(a.hora_inicio),
+    toMin(a.hora_fim)
+  ]);
+
   let slots=[];
 
   blocos.forEach(b=>{
