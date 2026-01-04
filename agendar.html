@@ -135,7 +135,10 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
+const servicoPreSelecionado =
+  new URLSearchParams(location.search).get("servico");
 
+  
 /* CLIENTE JÁ IDENTIFICADO */
 const clienteNome  = localStorage.getItem("NOME_CLIENTE");
 const clienteWhats = localStorage.getItem("WHATS_CLIENTE");
@@ -156,8 +159,12 @@ async function carregarServicos(){
     .eq("user_id", lojaId)
     .eq("ativo", true);
 
-  document.getElementById("services").innerHTML = data.map(s=>`
-    <div class="service" onclick="selecionarServico('${s.id}',${s.duracao_minutos},'${s.nome}')">
+  const container = document.getElementById("services");
+
+  container.innerHTML = data.map(s=>`
+    <div class="service"
+         data-id="${s.id}"
+         onclick="selecionarServico('${s.id}',${s.duracao_minutos},'${s.nome}')">
       <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
       <div class="service-info">
         <div class="service-name">${s.nome}</div>
@@ -165,6 +172,14 @@ async function carregarServicos(){
       </div>
     </div>
   `).join("");
+
+  // ✅ SE VEIO SERVIÇO PELA URL, JÁ SELECIONA AUTOMATICAMENTE
+  if(servicoPreSelecionado){
+    const s = data.find(x => x.id === servicoPreSelecionado);
+    if(s){
+      selecionarServico(s.id, s.duracao_minutos, s.nome);
+    }
+  }
 }
 
 /* ================= SERVIÇO → DIAS ================= */
