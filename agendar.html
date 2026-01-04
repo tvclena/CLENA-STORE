@@ -92,10 +92,8 @@ html,body{margin:0;background:var(--bg)}
   cursor:pointer;
 }
 
-.item.active{
-  background:var(--primary);
-  color:#fff;
-  border-color:var(--primary);
+.item:hover{
+  background:#fff3ea;
 }
 
 .msg-final{
@@ -130,6 +128,7 @@ html,body{margin:0;background:var(--bg)}
 <div class="section" id="final"></div>
 
 <script>
+/* ================= SUPABASE ================= */
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
@@ -137,12 +136,12 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 
-/* DADOS DO CLIENTE (JÁ EXISTENTES) */
+/* CLIENTE JÁ IDENTIFICADO */
 const clienteNome  = localStorage.getItem("NOME_CLIENTE");
 const clienteWhats = localStorage.getItem("WHATS_CLIENTE");
 
-let dados = {};
 let duracao = 0;
+let dados = {};
 let DIAS_VALIDOS = [];
 
 /* UTILS */
@@ -151,14 +150,14 @@ const toHour = m => String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).pa
 
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
-  const {data} = await sb.from("produtos_servicos")
+  const { data } = await sb
+    .from("produtos_servicos")
     .select("id,nome,preco,imagem_url,duracao_minutos")
-    .eq("user_id",lojaId)
-    .eq("ativo",true);
+    .eq("user_id", lojaId)
+    .eq("ativo", true);
 
-  const wrap = document.getElementById("services");
-  wrap.innerHTML = data.map(s=>`
-    <div class="service" onclick="selecionarServico('${s.id}',${s.duracao_minutos},'${s.nome}',${s.preco})">
+  document.getElementById("services").innerHTML = data.map(s=>`
+    <div class="service" onclick="selecionarServico('${s.id}',${s.duracao_minutos},'${s.nome}')">
       <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
       <div class="service-info">
         <div class="service-name">${s.nome}</div>
@@ -166,104 +165,95 @@ async function carregarServicos(){
       </div>
     </div>
   `).join("");
-
-  setTimeout(()=>{wrap.scrollLeft=40;setTimeout(()=>wrap.scrollLeft=0,400)},300);
 }
 
-/* ================= DIAS ================= */
-async function selecionarServico(id,d,nome,preco){
-  dados.servico=id;
-  dados.servico_nome=nome;
-  duracao=d;
+/* ================= SERVIÇO → DIAS ================= */
+async function selecionarServico(id, dur, nome){
+  dados.servico = id;
+  dados.servico_nome = nome;
+  duracao = dur;
 
-  document.getElementById("days").innerHTML="";
-  document.getElementById("times").innerHTML="";
-  document.getElementById("final").innerHTML="";
+  document.getElementById("days").innerHTML = "";
+  document.getElementById("times").innerHTML = "";
+  document.getElementById("final").innerHTML = "";
 
   const hoje = new Date().toISOString().split("T")[0];
-  const {data:agenda} = await sb.from("agenda_loja")
+
+  const { data: agenda } = await sb
+    .from("agenda_loja")
     .select("*")
-    .eq("user_id",lojaId)
-    .gte("data",hoje)
-    .eq("fechado",false);
+    .eq("user_id", lojaId)
+    .gte("data", hoje)
+    .eq("fechado", false);
 
-  let diasValidos=[];
+  DIAS_VALIDOS = [];
 
- for(const d of agenda){
+  for(const d of agenda){
+    let blocos;
+    try{
+      blocos = typeof d.horarios === "string" ? JSON.parse(d.horarios) : d.horarios;
+    }catch{
+      continue;
+    }
 
-  let blocos = [];
+    const { data: ags } = await sb
+      .from("agendamentos")
+      .select("hora_inicio,hora_fim")
+      .eq("user_id", lojaId)
+      .eq("data", d.data);
 
-  try{
-    blocos = typeof d.horarios === "string"
-      ? JSON.parse(d.horarios)
-      : d.horarios;
-  }catch(e){
-    console.error("Erro ao ler horários:", d.horarios);
-    continue;
+    const ocupados = ags.map(a=>[toMin(a.hora_inicio), toMin(a.hora_fim)]);
+    let livre = false;
+
+    blocos.forEach(b=>{
+      let s = toMin(b.inicio), e = toMin(b.fim);
+      while(s + duracao <= e){
+        if(!ocupados.some(o => !(s+duracao<=o[0] || s>=o[1]))){
+          livre = true;
+          break;
+        }
+        s += duracao;
+      }
+    });
+
+    if(livre) DIAS_VALIDOS.push(d);
   }
 
-  const {data:ags} = await sb.from("agendamentos")
-    .select("hora_inicio,hora_fim")
-    .eq("user_id",lojaId)
-    .eq("data",d.data);
-
-  let ocupados = ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
-  let livre=false;
-
-  blocos.forEach(b=>{
-    let s=toMin(b.inicio), e=toMin(b.fim);
-    while(s+duracao<=e){
-      if(!ocupados.some(o=>!(s+duracao<=o[0]||s>=o[1]))){
-        livre=true;
-        break;
-      }
-      s+=duracao;
-    }
-  });
-
-  if(livre) diasValidos.push(d);
+  document.getElementById("days").innerHTML = DIAS_VALIDOS.map((d,i)=>`
+    <div class="item" onclick="selecionarDia(${i})">
+      ${new Date(d.data).getDate()}
+    </div>
+  `).join("");
 }
 
-
-DIAS_VALIDOS = diasValidos;
-
-document.getElementById("days").innerHTML = DIAS_VALIDOS.map((d,i)=>`
-  <div class="item" onclick="selecionarDia(${i})">
-    ${new Date(d.data).getDate()}
-  </div>
-`).join("");
-
-} 
-/* ================= HORÁRIOS ================= */
+/* ================= DIA → HORÁRIOS ================= */
 async function selecionarDia(index){
   const dia = DIAS_VALIDOS[index];
   dados.data = dia.data;
 
-  document.getElementById("times").innerHTML="";
-  document.getElementById("final").innerHTML="";
+  document.getElementById("times").innerHTML = "";
+  document.getElementById("final").innerHTML = "";
 
   const blocos = typeof dia.horarios === "string"
     ? JSON.parse(dia.horarios)
     : dia.horarios;
 
-  const { data: ag } = await sb.from("agendamentos")
+  const { data: ag } = await sb
+    .from("agendamentos")
     .select("hora_inicio,hora_fim")
     .eq("user_id", lojaId)
     .eq("data", dia.data);
 
-  let ocupados = ag.map(a=>[
-    toMin(a.hora_inicio),
-    toMin(a.hora_fim)
-  ]);
-
-  let slots=[];
+  const ocupados = ag.map(a=>[toMin(a.hora_inicio), toMin(a.hora_fim)]);
+  let slots = [];
 
   blocos.forEach(b=>{
-    let s=toMin(b.inicio),e=toMin(b.fim);
-    while(s+duracao<=e){
-      if(!ocupados.some(o=>!(s+duracao<=o[0]||s>=o[1])))
+    let s = toMin(b.inicio), e = toMin(b.fim);
+    while(s + duracao <= e){
+      if(!ocupados.some(o => !(s+duracao<=o[0] || s>=o[1]))){
         slots.push(toHour(s));
-      s+=duracao;
+      }
+      s += duracao;
     }
   });
 
@@ -274,7 +264,7 @@ async function selecionarDia(index){
 
 /* ================= CONFIRMAR ================= */
 async function confirmar(h){
-  const fim = toHour(toMin(h)+duracao);
+  const fim = toHour(toMin(h) + duracao);
 
   await sb.from("agendamentos").insert({
     user_id: lojaId,
