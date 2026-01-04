@@ -262,8 +262,16 @@ const avatar = document.getElementById("avatarCliente");
 const lojaId = new URLSearchParams(location.search).get("l");
 
 /* ================= NAV ================= */
-function go(el,page){
-  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+function go(el, page){
+
+  if(!clienteValido()){
+    abrirModalCliente();
+    return;
+  }
+
+  document.querySelectorAll(".nav-item")
+    .forEach(i => i.classList.remove("active"));
+
   el.classList.add("active");
   frame.src = `${page}?l=${lojaId}`;
 }
@@ -274,8 +282,12 @@ function abrirModalCliente(){
 }
 
 function fecharModalCliente(){
+  if(!clienteValido()){
+    return; // NÃO deixa fechar
+  }
   clienteModal.hidden = true;
 }
+
 
 
 /* ================= CLIENTE ================= */
@@ -316,7 +328,8 @@ async function salvarCliente(){
     });
   }
 
-  fecharModalCliente();
+fecharModalCliente();
+frame.src = `homeclientes.html?l=${lojaId}`;
 }
 
 function clienteValido(){
@@ -345,7 +358,14 @@ if(clienteValido()){
 }
 
 
+if(clienteValido()){
+  const nome = localStorage.getItem("NOME_CLIENTE");
+  atualizarAvatar(nome);
   frame.src = `homeclientes.html?l=${lojaId}`;
+} else {
+  frame.src = ""; // NÃO carrega nada
+  abrirModalCliente();
+}
 }
 
 load();
