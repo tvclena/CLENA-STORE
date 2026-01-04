@@ -206,49 +206,45 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 let todos = [];
-let tipoAtual = "SERVICO";
+let tipoAtual = null;
 
 /* ================= LOAD ================= */
 async function load(){
+
+  /* ===== LOJA ===== */
   const { data: loja } = await sb
     .from("user_profile")
-.select(`
-  negocio,
-  avatar_url,
-  rua,
-  numero,
-  bairro,
-  cep,
-  cidade,
-  uf,
-  whatsapp
-`)
+    .select(`
+      negocio,
+      avatar_url,
+      rua,
+      numero,
+      bairro,
+      cep,
+      cidade,
+      uf,
+      whatsapp
+    `)
     .eq("user_id", lojaId)
     .single();
 
-if(loja){
-  nomeLoja.innerText = loja.negocio || "Agenda Fácil";
-
-  cidadeLoja.innerText = `${loja.cidade || ""} • ${loja.uf || ""}`;
-
-  enderecoLoja.innerText = `
-    ${loja.rua || ""}, ${loja.numero || ""}
-    • ${loja.bairro || ""}
-    • CEP ${loja.cep || ""}
-  `;
-
-  if(loja.whatsapp){
-    whatsLoja.innerText = `📲 ${loja.whatsapp}`;
+  if(loja){
+    nomeLoja.innerText = loja.negocio || "Agenda Fácil";
+    cidadeLoja.innerText = `${loja.cidade || ""} • ${loja.uf || ""}`;
+    enderecoLoja.innerText = `
+      ${loja.rua || ""}, ${loja.numero || ""}
+      • ${loja.bairro || ""}
+      • CEP ${loja.cep || ""}
+    `;
+    if(loja.whatsapp){
+      whatsLoja.innerText = `📲 ${loja.whatsapp}`;
+    }
+    if(loja.avatar_url){
+      logo.style.backgroundImage = `url(${loja.avatar_url})`;
+    }
   }
 
-  if(loja.avatar_url){
-    logo.style.backgroundImage = `url(${loja.avatar_url})`;
-    logo.style.backgroundSize = "cover";
-    logo.style.backgroundPosition = "center";
-  }
-}
-
-
+  /* ===== PRODUTOS / SERVIÇOS ===== */
   const { data } = await sb
     .from("produtos_servicos")
     .select("*")
@@ -257,42 +253,84 @@ if(loja){
     .order("ordem_exibicao");
 
   todos = data || [];
+
+  // 👉 VERIFICA EXISTÊNCIA
+  const temServicos = todos.some(i => i.tipo === "SERVICO");
+  const temProdutos = todos.some(i => i.tipo === "PRODUTO");
+
+  // 👉 CONTROLA VISIBILIDADE DAS TABS
+  tabServicos.style.display = temServicos ? "inline-block" : "none";
+  tabProdutos.style.display = temProdutos ? "inline-block" : "none";
+
+  // 👉 DEFINE TAB INICIAL
+  if(temServicos){
+    tipoAtual = "SERVICO";
+    tabServicos.classList.add("active");
+    tabProdutos.classList.remove("active");
+  } else if(temProdutos){
+    tipoAtual = "PRODUTO";
+    tabProdutos.classList.add("active");
+    tabServicos.classList.remove("active");
+  } else {
+    tipoAtual = null;
+  }
+
   render();
 }
 
 /* ================= RENDER ================= */
 function render(){
   const q = busca.value.toLowerCase();
+  grid.innerHTML = "";
 
-  grid.innerHTML = todos
-    .filter(i => i.tipo === tipoAtual)
-    .filter(i => i.nome.toLowerCase().includes(q))
-    .map(i => `
-      <div class="card">
-        <div style="position:relative">
-          ${i.promocao_ativa ? `<div class="badge">Promoção</div>` : ``}
-          <img src="${i.imagem_url || ''}">
-        </div>
-        <div class="card-body">
-          <strong>${i.nome}</strong>
-          <div class="meta">
-            <span>${i.tipo === "SERVICO" ? `⏱ ${i.duracao_minutos || 0} min` : "📦 Produto"}</span>
-            <span class="price">
-              ${
-                i.promocao_ativa
-                  ? `<span class="old">R$ ${Number(i.preco).toFixed(0)}</span> R$ ${Number(i.preco_promocional).toFixed(0)}`
-                  : `R$ ${Number(i.preco).toFixed(0)}`
-              }
-            </span>
-          </div>
-          ${
-            i.tipo === "SERVICO"
-              ? `<button onclick="agendar('${i.id}')">Agendar</button>`
-              : `<button onclick="comprar('${i.id}')">Comprar</button>`
-          }
-        </div>
+  if(!tipoAtual){
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px">
+        Nenhum produto ou serviço disponível no momento
       </div>
-    `).join("");
+    `;
+    return;
+  }
+
+  const lista = todos
+    .filter(i => i.tipo === tipoAtual)
+    .filter(i => i.nome.toLowerCase().includes(q));
+
+  if(lista.length === 0){
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:24px">
+        Nenhum item encontrado
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = lista.map(i => `
+    <div class="card">
+      <div style="position:relative">
+        ${i.promocao_ativa ? `<div class="badge">Promoção</div>` : ``}
+        <img src="${i.imagem_url || ''}">
+      </div>
+      <div class="card-body">
+        <strong>${i.nome}</strong>
+        <div class="meta">
+          <span>${i.tipo === "SERVICO" ? `⏱ ${i.duracao_minutos || 0} min` : "📦 Produto"}</span>
+          <span class="price">
+            ${
+              i.promocao_ativa
+                ? `<span class="old">R$ ${Number(i.preco).toFixed(0)}</span> R$ ${Number(i.preco_promocional).toFixed(0)}`
+                : `R$ ${Number(i.preco).toFixed(0)}`
+            }
+          </span>
+        </div>
+        ${
+          i.tipo === "SERVICO"
+            ? `<button onclick="agendar('${i.id}')">Agendar</button>`
+            : `<button onclick="comprar('${i.id}')">Comprar</button>`
+        }
+      </div>
+    </div>
+  `).join("");
 }
 
 /* ================= AÇÕES ================= */
