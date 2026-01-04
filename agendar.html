@@ -245,7 +245,7 @@ async function selecionarServico(id, dur, nome){
 
   document.getElementById("days").innerHTML = DIAS_VALIDOS.map((d, i) => `
     <div class="item" onclick="selecionarDia(${i})">
-      ${new Date(d.data).getDate()}
+     ${formatarDia(d.data)}
     </div>
   `).join("");
 }
@@ -284,6 +284,10 @@ async function selecionarDia(index){
   document.getElementById("times").innerHTML = slots.map(h=>`
     <div class="item" onclick="confirmar('${h}')">${h}</div>
   `).join("");
+}
+function formatarDia(dataISO){
+  const [ano, mes, dia] = dataISO.split("-");
+  return Number(dia);
 }
 
 /* ================= CONFIRMAR ================= */
