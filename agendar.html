@@ -143,6 +143,7 @@ const clienteWhats = localStorage.getItem("WHATS_CLIENTE");
 
 let dados = {};
 let duracao = 0;
+let DIAS_VALIDOS = [];
 
 /* UTILS */
 const toMin = h => { const [a,b]=h.split(":").map(Number); return a*60+b; }
@@ -224,12 +225,14 @@ async function selecionarServico(id,d,nome,preco){
 }
 
 
-  document.getElementById("days").innerHTML = diasValidos.map(d=>`
-    <div class="item" onclick="selecionarDia('${d.data}','${d.horarios.replace(/'/g,"")}')">
-      ${new Date(d.data).getDate()}
-    </div>
-  `).join("");
-}
+DIAS_VALIDOS = diasValidos;
+
+document.getElementById("days").innerHTML = DIAS_VALIDOS.map((d,i)=>`
+  <div class="item" onclick="selecionarDia(${i})">
+    ${new Date(d.data).getDate()}
+  </div>
+`).join("");
+
 
 /* ================= HORÁRIOS ================= */
 async function selecionarDia(data,horariosStr){
