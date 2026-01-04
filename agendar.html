@@ -275,7 +275,7 @@ async function selecionarDia(index){
 async function confirmar(h){
   const fim = toHour(toMin(h) + duracao);
 
-  await sb.from("agendamentos").insert({
+  const { error } = await sb.from("agendamentos").insert({
     user_id: lojaId,
     servico_id: dados.servico,
     data: dados.data,
@@ -285,6 +285,12 @@ async function confirmar(h){
     cliente_whatsapp: clienteWhats
   });
 
+  if(error){
+    alert("❌ Erro ao salvar o agendamento.\n" + error.message);
+    console.error(error);
+    return;
+  }
+
   document.getElementById("final").innerHTML = `
     <div class="msg-final">
       ✅ Agendamento concluído.<br><br>
@@ -292,6 +298,7 @@ async function confirmar(h){
     </div>
   `;
 }
+
 
 carregarServicos();
 </script>
