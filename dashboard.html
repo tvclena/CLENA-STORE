@@ -511,11 +511,13 @@ async function carregarPerfil(){
   pCidade.value = p.cidade || "";
   pUf.value = (p.uf || "").toUpperCase();
 
- if (p.avatar_url) {
-  profileImg.style.backgroundImage = `url(${p.avatar_url})`;
-  avatar.style.backgroundImage = `url(${p.avatar_url})`;
-  avatar.textContent = "";
-}
+  if (p.avatar_url) {
+    profileImg.style.backgroundImage = `url(${p.avatar_url})`;
+    avatar.style.backgroundImage = `url(${p.avatar_url})`;
+    avatar.textContent = "";
+  }
+} // ✅ FECHAMENTO CORRETO DA FUNÇÃO
+
 
 
 
