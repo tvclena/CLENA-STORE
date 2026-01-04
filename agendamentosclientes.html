@@ -144,9 +144,7 @@ const sb = supabase.createClient(
 
 /* ================= CONTEXTO ================= */
 const lojaId = new URLSearchParams(location.search).get("l");
-const clienteNome  = localStorage.getItem("NOME_CLIENTE");
 const clienteWhats = localStorage.getItem("WHATS_CLIENTE");
-
 const lista = document.getElementById("lista");
 
 /* ================= UTILS ================= */
@@ -159,23 +157,18 @@ function minutosAte(data, hora){
 
 /* ================= LOAD ================= */
 async function carregar(){
-  if(!clienteNome || !clienteWhats){
+  if(!clienteWhats){
     lista.innerHTML = `<div class="empty">Cliente não identificado.</div>`;
     return;
   }
 
-  const { data, error } = await sb
+  /* 1️⃣ BUSCA AGENDAMENTOS */
+  const { data: ags, error } = await sb
     .from("agendamentos")
-    .select(`
-      id,
-      data,
-      hora_inicio,
-      hora_fim,
-      produtos_servicos ( nome, preco )
-    `)
+    .select("id, data, hora_inicio, hora_fim, servico_id")
     .eq("loja_id", lojaId)
     .eq("cliente_whatsapp", clienteWhats)
-    .order("data", { ascending: true });
+    .order("data", { ascending:true });
 
   if(error){
     console.error(error);
@@ -183,19 +176,32 @@ async function carregar(){
     return;
   }
 
-  if(!data.length){
+  if(!ags.length){
     lista.innerHTML = `<div class="empty">Você não possui agendamentos.</div>`;
     return;
   }
 
-  lista.innerHTML = data.map(a=>{
+  /* 2️⃣ BUSCA SERVIÇOS */
+  const servicoIds = [...new Set(ags.map(a=>a.servico_id))];
+
+  const { data: servicos } = await sb
+    .from("produtos_servicos")
+    .select("id, nome, preco")
+    .in("id", servicoIds);
+
+  const mapaServicos = {};
+  servicos?.forEach(s => mapaServicos[s.id] = s);
+
+  /* 3️⃣ RENDER */
+  lista.innerHTML = ags.map(a=>{
     const mins = minutosAte(a.data, a.hora_inicio);
     const podeAlterar = mins >= 40;
+    const servico = mapaServicos[a.servico_id] || {};
 
     return `
       <div class="card">
         <div class="row">
-          <div class="title">${a.produtos_servicos?.nome || "Serviço"}</div>
+          <div class="title">${servico.nome || "Serviço"}</div>
           <div class="badge">${new Date(a.data).toLocaleDateString()}</div>
         </div>
 
@@ -204,8 +210,10 @@ async function carregar(){
         </div>
 
         <div class="row">
-          <div class="price">R$ ${a.produtos_servicos?.preco || "0,00"}</div>
-          <div class="info">${podeAlterar ? "Alterável" : "Bloqueado (menos de 40 min)"}</div>
+          <div class="price">R$ ${servico.preco || "0,00"}</div>
+          <div class="info">
+            ${podeAlterar ? "Alterável" : "Bloqueado (menos de 40 min)"}
+          </div>
         </div>
 
         <div class="actions">
