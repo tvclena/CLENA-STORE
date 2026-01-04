@@ -317,6 +317,14 @@ async function salvarCliente(){
   fecharModalCliente();
 }
 
+function clienteValido(){
+  const nome  = (localStorage.getItem("NOME_CLIENTE") || "").trim();
+  const whats = (localStorage.getItem("WHATS_CLIENTE") || "")
+                  .replace(/\D/g,"");
+
+  return nome.length >= 3 && whats.length >= 10;
+}
+
 /* ================= LOAD ================= */
 async function load(){
   const { data } = await sb
@@ -327,12 +335,13 @@ async function load(){
 
   nomeLoja.innerText = data?.negocio || "Agenda Fácil";
 
+if(clienteValido()){
   const nome = localStorage.getItem("NOME_CLIENTE");
-  if(nome){
-    atualizarAvatar(nome);
-  }else{
-    abrirModalCliente();
-  }
+  atualizarAvatar(nome);
+} else {
+  abrirModalCliente();
+}
+
 
   frame.src = `homeclientes.html?l=${lojaId}`;
 }
