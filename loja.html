@@ -276,6 +276,7 @@ function go(el, page){
   frame.src = `${page}?l=${lojaId}`;
 }
 
+
 /* ================= MODAL ================= */
 function abrirModalCliente(){
   clienteModal.hidden = false;
@@ -283,7 +284,7 @@ function abrirModalCliente(){
 
 function fecharModalCliente(){
   if(!clienteValido()){
-    return; // NÃO deixa fechar
+    return; // BLOQUEIA fechamento
   }
   clienteModal.hidden = true;
 }
@@ -342,6 +343,7 @@ function clienteValido(){
 
 /* ================= LOAD ================= */
 async function load(){
+
   const { data } = await sb
     .from("user_profile")
     .select("negocio")
@@ -350,23 +352,16 @@ async function load(){
 
   nomeLoja.innerText = data?.negocio || "Agenda Fácil";
 
-if(clienteValido()){
-  const nome = localStorage.getItem("NOME_CLIENTE");
-  atualizarAvatar(nome);
-} else {
-  abrirModalCliente();
+  if(clienteValido()){
+    const nome = localStorage.getItem("NOME_CLIENTE");
+    atualizarAvatar(nome);
+    frame.src = `homeclientes.html?l=${lojaId}`;
+  } else {
+    frame.src = ""; // BLOQUEIA APP
+    abrirModalCliente();
+  }
 }
 
-
-if(clienteValido()){
-  const nome = localStorage.getItem("NOME_CLIENTE");
-  atualizarAvatar(nome);
-  frame.src = `homeclientes.html?l=${lojaId}`;
-} else {
-  frame.src = ""; // NÃO carrega nada
-  abrirModalCliente();
-}
-}
 
 load();
 </script>
