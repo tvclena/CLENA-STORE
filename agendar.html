@@ -188,29 +188,41 @@ async function selecionarServico(id,d,nome,preco){
 
   let diasValidos=[];
 
-  for(const d of agenda){
-    const blocos = JSON.parse(d.horarios||"[]");
+ for(const d of agenda){
 
-    const {data:ags} = await sb.from("agendamentos")
-      .select("hora_inicio,hora_fim")
-      .eq("user_id",lojaId)
-      .eq("data",d.data);
+  let blocos = [];
 
-    let ocupados = ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
-    let livre=false;
-
-    blocos.forEach(b=>{
-      let s=toMin(b.inicio),e=toMin(b.fim);
-      while(s+duracao<=e){
-        if(!ocupados.some(o=>!(s+duracao<=o[0]||s>=o[1]))){
-          livre=true;break;
-        }
-        s+=duracao;
-      }
-    });
-
-    if(livre) diasValidos.push(d);
+  try{
+    blocos = typeof d.horarios === "string"
+      ? JSON.parse(d.horarios)
+      : d.horarios;
+  }catch(e){
+    console.error("Erro ao ler horários:", d.horarios);
+    continue;
   }
+
+  const {data:ags} = await sb.from("agendamentos")
+    .select("hora_inicio,hora_fim")
+    .eq("user_id",lojaId)
+    .eq("data",d.data);
+
+  let ocupados = ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
+  let livre=false;
+
+  blocos.forEach(b=>{
+    let s=toMin(b.inicio), e=toMin(b.fim);
+    while(s+duracao<=e){
+      if(!ocupados.some(o=>!(s+duracao<=o[0]||s>=o[1]))){
+        livre=true;
+        break;
+      }
+      s+=duracao;
+    }
+  });
+
+  if(livre) diasValidos.push(d);
+}
+
 
   document.getElementById("days").innerHTML = diasValidos.map(d=>`
     <div class="item" onclick="selecionarDia('${d.data}','${d.horarios.replace(/'/g,"")}')">
