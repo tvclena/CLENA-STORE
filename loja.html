@@ -270,11 +270,13 @@ function go(el,page){
 
 /* ================= MODAL ================= */
 function abrirModalCliente(){
-  clienteModal.style.display="block";
+  clienteModal.hidden = false;
 }
+
 function fecharModalCliente(){
-  clienteModal.style.display="none";
+  clienteModal.hidden = true;
 }
+
 
 /* ================= CLIENTE ================= */
 function atualizarAvatar(nome){
