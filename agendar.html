@@ -276,7 +276,8 @@ async function confirmar(h){
   const fim = toHour(toMin(h) + duracao);
 
 const { error } = await sb.from("agendamentos").insert({
-  loja_id: lojaId,          // ✅ CORRETO
+  user_id: lojaId,          // 🔴 OBRIGATÓRIO
+  loja_id: lojaId,          // opcional, mas ok
   servico_id: dados.servico,
   data: dados.data,
   hora_inicio: h,
@@ -284,6 +285,7 @@ const { error } = await sb.from("agendamentos").insert({
   cliente_nome: clienteNome,
   cliente_whatsapp: clienteWhats
 });
+
 
   if(error){
     alert("❌ Erro ao salvar o agendamento.\n" + error.message);
