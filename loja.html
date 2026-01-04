@@ -320,12 +320,12 @@ async function salvarCliente(){
     .maybeSingle();
 
   if(!data){
-    await sb.from("clientes_loja").insert({
-      loja_id: lojaId,
-      nome_completo: nome,
-      whatsapp: whats,
-      email: email
-    });
+await sb.from("clientes_loja").insert({
+  loja_id: lojaId,
+  nome_completo: nome,
+  whatsapp: whats
+});
+
   }
 
 fecharModalCliente();
