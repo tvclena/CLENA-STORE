@@ -208,6 +208,15 @@ const lojaId = new URLSearchParams(location.search).get("l");
 let todos = [];
 let tipoAtual = null;
 
+const logo = document.getElementById("logo");
+const nomeLoja = document.getElementById("nomeLoja");
+const cidadeLoja = document.getElementById("cidadeLoja");
+const enderecoLoja = document.getElementById("enderecoLoja");
+const whatsLoja = document.getElementById("whatsLoja");
+
+
+
+  
 /* ================= LOAD ================= */
 async function load(){
 
@@ -239,8 +248,9 @@ async function load(){
     if(loja.whatsapp){
       whatsLoja.innerText = `📲 ${loja.whatsapp}`;
     }
-    if(loja.avatar_url){
-      logo.style.backgroundImage = `url(${loja.avatar_url})`;
+if (loja.avatar_url) {
+  logo.style.backgroundImage = `url('${loja.avatar_url}')`;
+
     }
   }
 
