@@ -293,10 +293,14 @@ async function selecionarDia(index){
     <div class="item" onclick="confirmar('${h}')">${h}</div>
   `).join("");
 }
-function formatarDia(dataISO){
-  const [ano, mes, dia] = dataISO.split("-");
-  return Number(dia);
+function formatarDiaCompleto(dataISO){
+  const d = new Date(dataISO + "T00:00:00");
+  return d.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    weekday: "short"
+  });
 }
+
 
 /* ================= CONFIRMAR ================= */
 async function confirmar(h){
