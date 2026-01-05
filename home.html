@@ -491,11 +491,26 @@ async function carregarAgendaDia(lojaId){
   document.getElementById("kpiHoje").innerText = agenda.length;
 }
 
-async function alterarStatus(id,status){
-  await sbHome.from("agendamentos").update({status}).eq("id",id);
+async function alterarStatus(id, status){
+
   const { data:{ session } } = await sbHome.auth.getSession();
-  if(session) carregarAgendaDia(session.user.id);
+  if(!session) return;
+
+  const { error } = await sbHome
+    .from("agendamentos")
+    .update({ status })
+    .eq("id", id)
+    .eq("user_id", session.user.id); // 🔥 ISSO É O QUE FALTAVA
+
+  if(error){
+    alert("Erro ao alterar status");
+    console.error(error);
+    return;
+  }
+
+  carregarAgendaDia(session.user.id);
 }
+
 </script>
 
 </body>
