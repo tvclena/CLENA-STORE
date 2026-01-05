@@ -439,6 +439,10 @@ const sb=supabase.createClient(
 );
 
 let userId,itens=[],editId=null,blob=null;
+const TIPO_LABEL = {
+  SERVICO: "SERVIÇO",
+  PRODUTO: "PRODUTO"
+};
 
 (async()=>{
  const {data:{session}}=await sb.auth.getSession();
@@ -558,8 +562,13 @@ function render(){
     ${i.imagem_url?`<img src="${i.imagem_url}">`:""}
     <div class="item-body">
      <h4>${i.nome}</h4>
-     <div class="badge ${i.tipo==="SERVICO"?"servico":"produto"}">${i.tipo}</div>
-     ${i.promocao_ativa?`<div class="badge promo">PROMO</div>`:""}
+
+
+
+     
+<div class="badge ${i.tipo==="SERVICO"?"servico":"produto"}">
+  ${TIPO_LABEL[i.tipo] || i.tipo}
+</div>`:""}
      <span class="price">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</span>
      <div class="actions" onclick="editar('${i.id}')">Editar</div>
     </div>
