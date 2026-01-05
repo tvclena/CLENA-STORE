@@ -180,7 +180,12 @@ const { data } = await sb
   container.innerHTML = data.map(s=>`
     <div class="service"
          data-id="${s.id}"
-         onclick="selecionarServico('${s.id}',${s.duracao_minutos},'${s.nome}')">
+onclick="selecionarServico(
+  '${s.id}',
+  ${s.duracao_minutos},
+  '${s.nome}',
+  ${Number(s.preco)}
+)"
       <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
       <div class="service-info">
         <div class="service-name">${s.nome}</div>
@@ -224,10 +229,12 @@ function diaSemana(dataISO){
 
   
 /* ================= SERVIÇO → DIAS ================= */
-async function selecionarServico(id, dur, nome){
+async function selecionarServico(id, dur, nome, preco){
   dados.servico = id;
   dados.servico_nome = nome;
+  dados.valor_servico = preco; // ✅ GUARDA O VALOR
   duracao = dur;
+
 
   document.getElementById("days").innerHTML = "";
   document.getElementById("times").innerHTML = "";
@@ -350,15 +357,17 @@ async function confirmar(h){
   const fim = toHour(toMin(h) + duracao);
 
 const { error } = await sb.from("agendamentos").insert({
-  user_id: lojaId,          // 🔴 OBRIGATÓRIO
-  loja_id: lojaId,          // opcional, mas ok
+  user_id: lojaId,
+  loja_id: lojaId,
   servico_id: dados.servico,
+  valor_servico: dados.valor_servico, // ✅ NOVO
   data: dados.data,
   hora_inicio: h,
   hora_fim: fim,
   cliente_nome: clienteNome,
   cliente_whatsapp: clienteWhats
 });
+
 
 
   if(error){
