@@ -292,9 +292,13 @@ async function verificarProdutosDaLoja(){
 
 
   
-/* ================= LOJA ================= */
-// 🔹 slug vindo da rota limpa: /barbearia-mendes
-const slug = location.pathname.replace("/", "").trim();
+// 🔹 slug vindo da rota limpa no GitHub Pages
+const BASE_PATH = "/AgendaBeauty";
+
+const slug = location.pathname
+  .replace(BASE_PATH, "") // remove /AgendaBeauty
+  .replace(/^\/+/, "")    // remove / inicial
+  .trim();
 
 let lojaId = null; // será resolvido depois
 
