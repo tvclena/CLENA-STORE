@@ -312,105 +312,87 @@ body::-webkit-scrollbar{
 
 </div>
 
+
+
+
+
+  
 <script>
+/* ================= CONFIG ================= */
+const sbHome = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
 let dataAtual = new Date();
 
 function dataISO(d){
   return d.toLocaleDateString("en-CA");
 }
 
-
-
-const sbHome = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
-
-
-  
+/* ================= HOME ================= */
 async function carregarHome(){
 
-
-  // 🔐 sessão
   const { data:{ session } } = await sbHome.auth.getSession();
   if(!session) return;
 
   const lojaId = session.user.id;
 
-  // 📅 datas
-const hoje = new Date().toLocaleDateString("en-CA");
+  const hoje = dataISO(new Date());
 
-const inicioMes = new Date();
-inicioMes.setDate(1);
-const inicio = inicioMes.toLocaleDateString("en-CA");
+  const inicioMes = new Date();
+  inicioMes.setDate(1);
+  const inicio = dataISO(inicioMes);
 
+  /* ===== KPI HOJE ===== */
+  const { count: qtdHoje } = await sbHome
+    .from("agendamentos")
+    .select("*",{ count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("data", hoje)
+    .neq("status","CANCELADO");
 
-  /* ================= KPIs ================= */
+  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
-  // 📅 Agendamentos hoje (não cancelados)
-const { count: qtdHoje } = await sbHome
-.from("agendamentos")
-  .select("*", { count: "exact", head: true })
-  .eq("user_id", lojaId)
-  .eq("data", hoje)
-  .neq("status", "CANCELADO");
-
-document.getElementById("kpiHoje").innerText = qtdHoje || 0;
-
-  // 👥 Clientes cadastrados
+  /* ===== KPI CLIENTES ===== */
   const { count: qtdClientes } = await sbHome
     .from("clientes_loja")
-    .select("*", { count:"exact", head:true })
+    .select("*",{ count:"exact", head:true })
     .eq("user_id", lojaId);
 
   document.getElementById("kpiClientes").innerText = qtdClientes || 0;
 
-  // ✂️ Serviços ativos
+  /* ===== KPI SERVIÇOS ===== */
   const { count: qtdServicos } = await sbHome
     .from("produtos_servicos")
-    .select("*", { count:"exact", head:true })
+    .select("*",{ count:"exact", head:true })
     .eq("user_id", lojaId)
     .eq("ativo", true)
-    .eq("tipo", "SERVICO");
+    .eq("tipo","SERVICO");
 
   document.getElementById("kpiServicos").innerText = qtdServicos || 0;
 
-  // 💰 Faturamento do mês (somente CONCLUÍDOS)
-const { data: faturamento } = await sbHome
-  .from("agendamentos")
-  .select("valor_servico")
-  .eq("user_id", lojaId)
-  .gte("data", inicio)
-  .in("status", ["CONFIRMADO", "CONCLUIDO"]);
-
-const total = faturamento?.reduce(
-  (s, v) => s + Number(v.valor_servico || 0),
-  0
-) || 0;
-
-document.getElementById("kpiFaturamento").innerText =
-  total.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-
-
- 
-
-  /* ================= CANCELAMENTOS (NOVO) ================= */
-
-  const { count: qtdCancelados } = await sbHome
+  /* ===== KPI FATURAMENTO ===== */
+  const { data: faturamento } = await sbHome
     .from("agendamentos")
-    .select("*", { count:"exact", head:true })
+    .select("valor_servico")
     .eq("user_id", lojaId)
-    .eq("status", "cancelado");
+    .gte("data", inicio)
+    .in("status",["CONFIRMADO","CONCLUIDO"]);
 
-  // 📅 carregar agenda do dia atual (INICIAL)
+  const total = faturamento?.reduce(
+    (s,v)=> s + Number(v.valor_servico || 0), 0
+  ) || 0;
+
+  document.getElementById("kpiFaturamento").innerText =
+    total.toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
+
   await carregarAgendaDia(lojaId);
 }
 
 carregarHome();
 
+/* ================= SWIPE DIA ================= */
 let startX = 0;
 
 document.addEventListener("touchstart", e=>{
@@ -418,54 +400,51 @@ document.addEventListener("touchstart", e=>{
 });
 
 document.addEventListener("touchend", e=>{
-  const endX = e.changedTouches[0].clientX;
-  const diff = endX - startX;
-
+  const diff = e.changedTouches[0].clientX - startX;
   if(Math.abs(diff) < 60) return;
 
-  if(diff < 0){
-    // 👉 próximo dia
-    dataAtual.setDate(dataAtual.getDate() + 1);
-  }else{
-    // 👈 dia anterior
-    dataAtual.setDate(dataAtual.getDate() - 1);
-  }
+  dataAtual.setDate(
+    dataAtual.getDate() + (diff < 0 ? 1 : -1)
+  );
 
   sbHome.auth.getSession().then(({ data:{ session } })=>{
-    if(session){
-      carregarAgendaDia(session.user.id);
-    }
+    if(session) carregarAgendaDia(session.user.id);
   });
 });
 
-
-
-  
+/* ================= AGENDA ================= */
 async function carregarAgendaDia(lojaId){
 
   const data = dataISO(dataAtual);
 
-  // 🏷️ título
   document.getElementById("tituloAgenda").innerText =
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
-  const { data: agenda } = await sbHome
+  const { data: agenda, error } = await sbHome
     .from("agendamentos")
-.select(`
-  id,
-  hora_inicio,
-  cliente_nome,
-  status,
-  nome_servico,
-  valor_servico
-`)
+    .select(`
+      id,
+      hora_inicio,
+      cliente_nome,
+      status,
+      valor_servico,
+      produtos_servicos (
+        nome
+      )
+    `)
     .eq("user_id", lojaId)
     .eq("data", data)
-    .neq("status", "CANCELADO")
+    .neq("status","CANCELADO")
     .order("hora_inicio");
 
   const box = document.getElementById("agendaHoje");
   box.innerHTML = "";
+
+  if(error){
+    console.error(error);
+    box.innerHTML = `<div class="empty">Erro ao carregar agenda</div>`;
+    return;
+  }
 
   if(!agenda || agenda.length === 0){
     box.innerHTML = `<div class="empty">Nenhum horário</div>`;
@@ -473,61 +452,55 @@ async function carregarAgendaDia(lojaId){
     return;
   }
 
-agenda.forEach(a=>{
-  const hora = a.hora_inicio?.slice(0,5);
-  const valor = Number(a.valor_servico || 0).toLocaleString("pt-BR", {
-    style:"currency",
-    currency:"BRL"
+  agenda.forEach(a=>{
+    const hora = a.hora_inicio.slice(0,5);
+    const valor = Number(a.valor_servico ?? 0)
+      .toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
+
+    const servico = a.produtos_servicos?.nome || "Serviço";
+
+    box.innerHTML += `
+      <div class="agenda-item">
+        <div class="agenda-info">
+          <div class="agenda-top">
+            <span class="agenda-time">${hora}</span>
+            <span class="agenda-client">• ${a.cliente_nome}</span>
+          </div>
+
+          <div class="produto-card">
+            <strong>${servico}</strong>
+            <small>${valor}</small>
+          </div>
+        </div>
+
+        <select
+          class="status-select ${a.status.toLowerCase()}"
+          onchange="alterarStatus('${a.id}', this.value)"
+        >
+          <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
+          <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
+          <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
+        </select>
+      </div>
+    `;
   });
 
-  box.innerHTML += `
-    <div class="agenda-item">
-
-      <div class="agenda-info">
-        <div class="agenda-top">
-          <span class="agenda-time">${hora}</span>
-          <span class="agenda-client">• ${a.cliente_nome}</span>
-        </div>
-
-        <div class="produto-card">
-          <strong>${a.nome_servico || "Serviço"}</strong>
-          <small>${valor}</small>
-        </div>
-      </div>
-
-      <select
-        class="status-select ${a.status.toLowerCase()}"
-        onchange="alterarStatus('${a.id}', this.value)"
-      >
-        <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
-        <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
-        <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
-      </select>
-
-    </div>
-  `;
-});
-
-
-  // KPI acompanha o dia exibido
   document.getElementById("kpiHoje").innerText = agenda.length;
 }
+
+/* ================= STATUS ================= */
 async function alterarStatus(id, status){
   await sbHome
     .from("agendamentos")
     .update({ status })
     .eq("id", id);
 
-  // atualiza agenda do dia
   const { data:{ session } } = await sbHome.auth.getSession();
   if(session){
     carregarAgendaDia(session.user.id);
   }
 }
-
-  
 </script>
-
 
 </body>
 </html>
