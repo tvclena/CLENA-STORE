@@ -1,3 +1,70 @@
+const CACHE_NAME = "agenda-facil-v1";
+
+const ASSETS = [
+  "/AgendaBeauty/login.html",
+  "/AgendaBeauty/cadastro.html",
+  "/AgendaBeauty/dashboard.html",
+  "/AgendaBeauty/agenda.html",
+  "/AgendaBeauty/manifest.json",
+  "/AgendaBeauty/icons/icon-192.png",
+  "/AgendaBeauty/icons/icon-512.png"
+];
+
+/* =============================
+   INSTALL
+============================= */
+self.addEventListener("install", event => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
+});
+
+/* =============================
+   ACTIVATE
+============================= */
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(k => k !== CACHE_NAME)
+          .map(k => caches.delete(k))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+/* =============================
+   FETCH (cache + network)
+============================= */
+self.addEventListener("fetch", event => {
+  const req = event.request;
+
+  // NÃO intercepta Supabase / Auth
+  if (
+    req.url.includes("supabase.co") ||
+    req.method !== "GET"
+  ) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(req).then(cached =>
+      cached ||
+      fetch(req).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, clone));
+        return res;
+      }).catch(() => caches.match("/AgendaBeauty/login.html"))
+    )
+  );
+});
+
+/* =============================
+   PUSH (SEU CÓDIGO)
+============================= */
 self.addEventListener("push", event => {
   let data = {};
 
@@ -12,10 +79,10 @@ self.addEventListener("push", event => {
 
   const options = {
     body: data.body,
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    icon: "/AgendaBeauty/icons/icon-192.png",
+    badge: "/AgendaBeauty/icons/icon-192.png",
     data: {
-      url: data.url || "/dashboard.html"
+      url: data.url || "/AgendaBeauty/dashboard.html"
     }
   };
 
@@ -24,6 +91,9 @@ self.addEventListener("push", event => {
   );
 });
 
+/* =============================
+   CLICK NA NOTIFICAÇÃO
+============================= */
 self.addEventListener("notificationclick", event => {
   event.notification.close();
 
