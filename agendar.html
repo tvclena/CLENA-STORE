@@ -182,6 +182,31 @@ async function carregarServicos(){
   }
 }
 
+
+
+  
+function formatarDia(dataISO){
+  const [ano, mes, dia] = dataISO.split("-");
+  return Number(dia);
+}
+
+function diaSemana(dataISO){
+  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const [ano, mes, dia] = dataISO.split("-");
+  const d = new Date(ano, mes - 1, dia);
+  return dias[d.getDay()];
+}
+
+
+
+
+
+
+
+
+
+
+  
 /* ================= SERVIÇO → DIAS ================= */
 async function selecionarServico(id, dur, nome){
   dados.servico = id;
@@ -302,16 +327,6 @@ async function selecionarDia(index){
   document.getElementById("times").innerHTML = slots.map(h=>`
     <div class="item" onclick="confirmar('${h}')">${h}</div>
   `).join("");
-}
-function formatarDia(dataISO){
-  const [ano, mes, dia] = dataISO.split("-");
-  return Number(dia);
-}
-function diaSemana(dataISO){
-  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-  const [ano, mes, dia] = dataISO.split("-");
-  const d = new Date(ano, mes - 1, dia); // mês começa em 0
-  return dias[d.getDay()];
 }
 
 /* ================= CONFIRMAR ================= */
