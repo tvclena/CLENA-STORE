@@ -358,23 +358,37 @@ body{
       <label>Categoria</label>
       <input id="categoria">
 
-      <label>Preço</label>
-<input id="preco" oninput="formatarMoedaInput(this)">
 
-      <label>Custo</label>
-<input id="preco" oninput="formatarMoedaInput(this)">
 
-      <label>
-        <input type="checkbox" id="promoAtiva"> Promoção ativa
-      </label>
 
-      <label>Preço promocional</label>
-<input id="preco" oninput="formatarMoedaInput(this)">
+
+
+      
+
+<label>Preço</label>
+<input id="preco" inputmode="decimal" oninput="formatarMoedaInput(this)">
+
+<label>Custo</label>
+<input id="custo" inputmode="decimal" oninput="formatarMoedaInput(this)">
+
+  <label>
+  <input type="checkbox" id="promoAtiva">
+  Promoção ativa
+</label>
+    
+
+<label>Preço promocional</label>
+<input id="precoPromo"
+       inputmode="decimal"
+       oninput="formatarMoedaInput(this)"
+       disabled>
+
+
 
       <!-- SERVIÇO -->
       <div id="boxServico">
         <label>Duração (minutos)</label>
-        <input id="duracao" type="number">
+<input id="duracao" type="number" inputmode="numeric">
 
         <label>
           <input type="checkbox" id="podeAgendar"> Pode agendar
@@ -388,14 +402,14 @@ body{
         </label>
 
         <label>Estoque atual</label>
-        <input id="estoqueAtual" type="number">
+<input id="estoqueAtual" type="number" inputmode="numeric">
 
         <label>Estoque mínimo</label>
-        <input id="estoqueMinimo" type="number">
+<input id="estoqueMinimo" type="number" inputmode="numeric">
       </div>
 
       <label>Ordem de exibição</label>
-      <input id="ordem" type="number">
+<input id="ordem" type="number" inputmode="numeric">
 
       <label>
         <input type="checkbox" id="ativo"> Item ativo
@@ -447,6 +461,12 @@ imagem.onchange=()=>{
  blob=f;
 };
 
+promoAtiva.onchange = () => {
+  precoPromo.disabled = !promoAtiva.checked;
+  if(!promoAtiva.checked){
+    precoPromo.value = "";
+  }
+};
 
 
 
@@ -484,7 +504,9 @@ async function salvar(){
    
 preco: moedaParaNumero(preco.value),
 custo: moedaParaNumero(custo.value),
-preco_promocional: precoPromo.value ? moedaParaNumero(precoPromo.value) : null,
+preco_promocional: promoAtiva.checked
+  ? moedaParaNumero(precoPromo.value)
+  : null,
 
 
    
@@ -553,10 +575,33 @@ function editar(id){
  nome.value=i.nome;
  descricao.value=i.descricao;
  categoria.value=i.categoria||"";
- preco.value=i.preco;
- custo.value=i.custo||"";
- precoPromo.value=i.preco_promocional||"";
+
+
+  
+preco.value = Number(i.preco).toLocaleString('pt-BR',{
+  minimumFractionDigits:2,
+  maximumFractionDigits:2
+});
+
+custo.value = i.custo
+  ? Number(i.custo).toLocaleString('pt-BR',{
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    })
+  : "";
+
+precoPromo.value = i.preco_promocional
+  ? Number(i.preco_promocional).toLocaleString('pt-BR',{
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    })
+  : "";
+
+
+
+  
  promoAtiva.checked=i.promocao_ativa;
+ precoPromo.disabled = !i.promocao_ativa;
  duracao.value=i.duracao_minutos||"";
  podeAgendar.checked=i.pode_agendar;
  controlaEstoque.checked=i.controla_estoque;
