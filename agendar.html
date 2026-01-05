@@ -103,6 +103,24 @@ html,body{margin:0;background:var(--bg)}
   box-shadow:0 18px 44px rgba(0,0,0,.18);
   font-weight:700;
 }
+
+.hidden {
+  display: none;
+}
+
+.selected {
+  border: 2px solid #2563eb !important; /* azul */
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
 </style>
 </head>
 
@@ -116,13 +134,16 @@ html,body{margin:0;background:var(--bg)}
 </div>
 
 <div class="section">
+ <div class="section hidden" id="secDays">
   <div class="title">Escolha a data</div>
   <div class="grid" id="days"></div>
 </div>
 
-<div class="section">
+<div class="section hidden" id="secTimes">
   <div class="title">Escolha o horário</div>
   <div class="grid" id="times"></div>
+</div>
+
 </div>
 
 <div class="section" id="final"></div>
@@ -233,15 +254,29 @@ function diaSemana(dataISO){
   
 /* ================= SERVIÇO → DIAS ================= */
 async function selecionarServico(id, dur, nome, preco){
+
+  // 🔵 marca visualmente
+  document.querySelectorAll(".service").forEach(el => el.classList.remove("selected"));
+  document.querySelector(`[data-id="${id}"]`)?.classList.add("selected");
+
   dados.servico = id;
   dados.servico_nome = nome;
-  dados.valor_servico = preco; // ✅ GUARDA O VALOR
+  dados.valor_servico = preco;
   duracao = dur;
 
+  // 🔹 mostra seção de dias
+  document.getElementById("secDays").classList.remove("hidden");
+  document.getElementById("secTimes").classList.add("hidden");
 
-  document.getElementById("days").innerHTML = "";
+  document.getElementById("days").innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;color:#6b7280">
+      🔄 Buscando dias disponíveis...
+    </div>
+  `;
+
   document.getElementById("times").innerHTML = "";
   document.getElementById("final").innerHTML = "";
+
 
 function hojeLocal(){
   const d = new Date();
@@ -321,36 +356,80 @@ document.getElementById("days").innerHTML = DIAS_VALIDOS.map((d, i) => `
 
 /* ================= DIA → HORÁRIOS ================= */
 async function selecionarDia(index){
+
+  /* ===== MARCA VISUAL DO DIA ===== */
+  document.querySelectorAll("#days .item")
+    .forEach(el => el.classList.remove("selected"));
+
+  const itemSelecionado =
+    document.querySelectorAll("#days .item")[index];
+
+  if(itemSelecionado){
+    itemSelecionado.classList.add("selected");
+  }
+
+  /* ===== MOSTRA SEÇÃO DE HORÁRIOS ===== */
+  document.getElementById("secTimes").classList.remove("hidden");
+
+  /* ===== FEEDBACK DE CARREGAMENTO ===== */
+  document.getElementById("times").innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">
+      🔄 Buscando horários disponíveis...
+    </div>
+  `;
+
+  /* ===== DADOS DO DIA ===== */
   const dia = DIAS_VALIDOS[index];
   dados.data = dia.data;
 
-  document.getElementById("times").innerHTML = "";
-  document.getElementById("final").innerHTML = "";
-
+  /* ===== HORÁRIOS DA AGENDA ===== */
   const blocos = typeof dia.horarios === "string"
     ? JSON.parse(dia.horarios)
     : dia.horarios;
 
+  /* ===== AGENDAMENTOS JÁ OCUPADOS ===== */
   const { data: ag } = await sb
     .from("agendamentos")
     .select("hora_inicio,hora_fim")
     .eq("user_id", lojaId)
     .eq("data", dia.data);
 
-  const ocupados = ag.map(a=>[toMin(a.hora_inicio), toMin(a.hora_fim)]);
+  const ocupados = ag.map(a => [
+    toMin(a.hora_inicio),
+    toMin(a.hora_fim)
+  ]);
+
+  /* ===== GERA SLOTS LIVRES ===== */
   let slots = [];
 
-  blocos.forEach(b=>{
-    let s = toMin(b.inicio), e = toMin(b.fim);
-    while(s + duracao <= e){
-      if(!ocupados.some(o => !(s+duracao<=o[0] || s>=o[1]))){
-        slots.push(toHour(s));
+  blocos.forEach(b => {
+    let inicio = toMin(b.inicio);
+    let fim = toMin(b.fim);
+
+    while(inicio + duracao <= fim){
+      const conflito = ocupados.some(o =>
+        !(inicio + duracao <= o[0] || inicio >= o[1])
+      );
+
+      if(!conflito){
+        slots.push(toHour(inicio));
       }
-      s += duracao;
+
+      inicio += duracao;
     }
   });
 
-  document.getElementById("times").innerHTML = slots.map(h=>`
+  /* ===== RENDERIZA HORÁRIOS ===== */
+  if(slots.length === 0){
+    document.getElementById("times").innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">
+        ❌ Nenhum horário disponível neste dia
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById("times").innerHTML = slots.map(h => `
     <div class="item" onclick="confirmar('${h}')">${h}</div>
   `).join("");
 }
@@ -379,13 +458,25 @@ const { error } = await sb.from("agendamentos").insert({
     return;
   }
 
-  document.getElementById("final").innerHTML = `
+
+
+  
+  document.body.insertAdjacentHTML("beforeend", `
+  <div class="overlay">
     <div class="msg-final">
-      ✅ Agendamento concluído.<br><br>
-      Você pode acompanhar na tela de agendamentos.
+      ✅ <strong>Agendamento confirmado!</strong><br><br>
+
+      Serviço: <b>${dados.servico_nome}</b><br>
+      Data: <b>${dados.data}</b><br>
+      Horário: <b>${h}</b><br><br>
+
+      ⚠️ Caso precise cancelar ou alterar,<br>
+      acesse o painel <b>Meus Agendamentos</b><br>
+      com no mínimo <b>40 minutos</b> de antecedência.
     </div>
-  `;
-}
+  </div>
+`);
+
 
 
 carregarServicos();
