@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
 <title>Entrar • Agenda Fácil</title>
 
@@ -10,6 +11,10 @@
   maximum-scale=1,
   user-scalable=no,
   viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agenda Fácil">
+<link rel="apple-touch-icon" href="icon-192.png">
 
 <meta name="theme-color" content="#ff6a00">
 
@@ -366,6 +371,16 @@ document.getElementById("resetSenha").addEventListener("click", async e=>{
   errorBox.innerText="E-mail de recuperação enviado.";
   errorBox.style.display="block";
 });
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/AgendaBeauty/sw.js")
+      .then(reg => console.log("SW registrado:", reg.scope))
+      .catch(err => console.error("SW erro:", err));
+  });
+}
 </script>
 
 </body>
