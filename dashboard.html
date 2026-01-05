@@ -478,7 +478,14 @@ async function proteger(){
 
 
 proteger();
+if (Notification.permission !== "granted") {
+  setTimeout(() => {
+    pedirNotificacao();
+  }, 1000);
+}
 
+
+  
 async function carregarPerfil(){
   const { data:p, error } = await sb
     .from("user_profile")
@@ -673,7 +680,7 @@ async function pedirNotificacao() {
   const reg = await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: "SUA_CHAVE_VAPID_PUBLICA"
+    applicationServerKey: "BFhPEOPNlTlGO4rcw-ZcZAPNByDk1uZA2KJIAm4K4wLwp0TTTtQjtDZi-5YGt7LzwhGun-DU_dXpKwQcHWPruVw"
   });
 
   // salva subscription no Supabase
