@@ -315,7 +315,7 @@ async function cadastrar(e){
 
   /* 1️⃣ CRIA USUÁRIO (AUTH) */
   const { data, error } = await sb.auth.signUp({
-    email: emailValue,
+    email_contato: emailValue,
     password: senhaValue
   });
 
@@ -339,7 +339,7 @@ async function cadastrar(e){
       tipo: tipo.value,
       cidade: cidade.value.trim(),
       uf: uf.value.trim().toUpperCase(),
-      email: emailValue
+      email_contato: emailValue
     });
 
   overlay.style.display = "none";
