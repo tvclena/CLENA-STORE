@@ -264,22 +264,27 @@ const avatar = document.getElementById("avatarCliente");
 
 const navLoja = document.getElementById("navLoja");
 
+
+
+  
 async function verificarProdutosDaLoja(){
-  const { data, error } = await sb
+  const { count, error } = await sb
     .from("produtos_servicos")
     .select("id", { count: "exact", head: true })
     .eq("loja_id", lojaId)
+    .eq("tipo", "PRODUTO")   // ✅ SOMENTE PRODUTO
     .eq("ativo", true);
 
-  // Se não tiver produtos, esconde a aba Loja
-  if(!data || error){
+  if (error) {
+    console.error("Erro ao verificar produtos:", error);
     navLoja.style.display = "none";
     return;
   }
 
-  // Se existir pelo menos 1 produto
-  navLoja.style.display = "flex";
+  // ✅ só mostra se existir ao menos 1 PRODUTO
+  navLoja.style.display = count > 0 ? "flex" : "none";
 }
+
   
 /* ================= LOJA ================= */
 const lojaId = new URLSearchParams(location.search).get("l");
