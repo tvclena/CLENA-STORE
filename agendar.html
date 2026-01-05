@@ -433,22 +433,21 @@ async function selecionarDia(index){
 }
 
 /* ================= CONFIRMAR ================= */
+/* ================= CONFIRMAR ================= */
 async function confirmar(h){
   const fim = toHour(toMin(h) + duracao);
 
-const { error } = await sb.from("agendamentos").insert({
-  user_id: lojaId,
-  loja_id: lojaId,
-  servico_id: dados.servico,
-  valor_servico: dados.valor_servico, // ✅ NOVO
-  data: dados.data,
-  hora_inicio: h,
-  hora_fim: fim,
-  cliente_nome: clienteNome,
-  cliente_whatsapp: clienteWhats
-});
-
-
+  const { error } = await sb.from("agendamentos").insert({
+    user_id: lojaId,
+    loja_id: lojaId,
+    servico_id: dados.servico,
+    valor_servico: dados.valor_servico,
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+    cliente_nome: clienteNome,
+    cliente_whatsapp: clienteWhats
+  });
 
   if(error){
     alert("❌ Erro ao salvar o agendamento.\n" + error.message);
@@ -456,24 +455,24 @@ const { error } = await sb.from("agendamentos").insert({
     return;
   }
 
-
-
-  
   document.body.insertAdjacentHTML("beforeend", `
-  <div class="overlay">
-    <div class="msg-final">
-      ✅ <strong>Agendamento confirmado!</strong><br><br>
+    <div class="overlay">
+      <div class="msg-final">
+        ✅ <strong>Agendamento confirmado!</strong><br><br>
 
-      Serviço: <b>${dados.servico_nome}</b><br>
-      Data: <b>${dados.data}</b><br>
-      Horário: <b>${h}</b><br><br>
+        Serviço: <b>${dados.servico_nome}</b><br>
+        Data: <b>${dados.data}</b><br>
+        Horário: <b>${h}</b><br><br>
 
-      ⚠️ Caso precise cancelar ou alterar,<br>
-      acesse o painel <b>Meus Agendamentos</b><br>
-      com no mínimo <b>40 minutos</b> de antecedência.
+        ⚠️ Caso precise cancelar ou alterar,<br>
+        acesse o painel <b>Meus Agendamentos</b><br>
+        com no mínimo <b>40 minutos</b> de antecedência.
+      </div>
     </div>
-  </div>
-`);
+  `);
+}
+
+/* ✅ CHAMA UMA ÚNICA VEZ */
 carregarServicos();
 
 </script>
