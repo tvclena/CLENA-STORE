@@ -315,7 +315,7 @@ async function cadastrar(e){
 
   /* 1️⃣ CRIA USUÁRIO (AUTH) */
   const { data, error } = await sb.auth.signUp({
-    email_contato: emailValue,
+email: emailValue,
     password: senhaValue
   });
 
