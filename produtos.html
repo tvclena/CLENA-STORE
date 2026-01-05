@@ -566,9 +566,10 @@ function render(){
 
 
      
-<div class="badge ${i.tipo==="SERVICO"?"servico":"produto"}">
+<div class="badge ${i.tipo === "SERVICO" ? "servico" : "produto"}">
   ${TIPO_LABEL[i.tipo] || i.tipo}
-</div>`:""}
+</div>
+
      <span class="price">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</span>
      <div class="actions" onclick="editar('${i.id}')">Editar</div>
     </div>
