@@ -271,7 +271,7 @@ async function verificarProdutosDaLoja(){
   const { count, error } = await sb
     .from("produtos_servicos")
     .select("id", { count: "exact", head: true })
-    .eq("loja_id", lojaId)
+    .eq("user_id", lojaId)
     .eq("tipo", "PRODUTO")   // ✅ SOMENTE PRODUTO
     .eq("ativo", true);
 
@@ -343,7 +343,7 @@ async function salvarCliente(){
   const { data } = await sb
     .from("clientes_loja")
     .select("id")
-    .eq("loja_id", lojaId)
+    .eq("user_id", lojaId)
     .eq("whatsapp", whats)
     .maybeSingle();
 
