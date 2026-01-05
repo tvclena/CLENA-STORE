@@ -609,13 +609,13 @@ if (pFoto.files.length) {
   const path = `perfil/${user.id}.jpg`; // ✅ AGORA DEFINIDO
 
   const { error: uploadError } = await sb.storage
-    .from("produtos")
+    .from("avatares")
     .upload(path, file, { upsert: true });
 
   if (uploadError) throw uploadError;
 
   const { data } = sb.storage
-    .from("produtos")
+    .from("avatares")
     .getPublicUrl(path);
 
   avatarPath = data.publicUrl;
