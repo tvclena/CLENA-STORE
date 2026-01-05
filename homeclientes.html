@@ -216,16 +216,7 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-/* ================= SLUG ================= */
-const BASE_PATH = "/AgendaBeauty";
-
-const slug = location.pathname
-  .replace(BASE_PATH, "")
-  .replace(/\/lojacliente\.html$/, "")
-  .replace(/^\/+/, "")
-  .trim();
-
-let lojaId = null;
+let lojaId = sessionStorage.getItem("LOJA_ID");
 
 let todos = [];
 let tipoAtual = null;
@@ -246,16 +237,14 @@ const tabProdutos = document.getElementById("tabProdutos");
 /* ================= LOAD ================= */
 async function load(){
 
-  if(!slug){
+  if(!lojaId){
     document.body.innerHTML = "Loja não encontrada";
     return;
   }
 
-  /* ===== RESOLVE SLUG → LOJA ===== */
   const { data: loja, error } = await sb
     .from("user_profile")
     .select(`
-      user_id,
       negocio,
       avatar_url,
       rua,
@@ -266,17 +255,17 @@ async function load(){
       uf,
       whatsapp
     `)
-  .eq("slug", slug)
-.maybeSingle();
+    .eq("user_id", lojaId)
+    .single();
 
-  
-if(error || !loja){
-  document.body.innerHTML = "Loja não encontrada";
-  return;
-}
+  if(error || !loja){
+    document.body.innerHTML = "Loja não encontrada";
+    return;
+  }
 
 
-  lojaId = loja.user_id;
+
+
 
   /* ===== BANNER ===== */
   nomeLoja.innerText = loja.negocio || "Agenda Fácil";
@@ -392,7 +381,7 @@ function setTab(tipo){
 }
 
 function agendar(id){
-  location.href = `../${slug}/agendar.html?servico=${id}`;
+location.href = `agendar.html?servico=${id}`;
 }
 
 function comprar(id){
