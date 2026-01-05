@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#ff6a00">
 
 <!-- PWA -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/AgendaBeauty/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Agenda Fácil">
@@ -292,9 +292,13 @@ async function verificarProdutosDaLoja(){
 
 
   
-/* ================= LOJA ================= */
-// 🔹 slug vindo da rota limpa: /barbearia-mendes
-const slug = location.pathname.replace("/", "").trim();
+// 🔹 slug vindo da rota limpa no GitHub Pages
+const BASE_PATH = "/AgendaBeauty";
+
+const slug = location.pathname
+  .replace(BASE_PATH, "") // remove /AgendaBeauty
+  .replace(/^\/+/, "")    // remove / inicial
+  .trim();
 
 let lojaId = null; // será resolvido depois
 
@@ -365,7 +369,7 @@ await sb.from("clientes_loja").insert({
   }
 
 fecharModalCliente();
-frame.src = `homeclientes.html?l=${lojaId}`;
+frame.src = `homeclientes.html`;
 }
 
 function clienteValido(){
