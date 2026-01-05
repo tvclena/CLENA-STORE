@@ -268,11 +268,28 @@ const navLoja = document.getElementById("navLoja");
 
   
 async function verificarProdutosDaLoja(){
+
+  // 🔹 1. Buscar dono da loja
+  const { data: loja, error: lojaError } = await sb
+    .from("user_profile")
+    .select("user_id")
+    .eq("id", lojaId)
+    .single();
+
+  if (lojaError || !loja) {
+    console.error("Erro ao buscar loja:", lojaError);
+    navLoja.style.display = "none";
+    return;
+  }
+
+  const donoId = loja.user_id;
+
+  // 🔹 2. Verificar produtos do dono da loja
   const { count, error } = await sb
     .from("produtos_servicos")
     .select("id", { count: "exact", head: true })
-    .eq("loja_id", lojaId)
-    .eq("tipo", "PRODUTO")   // ✅ SOMENTE PRODUTO
+    .eq("user_id", donoId)      // ✅ CORRETO
+    .eq("tipo", "PRODUTO")
     .eq("ativo", true);
 
   if (error) {
@@ -281,7 +298,6 @@ async function verificarProdutosDaLoja(){
     return;
   }
 
-  // ✅ só mostra se existir ao menos 1 PRODUTO
   navLoja.style.display = count > 0 ? "flex" : "none";
 }
 
