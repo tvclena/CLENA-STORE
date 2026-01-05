@@ -174,6 +174,71 @@ body::-webkit-scrollbar{
   padding:16px;
   font-size:13px;
 }
+
+.agenda-card{
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  gap:12px;
+  padding:12px;
+  border-radius:14px;
+  background:#f9fafb;
+  margin-bottom:10px;
+  align-items:center;
+}
+
+.servico-img{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eee;
+}
+
+.agenda-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.servico-nome{
+  font-size:13px;
+  font-weight:700;
+}
+
+.servico-valor{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.cliente-nome{
+  font-size:12px;
+  color:#111;
+}
+
+.agenda-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.btn{
+  border:none;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn.confirmado{background:#ecfeff;color:#0891b2;}
+.btn.concluido{background:#ecfdf5;color:#16a34a;}
+.btn.cancelado{background:#fef2f2;color:#dc2626;}
+
+.btn.whatsapp{
+  background:#dcfce7;
+  color:#15803d;
+}
+
 </style>
 </head>
 
@@ -188,7 +253,7 @@ body::-webkit-scrollbar{
   <!-- KPIs -->
   <div class="grid">
     <div class="card">
-<small>Agendamentos do dia</small>
+      <small>Agendamentos do dia</small>
       <h2 id="kpiHoje">0</h2>
       <i class="ri-calendar-check-line"></i>
     </div>
@@ -214,7 +279,7 @@ body::-webkit-scrollbar{
 
   <!-- AGENDA -->
   <div class="list">
-<h3 id="tituloAgenda"></h3>
+    <h3 id="tituloAgenda"></h3>
     <div id="agendaHoje">
       <div class="empty">Nenhum horário agendado hoje</div>
     </div>
@@ -244,45 +309,32 @@ function dataISO(d){
   return d.toLocaleDateString("en-CA");
 }
 
-
-
 const sbHome = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-
-  
 async function carregarHome(){
 
-
-  // 🔐 sessão
   const { data:{ session } } = await sbHome.auth.getSession();
   if(!session) return;
 
   const lojaId = session.user.id;
 
-  // 📅 datas
-const hoje = new Date().toLocaleDateString("en-CA");
+  const hoje = new Date().toLocaleDateString("en-CA");
+  const inicioMes = new Date();
+  inicioMes.setDate(1);
+  const inicio = inicioMes.toLocaleDateString("en-CA");
 
-const inicioMes = new Date();
-inicioMes.setDate(1);
-const inicio = inicioMes.toLocaleDateString("en-CA");
+  const { count: qtdHoje } = await sbHome
+    .from("agendamentos")
+    .select("*", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("data", hoje)
+    .neq("status","CANCELADO");
 
+  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
-  /* ================= KPIs ================= */
-
-  // 📅 Agendamentos hoje (não cancelados)
-const { count: qtdHoje } = await sbHome
-.from("agendamentos")
-  .select("*", { count: "exact", head: true })
-  .eq("user_id", lojaId)
-  .eq("data", hoje)
-  .neq("status", "CANCELADO");
-
-document.getElementById("kpiHoje").innerText = qtdHoje || 0;
-
-  // 👥 Clientes cadastrados
   const { count: qtdClientes } = await sbHome
     .from("clientes_loja")
     .select("*", { count:"exact", head:true })
@@ -290,7 +342,6 @@ document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
   document.getElementById("kpiClientes").innerText = qtdClientes || 0;
 
-  // ✂️ Serviços ativos
   const { count: qtdServicos } = await sbHome
     .from("produtos_servicos")
     .select("*", { count:"exact", head:true })
@@ -300,113 +351,109 @@ document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
   document.getElementById("kpiServicos").innerText = qtdServicos || 0;
 
-  // 💰 Faturamento do mês (somente CONCLUÍDOS)
-const { data: faturamento } = await sbHome
-  .from("agendamentos")
-  .select("valor_servico")
-  .eq("user_id", lojaId)
-  .gte("data", inicio)
-  .in("status", ["CONFIRMADO", "CONCLUIDO"]);
-
-const total = faturamento?.reduce(
-  (s, v) => s + Number(v.valor_servico || 0),
-  0
-) || 0;
-
-document.getElementById("kpiFaturamento").innerText =
-  total.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-
-
- 
-
-  /* ================= CANCELAMENTOS (NOVO) ================= */
-
-  const { count: qtdCancelados } = await sbHome
+  const { data: faturamento } = await sbHome
     .from("agendamentos")
-    .select("*", { count:"exact", head:true })
+    .select("valor_servico")
     .eq("user_id", lojaId)
-    .eq("status", "cancelado");
+    .gte("data", inicio)
+    .in("status", ["CONFIRMADO","CONCLUIDO"]);
 
-  // 📅 carregar agenda do dia atual (INICIAL)
+  const total = faturamento?.reduce(
+    (s,v)=>s+Number(v.valor_servico||0),0
+  ) || 0;
+
+  document.getElementById("kpiFaturamento").innerText =
+    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
   await carregarAgendaDia(lojaId);
 }
 
 carregarHome();
 
+/* swipe dias */
 let startX = 0;
-
-document.addEventListener("touchstart", e=>{
+document.addEventListener("touchstart",e=>{
   startX = e.touches[0].clientX;
 });
-
-document.addEventListener("touchend", e=>{
-  const endX = e.changedTouches[0].clientX;
-  const diff = endX - startX;
-
-  if(Math.abs(diff) < 60) return;
-
-  if(diff < 0){
-    // 👉 próximo dia
-    dataAtual.setDate(dataAtual.getDate() + 1);
-  }else{
-    // 👈 dia anterior
-    dataAtual.setDate(dataAtual.getDate() - 1);
-  }
-
-  sbHome.auth.getSession().then(({ data:{ session } })=>{
-    if(session){
-      carregarAgendaDia(session.user.id);
-    }
+document.addEventListener("touchend",e=>{
+  const diff = e.changedTouches[0].clientX - startX;
+  if(Math.abs(diff)<60) return;
+  dataAtual.setDate(dataAtual.getDate() + (diff<0?1:-1));
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session) carregarAgendaDia(session.user.id);
   });
 });
 
-
-
-  
 async function carregarAgendaDia(lojaId){
 
   const data = dataISO(dataAtual);
-
-  // 🏷️ título
   document.getElementById("tituloAgenda").innerText =
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
   const { data: agenda } = await sbHome
     .from("agendamentos")
-    .select("hora_inicio, cliente_nome, status")
+    .select(`
+      id,
+      hora_inicio,
+      cliente_nome,
+      cliente_whatsapp,
+      status,
+      valor_servico
+    `)
     .eq("user_id", lojaId)
     .eq("data", data)
-    .neq("status", "CANCELADO")
+    .neq("status","CANCELADO")
     .order("hora_inicio");
 
   const box = document.getElementById("agendaHoje");
   box.innerHTML = "";
 
-  if(!agenda || agenda.length === 0){
+  if(!agenda || agenda.length===0){
     box.innerHTML = `<div class="empty">Nenhum horário</div>`;
     document.getElementById("kpiHoje").innerText = 0;
     return;
   }
 
   agenda.forEach(a=>{
+    const hora = a.hora_inicio?.slice(0,5);
+    const valor = Number(a.valor_servico||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    const whatsapp = a.cliente_whatsapp
+      ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
+      : "#";
+
     box.innerHTML += `
-      <div class="item">
-        <span>${a.hora_inicio} • ${a.cliente_nome}</span>
-        <span class="badge ${a.status.toLowerCase()}">${a.status}</span>
+      <div class="agenda-card">
+
+        <img class="servico-img"
+          src="https://via.placeholder.com/48"
+        />
+
+        <div class="agenda-info">
+          <div class="servico-nome">${hora} • Serviço</div>
+          <div class="servico-valor">${valor}</div>
+          <div class="cliente-nome">${a.cliente_nome}</div>
+        </div>
+
+        <div class="agenda-actions">
+          <a class="btn whatsapp" target="_blank" href="${whatsapp}">Whats</a>
+          <button class="btn confirmado" onclick="alterarStatus('${a.id}','CONFIRMADO')">OK</button>
+          <button class="btn concluido" onclick="alterarStatus('${a.id}','CONCLUIDO')">✔</button>
+          <button class="btn cancelado" onclick="alterarStatus('${a.id}','CANCELADO')">✖</button>
+        </div>
+
       </div>
     `;
   });
 
-  // KPI acompanha o dia exibido
   document.getElementById("kpiHoje").innerText = agenda.length;
 }
 
-  
+async function alterarStatus(id,status){
+  await sbHome.from("agendamentos").update({status}).eq("id",id);
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(session) carregarAgendaDia(session.user.id);
+}
 </script>
-
 
 </body>
 </html>
