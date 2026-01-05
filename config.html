@@ -118,7 +118,6 @@ button{
 </div>
 
 <script>
-/* SUPABASE */
 const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
@@ -126,42 +125,37 @@ const sb = supabase.createClient(
 
 let linkFinal = "";
 
-/* CARREGAR LINK */
 async function carregarLink(){
-  const {data:{session}} = await sb.auth.getSession();
+  const { data:{ session } } = await sb.auth.getSession();
   if(!session){
-    location.href="login.html";
+    location.href = "login.html";
     return;
   }
 
-  const lojaId = session.user.id;
+  const userId = session.user.id;
 
-  // 🔴 ajuste para seu domínio real
-linkFinal = `${location.origin}/AgendaBeauty/loja.html?l=${lojaId}`;
+  // 🔹 buscar slug da loja
+  const { data, error } = await sb
+    .from("user_profile")
+    .select("slug")
+    .eq("user_id", userId)
+    .single();
+
+  if(error || !data?.slug){
+    document.getElementById("linkLoja").innerText =
+      "Slug da loja não configurado";
+    return;
+  }
+
+  const slug = data.slug;
+
+  // ✅ rota limpa
+  linkFinal = `${location.origin}/${slug}`;
 
   document.getElementById("linkLoja").innerText = linkFinal;
 }
 
 carregarLink();
-
-/* COPIAR */
-function copiar(){
-  navigator.clipboard.writeText(linkFinal);
-  const msg = document.getElementById("msg");
-  msg.style.display="block";
-  setTimeout(()=> msg.style.display="none", 2500);
-}
-
-/* COMPARTILHAR */
-function compartilhar(){
-  const texto =
-    `Agende seu horário online 👇\n\n${linkFinal}`;
-
-  const url =
-    `https://wa.me/?text=${encodeURIComponent(texto)}`;
-
-  window.open(url, "_blank");
-}
 </script>
 
 </body>
