@@ -302,7 +302,7 @@ document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
   // 💰 Faturamento do mês (somente CONCLUÍDOS)
 const { data: faturamento } = await sbHome
-  .from("agenda_loja")
+  .from("agendamentos")
   .select("valor_servico")
   .eq("user_id", lojaId)
   .gte("data", inicio)
@@ -325,7 +325,7 @@ document.getElementById("kpiFaturamento").innerText =
   /* ================= CANCELAMENTOS (NOVO) ================= */
 
   const { count: qtdCancelados } = await sbHome
-    .from("agenda_loja")
+    .from("agendamentos")
     .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId)
     .eq("status", "cancelado");
@@ -375,7 +375,7 @@ async function carregarAgendaDia(lojaId){
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
   const { data: agenda } = await sbHome
-    .from("agenda_loja")
+    .from("agendamentos")
     .select("hora_inicio, cliente_nome, status")
     .eq("user_id", lojaId)
     .eq("data", data)
