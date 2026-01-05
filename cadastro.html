@@ -307,37 +307,57 @@ const sb = supabase.createClient(
 
 async function cadastrar(e){
   e.preventDefault();
-  overlay.style.display="flex";
+  overlay.style.display = "flex";
 
-  const { error } = await sb.auth.signUp({
-    email: email.value.trim().toLowerCase(),
-    password: senha.value.trim(),
-    options:{
-      data:{
-        responsavel:responsavel.value,
-        whatsapp:whatsapp.value.replace(/\D/g,''),
-        negocio:negocio.value,
-        tipo:tipo.value,
-        cidade:cidade.value,
-        uf:uf.value
-      }
-    }
+  const emailValue = email.value.trim().toLowerCase();
+  const senhaValue = senha.value.trim();
+
+  /* 1️⃣ CRIA USUÁRIO */
+  const { data, error } = await sb.auth.signUp({
+    email: emailValue,
+    password: senhaValue
   });
 
-  overlay.style.display="none";
-
   if(error){
-    alert(error.message);
+    overlay.style.display = "none";
+    errorBox.style.display = "block";
+    errorBox.innerText = error.message;
     return;
   }
 
-  modal.style.display="flex";
+  const userId = data.user.id;
+
+  /* 2️⃣ CRIA NEGÓCIO */
+  const { error: erroNegocio } = await sb
+    .from("negocios")
+    .insert({
+      user_id: userId,
+      responsavel: responsavel.value.trim(),
+      whatsapp: whatsapp.value.replace(/\D/g,''),
+      nome: negocio.value.trim(),
+      tipo: tipo.value,
+      cidade: cidade.value.trim(),
+      uf: uf.value.trim().toUpperCase()
+    });
+
+  overlay.style.display = "none";
+
+  if(erroNegocio){
+    errorBox.style.display = "block";
+    errorBox.innerText = "Conta criada, mas erro ao salvar o negócio.";
+    console.error(erroNegocio);
+    return;
+  }
+
+  /* 3️⃣ SUCESSO */
+  modal.style.display = "flex";
 }
 
 function irLogin(){
-  location.href="login.html";
+  location.href = "login.html";
 }
 </script>
+
 
 </body>
 </html>
