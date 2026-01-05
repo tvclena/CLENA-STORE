@@ -38,13 +38,16 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 
 .banner-logo{
-  width:64px;
-  height:64px;
-  border-radius:16px;
-  background:#fff;
-  background-size:cover;
+  width:120px;          /* largura maior */
+  height:120px;         /* altura maior */
+  border-radius:18px;
+  background-color:#fff;
+  background-size:contain;   /* mantém proporção */
+  background-repeat:no-repeat;
   background-position:center;
+  flex-shrink:0;
 }
+
 
 .banner h1{font-size:18px;font-weight:800}
 .banner p{font-size:13px;opacity:.9}
