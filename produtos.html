@@ -662,6 +662,20 @@ function abrirModalEditar(){
 
   
 function fecharModal(){modal.classList.remove("show");editId=null;blob=null;preview.style.display="none"}
+
+// 🔎 FILTRO DE BUSCA (texto)
+search.addEventListener("input", () => {
+  render();
+});
+
+// 🧩 FILTRO POR TIPO (select)
+filtroTipo.addEventListener("change", () => {
+  render();
+});
+
+
+
+  
 </script>
 
 </body>
