@@ -387,10 +387,13 @@ document.addEventListener("touchend",e=>{
 async function carregarAgendaDia(lojaId){
 
   const data = dataISO(dataAtual);
+
+  // título
   document.getElementById("tituloAgenda").innerText =
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
-  const { data: agenda } = await sbHome
+  // 1️⃣ BUSCA AGENDAMENTOS
+  const { data: agenda, error } = await sbHome
     .from("agendamentos")
     .select(`
       id,
@@ -398,53 +401,93 @@ async function carregarAgendaDia(lojaId){
       cliente_nome,
       cliente_whatsapp,
       status,
+      servico_id,
       valor_servico
     `)
     .eq("user_id", lojaId)
     .eq("data", data)
-    .neq("status","CANCELADO")
+    .neq("status", "CANCELADO")
     .order("hora_inicio");
 
   const box = document.getElementById("agendaHoje");
   box.innerHTML = "";
 
-  if(!agenda || agenda.length===0){
+  if(error || !agenda || agenda.length === 0){
     box.innerHTML = `<div class="empty">Nenhum horário</div>`;
     document.getElementById("kpiHoje").innerText = 0;
     return;
   }
 
-  agenda.forEach(a=>{
+  // 2️⃣ BUSCA SERVIÇOS REAIS
+  const servicoIds = [...new Set(
+    agenda.map(a => a.servico_id).filter(Boolean)
+  )];
+
+  let servicosMap = {};
+
+  if(servicoIds.length){
+    const { data: servicos } = await sbHome
+      .from("produtos_servicos")
+      .select("id, nome, preco, imagem_url")
+      .in("id", servicoIds);
+
+    servicos?.forEach(s => {
+      servicosMap[s.id] = s;
+    });
+  }
+
+  // 3️⃣ RENDERIZA CARDS
+  agenda.forEach(a => {
+
+    const servico = servicosMap[a.servico_id] || {};
     const hora = a.hora_inicio?.slice(0,5);
-    const valor = Number(a.valor_servico||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+    const valor = Number(
+      servico.preco || a.valor_servico || 0
+    ).toLocaleString("pt-BR", {
+      style:"currency",
+      currency:"BRL"
+    });
+
     const whatsapp = a.cliente_whatsapp
       ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
       : "#";
 
     box.innerHTML += `
-      <div class="agenda-card">
+      <div class="agenda-item" style="display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center">
 
-        <img class="servico-img"
-          src="https://via.placeholder.com/48"
+        <img
+          src="${servico.imagem_url || 'https://via.placeholder.com/56'}"
+          style="width:56px;height:56px;border-radius:12px;object-fit:cover"
         />
 
-        <div class="agenda-info">
-          <div class="servico-nome">${hora} • Serviço</div>
-          <div class="servico-valor">${valor}</div>
-          <div class="cliente-nome">${a.cliente_nome}</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <strong>${hora} • ${servico.nome || 'Serviço'}</strong>
+          <small style="color:#16a34a;font-weight:700">${valor}</small>
+          <small>${a.cliente_nome}</small>
         </div>
 
-        <div class="agenda-actions">
-          <a class="btn whatsapp" target="_blank" href="${whatsapp}">Whats</a>
-          <button class="btn confirmado" onclick="alterarStatus('${a.id}','CONFIRMADO')">OK</button>
-          <button class="btn concluido" onclick="alterarStatus('${a.id}','CONCLUIDO')">✔</button>
-          <button class="btn cancelado" onclick="alterarStatus('${a.id}','CANCELADO')">✖</button>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <a href="${whatsapp}" target="_blank"
+             style="font-size:11px;padding:6px 10px;border-radius:999px;
+                    background:#dcfce7;color:#166534;text-align:center">
+            Whats
+          </a>
+
+          <select
+            class="status-select ${a.status.toLowerCase()}"
+            onchange="alterarStatus('${a.id}', this.value)">
+            <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
+            <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
+            <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
+          </select>
         </div>
 
       </div>
     `;
   });
 
+  // KPI acompanha o dia
   document.getElementById("kpiHoje").innerText = agenda.length;
 }
 
