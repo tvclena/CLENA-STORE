@@ -44,6 +44,7 @@ html,body{margin:0;background:var(--bg)}
   gap:16px;
 }
 
+/* ===== CARD AGENDAMENTO ===== */
 .card{
   background:var(--card);
   border-radius:22px;
@@ -61,10 +62,7 @@ html,body{margin:0;background:var(--bg)}
   gap:10px;
 }
 
-.title{
-  font-weight:800;
-  font-size:17px;
-}
+.title{font-weight:800;font-size:17px}
 
 .badge{
   padding:6px 12px;
@@ -75,16 +73,9 @@ html,body{margin:0;background:var(--bg)}
   color:var(--primary);
 }
 
-.info{
-  font-size:14px;
-  color:var(--muted);
-}
+.info{font-size:14px;color:var(--muted)}
 
-.price{
-  font-weight:800;
-  font-size:16px;
-  color:var(--primary);
-}
+.price{font-weight:800;font-size:16px;color:var(--primary)}
 
 .actions{
   display:flex;
@@ -102,45 +93,19 @@ button{
   font-size:14px;
 }
 
-.btn-primary{
-  background:var(--primary);
-  color:#fff;
-}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-outline{background:#fff;border:1px solid var(--border)}
+.btn-danger{background:#fee2e2;color:var(--danger)}
 
-.btn-outline{
-  background:#fff;
-  border:1px solid var(--border);
-}
+button:disabled{opacity:.45;cursor:not-allowed}
 
-.btn-danger{
-  background:#fee2e2;
-  color:var(--danger);
-}
-
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
 .empty{
   text-align:center;
   color:var(--muted);
   margin-top:40px;
 }
-#overlayAlterar .services{
-  display:flex;
-  gap:12px;
-  overflow-x:auto;
-  margin-bottom:12px;
-}
 
-#overlayAlterar .service{
-  min-width:180px;
-}
-
-#overlayAlterar .service.selected,
-#overlayAlterar .item.selected{
-  border:2px solid #2563eb;
-}
+/* ===== OVERLAY ===== */
 .overlay{
   position:fixed;
   inset:0;
@@ -151,13 +116,76 @@ button:disabled{
   z-index:9999;
 }
 
+.hidden{display:none}
+
+/* ===== MODAL ===== */
+.modal{
+  background:#fff;
+  border-radius:22px;
+  width:100%;
+  max-width:420px;
+  max-height:85vh;
+  overflow-y:auto;
+  padding:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+
+/* ===== CARROSSEL SERVIÇOS ===== */
+.services{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  margin-bottom:16px;
+}
+.services::-webkit-scrollbar{display:none}
+
+.service{
+  min-width:180px;
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  cursor:pointer;
+}
+
+.service.selected{border:2px solid #2563eb}
+
+.service img{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+}
+
+.service-info{padding:10px}
+
+.service-name{font-weight:800}
+.service-price{color:var(--primary);font-weight:700;margin-top:4px}
+
+/* ===== GRID ===== */
+.section{margin-bottom:14px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.item{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 0;
+  text-align:center;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.item.selected{border:2px solid #2563eb}
 </style>
 </head>
 
 <body>
 
 <div class="header">Meus Agendamentos</div>
-
 <div class="container" id="lista"></div>
 
 <script>
@@ -167,317 +195,197 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-/* ================= CONTEXTO ================= */
 const lojaId = new URLSearchParams(location.search).get("l");
 const clienteWhats = localStorage.getItem("WHATS_CLIENTE");
 const lista = document.getElementById("lista");
 
-
-
-
-function toMin(h){
-  const [a,b] = h.split(":").map(Number);
-  return a * 60 + b;
-}
-
+/* ===== UTILS ===== */
+function toMin(h){ const [a,b]=h.split(":").map(Number); return a*60+b }
 function toHour(m){
-  return String(Math.floor(m/60)).padStart(2,"0") + ":" +
-         String(m%60).padStart(2,"0");
+  return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
 }
-
-
-
-  
-
-/* ================= UTILS ================= */
-function minutosAte(data, hora){
-  const [h,m] = hora.split(":").map(Number);
-  const d = new Date(data);
-  d.setHours(h,m,0,0);
-  return Math.floor((d - new Date()) / 60000);
+function minutosAte(data,hora){
+  const [h,m]=hora.split(":").map(Number);
+  const d=new Date(data); d.setHours(h,m,0,0);
+  return Math.floor((d-new Date())/60000);
 }
 
 /* ================= LOAD ================= */
 async function carregar(){
   if(!clienteWhats){
-    lista.innerHTML = `<div class="empty">Cliente não identificado.</div>`;
-    return;
+    lista.innerHTML='<div class="empty">Cliente não identificado.</div>';return;
   }
 
-  /* 1️⃣ BUSCA AGENDAMENTOS (SEM CANCELADOS) */
-  const { data: ags, error } = await sb
+  const { data: ags } = await sb
     .from("agendamentos")
-    .select("id, data, hora_inicio, hora_fim, servico_id, status")
-    .eq("loja_id", lojaId)
-    .eq("cliente_whatsapp", clienteWhats)
-    .neq("status", "cancelado") // 🔥 AQUI
-    .order("data", { ascending:true });
+    .select("id,data,hora_inicio,hora_fim,servico_id,status")
+    .eq("loja_id",lojaId)
+    .eq("cliente_whatsapp",clienteWhats)
+    .neq("status","cancelado")
+    .order("data");
 
-  if(error){
-    console.error(error);
-    lista.innerHTML = `<div class="empty">Erro ao carregar agendamentos.</div>`;
-    return;
+  if(!ags || !ags.length){
+    lista.innerHTML='<div class="empty">Você não possui agendamentos.</div>';return;
   }
 
-  if(!ags || ags.length === 0){
-    lista.innerHTML = `<div class="empty">Você não possui agendamentos.</div>`;
-    return;
-  }
-
-  /* 2️⃣ BUSCA SERVIÇOS */
-  const servicoIds = [...new Set(ags.map(a=>a.servico_id))];
-
+  const ids=[...new Set(ags.map(a=>a.servico_id))];
   const { data: servicos } = await sb
-    .from("produtos_servicos")
-    .select("id, nome, preco")
-    .in("id", servicoIds);
+    .from("produtos_servicos").select("id,nome,preco").in("id",ids);
 
-  const mapaServicos = {};
-  servicos?.forEach(s => mapaServicos[s.id] = s);
+  const map={}; servicos.forEach(s=>map[s.id]=s);
 
-  /* 3️⃣ RENDER */
   lista.innerHTML = ags.map(a=>{
-    const mins = minutosAte(a.data, a.hora_inicio);
-    const podeAlterar = mins >= 40;
-    const servico = mapaServicos[a.servico_id] || {};
-
+    const mins=minutosAte(a.data,a.hora_inicio);
+    const pode=mins>=40;
+    const s=map[a.servico_id]||{};
     return `
       <div class="card">
         <div class="row">
-          <div class="title">${servico.nome || "Serviço"}</div>
+          <div class="title">${s.nome||"Serviço"}</div>
           <div class="badge">${new Date(a.data).toLocaleDateString()}</div>
         </div>
-
-        <div class="info">
-          ⏰ ${a.hora_inicio} - ${a.hora_fim}
-        </div>
-
+        <div class="info">⏰ ${a.hora_inicio} - ${a.hora_fim}</div>
         <div class="row">
-          <div class="price">R$ ${servico.preco || "0,00"}</div>
-          <div class="info">
-            ${podeAlterar ? "Alterável" : "Bloqueado (menos de 40 min)"}
-          </div>
+          <div class="price">R$ ${s.preco||"0,00"}</div>
+          <div class="info">${pode?"Alterável":"Bloqueado (menos de 40 min)"}</div>
         </div>
-
         <div class="actions">
-          <button class="btn-outline" ${!podeAlterar ? "disabled" : ""}
-            onclick="alterar('${a.id}')">
-            Alterar horário
-          </button>
-
-          <button class="btn-danger" ${!podeAlterar ? "disabled" : ""}
-            onclick="cancelar('${a.id}')">
-            Cancelar
-          </button>
-
-          <button class="btn-primary">
-            Realizar pagamento
-          </button>
+          <button class="btn-outline" ${!pode?"disabled":""} onclick="alterar('${a.id}')">Alterar horário</button>
+          <button class="btn-danger" ${!pode?"disabled":""} onclick="cancelar('${a.id}')">Cancelar</button>
+          <button class="btn-primary">Realizar pagamento</button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join("");
 }
 
-/* ================= AÇÕES ================= */
 async function cancelar(id){
   if(!confirm("Deseja cancelar este agendamento?")) return;
-
-  const { error } = await sb
-    .from("agendamentos")
-    .update({ status: "cancelado" }) // ✅ NÃO APAGA
-    .eq("id", id);
-
-  if(error){
-    alert("Erro ao cancelar");
-    return;
-  }
-
-  carregar(); // some da tela
+  await sb.from("agendamentos").update({status:"cancelado"}).eq("id",id);
+  carregar();
 }
 
-let agendamentoAtual = null;
+/* ================= ALTERAÇÃO ================= */
+let agendamentoAtual=null, altServico=null, altDuracao=0, altData=null;
 
 async function alterar(id){
-  agendamentoAtual = id;
-
-  document.getElementById("overlayAlterar").classList.remove("hidden");
-
-  // limpa estados
+  agendamentoAtual=id;
+  document.getElementById("overlay").classList.remove("hidden");
   document.getElementById("altDays").classList.add("hidden");
   document.getElementById("altTimes").classList.add("hidden");
-  document.getElementById("altServices").innerHTML = "Carregando serviços...";
 
   const { data: servicos } = await sb
     .from("produtos_servicos")
     .select("id,nome,preco,imagem_url,duracao_minutos")
-    .eq("user_id", lojaId)
-    .eq("ativo", true)
+    .eq("user_id",lojaId).eq("ativo",true)
     .order("ordem_exibicao",{ascending:true,nullsLast:true});
 
   document.getElementById("altServices").innerHTML = servicos.map(s=>`
-<div class="service" onclick="altSelecionarServico(this, ${JSON.stringify(s).replace(/"/g,'&quot;')})">
-      <img src="${s.imagem_url || 'https://via.placeholder.com/300'}">
+    <div class="service" onclick="altSelecionarServico(this,${JSON.stringify(s).replace(/"/g,'&quot;')})">
+      <img src="${s.imagem_url||'https://via.placeholder.com/300'}">
       <div class="service-info">
         <div class="service-name">${s.nome}</div>
         <div class="service-price">R$ ${s.preco}</div>
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
-let altServico = null;
-let altDuracao = 0;
-let altData = null;
 
-async function altSelecionarServico(el, s){
-  altServico = s.id;
-  altDuracao = s.duracao_minutos;
+async function altSelecionarServico(el,s){
+  altServico=s.id; altDuracao=s.duracao_minutos;
+  document.querySelectorAll(".service").forEach(x=>x.classList.remove("selected"));
+  el.classList.add("selected");
 
-  document.querySelectorAll("#altServices .service")
-    .forEach(el => el.classList.remove("selected"));
-
-el.classList.add("selected");
   document.getElementById("altDays").classList.remove("hidden");
-  document.getElementById("altDaysGrid").innerHTML = "Buscando dias...";
+  document.getElementById("altDaysGrid").innerHTML="Buscando dias...";
 
-  const hoje = new Date().toISOString().slice(0,10);
+  const hoje=new Date().toISOString().slice(0,10);
+  const { data: agenda } = await sb.from("agenda_loja")
+    .select("*").eq("user_id",lojaId).gte("data",hoje).eq("fechado",false);
 
-  const { data: agenda } = await sb
-    .from("agenda_loja")
-    .select("*")
-    .eq("user_id", lojaId)
-    .gte("data", hoje)
-    .eq("fechado", false);
-
-  const dias = [];
-
+  const dias=[];
   for(const d of agenda){
-    const blocos = typeof d.horarios==="string" ? JSON.parse(d.horarios) : d.horarios;
-
-    const { data: ags } = await sb
-      .from("agendamentos")
+    const blocos=typeof d.horarios==="string"?JSON.parse(d.horarios):d.horarios;
+    const { data: ags } = await sb.from("agendamentos")
       .select("hora_inicio,hora_fim")
-      .eq("user_id", lojaId)
-      .eq("data", d.data)
-      .neq("id", agendamentoAtual); // 🔥 ignora o próprio
+      .eq("user_id",lojaId).eq("data",d.data).neq("id",agendamentoAtual);
 
-    const ocupados = ags.map(a=>[
-      toMin(a.hora_inicio),
-      toMin(a.hora_fim)
-    ]);
-
+    const ocupados=ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
     let livre=false;
 
     blocos.forEach(b=>{
       let s=toMin(b.inicio), e=toMin(b.fim);
       while(s+altDuracao<=e){
-        if(!ocupados.some(o=>!(s+altDuracao<=o[0]||s>=o[1]))){
-          livre=true; break;
-        }
+        if(!ocupados.some(o=>!(s+altDuracao<=o[0]||s>=o[1]))){ livre=true; break; }
         s+=altDuracao;
       }
     });
-
     if(livre) dias.push(d);
   }
 
-  document.getElementById("altDaysGrid").innerHTML = dias.map(d=>`
-    <div class="item" onclick="altSelecionarDia('${d.data}', ${JSON.stringify(d.horarios).replace(/"/g,'&quot;')})">
+  document.getElementById("altDaysGrid").innerHTML=dias.map(d=>`
+    <div class="item" onclick="altSelecionarDia('${d.data}',${JSON.stringify(d.horarios).replace(/"/g,'&quot;')})">
       ${new Date(d.data).toLocaleDateString()}
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
-async function altSelecionarDia(data, horarios){
-  altData = data;
+async function altSelecionarDia(data,horarios){
+  altData=data;
   document.getElementById("altTimes").classList.remove("hidden");
-  document.getElementById("altTimesGrid").innerHTML = "Buscando horários...";
+  const blocos=typeof horarios==="string"?JSON.parse(horarios):horarios;
 
-  const blocos = typeof horarios==="string"?JSON.parse(horarios):horarios;
-
-  const { data: ags } = await sb
-    .from("agendamentos")
+  const { data: ags } = await sb.from("agendamentos")
     .select("hora_inicio,hora_fim")
-    .eq("user_id", lojaId)
-    .eq("data", data)
-    .neq("id", agendamentoAtual);
+    .eq("user_id",lojaId).eq("data",data).neq("id",agendamentoAtual);
 
-  const ocupados = ags.map(a=>[
-    toMin(a.hora_inicio),
-    toMin(a.hora_fim)
-  ]);
-
+  const ocupados=ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
   const slots=[];
 
   blocos.forEach(b=>{
     let s=toMin(b.inicio), e=toMin(b.fim);
     while(s+altDuracao<=e){
-      if(!ocupados.some(o=>!(s+altDuracao<=o[0]||s>=o[1]))){
-        slots.push(toHour(s));
-      }
+      if(!ocupados.some(o=>!(s+altDuracao<=o[0]||s>=o[1]))){ slots.push(toHour(s)); }
       s+=altDuracao;
     }
   });
 
-  document.getElementById("altTimesGrid").innerHTML = slots.map(h=>`
-    <div class="item" onclick="confirmarAlteracao('${h}')">${h}</div>
-  `).join("");
+  document.getElementById("altTimesGrid").innerHTML=slots.map(h=>`
+    <div class="item" onclick="confirmarAlteracao('${h}')">${h}</div>`).join("");
 }
+
 async function confirmarAlteracao(h){
-  const fim = toHour(toMin(h)+altDuracao);
+  const fim=toHour(toMin(h)+altDuracao);
+  await sb.from("agendamentos").update({
+    data:altData,hora_inicio:h,hora_fim:fim,servico_id:altServico
+  }).eq("id",agendamentoAtual);
 
-  const { error } = await sb
-    .from("agendamentos")
-    .update({
-      data: altData,
-      hora_inicio: h,
-      hora_fim: fim,
-      servico_id: altServico
-    })
-    .eq("id", agendamentoAtual);
-
-  if(error){
-    alert("Erro ao alterar agendamento");
-    return;
-  }
-
-  fecharAlteracao();
+  fechar();
   carregar();
 }
-function fecharAlteracao(){
-  document.getElementById("overlayAlterar").classList.add("hidden");
-}
 
-/* ================= INIT ================= */
+function fechar(){ document.getElementById("overlay").classList.add("hidden"); }
+
 carregar();
 </script>
-<div class="overlay hidden" id="overlayAlterar">
-  <div class="msg-final" style="max-width:420px;width:100%">
-    <div style="font-weight:800;margin-bottom:12px">
-      Alterar agendamento
-    </div>
 
-    <!-- SERVIÇO -->
+<!-- ===== POPUP ===== -->
+<div class="overlay hidden" id="overlay">
+  <div class="modal">
+    <div class="title" style="margin-bottom:12px">Alterar agendamento</div>
+
     <div class="services" id="altServices"></div>
 
-    <!-- DIAS -->
     <div class="section hidden" id="altDays">
       <div class="title">Escolha a data</div>
       <div class="grid" id="altDaysGrid"></div>
     </div>
 
-    <!-- HORÁRIOS -->
     <div class="section hidden" id="altTimes">
       <div class="title">Escolha o horário</div>
       <div class="grid" id="altTimesGrid"></div>
     </div>
 
-    <button class="btn-outline" onclick="fecharAlteracao()">
-      Fechar
-    </button>
+    <button class="btn-outline" onclick="fechar()">Fechar</button>
   </div>
 </div>
-
 
 </body>
 </html>
