@@ -174,81 +174,6 @@ body::-webkit-scrollbar{
   padding:16px;
   font-size:13px;
 }
-.agenda-item{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  gap:12px;
-  padding:12px;
-  border-radius:14px;
-  background:#f9fafb;
-  margin-bottom:10px;
-  align-items:center;
-}
-
-.agenda-info{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.agenda-top{
-  display:flex;
-  gap:8px;
-  font-size:13px;
-  font-weight:600;
-}
-
-.agenda-time{
-  color:var(--primary);
-  font-weight:800;
-}
-
-.agenda-client{
-  color:#111;
-}
-
-.produto-card{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:8px 10px;
-  width:fit-content;
-}
-
-.produto-card strong{
-  font-size:12px;
-  display:block;
-}
-
-.produto-card small{
-  font-size:11px;
-  color:var(--muted);
-}
-
-.status-select{
-  border:none;
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:11px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.status-select.confirmado{
-  background:#ecfeff;
-  color:#0891b2;
-}
-
-.status-select.concluido{
-  background:#ecfdf5;
-  color:#16a34a;
-}
-
-.status-select.cancelado{
-  background:#fef2f2;
-  color:#dc2626;
-}
-
 </style>
 </head>
 
@@ -312,87 +237,105 @@ body::-webkit-scrollbar{
 
 </div>
 
-
-
-
-
-  
 <script>
-/* ================= CONFIG ================= */
-const sbHome = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
-
 let dataAtual = new Date();
 
 function dataISO(d){
   return d.toLocaleDateString("en-CA");
 }
 
-/* ================= HOME ================= */
+
+
+const sbHome = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+
+  
 async function carregarHome(){
 
+
+  // 🔐 sessão
   const { data:{ session } } = await sbHome.auth.getSession();
   if(!session) return;
 
   const lojaId = session.user.id;
 
-  const hoje = dataISO(new Date());
+  // 📅 datas
+const hoje = new Date().toLocaleDateString("en-CA");
 
-  const inicioMes = new Date();
-  inicioMes.setDate(1);
-  const inicio = dataISO(inicioMes);
+const inicioMes = new Date();
+inicioMes.setDate(1);
+const inicio = inicioMes.toLocaleDateString("en-CA");
 
-  /* ===== KPI HOJE ===== */
-  const { count: qtdHoje } = await sbHome
-    .from("agendamentos")
-    .select("*",{ count:"exact", head:true })
-    .eq("user_id", lojaId)
-    .eq("data", hoje)
-    .neq("status","CANCELADO");
 
-  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
+  /* ================= KPIs ================= */
 
-  /* ===== KPI CLIENTES ===== */
+  // 📅 Agendamentos hoje (não cancelados)
+const { count: qtdHoje } = await sbHome
+.from("agendamentos")
+  .select("*", { count: "exact", head: true })
+  .eq("user_id", lojaId)
+  .eq("data", hoje)
+  .neq("status", "CANCELADO");
+
+document.getElementById("kpiHoje").innerText = qtdHoje || 0;
+
+  // 👥 Clientes cadastrados
   const { count: qtdClientes } = await sbHome
     .from("clientes_loja")
-    .select("*",{ count:"exact", head:true })
+    .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId);
 
   document.getElementById("kpiClientes").innerText = qtdClientes || 0;
 
-  /* ===== KPI SERVIÇOS ===== */
+  // ✂️ Serviços ativos
   const { count: qtdServicos } = await sbHome
     .from("produtos_servicos")
-    .select("*",{ count:"exact", head:true })
+    .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId)
     .eq("ativo", true)
-    .eq("tipo","SERVICO");
+    .eq("tipo", "SERVICO");
 
   document.getElementById("kpiServicos").innerText = qtdServicos || 0;
 
-  /* ===== KPI FATURAMENTO ===== */
-  const { data: faturamento } = await sbHome
+  // 💰 Faturamento do mês (somente CONCLUÍDOS)
+const { data: faturamento } = await sbHome
+  .from("agendamentos")
+  .select("valor_servico")
+  .eq("user_id", lojaId)
+  .gte("data", inicio)
+  .in("status", ["CONFIRMADO", "CONCLUIDO"]);
+
+const total = faturamento?.reduce(
+  (s, v) => s + Number(v.valor_servico || 0),
+  0
+) || 0;
+
+document.getElementById("kpiFaturamento").innerText =
+  total.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+
+
+ 
+
+  /* ================= CANCELAMENTOS (NOVO) ================= */
+
+  const { count: qtdCancelados } = await sbHome
     .from("agendamentos")
-    .select("valor_servico")
+    .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId)
-    .gte("data", inicio)
-    .in("status",["CONFIRMADO","CONCLUIDO"]);
+    .eq("status", "cancelado");
 
-  const total = faturamento?.reduce(
-    (s,v)=> s + Number(v.valor_servico || 0), 0
-  ) || 0;
-
-  document.getElementById("kpiFaturamento").innerText =
-    total.toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
-
+  // 📅 carregar agenda do dia atual (INICIAL)
   await carregarAgendaDia(lojaId);
 }
 
 carregarHome();
 
-/* ================= SWIPE DIA ================= */
 let startX = 0;
 
 document.addEventListener("touchstart", e=>{
@@ -400,51 +343,47 @@ document.addEventListener("touchstart", e=>{
 });
 
 document.addEventListener("touchend", e=>{
-  const diff = e.changedTouches[0].clientX - startX;
+  const endX = e.changedTouches[0].clientX;
+  const diff = endX - startX;
+
   if(Math.abs(diff) < 60) return;
 
-  dataAtual.setDate(
-    dataAtual.getDate() + (diff < 0 ? 1 : -1)
-  );
+  if(diff < 0){
+    // 👉 próximo dia
+    dataAtual.setDate(dataAtual.getDate() + 1);
+  }else{
+    // 👈 dia anterior
+    dataAtual.setDate(dataAtual.getDate() - 1);
+  }
 
   sbHome.auth.getSession().then(({ data:{ session } })=>{
-    if(session) carregarAgendaDia(session.user.id);
+    if(session){
+      carregarAgendaDia(session.user.id);
+    }
   });
 });
 
-/* ================= AGENDA ================= */
+
+
+  
 async function carregarAgendaDia(lojaId){
 
   const data = dataISO(dataAtual);
 
+  // 🏷️ título
   document.getElementById("tituloAgenda").innerText =
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
-  const { data: agenda, error } = await sbHome
+  const { data: agenda } = await sbHome
     .from("agendamentos")
-    .select(`
-      id,
-      hora_inicio,
-      cliente_nome,
-      status,
-      valor_servico,
-      produtos_servicos (
-        nome
-      )
-    `)
+    .select("hora_inicio, cliente_nome, status")
     .eq("user_id", lojaId)
     .eq("data", data)
-    .neq("status","CANCELADO")
+    .neq("status", "CANCELADO")
     .order("hora_inicio");
 
   const box = document.getElementById("agendaHoje");
   box.innerHTML = "";
-
-  if(error){
-    console.error(error);
-    box.innerHTML = `<div class="empty">Erro ao carregar agenda</div>`;
-    return;
-  }
 
   if(!agenda || agenda.length === 0){
     box.innerHTML = `<div class="empty">Nenhum horário</div>`;
@@ -453,54 +392,21 @@ async function carregarAgendaDia(lojaId){
   }
 
   agenda.forEach(a=>{
-    const hora = a.hora_inicio.slice(0,5);
-    const valor = Number(a.valor_servico ?? 0)
-      .toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
-
-    const servico = a.produtos_servicos?.nome || "Serviço";
-
     box.innerHTML += `
-      <div class="agenda-item">
-        <div class="agenda-info">
-          <div class="agenda-top">
-            <span class="agenda-time">${hora}</span>
-            <span class="agenda-client">• ${a.cliente_nome}</span>
-          </div>
-
-          <div class="produto-card">
-            <strong>${servico}</strong>
-            <small>${valor}</small>
-          </div>
-        </div>
-
-        <select
-          class="status-select ${a.status.toLowerCase()}"
-          onchange="alterarStatus('${a.id}', this.value)"
-        >
-          <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
-          <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
-          <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
-        </select>
+      <div class="item">
+        <span>${a.hora_inicio} • ${a.cliente_nome}</span>
+        <span class="badge ${a.status.toLowerCase()}">${a.status}</span>
       </div>
     `;
   });
 
+  // KPI acompanha o dia exibido
   document.getElementById("kpiHoje").innerText = agenda.length;
 }
 
-/* ================= STATUS ================= */
-async function alterarStatus(id, status){
-  await sbHome
-    .from("agendamentos")
-    .update({ status })
-    .eq("id", id);
-
-  const { data:{ session } } = await sbHome.auth.getSession();
-  if(session){
-    carregarAgendaDia(session.user.id);
-  }
-}
+  
 </script>
+
 
 </body>
 </html>
