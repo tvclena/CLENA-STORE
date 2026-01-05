@@ -370,7 +370,7 @@ async function salvar(){
   updates.add(selected);
 
   if(replicaSemana.checked){
-    const baseDate = new Date(selected);
+    const baseDate = new Date(selected + "T12:00:00");
     const wd = baseDate.getDay();
     const y = baseDate.getFullYear();
     const m = baseDate.getMonth();
