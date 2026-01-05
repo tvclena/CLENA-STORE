@@ -500,7 +500,7 @@ async function alterarStatus(id, status) {
     .from("agendamentos")
     .update({ status })
     .eq("id", id)
-    .eq("user_id", session.user.id); // ✅ COLUNA CERTA
+    .eq("loja_id", session.user.id);
 
   if (error) {
     alert("Erro ao alterar status");
@@ -510,6 +510,7 @@ async function alterarStatus(id, status) {
 
   carregarAgendaDia(session.user.id);
 }
+
 
 
 
