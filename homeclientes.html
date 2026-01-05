@@ -235,6 +235,10 @@ const nomeLoja = document.getElementById("nomeLoja");
 const cidadeLoja = document.getElementById("cidadeLoja");
 const enderecoLoja = document.getElementById("enderecoLoja");
 const whatsLoja = document.getElementById("whatsLoja");
+const busca = document.getElementById("busca");
+const grid = document.getElementById("grid");
+const tabServicos = document.getElementById("tabServicos");
+const tabProdutos = document.getElementById("tabProdutos");
 
 
 
@@ -320,72 +324,7 @@ async function load(){
   render();
 }
 
-  /* ===== LOJA ===== */
-  const { data: loja } = await sb
-    .from("user_profile")
-    .select(`
-      negocio,
-      avatar_url,
-      rua,
-      numero,
-      bairro,
-      cep,
-      cidade,
-      uf,
-      whatsapp
-    `)
-    .eq("user_id", lojaId)
-    .single();
 
-  if(loja){
-    nomeLoja.innerText = loja.negocio || "Agenda Fácil";
-    cidadeLoja.innerText = `${loja.cidade || ""} • ${loja.uf || ""}`;
-    enderecoLoja.innerText = `
-      ${loja.rua || ""}, ${loja.numero || ""}
-      • ${loja.bairro || ""}
-      • CEP ${loja.cep || ""}
-    `;
-    if(loja.whatsapp){
-      whatsLoja.innerText = `📲 ${loja.whatsapp}`;
-    }
-if (loja.avatar_url) {
-  logo.src = loja.avatar_url;
-    }
-  }
-
-  /* ===== PRODUTOS / SERVIÇOS ===== */
-  const { data } = await sb
-    .from("produtos_servicos")
-    .select("*")
-    .eq("user_id", lojaId)
-    .eq("ativo", true)
-    .order("ordem_exibicao");
-
-  todos = data || [];
-
-  // 👉 VERIFICA EXISTÊNCIA
-  const temServicos = todos.some(i => i.tipo === "SERVICO");
-  const temProdutos = todos.some(i => i.tipo === "PRODUTO");
-
-  // 👉 CONTROLA VISIBILIDADE DAS TABS
-  tabServicos.style.display = temServicos ? "inline-block" : "none";
-  tabProdutos.style.display = temProdutos ? "inline-block" : "none";
-
-  // 👉 DEFINE TAB INICIAL
-  if(temServicos){
-    tipoAtual = "SERVICO";
-    tabServicos.classList.add("active");
-    tabProdutos.classList.remove("active");
-  } else if(temProdutos){
-    tipoAtual = "PRODUTO";
-    tabProdutos.classList.add("active");
-    tabServicos.classList.remove("active");
-  } else {
-    tipoAtual = null;
-  }
-
-  render();
-}
 
 /* ================= RENDER ================= */
 function render(){
@@ -418,7 +357,7 @@ function render(){
     <div class="card">
       <div style="position:relative">
         ${i.promocao_ativa ? `<div class="badge">Promoção</div>` : ``}
-        <img src="${i.imagem_url || ''}">
+        <img src="${i.imagem_url || 'https://via.placeholder.com/300x200?text=Sem+imagem'}">
       </div>
       <div class="card-body">
         <strong>${i.nome}</strong>
