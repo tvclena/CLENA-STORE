@@ -255,7 +255,7 @@ async function carregarProdutos(){
 `)
 .eq("user_id", lojaId)
 .eq("ativo", true)
-.eq("tipo", "produto"); // 🔥 ESSENCIAL
+.eq("tipo", "PRODUTO");
 
  if(error){
    console.error("Erro ao buscar produtos:", error);
