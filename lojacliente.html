@@ -250,9 +250,9 @@ async function carregarProdutos(){
   preco,
   imagem_url,
   categoria,
-  descricao,
-  caracteristicas
+  descricao
 `)
+
 .eq("user_id", lojaId)
 .eq("ativo", true)
 .eq("tipo", "PRODUTO");
@@ -296,14 +296,6 @@ function renderProdutos(){
        p.descricao
        ? `<div style="font-size:12px;color:#6b7280;margin-top:4px;">
             ${p.descricao}
-          </div>`
-       : ""
-     }
-
-     ${
-       p.caracteristicas
-       ? `<div style="font-size:11px;color:#9ca3af;margin-top:4px;">
-            ${p.caracteristicas}
           </div>`
        : ""
      }
