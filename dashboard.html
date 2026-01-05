@@ -606,12 +606,18 @@ async function salvarPerfil(){
     let avatarPath = profile?.avatar_url || null;
 
     if (pFoto.files.length) {
-      const file = pFoto.files[0];
-      const path = `perfil/${user.id}.jpg`;
 
-      const { error: uploadError } = await sb.storage
-        .from("produtos")
-        .upload(path, file, { upsert: true });
+
+      
+const blobToUpload = fotoBlob || pFoto.files[0];
+
+const { error: uploadError } = await sb.storage
+  .from("produtos")
+  .upload(path, blobToUpload, {
+    upsert: true,
+    contentType: "image/jpeg",
+    cacheControl: "3600"
+  });
 
       if (uploadError) throw uploadError;
 
