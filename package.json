@@ -1,0 +1,9 @@
+{
+  "name": "agenda-beauty",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
+    "mercadopago": "^1.5.16"
+  }
+}
