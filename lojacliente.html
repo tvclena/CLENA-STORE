@@ -290,19 +290,44 @@ function renderCarrinho(){
 }
 
 /* FINALIZAR */
-function finalizarCompra(){
- if(!carrinho.itens.length){
-  alert("Carrinho vazio");
-  return;
- }
+async function finalizarCompra(){
+  if(!carrinho.itens.length){
+    alert("Carrinho vazio");
+    return;
+  }
 
- console.log("Enviar para backend:", carrinho);
+  try{
+    const res = await fetch("https://clena.com.br/api/create-pagamento",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        loja_id: carrinho.lojaId,
+        cliente: carrinho.cliente || { nome:"Cliente Loja", whatsapp:null },
+        itens: carrinho.itens.map(i=>({
+          nome: i.nome,
+          quantidade: i.quantidade,
+          preco: i.preco
+        }))
+      })
+    });
 
- // AQUI → fetch("/api/create-pagamento", {...})
+    const data = await res.json();
 
- alert("Fluxo de pagamento iniciado (backend)");
+    if(!res.ok || !data.init_point){
+      alert(data.error || "Erro ao iniciar pagamento");
+      return;
+    }
+
+    // 🔥 REDIRECIONA PARA O MERCADO PAGO
+    window.location.href = data.init_point;
+
+  }catch(err){
+    console.error(err);
+    alert("Erro ao conectar com pagamento");
+  }
 }
-
 /* INIT */
 salvarCarrinho();
 carregarProdutos();
