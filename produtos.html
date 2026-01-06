@@ -337,12 +337,15 @@ body{
 <!-- MODAL -->
 <div class="modal" id="modal">
   <div class="sheet">
+
     <div class="sheet-header">
       <span id="formTitle">Novo item</span>
       <span onclick="fecharModal()">✕</span>
     </div>
 
+    <!-- BODY -->
     <div class="sheet-body">
+
       <label>Tipo</label>
       <select id="tipo" onchange="toggleTipo()">
         <option value="SERVICO">Serviço</option>
@@ -358,66 +361,62 @@ body{
       <label>Categoria</label>
       <input id="categoria">
 
+      <!-- PREÇO -->
+      <label>Preço</label>
+      <input id="preco" inputmode="decimal" oninput="formatarMoedaInput(this)">
 
+      <label>Custo</label>
+      <input id="custo" inputmode="decimal" oninput="formatarMoedaInput(this)">
 
+      <!-- PROMOÇÃO -->
+      <label>
+        <input type="checkbox" id="promoAtiva">
+        Promoção ativa
+      </label>
 
+      <label>Preço promocional</label>
+      <input
+        id="precoPromo"
+        inputmode="decimal"
+        oninput="formatarMoedaInput(this)"
+        disabled
+      >
 
-
-      
-
-<label>Preço</label>
-<input id="preco" inputmode="decimal" oninput="formatarMoedaInput(this)">
-
-<label>Custo</label>
-<input id="custo" inputmode="decimal" oninput="formatarMoedaInput(this)">
-
-  <label>
-  <input type="checkbox" id="promoAtiva">
-  Promoção ativa
-</label>
-    
-
-<label>Preço promocional</label>
-<input id="precoPromo"
-       inputmode="decimal"
-       oninput="formatarMoedaInput(this)"
-       disabled>
-
-
+      <!-- PAGAMENTO ONLINE (SERVIÇO OU PRODUTO) -->
+      <div id="boxPagamentoOnline" style="display:none">
+        <label>
+          <input type="checkbox" id="pgOnline">
+          Aceita pagamento online
+        </label>
+      </div>
 
       <!-- SERVIÇO -->
-      <div id="boxServico">
+      <div id="boxServico" style="display:none">
         <label>Duração (minutos)</label>
-<input id="duracao" type="number" inputmode="numeric">
-
-<div id="boxPagamentoOnline" style="display:none">
-  <label>
-    <input type="checkbox" id="pgOnline">
-    Aceita pagamento online
-  </label>
-</div>
-
-
+        <input id="duracao" type="number" inputmode="numeric">
       </div>
 
       <!-- PRODUTO -->
       <div id="boxProduto" style="display:none">
         <label>
-          <input type="checkbox" id="controlaEstoque"> Controlar estoque
+          <input type="checkbox" id="controlaEstoque">
+          Controlar estoque
         </label>
 
         <label>Estoque atual</label>
-<input id="estoqueAtual" type="number" inputmode="numeric">
+        <input id="estoqueAtual" type="number" inputmode="numeric">
 
         <label>Estoque mínimo</label>
-<input id="estoqueMinimo" type="number" inputmode="numeric">
+        <input id="estoqueMinimo" type="number" inputmode="numeric">
       </div>
 
+      <!-- DEMAIS CAMPOS -->
       <label>Ordem de exibição</label>
-<input id="ordem" type="number" inputmode="numeric">
+      <input id="ordem" type="number" inputmode="numeric">
 
       <label>
-        <input type="checkbox" id="ativo"> Item ativo
+        <input type="checkbox" id="ativo">
+        Item ativo
       </label>
 
       <label>Observações internas</label>
@@ -428,9 +427,12 @@ body{
         <img id="preview" style="display:none">
         <input type="file" id="imagem" hidden accept="image/*">
       </div>
-    </div>
 
-<div class="sheet-footer">
+    </div>
+    <!-- FIM sheet-body -->
+
+    <div class="sheet-footer">
+
 
   <!-- BOTÃO EXCLUIR (somente edição) -->
   <button
@@ -485,21 +487,27 @@ const TIPO_LABEL = {
   carregar();
 })();
 
+
 function toggleTipo(){
   const isServico = tipo.value === "SERVICO";
 
+  // controla blocos
   boxServico.style.display = isServico ? "block" : "none";
   boxProduto.style.display = isServico ? "none" : "block";
 
-  // 🔐 pagamento online só se a loja permitir
-  if(isServico && pagamentoOnlineAtivo){
+  // pagamento online para SERVIÇO E PRODUTO
+  if(pagamentoOnlineAtivo){
     boxPagamentoOnline.style.display = "block";
   }else{
     boxPagamentoOnline.style.display = "none";
-    pgOnline.checked = false; // força desligado
+    pgOnline.checked = false;
   }
 }
-
+  
+promoAtiva.addEventListener("change", () => {
+  precoPromo.disabled = !promoAtiva.checked;
+  if (!promoAtiva.checked) precoPromo.value = "";
+});
 
 
 
