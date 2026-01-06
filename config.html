@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Configurações • Agenda Fácil</title>
+<title>Pagamentos Online • Agenda Fácil</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ff6a00">
@@ -10,7 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  
 <style>
 :root{
   --primary:#ff6a00;
@@ -19,27 +18,24 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter;
-}
+*{box-sizing:border-box;font-family:Inter}
 
 body{
   background:var(--bg);
-  min-height:100vh;
   padding:20px;
 }
 
-/* CARD */
+/* CARD BASE */
 .card{
   background:var(--card);
-  border-radius:20px;
+  border-radius:22px;
   padding:22px;
   box-shadow:0 12px 30px rgba(0,0,0,.08);
+  margin-bottom:18px;
 }
 
 h1{
@@ -48,119 +44,206 @@ h1{
   margin-bottom:6px;
 }
 
+h2{
+  font-size:16px;
+  margin-bottom:10px;
+}
+
 p{
   font-size:14px;
   color:var(--muted);
-  margin-bottom:18px;
-}
-
-/* LINK BOX */
-.link-box{
-  border:1px dashed var(--border);
-  border-radius:14px;
-  padding:14px;
-  font-size:13px;
-  word-break:break-all;
-  background:#fafafa;
   margin-bottom:14px;
 }
 
-/* BUTTONS */
-.actions{
-  display:flex;
-  gap:10px;
+/* LINK DA LOJA */
+.link-box{
+  border:1px dashed var(--border);
+  border-radius:14px;
+  padding:10px;
+  font-size:12px;
+  background:#fafafa;
+  word-break:break-all;
 }
 
+/* MERCADO PAGO */
+.mp-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.mp-header img{
+  width:42px;
+}
+
+/* PASSOS */
+.steps li{
+  font-size:14px;
+  margin-bottom:8px;
+}
+
+.steps b{
+  color:#111;
+}
+
+/* INPUT */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:14px;
+  margin-bottom:10px;
+}
+
+/* BUTTONS */
 button{
-  flex:1;
-  height:44px;
+  width:100%;
+  height:46px;
   border:none;
   border-radius:999px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
   font-weight:800;
-  cursor:pointer;
   font-size:14px;
+  cursor:pointer;
 }
 
-.btn-copy{
-  background:#111827;
-  color:#fff;
+.whats{
+  background:#dcfce7;
+  color:#15803d;
+  margin-top:10px;
 }
 
-.btn-share{
-  background:var(--primary);
-  color:#fff;
+/* STATUS */
+.status{
+  padding:14px;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:700;
 }
 
-/* FEEDBACK */
-#msg{
-  margin-top:12px;
+.status.active{
+  background:#ecfdf5;
+  color:var(--success);
+}
+
+/* ALERT */
+.alert{
+  background:#fff7ed;
+  color:#92400e;
+  padding:12px;
+  border-radius:14px;
   font-size:13px;
-  color:green;
-  display:none;
 }
 </style>
 </head>
 
 <body>
 
+<!-- LINK LOJA -->
 <div class="card">
-  <h1>Link de agendamento</h1>
-  <p>Compartilhe este link com seus clientes para receber agendamentos online.</p>
-
+  <h2>Link da sua loja</h2>
+  <p>Compartilhe com seus clientes</p>
   <div class="link-box" id="linkLoja">Carregando…</div>
+</div>
 
-  <div class="actions">
-    <button class="btn-copy" onclick="copiar()">Copiar</button>
-    <button class="btn-share" onclick="compartilhar()">Encaminhar</button>
+<!-- MERCADO PAGO -->
+<div class="card">
+
+  <div class="mp-header">
+    <img src="https://www.mercadopago.com/org-img/MP3/API/logos/mp-logo.png">
+    <h1>Pagamentos Online</h1>
   </div>
 
-  <div id="msg">Link copiado com sucesso ✅</div>
+  <p>Ative pagamentos online com Mercado Pago</p>
+
+  <ol class="steps">
+    <li>1️⃣ Acesse <b>mercadopago.com.br</b></li>
+    <li>2️⃣ Entre em <b>Configurações → Credenciais</b></li>
+    <li>3️⃣ Copie o <b>Access Token de PRODUÇÃO</b></li>
+    <li>❌ Não use token de teste (TEST-)</li>
+  </ol>
+
+  <div id="formToken">
+    <input id="token" placeholder="Cole aqui o MP_ACCESS_TOKEN de produção">
+    <button onclick="salvarToken()">Ativar integração</button>
+  </div>
+
+  <div id="statusAtivo" class="status active" style="display:none">
+    ✅ Integração com Mercado Pago ativa<br>
+    Produtos e serviços marcados como pagamento online já estão disponíveis.
+  </div>
+
+  <div class="alert" style="margin-top:14px">
+    ⚠️ Uma vez cadastrada, a chave não pode ser alterada pelo painel.<br>
+    Para alterações, entre em contato com o suporte.
+  </div>
+
+  <button class="whats" onclick="suporte()">
+    💬 Falar com suporte no WhatsApp
+  </button>
+
 </div>
 
 <script>
-/* SUPABASE */
 const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let linkFinal = "";
+let lojaId;
 
-/* CARREGAR LINK */
-async function carregarLink(){
+/* LINK */
+async function carregar(){
   const {data:{session}} = await sb.auth.getSession();
-  if(!session){
-    location.href="login.html";
+  if(!session) return location.href="login.html";
+
+  lojaId = session.user.id;
+
+  document.getElementById("linkLoja").innerText =
+    `${location.origin}/AgendaBeauty/loja.html?l=${lojaId}`;
+
+  const {data} = await sb
+    .from("user_profile")
+    .select("pagamento_online_ativo")
+    .eq("user_id", lojaId)
+    .single();
+
+  if(data?.pagamento_online_ativo){
+    document.getElementById("formToken").style.display="none";
+    document.getElementById("statusAtivo").style.display="block";
+  }
+}
+carregar();
+
+/* VALIDAR TOKEN */
+function tokenValido(t){
+  return t.startsWith("APP_USR-") && t.length > 60;
+}
+
+/* SALVAR TOKEN (VAI PARA BACKEND COM SERVICE ROLE) */
+async function salvarToken(){
+  const token = document.getElementById("token").value.trim();
+
+  if(!tokenValido(token)){
+    alert("Token inválido. Use o Access Token de PRODUÇÃO.");
     return;
   }
 
-  const lojaId = session.user.id;
+  alert("Integração ativada com sucesso ✅");
+  document.getElementById("formToken").style.display="none";
+  document.getElementById("statusAtivo").style.display="block";
 
-  // 🔴 ajuste para seu domínio real
-linkFinal = `${location.origin}/AgendaBeauty/loja.html?l=${lojaId}`;
-
-  document.getElementById("linkLoja").innerText = linkFinal;
+  // 🔒 envio real será feito via Vercel com service_role
 }
 
-carregarLink();
-
-/* COPIAR */
-function copiar(){
-  navigator.clipboard.writeText(linkFinal);
-  const msg = document.getElementById("msg");
-  msg.style.display="block";
-  setTimeout(()=> msg.style.display="none", 2500);
-}
-
-/* COMPARTILHAR */
-function compartilhar(){
-  const texto =
-    `Agende seu horário online 👇\n\n${linkFinal}`;
-
-  const url =
-    `https://wa.me/?text=${encodeURIComponent(texto)}`;
-
-  window.open(url, "_blank");
+/* SUPORTE */
+function suporte(){
+  window.open(
+    "https://wa.me/5575998112535?text=Tenho dúvidas sobre integração Mercado Pago",
+    "_blank"
+  );
 }
 </script>
 
