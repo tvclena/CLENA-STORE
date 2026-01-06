@@ -335,21 +335,48 @@ document.getElementById("loginForm").addEventListener("submit", async e=>{
     return;
   }
 
-  const { data:profile } = await sb
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id", data.user.id)
-    .single();
+ const { data: profile, error: profileError } = await sb
+  .from("user_profile")
+  .select("negocio, responsavel, status, fim_teste")
+  .eq("user_id", data.user.id)
+  .single();
 
-  overlay.style.display="none";
-  welcome.style.display="flex";
+overlay.style.display = "none";
 
+if (profileError || !profile) {
+  errorBox.innerText = "Erro ao carregar perfil.";
+  errorBox.style.display = "block";
+  btnLogin.classList.remove("loading");
+  return;
+}
+
+/* 🚫 TESTE ENCERRADO */
+if (profile.status === "FIMTESTE") {
+  window.location.replace("planos.html");
+  return;
+}
+
+/* 🎉 PRIMEIRO LOGIN / TESTE ATIVO */
+welcome.style.display = "flex";
+
+if (profile.status === "TESTE") {
   document.getElementById("welcomeTitle").innerText =
-    `Bem-vindo ao ${profile?.negocio || "Agenda Fácil"} 👋`;
+    `Bem-vindo, ${profile.responsavel.split(" ")[0]} 👋`;
 
-  setTimeout(()=>{
-    window.location.replace("dashboard.html");
-  },1600);
+  welcome.querySelector("p").innerText =
+    "Você ganhou 10 dias grátis para experimentar todas as funcionalidades do Agenda Fácil.";
+} else {
+  document.getElementById("welcomeTitle").innerText =
+    `Bem-vindo ao ${profile.negocio || "Agenda Fácil"} 👋`;
+
+  welcome.querySelector("p").innerText =
+    "Estamos preparando seu painel.";
+}
+
+/* REDIRECIONAMENTO */
+setTimeout(() => {
+  window.location.replace("dashboard.html");
+}, 2000);
 });
 
 /* RESET SENHA */
