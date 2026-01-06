@@ -7,7 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 );
 
-
 /* ================= HANDLER ================= */
 export default async function handler(req, res) {
 
@@ -44,18 +43,18 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Payload inválido" });
     }
 
-  /* ========== BUSCA LOJA (USER_PROFILE É A LOJA) ========== */
-const { data: loja, error: lojaErr } = await supabase
-  .from("user_profile")
-  .select("user_id, responsavel, negocio")
-  .eq("user_id", loja_id)
-  .single();
+    /* ========== BUSCA LOJA (USER_PROFILE É A LOJA) ========== */
+    const { data: loja, error: lojaErr } = await supabase
+      .from("user_profile")
+      .select("user_id, responsavel, negocio")
+      .eq("user_id", loja_id)
+      .single();
 
-if (lojaErr || !loja) {
-  return res.status(400).json({ error: "Loja inválida" });
-}
+    if (lojaErr || !loja) {
+      return res.status(400).json({ error: "Loja inválida" });
+    }
 
-    /* ========== CREDENCIAL MERCADO PAGO (DONO) ========== */
+    /* ========== CREDENCIAL MERCADO PAGO ========== */
     const { data: cred, error: credErr } = await supabase
       .from("lojas_pagamento_credenciais")
       .select("mp_access_token")
@@ -69,7 +68,7 @@ if (lojaErr || !loja) {
       });
     }
 
-    /* ========== PRODUTOS (DO DONO DA LOJA) ========== */
+    /* ========== PRODUTOS ========== */
     const produtoIds = itens.map(i => i.id);
 
     const { data: produtos, error: prodErr } = await supabase
@@ -96,16 +95,9 @@ if (lojaErr || !loja) {
     const items = produtos.map(p => {
       const carrinhoItem = itens.find(i => i.id === p.id);
       const quantidade = Number(carrinhoItem?.quantidade || 1);
+      const preco = Number(String(p.preco).replace(",", "."));
 
-      const preco = Number(
-        String(p.preco).replace(",", ".")
-      );
-
-      if (
-        isNaN(preco) ||
-        preco <= 0 ||
-        quantidade <= 0
-      ) {
+      if (isNaN(preco) || preco <= 0 || quantidade <= 0) {
         throw new Error("Preço ou quantidade inválidos");
       }
 
@@ -118,68 +110,79 @@ if (lojaErr || !loja) {
     });
 
     const valorTotal = items.reduce(
-      (t, i) => t + i.unit_price * i.quantity,
+      (total, item) => total + item.unit_price * item.quantity,
       0
     );
 
     /* ========== CRIA PEDIDO ========== */
     const { data: pedido, error: pedidoErr } = await supabase
       .from("movimentacoes_pagamento")
-.insert({
-  user_id: loja.user_id,   // A LOJA É O USER
-  status: "CRIADO",
-  valor_total: valorTotal,
-  cliente_nome: cliente.nome,
-  cliente_whatsapp: cliente.whatsapp
-})
+      .insert({
+        user_id: loja.user_id,
+        status: "CRIADO",
+        valor_total: valorTotal,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp
+      })
       .select()
       .single();
 
     if (pedidoErr || !pedido) {
-      throw new Error("Erro ao criar pedido");
+      throw new Error("Erro ao criar pedido no banco");
     }
 
     /* ========== MERCADO PAGO ========== */
+    if (!process.env.APP_URL) {
+      throw new Error("APP_URL não configurada");
+    }
+
     const mp = new MercadoPago({
       accessToken: cred.mp_access_token
     });
 
-   const response = await mp.preferences.create({
-  items,
-  payer: {
-    name: cliente.nome
-  },
-  metadata: {
-    user_id: loja.user_id,
-    pedido_id: pedido.id
-  }, // ✅ VÍRGULA AQUI
+    const response = await mp.preferences.create({
+      items,
+      payer: {
+        name: cliente.nome
+      },
+      metadata: {
+        user_id: loja.user_id,
+        pedido_id: pedido.id
+      },
+      back_urls: {
+        success: `${process.env.APP_URL}/sucesso.html`,
+        failure: `${process.env.APP_URL}/erro.html`,
+        pending: `${process.env.APP_URL}/pendente.html`
+      },
+      auto_return: "approved",
+      notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
+    });
 
-  back_urls: {
-    success: `${process.env.APP_URL}/sucesso.html`,
-    failure: `${process.env.APP_URL}/erro.html`,
-    pending: `${process.env.APP_URL}/pendente.html`
-  },
-  auto_return: "approved",
-  notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
-});
+    const preferenceId = response?.id || response?.body?.id;
+    const initPoint = response?.init_point || response?.body?.init_point;
 
-    /* ========== SALVA PREFERENCE ID ========== */
+    if (!preferenceId || !initPoint) {
+      throw new Error("Falha ao gerar preferência Mercado Pago");
+    }
+
+    /* ========== ATUALIZA PEDIDO ========== */
     await supabase
       .from("movimentacoes_pagamento")
       .update({
-        mp_preference_id: response.body.id
+        mp_preference_id: preferenceId
       })
       .eq("id", pedido.id);
 
-    /* ========== RETORNO FINAL ========== */
+    /* ========== SUCESSO ========== */
     return res.status(200).json({
-      init_point: response.body.init_point
+      init_point: initPoint
     });
 
   } catch (err) {
     console.error("ERRO CREATE PAGAMENTO:", err);
+
     return res.status(500).json({
-      error: "Erro ao criar pagamento"
+      error: err?.message || "Erro ao criar pagamento"
     });
   }
 }
