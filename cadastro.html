@@ -366,7 +366,7 @@ function irLogin(){
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("/AgendaBeauty/sw.js")
+      .register("/clena/sw.js")
       .then(reg => console.log("PWA ativo:", reg.scope))
       .catch(err => console.error("Erro PWA:", err));
   });
