@@ -44,16 +44,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Payload inválido" });
     }
 
-    /* ========== BUSCA LOJA (ID DA URL) ========== */
-    const { data: loja, error: lojaErr } = await supabase
-      .from("lojas")
-      .select("id, user_id")
-      .eq("id", loja_id)
-      .single();
+  /* ========== BUSCA LOJA (USER_PROFILE É A LOJA) ========== */
+const { data: loja, error: lojaErr } = await supabase
+  .from("user_profile")
+  .select("user_id, responsavel, negocio")
+  .eq("user_id", loja_id)
+  .single();
 
-    if (lojaErr || !loja) {
-      return res.status(400).json({ error: "Loja inválida" });
-    }
+if (lojaErr || !loja) {
+  return res.status(400).json({ error: "Loja inválida" });
+}
 
     /* ========== CREDENCIAL MERCADO PAGO (DONO) ========== */
     const { data: cred, error: credErr } = await supabase
@@ -125,14 +125,13 @@ export default async function handler(req, res) {
     /* ========== CRIA PEDIDO ========== */
     const { data: pedido, error: pedidoErr } = await supabase
       .from("movimentacoes_pagamento")
-      .insert({
-        loja_id: loja.id,
-        user_id: loja.user_id,
-        status: "CRIADO",
-        valor_total: valorTotal,
-        cliente_nome: cliente.nome,
-        cliente_whatsapp: cliente.whatsapp
-      })
+.insert({
+  user_id: loja.user_id,   // A LOJA É O USER
+  status: "CRIADO",
+  valor_total: valorTotal,
+  cliente_nome: cliente.nome,
+  cliente_whatsapp: cliente.whatsapp
+})
       .select()
       .single();
 
@@ -145,23 +144,24 @@ export default async function handler(req, res) {
       accessToken: cred.mp_access_token
     });
 
-    const response = await mp.preferences.create({
-      items,
-      payer: {
-        name: cliente.nome
-      },
-      metadata: {
-        loja_id: loja.id,
-        pedido_id: pedido.id
-      },
-      back_urls: {
-        success: `${process.env.APP_URL}/sucesso.html`,
-        failure: `${process.env.APP_URL}/erro.html`,
-        pending: `${process.env.APP_URL}/pendente.html`
-      },
-      auto_return: "approved",
-      notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
-    });
+   const response = await mp.preferences.create({
+  items,
+  payer: {
+    name: cliente.nome
+  },
+  metadata: {
+    user_id: loja.user_id,
+    pedido_id: pedido.id
+  }, // ✅ VÍRGULA AQUI
+
+  back_urls: {
+    success: `${process.env.APP_URL}/sucesso.html`,
+    failure: `${process.env.APP_URL}/erro.html`,
+    pending: `${process.env.APP_URL}/pendente.html`
+  },
+  auto_return: "approved",
+  notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
+});
 
     /* ========== SALVA PREFERENCE ID ========== */
     await supabase
