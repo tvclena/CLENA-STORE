@@ -1,23 +1,41 @@
 import { createClient } from "@supabase/supabase-js";
 import mercadopago from "mercadopago";
 
+/* ================= SUPABASE ================= */
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 );
 
+/* ================= HANDLER ================= */
 export default async function handler(req, res) {
+
+  /* ================= CORS ================= */
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // 🔥 PRE-FLIGHT (OBRIGATÓRIO)
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
   try {
-    /* ================= SEGURANÇA BÁSICA ================= */
+    /* ================= SEGURANÇA ================= */
     const origin = req.headers.origin || "";
-    if (!origin.includes(process.env.APP_DOMAIN)) {
+
+    if (
+      process.env.APP_DOMAIN &&
+      !origin.includes(process.env.APP_DOMAIN)
+    ) {
       return res.status(403).json({ error: "Origem não autorizada" });
     }
 
+    /* ================= PAYLOAD ================= */
     const { loja_id, cliente, itens } = req.body;
 
     if (
@@ -60,7 +78,7 @@ export default async function handler(req, res) {
       });
     }
 
-    /* ================= CALCULA ITENS ================= */
+    /* ================= ITENS MERCADO PAGO ================= */
     const items = produtos.map(p => {
       const qtd = itens.find(i => i.id === p.id)?.quantidade || 1;
       return {
@@ -76,7 +94,7 @@ export default async function handler(req, res) {
       0
     );
 
-    /* ================= CRIA PEDIDO INTERNO ================= */
+    /* ================= PEDIDO INTERNO ================= */
     const { data: pedido, error: pedidoErr } = await supabase
       .from("movimentacoes_pagamento")
       .insert({
@@ -90,6 +108,7 @@ export default async function handler(req, res) {
       .single();
 
     if (pedidoErr) {
+      console.error("PEDIDO ERROR:", pedidoErr);
       return res.status(500).json({ error: "Erro ao criar pedido interno" });
     }
 
