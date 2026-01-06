@@ -56,12 +56,12 @@ if (lojaErr || !loja) {
 
 
     /* ========== CREDENCIAL MP ========== */
-    const { data: cred, error: credErr } = await supabase
-      .from("lojas_pagamento_credenciais")
-      .select("mp_access_token")
-      .eq("user_id", loja.id)
-      .eq("ativo", true)
-      .single();
+const { data: cred, error: credErr } = await supabase
+  .from("lojas_pagamento_credenciais")
+  .select("mp_access_token")
+.eq("user_id", loja.user_id)
+  .eq("ativo", true)
+  .single();
 
     if (credErr || !cred?.mp_access_token) {
       return res.status(400).json({
@@ -72,13 +72,14 @@ if (lojaErr || !loja) {
     /* ========== PRODUTOS ========== */
     const produtoIds = itens.map(i => i.id);
 
-    const { data: produtos, error: prodErr } = await supabase
-      .from("produtos_servicos")
-      .select("id, nome, preco")
-      .in("id", produtoIds)
-      .eq("user_id", loja.id)
-      .eq("pg_online", true)
-      .eq("ativo", true);
+const { data: produtos, error: prodErr } = await supabase
+  .from("produtos_servicos")
+  .select("id, nome, preco")
+  .in("id", produtoIds)
+  .eq("user_id", loja.user_id) // ✔ DONO DA LOJA
+  .eq("pg_online", true)
+  .eq("ativo", true);
+
 
     if (prodErr || !produtos?.length) {
       return res.status(400).json({
@@ -123,18 +124,20 @@ if (lojaErr || !loja) {
       0
     );
 
-    /* ========== CRIA PEDIDO ========== */
-    const { data: pedido, error: pedidoErr } = await supabase
-      .from("movimentacoes_pagamento")
-      .insert({
-        loja_id,
-        status: "CRIADO",
-        valor_total: valorTotal,
-        cliente_nome: cliente.nome,
-        cliente_whatsapp: cliente.whatsapp
-      })
-      .select()
-      .single();
+/* ========== CRIA PEDIDO ========== */
+const { data: pedido, error: pedidoErr } = await supabase
+  .from("movimentacoes_pagamento")
+  .insert({
+    loja_id: loja.id,          // ID da loja pública
+    user_id: loja.user_id,     // DONO DA LOJA (ESSENCIAL)
+    status: "CRIADO",
+    valor_total: valorTotal,
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp
+  })
+  .select()
+  .single();
+;
 
     if (pedidoErr || !pedido) {
       throw new Error("Erro ao criar pedido");
