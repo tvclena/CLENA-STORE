@@ -4,60 +4,44 @@
 <meta charset="UTF-8">
 <title>Agenda Clena • Planos</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root{
-  --primary:#ff6a00;
-  --accent:#b8ff65;
-  --bg:#f6f7fb;
-  --text:#1f2937;
-  --muted:#6b7280;
-  --border:#e5e7eb;
-  --radius:22px;
+body{
+  margin:0;
+  font-family:Inter;
+  background:#f6f7fb;
 }
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:#fff;color:var(--text)}
-
-header{border-bottom:1px solid var(--border)}
-.header{max-width:1200px;margin:auto;padding:18px;display:flex;justify-content:space-between}
-.logo{font-weight:800;color:var(--primary)}
-
-.hero{text-align:center;padding:90px 20px}
-.hero h1{font-size:46px}
-.hero span{color:var(--primary)}
-.hero p{color:var(--muted)}
-
-.plan-box{
-  max-width:420px;
-  margin:60px auto;
-  background:#fff;
-  border-radius:32px;
-  border:2px solid var(--primary);
-  padding:44px;
+.container{
+  max-width:900px;
+  margin:80px auto;
   text-align:center;
 }
-.price{font-size:46px;font-weight:800;color:var(--primary)}
-.price span{font-size:16px;color:var(--muted)}
-.features{margin:30px 0;text-align:left}
-.features li{list-style:none;margin-bottom:10px}
-.features li::before{content:"✔ ";color:var(--primary);font-weight:800}
-
+.plan{
+  background:#fff;
+  border-radius:24px;
+  padding:40px;
+  box-shadow:0 20px 50px rgba(0,0,0,.1);
+}
+.price{
+  font-size:48px;
+  font-weight:800;
+  color:#ff6a00;
+}
 .btn{
-  width:100%;
-  padding:16px;
-  border-radius:999px;
+  margin-top:30px;
+  padding:16px 36px;
   border:none;
-  background:var(--accent);
+  border-radius:999px;
+  background:#b8ff65;
   font-weight:800;
   cursor:pointer;
-  font-size:15px;
 }
 
-/* ===== MODAL ===== */
+/* MODAL */
 .modal{
   position:fixed;
   inset:0;
@@ -65,81 +49,70 @@ header{border-bottom:1px solid var(--border)}
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:999;
 }
 .modal-box{
   background:#fff;
-  border-radius:24px;
   padding:32px;
+  border-radius:22px;
   width:100%;
   max-width:420px;
 }
-.modal-box h3{margin-top:0}
 input,select{
   width:100%;
   padding:14px;
-  border-radius:14px;
-  border:1px solid var(--border);
   margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+.error{
+  background:#ffe5e5;
+  color:#c62828;
+  padding:10px;
+  border-radius:10px;
+  display:none;
+  margin-bottom:10px;
 }
 .hidden{display:none}
-.error{background:#ffe5e5;color:#c62828;padding:10px;border-radius:10px;display:none}
 </style>
 </head>
 
 <body>
 
-<header>
-  <div class="header">
-    <div class="logo">AGENDA CLENA</div>
+<div class="container">
+  <div class="plan">
+    <h1>Plano Profissional</h1>
+    <div class="price">R$ 9,90/mês</div>
+    <p>Valor vitalício para novos assinantes</p>
+    <button class="btn" onclick="abrirModal()">Assinar agora</button>
   </div>
-</header>
-
-<section class="hero">
-  <h1>Plano <span>completo</span> e vitalício</h1>
-  <p>Assine agora por R$ 9,90 e mantenha o valor para sempre</p>
-</section>
-
-<div class="plan-box">
-  <div class="price">R$ 9,90 <span>/mês</span></div>
-  <p style="color:var(--muted)">Promoção válida até 06/02/2026</p>
-
-  <ul class="features">
-    <li>Loja online</li>
-    <li>Agendamentos 24h</li>
-    <li>PDV e estoque</li>
-    <li>Carteira de clientes</li>
-    <li>Fidelização</li>
-  </ul>
-
-  <button class="btn" onclick="abrirModal()">Assinar agora</button>
 </div>
 
-<!-- ===== MODAL ===== -->
-<div class="modal" id="modal">
+<!-- MODAL -->
+<div id="modal" class="modal">
   <div class="modal-box">
-    <h3 id="modalTitle">Informe seu e-mail</h3>
-    <div class="error" id="errorBox"></div>
+    <h2 id="titulo">Digite seu e-mail</h2>
 
-    <input id="email" type="email" placeholder="E-mail" required>
+    <div id="errorBox" class="error"></div>
 
+    <input id="email" type="email" placeholder="E-mail">
+
+    <!-- LOGIN -->
     <div id="loginBox" class="hidden">
       <input id="senhaLogin" type="password" placeholder="Senha">
     </div>
 
+    <!-- CADASTRO -->
     <div id="cadastroBox" class="hidden">
+      <input id="senhaCadastro" type="password" placeholder="Senha">
       <input id="responsavel" placeholder="Responsável">
-      <input id="negocio" placeholder="Nome do negócio">
+      <input id="negocio" placeholder="Negócio">
       <select id="tipo">
-        <option value="">Tipo</option>
         <option>SALAO DE BELEZA</option>
         <option>BARBEARIA</option>
-        <option>CLINICA</option>
         <option>STUDIO</option>
       </select>
       <input id="cidade" placeholder="Cidade">
       <input id="uf" placeholder="UF">
-      <input id="senhaCadastro" type="password" placeholder="Senha">
     </div>
 
     <button class="btn" onclick="continuar()">Continuar</button>
@@ -160,46 +133,82 @@ function abrirModal(){
 
 async function continuar(){
   errorBox.style.display = "none";
+  const emailValue = email.value.trim().toLowerCase();
 
   if(etapa === "email"){
-    const { data } = await sb.auth.signInWithOtp({ email: email.value });
-    etapa = "login";
-    modalTitle.innerText = "Digite sua senha";
-    loginBox.classList.remove("hidden");
-    cadastroBox.classList.remove("hidden");
+    const { data } = await sb
+      .from("user_profile")
+      .select("user_id")
+      .eq("email_contato", emailValue)
+      .maybeSingle();
+
+    if(data){
+      etapa = "login";
+      titulo.innerText = "Digite sua senha";
+      loginBox.classList.remove("hidden");
+      cadastroBox.classList.add("hidden");
+    }else{
+      etapa = "cadastro";
+      titulo.innerText = "Crie sua conta";
+      cadastroBox.classList.remove("hidden");
+      loginBox.classList.add("hidden");
+    }
     return;
   }
 
-  // LOGIN
-  const { data, error } = await sb.auth.signInWithPassword({
-    email: email.value,
-    password: senhaLogin.value || senhaCadastro.value
-  });
+  if(etapa === "login"){
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: emailValue,
+      password: senhaLogin.value
+    });
 
-  if(error){
-    errorBox.style.display = "block";
-    errorBox.innerText = error.message;
-    return;
+    if(error){
+      errorBox.style.display = "block";
+      errorBox.innerText = "Senha inválida";
+      return;
+    }
+    iniciarPagamento(data.user.id);
   }
 
-  const userId = data.user.id;
+  if(etapa === "cadastro"){
+    const { data, error } = await sb.auth.signUp({
+      email: emailValue,
+      password: senhaCadastro.value
+    });
 
-  // CHAMA BACKEND (MP)
+    if(error){
+      errorBox.style.display = "block";
+      errorBox.innerText = error.message;
+      return;
+    }
+
+    const userId = data.user.id;
+
+    await sb.from("user_profile").upsert({
+      user_id: userId,
+      responsavel: responsavel.value,
+      negocio: negocio.value,
+      tipo: tipo.value,
+      cidade: cidade.value,
+      uf: uf.value,
+      email_contato: emailValue,
+      status: "TESTE",
+      fim_teste: new Date(Date.now() + 10*24*60*60*1000)
+    });
+
+    iniciarPagamento(userId);
+  }
+}
+
+async function iniciarPagamento(userId){
   const res = await fetch("/api/create-subscription", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      user_id: userId,
-      email: email.value
-    })
+    body: JSON.stringify({ user_id: userId, email: email.value })
   });
 
   const json = await res.json();
-  if(json.checkout_url){
-    window.location.href = json.checkout_url;
-  }else{
-    alert("Erro ao iniciar pagamento");
-  }
+  if(json.checkout_url) window.location.href = json.checkout_url;
 }
 </script>
 
