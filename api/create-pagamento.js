@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import MercadoPago from "mercadopago";
+import { MercadoPagoConfig, Preference } from "mercadopago";
 
 /* ================= SUPABASE ================= */
 const supabase = createClient(
@@ -24,7 +24,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    /* ===== BODY ===== */
     const body =
       typeof req.body === "string"
         ? JSON.parse(req.body)
@@ -37,25 +36,25 @@ export default async function handler(req, res) {
     }
 
     /* ===== LOJA ===== */
-    const { data: loja, error: lojaErr } = await supabase
+    const { data: loja } = await supabase
       .from("user_profile")
       .select("user_id")
       .eq("user_id", loja_id)
       .single();
 
-    if (lojaErr || !loja) {
+    if (!loja) {
       return res.status(400).json({ error: "Loja inválida" });
     }
 
-    /* ===== CREDENCIAL MERCADO PAGO ===== */
-    const { data: cred, error: credErr } = await supabase
+    /* ===== CREDENCIAL MP ===== */
+    const { data: cred } = await supabase
       .from("lojas_pagamento_credenciais")
       .select("mp_access_token")
       .eq("user_id", loja.user_id)
       .eq("ativo", true)
       .single();
 
-    if (credErr || !cred?.mp_access_token) {
+    if (!cred?.mp_access_token) {
       return res.status(400).json({
         error: "Pagamento online não configurado"
       });
@@ -64,7 +63,7 @@ export default async function handler(req, res) {
     /* ===== PRODUTOS ===== */
     const ids = itens.map(i => i.id);
 
-    const { data: produtos, error: prodErr } = await supabase
+    const { data: produtos } = await supabase
       .from("produtos_servicos")
       .select("id,nome,preco")
       .in("id", ids)
@@ -72,7 +71,7 @@ export default async function handler(req, res) {
       .eq("ativo", true)
       .eq("pg_online", true);
 
-    if (prodErr || !produtos || produtos.length !== itens.length) {
+    if (!produtos || produtos.length !== itens.length) {
       return res.status(400).json({ error: "Itens inválidos" });
     }
 
@@ -92,7 +91,7 @@ export default async function handler(req, res) {
     );
 
     /* ===== CRIA PEDIDO ===== */
-    const { data: pedido, error: pedErr } = await supabase
+    const { data: pedido } = await supabase
       .from("movimentacoes_pagamento")
       .insert({
         user_id: loja.user_id,
@@ -104,16 +103,12 @@ export default async function handler(req, res) {
       .select()
       .single();
 
-    if (pedErr || !pedido) {
-      throw new Error("Erro ao criar pedido");
-    }
-
-    /* ===== MERCADO PAGO (SDK NOVO) ===== */
-    const mp = new MercadoPago({
+    /* ===== MERCADO PAGO (CORRETO) ===== */
+    const client = new MercadoPagoConfig({
       accessToken: cred.mp_access_token
     });
 
-    const preference = new mp.Preference();
+    const preference = new Preference(client);
 
     const response = await preference.create({
       body: {
@@ -129,12 +124,9 @@ export default async function handler(req, res) {
       }
     });
 
-    /* ===== SALVA PREFERENCE ===== */
     await supabase
       .from("movimentacoes_pagamento")
-      .update({
-        mp_preference_id: response.id
-      })
+      .update({ mp_preference_id: response.id })
       .eq("id", pedido.id);
 
     return res.status(200).json({
@@ -142,10 +134,7 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error("❌ CREATE PAGAMENTO ERRO:");
-    console.error(err?.message || err);
-    console.error(err?.cause || err);
-
+    console.error("❌ CREATE PAGAMENTO:", err);
     return res.status(500).json({
       error: err?.message || "Erro interno ao criar pagamento"
     });
