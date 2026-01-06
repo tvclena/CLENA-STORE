@@ -24,15 +24,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    /* ========== BODY SAFE ========== */
-    const body =
-      typeof req.body === "string"
-        ? JSON.parse(req.body)
-        : req.body;
+    /* ========== BODY ========== */
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
 
     const { loja_id, cliente, itens } = body;
 
-    /* ========== VALIDAÇÃO PAYLOAD ========== */
     if (
       !loja_id ||
       !cliente?.nome ||
@@ -43,10 +41,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Payload inválido" });
     }
 
-    /* ========== BUSCA LOJA (USER_PROFILE É A LOJA) ========== */
+    /* ========== BUSCA LOJA ========== */
     const { data: loja, error: lojaErr } = await supabase
       .from("user_profile")
-      .select("user_id, responsavel, negocio")
+      .select("user_id")
       .eq("user_id", loja_id)
       .single();
 
@@ -54,7 +52,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Loja inválida" });
     }
 
-    /* ========== CREDENCIAL MERCADO PAGO ========== */
+    /* ========== CREDENCIAL MP ========== */
     const { data: cred, error: credErr } = await supabase
       .from("lojas_pagamento_credenciais")
       .select("mp_access_token")
@@ -64,14 +62,14 @@ export default async function handler(req, res) {
 
     if (credErr || !cred?.mp_access_token) {
       return res.status(400).json({
-        error: "Pagamento online não configurado para esta loja"
+        error: "Pagamento online não configurado"
       });
     }
 
     /* ========== PRODUTOS ========== */
     const produtoIds = itens.map(i => i.id);
 
-    const { data: produtos, error: prodErr } = await supabase
+    const { data: produtos } = await supabase
       .from("produtos_servicos")
       .select("id, nome, preco")
       .in("id", produtoIds)
@@ -79,26 +77,18 @@ export default async function handler(req, res) {
       .eq("pg_online", true)
       .eq("ativo", true);
 
-    if (prodErr || !produtos || produtos.length === 0) {
-      return res.status(400).json({
-        error: "Itens inválidos para pagamento online"
-      });
+    if (!produtos || produtos.length !== itens.length) {
+      return res.status(400).json({ error: "Itens inválidos" });
     }
 
-    if (produtos.length !== itens.length) {
-      return res.status(400).json({
-        error: "Um ou mais itens não são válidos"
-      });
-    }
-
-    /* ========== ITENS MERCADO PAGO ========== */
-    const items = produtos.map(p => {
-      const carrinhoItem = itens.find(i => i.id === p.id);
-      const quantidade = Number(carrinhoItem?.quantidade || 1);
+    /* ========== ITENS MP ========== */
+    const mpItems = produtos.map(p => {
+      const carrinho = itens.find(i => i.id === p.id);
+      const quantidade = Number(carrinho?.quantidade || 1);
       const preco = Number(String(p.preco).replace(",", "."));
 
-      if (isNaN(preco) || preco <= 0 || quantidade <= 0) {
-        throw new Error("Preço ou quantidade inválidos");
+      if (preco <= 0 || quantidade <= 0) {
+        throw new Error("Preço inválido");
       }
 
       return {
@@ -109,46 +99,39 @@ export default async function handler(req, res) {
       };
     });
 
-    const valorTotal = items.reduce(
-      (total, item) => total + item.unit_price * item.quantity,
+    const valorTotal = mpItems.reduce(
+      (s, i) => s + i.unit_price * i.quantity,
       0
     );
 
-    /* ========== CRIA PEDIDO ========== */
+    /* ========== INSERT SIMPLES (IGUAL AO PROJETO BOM) ========== */
     const { data: pedido, error: pedidoErr } = await supabase
       .from("movimentacoes_pagamento")
       .insert({
         user_id: loja.user_id,
+        loja_id: loja.user_id,
         status: "CRIADO",
         valor: valorTotal,
         cliente_nome: cliente.nome,
         cliente_whatsapp: cliente.whatsapp
       })
-      .select()
+      .select("id")
       .single();
 
-    if (pedidoErr || !pedido) {
-      throw new Error("Erro ao criar pedido no banco");
+    if (pedidoErr) {
+      console.error(pedidoErr);
+      throw new Error("Falha ao criar pedido");
     }
 
     /* ========== MERCADO PAGO ========== */
-    if (!process.env.APP_URL) {
-      throw new Error("APP_URL não configurada");
-    }
-
     const mp = new MercadoPago({
       accessToken: cred.mp_access_token
     });
 
-    const response = await mp.preferences.create({
-      items,
-      payer: {
-        name: cliente.nome
-      },
-      metadata: {
-        user_id: loja.user_id,
-        pedido_id: pedido.id
-      },
+    const mpRes = await mp.preferences.create({
+      items: mpItems,
+      payer: { name: cliente.nome },
+      external_reference: pedido.id,
       back_urls: {
         success: `${process.env.APP_URL}/sucesso.html`,
         failure: `${process.env.APP_URL}/erro.html`,
@@ -158,31 +141,25 @@ export default async function handler(req, res) {
       notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
     });
 
-    const preferenceId = response?.id || response?.body?.id;
-    const initPoint = response?.init_point || response?.body?.init_point;
+    const prefId = mpRes?.body?.id;
+    const initPoint = mpRes?.body?.init_point;
 
-    if (!preferenceId || !initPoint) {
-      throw new Error("Falha ao gerar preferência Mercado Pago");
+    if (!prefId || !initPoint) {
+      throw new Error("Erro Mercado Pago");
     }
 
-    /* ========== ATUALIZA PEDIDO ========== */
+    /* ========== UPDATE ========== */
     await supabase
       .from("movimentacoes_pagamento")
-      .update({
-        mp_preference_id: preferenceId
-      })
+      .update({ mp_preference_id: prefId })
       .eq("id", pedido.id);
 
-    /* ========== SUCESSO ========== */
-    return res.status(200).json({
-      init_point: initPoint
-    });
+    return res.json({ init_point: initPoint });
 
   } catch (err) {
-    console.error("ERRO CREATE PAGAMENTO:", err);
-
+    console.error("❌ CREATE PAGAMENTO:", err);
     return res.status(500).json({
-      error: err?.message || "Erro ao criar pagamento"
+      error: err.message || "Erro interno"
     });
   }
 }
