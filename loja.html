@@ -30,19 +30,12 @@
   --navbar-h:72px;
 }
 
-*{box-sizing:border-box;font-family:Inter}
-
-html,body{
-  width:100%;
-  height:100%;
-  background:var(--bg);
-  overflow:hidden;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 /* TOPBAR */
 .topbar{
-  position:fixed;
-  top:0;left:0;right:0;
+  position:fixed;top:0;left:0;right:0;
   height:var(--topbar-h);
   padding:0 18px;
   background:#fff;
@@ -52,22 +45,18 @@ html,body{
   justify-content:space-between;
   z-index:100;
 }
-
 .topbar h1{
   font-size:17px;
   font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-
 .avatar{
-  width:38px;
-  height:38px;
-  border-radius:50%;
+  width:38px;height:38px;border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  color:#fff;
-  font-weight:800;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  color:#fff;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
   cursor:pointer;
 }
 
@@ -79,11 +68,7 @@ html,body{
   left:0;right:0;
   background:#fff;
 }
-iframe{
-  width:100%;
-  height:100%;
-  border:none;
-}
+iframe{width:100%;height:100%;border:none}
 
 /* NAVBAR */
 .navbar{
@@ -96,7 +81,6 @@ iframe{
   justify-content:space-around;
   align-items:center;
 }
-
 .nav-item{
   font-size:11px;
   color:var(--muted);
@@ -106,18 +90,17 @@ iframe{
   gap:4px;
   cursor:pointer;
 }
-
 .nav-item i{
   font-size:22px;
   padding:8px;
   border-radius:12px;
 }
-
 .nav-item.active{
   color:var(--primary);
 }
 .nav-item.active i{
   background:var(--primary-soft);
+  color:var(--primary);
 }
 
 /* MODAL CLIENTE */
@@ -127,30 +110,29 @@ iframe{
   display:none;
   z-index:9999;
 }
-
 .modal-bg{
   position:absolute;
   inset:0;
   background:rgba(0,0,0,.45);
 }
-
 .modal{
   position:absolute;
-  left:50%;
-  top:50%;
+  left:50%;top:50%;
   transform:translate(-50%,-50%);
-  width:90%;
-  max-width:380px;
+  width:90%;max-width:380px;
   background:#fff;
   border-radius:22px;
   padding:22px;
 }
-
 .modal h2{
   font-size:20px;
   font-weight:800;
 }
-
+.modal p{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
 .modal input{
   width:100%;
   padding:14px;
@@ -159,7 +141,6 @@ iframe{
   font-size:15px;
   margin-bottom:10px;
 }
-
 .modal button{
   width:100%;
   padding:14px;
@@ -191,12 +172,9 @@ iframe{
   <div class="nav-item" onclick="go(this,'agendar.html')">
     <i class="ri-calendar-check-line"></i>Agendar
   </div>
-
-  <!-- LOJA (SÓ SE EXISTIR PRODUTO) -->
   <div class="nav-item" id="navLoja" onclick="go(this,'lojacliente.html')">
     <i class="ri-scissors-line"></i>Loja
   </div>
-
   <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
     <i class="ri-user-line"></i>Meu espaço
   </div>
@@ -207,6 +185,7 @@ iframe{
   <div class="modal-bg" onclick="fecharModal()"></div>
   <div class="modal">
     <h2>Seus dados</h2>
+    <p>Usamos essas informações para seus agendamentos</p>
 
     <input id="nome" placeholder="NOME COMPLETO" style="text-transform:uppercase">
     <input id="whats" placeholder="WHATSAPP" inputmode="numeric">
@@ -227,7 +206,7 @@ const frame = document.getElementById("frame");
 const avatar = document.getElementById("avatar");
 const navLoja = document.getElementById("navLoja");
 
-/* MÁSCARA WHATS */
+/* ================= MÁSCARA WHATS ================= */
 whats.addEventListener("input",()=>{
   let v = whats.value.replace(/\D/g,"").slice(0,11);
   if(v.length > 6)
@@ -237,7 +216,7 @@ whats.addEventListener("input",()=>{
   whats.value = v;
 });
 
-/* CLIENTE */
+/* ================= CLIENTE ================= */
 function getCliente(){
   return JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
 }
@@ -267,7 +246,7 @@ async function salvarCliente(){
   const emailVal = email.value.trim() || null;
 
   if(nomeVal.length < 3 || whatsVal.length < 10){
-    alert("Nome e WhatsApp obrigatórios");
+    alert("Nome e WhatsApp são obrigatórios");
     return;
   }
 
@@ -295,19 +274,19 @@ async function salvarCliente(){
   frame.src = `homeclientes.html?l=${lojaId}`;
 }
 
-/* REGRA DA LOJA → SÓ PRODUTO */
+/* ================= REGRA LOJA (SÓ PRODUTO) ================= */
 async function verificarProdutos(){
   const { count } = await sb
     .from("produtos_servicos")
-    .select("id", { count:"exact", head:true })
-    .eq("user_id", lojaId)
+    .select("id",{count:"exact",head:true})
+    .eq("user_id",lojaId)
     .eq("tipo","PRODUTO")
     .eq("ativo",true);
 
   navLoja.style.display = count > 0 ? "flex" : "none";
 }
 
-/* NAV */
+/* ================= NAV ================= */
 function go(el,page){
   if(!clienteValido()){
     abrirModal();
@@ -318,16 +297,16 @@ function go(el,page){
   frame.src = `${page}?l=${lojaId}`;
 }
 
-/* LOAD */
+/* ================= LOAD ================= */
 (async()=>{
   const { data } = await sb
     .from("user_profile")
     .select("negocio")
-    .eq("user_id", lojaId)
+    .eq("user_id",lojaId)
     .single();
 
   nomeLoja.innerText = data?.negocio || "Agenda Fácil";
-  await verificarProdutos();
+  verificarProdutos();
 
   if(clienteValido()){
     atualizarAvatar(getCliente().nome);
