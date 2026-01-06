@@ -191,9 +191,12 @@ iframe{
   <div class="nav-item" onclick="go(this,'agendar.html')">
     <i class="ri-calendar-check-line"></i>Agendar
   </div>
-  <div class="nav-item" onclick="go(this,'lojacliente.html')">
+
+  <!-- LOJA (SÓ SE EXISTIR PRODUTO) -->
+  <div class="nav-item" id="navLoja" onclick="go(this,'lojacliente.html')">
     <i class="ri-scissors-line"></i>Loja
   </div>
+
   <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
     <i class="ri-user-line"></i>Meu espaço
   </div>
@@ -222,6 +225,7 @@ const sb = supabase.createClient(
 const lojaId = new URLSearchParams(location.search).get("l");
 const frame = document.getElementById("frame");
 const avatar = document.getElementById("avatar");
+const navLoja = document.getElementById("navLoja");
 
 /* MÁSCARA WHATS */
 whats.addEventListener("input",()=>{
@@ -291,13 +295,24 @@ async function salvarCliente(){
   frame.src = `homeclientes.html?l=${lojaId}`;
 }
 
+/* REGRA DA LOJA → SÓ PRODUTO */
+async function verificarProdutos(){
+  const { count } = await sb
+    .from("produtos_servicos")
+    .select("id", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("tipo","PRODUTO")
+    .eq("ativo",true);
+
+  navLoja.style.display = count > 0 ? "flex" : "none";
+}
+
 /* NAV */
 function go(el,page){
   if(!clienteValido()){
     abrirModal();
     return;
   }
-
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
   frame.src = `${page}?l=${lojaId}`;
@@ -312,6 +327,7 @@ function go(el,page){
     .single();
 
   nomeLoja.innerText = data?.negocio || "Agenda Fácil";
+  await verificarProdutos();
 
   if(clienteValido()){
     atualizarAvatar(getCliente().nome);
