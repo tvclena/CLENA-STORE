@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Loja</title>
+<title>Agenda Fácil</title>
 
 <meta name="viewport"
   content="width=device-width,
@@ -11,160 +11,187 @@
   user-scalable=no,
   viewport-fit=cover">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
+  --primary-soft:rgba(255,106,0,.14);
   --bg:#f4f6fb;
-  --card:#fff;
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-}
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg)}
 
-.header{
-  padding:16px;
-  font-weight:800;
-  font-size:18px;
+  --topbar-h:64px;
+  --navbar-h:72px;
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-  padding:16px 16px 140px;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 
-.card{
+/* TOPBAR */
+.topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--topbar-h);
+  padding:0 18px;
   background:#fff;
-  border-radius:18px;
-  box-shadow:0 8px 22px rgba(0,0,0,.08);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:100;
+}
+.topbar h1{
+  font-size:17px;
+  font-weight:800;
+  white-space:nowrap;
   overflow:hidden;
+  text-overflow:ellipsis;
 }
-.card img{
-  width:100%;
-  height:120px;
-  object-fit:cover;
-}
-.card-body{
-  padding:10px;
-}
-.card-title{
-  font-weight:800;
-  font-size:14px;
-}
-.badge{
-  font-size:10px;
-  font-weight:800;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#fff7ed;
-  color:#c2410c;
-}
-.card-price{
-  color:var(--primary);
-  font-weight:800;
-  margin-top:6px;
-}
-.card-btn{
-  margin-top:8px;
-  background:var(--primary);
-  color:#fff;
-  border:none;
-  width:100%;
-  padding:10px;
-  border-radius:12px;
-  font-weight:800;
+.avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
 }
 
-.cart{
+/* CONTENT */
+.content{
   position:fixed;
-  bottom:16px;
-  right:16px;
-  background:var(--primary);
-  color:#fff;
-  width:56px;
-  height:56px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-}
-.cart span{
-  position:absolute;
-  top:-6px;
-  right:-6px;
-  background:#111;
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  font-size:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:flex-end;
-  z-index:999;
-}
-.modal.show{display:flex}
-
-.sheet{
-  width:100%;
-  height:85vh;
+  top:var(--topbar-h);
+  bottom:var(--navbar-h);
+  left:0;right:0;
   background:#fff;
-  border-radius:24px 24px 0 0;
-  padding:16px;
+}
+iframe{width:100%;height:100%;border:none}
+
+/* NAVBAR */
+.navbar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:var(--navbar-h);
+  background:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+}
+.nav-item{
+  font-size:11px;
+  color:var(--muted);
   display:flex;
   flex-direction:column;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+}
+.nav-item i{
+  font-size:22px;
+  padding:8px;
+  border-radius:12px;
+}
+.nav-item.active{
+  color:var(--primary);
+}
+.nav-item.active i{
+  background:var(--primary-soft);
+  color:var(--primary);
 }
 
-.cart-item{
-  display:flex;
-  justify-content:space-between;
+/* MODAL CLIENTE */
+#clienteModal{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index:9999;
+}
+.modal-bg{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.45);
+}
+.modal{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:90%;max-width:380px;
+  background:#fff;
+  border-radius:22px;
+  padding:22px;
+}
+.modal h2{
+  font-size:20px;
+  font-weight:800;
+}
+.modal p{
+  font-size:14px;
+  color:var(--muted);
   margin-bottom:10px;
 }
-
-.btn-finalizar{
+.modal input{
   width:100%;
   padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:15px;
+  margin-bottom:10px;
+}
+.modal button{
+  width:100%;
+  padding:14px;
+  border-radius:16px;
   border:none;
-  border-radius:999px;
   background:var(--primary);
   color:#fff;
   font-weight:800;
+  font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">Loja</div>
-<div class="grid" id="produtos"></div>
-
-<div class="cart" onclick="abrirCarrinho()">
-  🛒 <span id="cartCount">0</span>
+<div class="topbar">
+  <h1 id="nomeLoja">Agenda Fácil</h1>
+  <div class="avatar" id="avatar" onclick="abrirModal()">?</div>
 </div>
 
-<!-- MODAL CARRINHO -->
-<div class="modal" id="modal">
-  <div class="sheet">
-    <h3>Carrinho</h3>
-    <div id="cartItens"></div>
-    <div style="margin-top:auto">
-      <div id="cartTotal" style="font-weight:800;margin-bottom:12px"></div>
-      <button class="btn-finalizar" onclick="finalizarCompra()">Finalizar compra</button>
-    </div>
+<div class="content">
+  <iframe id="frame"></iframe>
+</div>
+
+<nav class="navbar">
+  <div class="nav-item active" onclick="go(this,'homeclientes.html')">
+    <i class="ri-home-5-line"></i>Início
+  </div>
+  <div class="nav-item" onclick="go(this,'agendar.html')">
+    <i class="ri-calendar-check-line"></i>Agendar
+  </div>
+  <div class="nav-item" id="navLoja" onclick="go(this,'lojacliente.html')">
+    <i class="ri-scissors-line"></i>Loja
+  </div>
+  <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
+    <i class="ri-user-line"></i>Meu espaço
+  </div>
+</nav>
+
+<!-- MODAL CLIENTE -->
+<div id="clienteModal">
+  <div class="modal-bg" onclick="fecharModal()"></div>
+  <div class="modal">
+    <h2>Seus dados</h2>
+    <p>Usamos essas informações para seus agendamentos</p>
+
+    <input id="nome" placeholder="NOME COMPLETO" style="text-transform:uppercase">
+    <input id="whats" placeholder="WHATSAPP" inputmode="numeric">
+    <input id="email" placeholder="E-MAIL (opcional)">
+
+    <button onclick="salvarCliente()">Salvar</button>
   </div>
 </div>
 
@@ -175,113 +202,119 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
-const produtosEl = document.getElementById("produtos");
+const frame = document.getElementById("frame");
+const avatar = document.getElementById("avatar");
+const navLoja = document.getElementById("navLoja");
 
+/* ================= MÁSCARA WHATS ================= */
+whats.addEventListener("input",()=>{
+  let v = whats.value.replace(/\D/g,"").slice(0,11);
+  if(v.length > 6)
+    v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  else if(v.length > 2)
+    v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+  whats.value = v;
+});
+
+/* ================= CLIENTE ================= */
 function getCliente(){
   return JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
 }
+
 function clienteValido(){
   const c = getCliente();
   return c?.nome && c?.whatsapp;
 }
 
-let carrinho = JSON.parse(localStorage.getItem("CARRINHO_LOJA")) || {
-  lojaId,
-  cliente: getCliente(),
-  itens:[]
-};
-
-function salvarCarrinho(){
-  localStorage.setItem("CARRINHO_LOJA", JSON.stringify(carrinho));
-  cartCount.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
+function atualizarAvatar(nome){
+  const p = nome.split(" ");
+  avatar.innerText = (p[0][0] + (p[1]?.[0]||"")).toUpperCase();
 }
 
-/* PRODUTOS — SOMENTE PRODUTOS */
-async function carregarProdutos(){
- const { data } = await sb
-  .from("produtos_servicos")
-  .select("id,nome,preco,imagem_url,pg_online")
-  .eq("user_id", lojaId)
-  .eq("tipo","PRODUTO")
-  .eq("ativo", true);
-
- if(!data || !data.length){
-   document.body.innerHTML = "<p style='padding:20px'>Nenhum produto disponível</p>";
-   return;
- }
-
- produtosEl.innerHTML = data.map(p=>`
-  <div class="card">
-    <img src="${p.imagem_url || 'https://via.placeholder.com/400'}">
-    <div class="card-body">
-      <div class="card-title">${p.nome}</div>
-      ${p.pg_online ? `<span class="badge">💳 Online</span>` : ``}
-      <div class="card-price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
-      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">Adicionar</button>
-    </div>
-  </div>
- `).join("");
+function abrirModal(){
+  clienteModal.style.display="block";
 }
 
-/* CARRINHO */
-function addCarrinho(id,nome,preco){
- if(!clienteValido()){
-   alert("Informe seus dados antes de comprar");
-   return;
- }
- const item = carrinho.itens.find(i=>i.id===id);
- item ? item.quantidade++ : carrinho.itens.push({id,nome,preco,quantidade:1});
- salvarCarrinho();
+function fecharModal(){
+  if(!clienteValido()) return;
+  clienteModal.style.display="none";
 }
 
-function abrirCarrinho(){
- modal.classList.add("show");
- renderCarrinho();
+async function salvarCliente(){
+  const nomeVal = nome.value.trim().toUpperCase();
+  const whatsVal = whats.value.replace(/\D/g,"");
+  const emailVal = email.value.trim() || null;
+
+  if(nomeVal.length < 3 || whatsVal.length < 10){
+    alert("Nome e WhatsApp são obrigatórios");
+    return;
+  }
+
+  const cliente = { nome:nomeVal, whatsapp:whatsVal, email:emailVal };
+  localStorage.setItem("CLIENTE_LOJA", JSON.stringify(cliente));
+  atualizarAvatar(nomeVal);
+
+  const { data } = await sb
+    .from("clientes_loja")
+    .select("id")
+    .eq("loja_id", lojaId)
+    .eq("whatsapp", whatsVal)
+    .maybeSingle();
+
+  if(!data){
+    await sb.from("clientes_loja").insert({
+      loja_id: lojaId,
+      nome_completo: nomeVal,
+      whatsapp: whatsVal,
+      email: emailVal
+    });
+  }
+
+  fecharModal();
+  frame.src = `homeclientes.html?l=${lojaId}`;
 }
 
-function renderCarrinho(){
- let total=0;
- cartItens.innerHTML = carrinho.itens.map(i=>{
-  total+=i.preco*i.quantidade;
-  return `
-   <div class="cart-item">
-     <div>${i.nome}<br><small>${i.quantidade}x</small></div>
-     <div>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</div>
-   </div>`;
- }).join("");
- cartTotal.innerText="Total: R$ "+total.toFixed(2).replace('.',',');
+/* ================= REGRA LOJA (SÓ PRODUTO) ================= */
+async function verificarProdutos(){
+  const { count } = await sb
+    .from("produtos_servicos")
+    .select("id",{count:"exact",head:true})
+    .eq("user_id",lojaId)
+    .eq("tipo","PRODUTO")
+    .eq("ativo",true);
+
+  navLoja.style.display = count > 0 ? "flex" : "none";
 }
 
-/* FINALIZAR */
-async function finalizarCompra(){
- if(!clienteValido()){
-   alert("Identifique-se antes de pagar");
-   return;
- }
- if(!carrinho.itens.length){
-   alert("Carrinho vazio");
-   return;
- }
-
- const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
-   method:"POST",
-   headers:{ "Content-Type":"application/json" },
-   body:JSON.stringify({
-     loja_id: lojaId,
-     cliente: getCliente(),
-     itens: carrinho.itens
-   })
- });
-
- const data = await res.json();
- if(!res.ok) return alert(data.error||"Erro no pagamento");
-
- window.location.href = data.init_point;
+/* ================= NAV ================= */
+function go(el,page){
+  if(!clienteValido()){
+    abrirModal();
+    return;
+  }
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+  frame.src = `${page}?l=${lojaId}`;
 }
 
-/* INIT */
-salvarCarrinho();
-carregarProdutos();
+/* ================= LOAD ================= */
+(async()=>{
+  const { data } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id",lojaId)
+    .single();
+
+  nomeLoja.innerText = data?.negocio || "Agenda Fácil";
+  verificarProdutos();
+
+  if(clienteValido()){
+    atualizarAvatar(getCliente().nome);
+    frame.src = `homeclientes.html?l=${lojaId}`;
+  }else{
+    abrirModal();
+  }
+})();
 </script>
 
 </body>
