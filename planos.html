@@ -2,213 +2,230 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Agenda Clena • Planos</title>
+<title>Planos • Agenda Fácil</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff6a00">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-  margin:0;
-  font-family:Inter;
-  background:#f6f7fb;
-}
-.container{
-  max-width:900px;
-  margin:80px auto;
-  text-align:center;
-}
-.plan{
-  background:#fff;
-  border-radius:24px;
-  padding:40px;
-  box-shadow:0 20px 50px rgba(0,0,0,.1);
-}
-.price{
-  font-size:48px;
-  font-weight:800;
-  color:#ff6a00;
-}
-.btn{
-  margin-top:30px;
-  padding:16px 36px;
-  border:none;
-  border-radius:999px;
-  background:#b8ff65;
-  font-weight:800;
-  cursor:pointer;
+:root{
+  --primary:#ff6a00;
+  --primary-dark:#e55d00;
+  --accent:#b8ff65;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --radius:22px;
 }
 
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter, sans-serif;
 }
-.modal-box{
+
+body{
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* ================= HEADER ================= */
+header{
   background:#fff;
-  padding:32px;
-  border-radius:22px;
-  width:100%;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.header{
+  max-width:1100px;
+  margin:auto;
+  padding:16px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.logo{
+  font-weight:800;
+  font-size:20px;
+  color:var(--primary);
+}
+
+/* ================= HERO ================= */
+.hero{
+  padding:60px 20px 40px;
+  text-align:center;
+}
+
+.hero h1{
+  font-size:36px;
+  line-height:1.2;
+}
+
+.hero h1 span{
+  color:var(--primary);
+}
+
+.hero p{
+  margin-top:14px;
+  color:var(--muted);
+  font-size:16px;
+}
+
+/* ================= PLANO ================= */
+.section{
+  padding:40px 20px 80px;
+}
+
+.card{
   max-width:420px;
+  margin:auto;
+  background:var(--card);
+  border-radius:32px;
+  padding:36px 28px;
+  box-shadow:0 20px 50px rgba(0,0,0,.08);
+  border:2px solid var(--primary);
+  position:relative;
 }
-input,select{
+
+.badge{
+  position:absolute;
+  top:-14px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--primary);
+  color:#fff;
+  padding:6px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.price{
+  text-align:center;
+  margin-top:20px;
+}
+
+.price strong{
+  font-size:48px;
+  color:var(--primary);
+}
+
+.price span{
+  display:block;
+  font-size:14px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.features{
+  margin-top:28px;
+  display:grid;
+  gap:14px;
+}
+
+.features div{
+  display:flex;
+  gap:10px;
+  font-size:15px;
+}
+
+.features div::before{
+  content:"✔";
+  color:var(--primary);
+  font-weight:800;
+}
+
+/* ================= CTA ================= */
+.cta{
+  margin-top:30px;
+}
+
+.cta button{
   width:100%;
-  padding:14px;
-  margin-bottom:12px;
-  border-radius:12px;
-  border:1px solid #ddd;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--primary),#ff9a57);
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
 }
-.error{
-  background:#ffe5e5;
-  color:#c62828;
-  padding:10px;
-  border-radius:10px;
-  display:none;
-  margin-bottom:10px;
+
+.cta button:hover{
+  transform:translateY(-1px);
 }
-.hidden{display:none}
+
+/* ================= INFO ================= */
+.info{
+  text-align:center;
+  margin-top:18px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* ================= MOBILE ================= */
+@media (max-width:480px){
+  .hero h1{
+    font-size:30px;
+  }
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <div class="plan">
-    <h1>Plano Profissional</h1>
-    <div class="price">R$ 9,90/mês</div>
-    <p>Valor vitalício para novos assinantes</p>
-    <button class="btn" onclick="abrirModal()">Assinar agora</button>
+<header>
+  <div class="header">
+    <div class="logo">AGENDA FÁCIL</div>
   </div>
-</div>
+</header>
 
-<!-- MODAL -->
-<div id="modal" class="modal">
-  <div class="modal-box">
-    <h2 id="titulo">Digite seu e-mail</h2>
+<section class="hero">
+  <h1>Um sistema <span>simples</span>,<br>feito para seu negócio</h1>
+  <p>Organize agenda, clientes, serviços e vendas em um só lugar.</p>
+</section>
 
-    <div id="errorBox" class="error"></div>
+<section class="section">
+  <div class="card">
+    <div class="badge">PLANO ÚNICO</div>
 
-    <input id="email" type="email" placeholder="E-mail">
-
-    <!-- LOGIN -->
-    <div id="loginBox" class="hidden">
-      <input id="senhaLogin" type="password" placeholder="Senha">
+    <div class="price">
+      <strong>R$ 9,90</strong>
+      <span>por mês, sem taxas escondidas</span>
     </div>
 
-    <!-- CADASTRO -->
-    <div id="cadastroBox" class="hidden">
-      <input id="senhaCadastro" type="password" placeholder="Senha">
-      <input id="responsavel" placeholder="Responsável">
-      <input id="negocio" placeholder="Negócio">
-      <select id="tipo">
-        <option>SALAO DE BELEZA</option>
-        <option>BARBEARIA</option>
-        <option>STUDIO</option>
-      </select>
-      <input id="cidade" placeholder="Cidade">
-      <input id="uf" placeholder="UF">
+    <div class="features">
+      <div>Agenda online 24h</div>
+      <div>Cadastro de clientes</div>
+      <div>Controle de serviços</div>
+      <div>Gestão de profissionais</div>
+      <div>Histórico e relatórios</div>
+      <div>Acesso pelo celular</div>
     </div>
 
-    <button class="btn" onclick="continuar()">Continuar</button>
+    <div class="cta">
+      <button onclick="irCadastro()">Teste grátis por 10 dias</button>
+    </div>
+
+    <div class="info">
+      Não precisa cartão • Cancele quando quiser
+    </div>
   </div>
-</div>
+</section>
 
 <script>
-const sb = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
-
-let etapa = "email";
-
-function abrirModal(){
-  modal.style.display = "flex";
-}
-
-async function continuar(){
-  errorBox.style.display = "none";
-  const emailValue = email.value.trim().toLowerCase();
-
-  if(etapa === "email"){
-    const { data } = await sb
-      .from("user_profile")
-      .select("user_id")
-      .eq("email_contato", emailValue)
-      .maybeSingle();
-
-    if(data){
-      etapa = "login";
-      titulo.innerText = "Digite sua senha";
-      loginBox.classList.remove("hidden");
-      cadastroBox.classList.add("hidden");
-    }else{
-      etapa = "cadastro";
-      titulo.innerText = "Crie sua conta";
-      cadastroBox.classList.remove("hidden");
-      loginBox.classList.add("hidden");
-    }
-    return;
-  }
-
-  if(etapa === "login"){
-    const { data, error } = await sb.auth.signInWithPassword({
-      email: emailValue,
-      password: senhaLogin.value
-    });
-
-    if(error){
-      errorBox.style.display = "block";
-      errorBox.innerText = "Senha inválida";
-      return;
-    }
-    iniciarPagamento(data.user.id);
-  }
-
-  if(etapa === "cadastro"){
-    const { data, error } = await sb.auth.signUp({
-      email: emailValue,
-      password: senhaCadastro.value
-    });
-
-    if(error){
-      errorBox.style.display = "block";
-      errorBox.innerText = error.message;
-      return;
-    }
-
-    const userId = data.user.id;
-
-    await sb.from("user_profile").upsert({
-      user_id: userId,
-      responsavel: responsavel.value,
-      negocio: negocio.value,
-      tipo: tipo.value,
-      cidade: cidade.value,
-      uf: uf.value,
-      email_contato: emailValue,
-      status: "TESTE",
-      fim_teste: new Date(Date.now() + 10*24*60*60*1000)
-    });
-
-    iniciarPagamento(userId);
-  }
-}
-
-async function iniciarPagamento(userId){
-  const res = await fetch("/api/create-subscription", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ user_id: userId, email: email.value })
-  });
-
-  const json = await res.json();
-  if(json.checkout_url) window.location.href = json.checkout_url;
+function irCadastro(){
+  window.location.href = "cadastro.html";
 }
 </script>
 
