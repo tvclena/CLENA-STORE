@@ -25,7 +25,7 @@
 *{box-sizing:border-box;font-family:Inter}
 
 body{
-  background:var(--bg);
+  background:linear-gradient(180deg,#fff,#f4f6fb);
   padding:18px;
   opacity:0;
   animation:fade .6s ease forwards;
@@ -35,13 +35,13 @@ body{
 
 .card{
   background:var(--card);
-  border-radius:26px;
+  border-radius:28px;
   padding:22px;
-  box-shadow:0 14px 34px rgba(0,0,0,.08);
-  margin-bottom:18px;
+  box-shadow:0 20px 50px rgba(0,0,0,.1);
+  margin-bottom:20px;
   opacity:0;
-  transform:translateY(20px);
-  animation:cardIn .6s ease forwards;
+  transform:translateY(24px);
+  animation:cardIn .7s cubic-bezier(.16,.84,.44,1) forwards;
 }
 .card:nth-child(1){animation-delay:.1s}
 .card:nth-child(2){animation-delay:.25s}
@@ -50,38 +50,38 @@ body{
   to{opacity:1;transform:translateY(0)}
 }
 
-h1{font-size:20px;font-weight:800}
-h2{font-size:16px;font-weight:800;margin-bottom:6px}
-p{font-size:14px;color:var(--muted);margin-bottom:14px}
-
-.mp-header{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-  text-align:center;
+h1{
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:4px;
 }
-.mp-header img{
-  width:160px;
-  animation:pulse 2.5s infinite;
+h2{
+  font-size:16px;
+  font-weight:800;
+  margin-bottom:6px;
 }
-@keyframes pulse{
-  50%{transform:scale(1.04)}
+p{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:14px;
+  line-height:1.4;
 }
 
+/* ================= LINK ================= */
 .link-box{
-  border:1px dashed var(--border);
-  border-radius:14px;
-  padding:12px;
+  border:2px dashed var(--border);
+  border-radius:16px;
+  padding:14px;
   font-size:13px;
   background:#fafafa;
   word-break:break-all;
   margin-bottom:10px;
 }
 
+/* ================= BUTTONS ================= */
 button{
   width:100%;
-  height:46px;
+  height:48px;
   border:none;
   border-radius:999px;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
@@ -89,25 +89,60 @@ button{
   font-weight:800;
   font-size:14px;
   cursor:pointer;
+  transition:.25s;
 }
+button:active{transform:scale(.97)}
 
 .whats{
   background:#dcfce7;
   color:#15803d;
 }
 
-input{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid var(--border);
+/* ================= MP HEADER ================= */
+.mp-header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:12px;
+}
+.mp-header img{
+  width:180px;
+  animation:pulse 2.8s infinite;
+}
+@keyframes pulse{
+  50%{transform:scale(1.05)}
+}
+
+/* ================= STEPS ================= */
+.steps{
+  margin-top:10px;
+}
+.steps li{
   font-size:14px;
   margin-bottom:10px;
 }
+.steps a{
+  color:var(--blue);
+  font-weight:800;
+  cursor:pointer;
+  text-decoration:underline;
+}
 
+/* ================= INPUT ================= */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  font-size:14px;
+  margin-bottom:12px;
+}
+
+/* ================= STATUS ================= */
 .status{
   padding:14px;
-  border-radius:14px;
+  border-radius:16px;
   font-size:14px;
   font-weight:800;
   background:#ecfdf5;
@@ -115,40 +150,30 @@ input{
   text-align:center;
 }
 
-.steps li{font-size:14px;margin-bottom:8px}
-
-a.help{
-  color:var(--blue);
-  font-weight:700;
-  cursor:pointer;
-  text-decoration:underline;
-}
-
-/* ================= MODAL VÍDEO ================= */
+/* ================= MODAL ================= */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.65);
   display:none;
   align-items:center;
   justify-content:center;
   z-index:9999;
 }
-
 .modal.show{display:flex}
 
 .modal-box{
   background:#fff;
-  width:92%;
+  width:94%;
   max-width:420px;
-  border-radius:22px;
+  border-radius:26px;
   padding:16px;
   animation:cardIn .4s ease forwards;
 }
 
 .modal-box video{
   width:100%;
-  border-radius:14px;
+  border-radius:18px;
   margin-bottom:12px;
 }
 
@@ -168,15 +193,18 @@ a.help{
 
 <!-- ================= LINK DA LOJA ================= -->
 <div class="card">
-  <h2 id="tituloLoja">Sua loja</h2>
-  <p>Compartilhe o link com seus clientes</p>
+  <h2 id="nomeLoja">Sua loja</h2>
+  <p>Compartilhe este link com seus clientes</p>
+
   <div class="link-box" id="linkLoja">Carregando…</div>
+
   <button onclick="copiarLink()">📋 Copiar link</button>
-  <button class="whats" style="margin-top:8px" onclick="compartilharWhats()">📲 Compartilhar no WhatsApp</button>
+  <button class="whats" style="margin-top:10px" onclick="compartilharWhats()">📲 Compartilhar no WhatsApp</button>
 </div>
 
 <!-- ================= MERCADO PAGO ================= -->
 <div class="card">
+
   <div class="mp-header">
     <img src="logomp.png">
     <h1>Pagamentos Online</h1>
@@ -185,9 +213,9 @@ a.help{
   <p id="mensagemLoja"></p>
 
   <ol class="steps">
-    <li>1️⃣ Assista ao passo a passo <a class="help" onclick="abrirVideo()">clique aqui</a></li>
+    <li>1️⃣ Assista ao vídeo explicativo <a onclick="abrirVideo()">clique aqui</a></li>
     <li>2️⃣ Copie o <b>Access Token de PRODUÇÃO</b></li>
-    <li>❌ Não utilize token de teste (TEST-)</li>
+    <li>❌ Não utilize token de teste</li>
   </ol>
 
   <div id="formToken">
@@ -196,19 +224,22 @@ a.help{
   </div>
 
   <div id="statusAtivo" class="status" style="display:none">
-    ✅ Pagamentos online ativos
+    ✅ Pagamentos online ativados com sucesso
   </div>
 
   <button class="whats" style="margin-top:14px" onclick="suporte()">💬 Falar com suporte</button>
+
 </div>
 
 <!-- ================= MODAL VÍDEO ================= -->
 <div class="modal" id="modalVideo">
   <div class="modal-box">
-    <video controls src="VIDEO_URL_AQUI"></video>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:10px">
-      Este vídeo mostra exatamente onde encontrar o Access Token de produção no Mercado Pago.
+    <video controls src="" id="videoPlayer"></video>
+
+    <p style="font-size:13px;color:#6b7280;margin-bottom:12px">
+      Neste vídeo você verá exatamente onde encontrar o Access Token de produção no Mercado Pago.
     </p>
+
     <div class="modal-actions">
       <button onclick="prosseguir()">Prosseguir</button>
       <button class="btn-close" onclick="fecharVideo()">Fechar</button>
@@ -217,6 +248,9 @@ a.help{
 </div>
 
 <script>
+const VIDEO_URL = "https://egxjgmzukjyyxmkukwub.supabase.co/storage/v1/object/public/videosfront/Gravando%202026-01-06%20195208.mp4";
+const LINK_PROSSEGUIR = "https://www.mercadopago.com.br/developers/panel/credentials";
+
 const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
@@ -228,19 +262,21 @@ let lojaId, linkPublico, nomeLoja;
   const {data:{session}} = await sb.auth.getSession();
   if(!session) return location.href="login.html";
 
-  lojaId=session.user.id;
-  linkPublico=`${location.origin}/loja.html?l=${lojaId}`;
-  linkLoja.innerText=linkPublico;
+  lojaId = session.user.id;
+  linkPublico = `${location.origin}/loja.html?l=${lojaId}`;
+  linkLoja.innerText = linkPublico;
 
-  const {data}=await sb
+  const {data} = await sb
     .from("user_profile")
     .select("negocio,pagamento_online_ativo")
-    .eq("user_id",lojaId)
+    .eq("user_id", lojaId)
     .single();
 
-  nomeLoja=data?.negocio||"sua loja";
-  tituloLoja.innerText=nomeLoja;
-  mensagemLoja.innerText=
+  nomeLoja = data?.negocio || "sua loja";
+  nomeLojaEl = document.getElementById("nomeLoja");
+  nomeLojaEl.innerText = nomeLoja;
+
+  mensagemLoja.innerText =
     `Ative os pagamentos online para que os clientes da ${nomeLoja} possam pagar direto pela agenda.`;
 
   if(data?.pagamento_online_ativo){
@@ -251,39 +287,41 @@ let lojaId, linkPublico, nomeLoja;
 
 function copiarLink(){
   navigator.clipboard.writeText(linkPublico);
-  alert("Link copiado ✅");
+  alert("Link copiado com sucesso ✅");
 }
 
 function compartilharWhats(){
-  const msg=`Olá 😊\n\nAcesse a ${nomeLoja} e pague online:\n${linkPublico}`;
+  const msg = `Olá 😊\n\nAcesse a ${nomeLoja} e pague online:\n${linkPublico}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank");
 }
 
 function abrirVideo(){
+  videoPlayer.src = VIDEO_URL;
   modalVideo.classList.add("show");
 }
 function fecharVideo(){
+  videoPlayer.pause();
   modalVideo.classList.remove("show");
 }
 function prosseguir(){
-  window.open("LINK_PROSSEGUIR_AQUI","_blank");
+  window.open(LINK_PROSSEGUIR,"_blank");
 }
 
 function tokenValido(t){
-  return t.startsWith("APP_USR-") && t.length>60;
+  return t.startsWith("APP_USR-") && t.length > 60;
 }
 
 async function salvarToken(){
-  const token=token.value.trim();
-  if(!tokenValido(token)) return alert("Token inválido");
+  const t = token.value.trim();
+  if(!tokenValido(t)) return alert("Token inválido");
 
-  const res=await fetch("/api/salvar-credencial-mp",{
+  const res = await fetch("/api/salvar-credencial-mp",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({loja_id:lojaId,mp_access_token:token})
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ loja_id: lojaId, mp_access_token: t })
   });
 
-  if(!res.ok) return alert("Erro ao ativar");
+  if(!res.ok) return alert("Erro ao ativar integração");
 
   formToken.style.display="none";
   statusAtivo.style.display="block";
