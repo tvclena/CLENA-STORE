@@ -231,11 +231,25 @@ async function salvarToken(){
     return;
   }
 
+  const res = await fetch("/api/salvar-credencial-mp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      loja_id: lojaId,
+      mp_access_token: token
+    })
+  });
+
+  const json = await res.json();
+
+  if(!res.ok){
+    alert(json.error || "Erro ao ativar integração");
+    return;
+  }
+
   alert("Integração ativada com sucesso ✅");
   document.getElementById("formToken").style.display="none";
   document.getElementById("statusAtivo").style.display="block";
-
-  // 🔒 envio real será feito via Vercel com service_role
 }
 
 /* SUPORTE */
