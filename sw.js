@@ -1,13 +1,13 @@
 const CACHE_NAME = "agenda-facil-v1";
 
 const ASSETS = [
-  "/clena/login.html",
-  "/clena/cadastro.html",
-  "/clena/dashboard.html",
-  "/clena/agenda.html",
-  "/clena/manifest.json",
-  "/clena/icons/icon-192.png",
-  "/clena/icons/icon-512.png"
+  "/login.html",
+  "/cadastro.html",
+  "/dashboard.html",
+  "/agenda.html",
+  "/manifest.json",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png"
 ];
 
 /* =============================
@@ -57,7 +57,7 @@ self.addEventListener("fetch", event => {
         const clone = res.clone();
         caches.open(CACHE_NAME).then(c => c.put(req, clone));
         return res;
-      }).catch(() => caches.match("/clena/login.html"))
+      }).catch(() => caches.match("/login.html"))
     )
   );
 });
@@ -79,10 +79,10 @@ self.addEventListener("push", event => {
 
   const options = {
     body: data.body,
-    icon: "/clena/icons/icon-192.png",
-    badge: "/clena/icons/icon-192.png",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
     data: {
-      url: data.url || "/clena/dashboard.html"
+      url: data.url || "/dashboard.html"
     }
   };
 
