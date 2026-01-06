@@ -376,7 +376,7 @@ document.getElementById("resetSenha").addEventListener("click", async e=>{
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("/AgendaBeauty/sw.js")
+      .register("/clena/sw.js")
       .then(reg => console.log("SW registrado:", reg.scope))
       .catch(err => console.error("SW erro:", err));
   });
