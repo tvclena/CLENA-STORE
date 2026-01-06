@@ -284,11 +284,36 @@ function changeMonth(v){
 }
 
 async function carregar(){
-  const {data}=await sb.from("agenda_loja").select("*");
-  agenda={};
-  data?.forEach(r=>agenda[r.data]={fechado:r.fechado,horarios:r.horarios||[]});
+  const { data, error } = await sb
+    .from("agenda_loja")
+    .select("data, fechado, horarios")
+    .eq("user_id", userId); // 🔥 FILTRO CORRETO
+
+  agenda = {};
+
+  data?.forEach(r => {
+    let horarios = [];
+
+    // garante parse correto
+    if (typeof r.horarios === "string") {
+      try {
+        horarios = JSON.parse(r.horarios);
+      } catch {
+        horarios = [];
+      }
+    } else if (Array.isArray(r.horarios)) {
+      horarios = r.horarios;
+    }
+
+    agenda[r.data] = {
+      fechado: r.fechado,
+      horarios
+    };
+  });
+
   render();
 }
+
 
 function render(){
   days.innerHTML="";
@@ -325,13 +350,22 @@ function open(key){
   selected=key;
   dirty=false;
   modal.style.display="flex";
+
   const date=new Date(key);
   modalDate.innerText=date.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
   replicaDia.innerText=date.toLocaleDateString("pt-BR",{weekday:"long"});
-  fechado.checked=agenda[key]?.fechado||false;
-  horarios.innerHTML="";
-  (agenda[key]?.horarios||[{inicio:"",fim:""}]).forEach(h=>addHorario(h.inicio,h.fim));
-}
+
+  fechado.checked = agenda[key]?.fechado || false;
+  horarios.innerHTML = "";
+
+  const lista =
+    Array.isArray(agenda[key]?.horarios) && agenda[key].horarios.length
+      ? agenda[key].horarios
+      : [];
+
+  lista.forEach(h => addHorario(h.inicio, h.fim));
+} // ✅ FECHAMENTO CORRETO
+
 
 function fecharModal(){
   if(dirty && confirm("Deseja salvar as alterações?")){
