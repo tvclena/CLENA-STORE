@@ -13,12 +13,6 @@
 
 <meta name="theme-color" content="#ff6a00">
 
-<!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Agenda Fácil">
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -36,12 +30,7 @@
   --navbar-h:72px;
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter,system-ui;
-}
+*{box-sizing:border-box;font-family:Inter}
 
 html,body{
   width:100%;
@@ -50,12 +39,10 @@ html,body{
   overflow:hidden;
 }
 
-/* ================= TOPBAR ================= */
+/* TOPBAR */
 .topbar{
   position:fixed;
-  top:0;
-  left:0;
-  right:0;
+  top:0;left:0;right:0;
   height:var(--topbar-h);
   padding:0 18px;
   background:#fff;
@@ -69,12 +56,8 @@ html,body{
 .topbar h1{
   font-size:17px;
   font-weight:800;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
-/* ===== AVATAR CLIENTE ===== */
 .avatar{
   width:38px;
   height:38px;
@@ -88,28 +71,24 @@ html,body{
   cursor:pointer;
 }
 
-/* ================= CONTENT ================= */
+/* CONTENT */
 .content{
   position:fixed;
   top:var(--topbar-h);
   bottom:var(--navbar-h);
-  left:0;
-  right:0;
+  left:0;right:0;
   background:#fff;
 }
-
 iframe{
   width:100%;
   height:100%;
   border:none;
 }
 
-/* ================= NAVBAR ================= */
+/* NAVBAR */
 .navbar{
   position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
+  bottom:0;left:0;right:0;
   height:var(--navbar-h);
   background:#fff;
   border-top:1px solid var(--border);
@@ -137,13 +116,11 @@ iframe{
 .nav-item.active{
   color:var(--primary);
 }
-
 .nav-item.active i{
   background:var(--primary-soft);
-  color:var(--primary);
 }
 
-/* ================= MODAL CLIENTE ================= */
+/* MODAL CLIENTE */
 #clienteModal{
   position:fixed;
   inset:0;
@@ -155,7 +132,6 @@ iframe{
   position:absolute;
   inset:0;
   background:rgba(0,0,0,.45);
-  backdrop-filter:blur(4px);
 }
 
 .modal{
@@ -166,20 +142,13 @@ iframe{
   width:90%;
   max-width:380px;
   background:#fff;
-  border-radius:24px;
+  border-radius:22px;
   padding:22px;
-  box-shadow:0 40px 90px rgba(0,0,0,.35);
 }
 
 .modal h2{
   font-size:20px;
   font-weight:800;
-}
-
-.modal p{
-  font-size:14px;
-  color:#6b7280;
-  margin-bottom:10px;
 }
 
 .modal input{
@@ -206,18 +175,15 @@ iframe{
 
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <h1 id="nomeLoja">Agenda Fácil</h1>
-  <div class="avatar" id="avatarCliente" onclick="abrirModalCliente()">?</div>
+  <div class="avatar" id="avatar" onclick="abrirModal()">?</div>
 </div>
 
-<!-- CONTENT -->
 <div class="content">
   <iframe id="frame"></iframe>
 </div>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-item active" onclick="go(this,'homeclientes.html')">
     <i class="ri-home-5-line"></i>Início
@@ -225,152 +191,120 @@ iframe{
   <div class="nav-item" onclick="go(this,'agendar.html')">
     <i class="ri-calendar-check-line"></i>Agendar
   </div>
-
-
-  
-<div class="nav-item" id="navLoja" onclick="go(this,'lojacliente.html')">
-  <i class="ri-scissors-line"></i>Loja
-</div>
-
+  <div class="nav-item" onclick="go(this,'lojacliente.html')">
+    <i class="ri-scissors-line"></i>Loja
+  </div>
   <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
-    <i class="ri-store-2-line"></i>Meu espaço
+    <i class="ri-user-line"></i>Meu espaço
   </div>
 </nav>
 
 <!-- MODAL CLIENTE -->
 <div id="clienteModal">
-  <div class="modal-bg" onclick="fecharModalCliente()"></div>
+  <div class="modal-bg" onclick="fecharModal()"></div>
   <div class="modal">
     <h2>Seus dados</h2>
-    <p>Usamos essas informações para seus agendamentos</p>
 
-    <input id="clienteNome" placeholder="Nome completo *">
-    <input id="clienteWhats" placeholder="WhatsApp (DDD + número) *">
-    <input id="clienteEmail" placeholder="E-mail (opcional)">
+    <input id="nome" placeholder="NOME COMPLETO" style="text-transform:uppercase">
+    <input id="whats" placeholder="WHATSAPP" inputmode="numeric">
+    <input id="email" placeholder="E-MAIL (opcional)">
 
     <button onclick="salvarCliente()">Salvar</button>
   </div>
 </div>
 
 <script>
-/* ================= SUPABASE ================= */
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const frame = document.getElementById("frame");
-const avatar = document.getElementById("avatarCliente");
-
-const navLoja = document.getElementById("navLoja");
-
-
-
-  
-async function verificarProdutosDaLoja(){
-  const { count, error } = await sb
-    .from("produtos_servicos")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", lojaId)
-    .eq("tipo", "PRODUTO")   // ✅ SOMENTE PRODUTO
-    .eq("ativo", true);
-
-  if (error) {
-    console.error("Erro ao verificar produtos:", error);
-    navLoja.style.display = "none";
-    return;
-  }
-
-  // ✅ só mostra se existir ao menos 1 PRODUTO
-  navLoja.style.display = count > 0 ? "flex" : "none";
-}
-
-  
-/* ================= LOJA ================= */
 const lojaId = new URLSearchParams(location.search).get("l");
+const frame = document.getElementById("frame");
+const avatar = document.getElementById("avatar");
 
-/* ================= NAV ================= */
-function go(el, page){
+/* MÁSCARA WHATS */
+whats.addEventListener("input",()=>{
+  let v = whats.value.replace(/\D/g,"").slice(0,11);
+  if(v.length > 6)
+    v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  else if(v.length > 2)
+    v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+  whats.value = v;
+});
 
-  if(!clienteValido()){
-    abrirModalCliente();
-    return;
-  }
-
-  document.querySelectorAll(".nav-item")
-    .forEach(i => i.classList.remove("active"));
-
-  el.classList.add("active");
-  frame.src = `${page}?l=${lojaId}`;
+/* CLIENTE */
+function getCliente(){
+  return JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
 }
 
-
-/* ================= MODAL ================= */
-function abrirModalCliente(){
-  clienteModal.style.display = "block";
+function clienteValido(){
+  const c = getCliente();
+  return c?.nome && c?.whatsapp;
 }
 
-function fecharModalCliente(){
-  if(!clienteValido()) return;
-  clienteModal.style.display = "none";
-}
-
-
-
-
-/* ================= CLIENTE ================= */
 function atualizarAvatar(nome){
-  const partes = nome.split(" ");
-  avatar.innerText = (partes[0][0] + (partes[1]?.[0]||"")).toUpperCase();
+  const p = nome.split(" ");
+  avatar.innerText = (p[0][0] + (p[1]?.[0]||"")).toUpperCase();
+}
+
+function abrirModal(){
+  clienteModal.style.display="block";
+}
+
+function fecharModal(){
+  if(!clienteValido()) return;
+  clienteModal.style.display="none";
 }
 
 async function salvarCliente(){
-  const nome = clienteNome.value.trim();
-  const whats = clienteWhats.value.replace(/\D/g,"");
-  const email = clienteEmail.value.trim() || null;
+  const nomeVal = nome.value.trim().toUpperCase();
+  const whatsVal = whats.value.replace(/\D/g,"");
+  const emailVal = email.value.trim() || null;
 
-  if(!nome || !whats){
-    alert("Nome e WhatsApp são obrigatórios");
+  if(nomeVal.length < 3 || whatsVal.length < 10){
+    alert("Nome e WhatsApp obrigatórios");
     return;
   }
 
-  localStorage.setItem("NOME_CLIENTE", nome);
-  localStorage.setItem("WHATS_CLIENTE", whats);
-  localStorage.setItem("EMAIL_CLIENTE", email || "");
-
-  atualizarAvatar(nome);
+  const cliente = { nome:nomeVal, whatsapp:whatsVal, email:emailVal };
+  localStorage.setItem("CLIENTE_LOJA", JSON.stringify(cliente));
+  atualizarAvatar(nomeVal);
 
   const { data } = await sb
     .from("clientes_loja")
     .select("id")
-    .eq("user_id", lojaId)
-    .eq("whatsapp", whats)
+    .eq("loja_id", lojaId)
+    .eq("whatsapp", whatsVal)
     .maybeSingle();
 
   if(!data){
-await sb.from("clientes_loja").insert({
-  loja_id: lojaId,
-  nome_completo: nome,
-  whatsapp: whats
-});
-
+    await sb.from("clientes_loja").insert({
+      loja_id: lojaId,
+      nome_completo: nomeVal,
+      whatsapp: whatsVal,
+      email: emailVal
+    });
   }
 
-fecharModalCliente();
-frame.src = `homeclientes.html?l=${lojaId}`;
+  fecharModal();
+  frame.src = `homeclientes.html?l=${lojaId}`;
 }
 
-function clienteValido(){
-  const nome  = (localStorage.getItem("NOME_CLIENTE") || "").trim();
-  const whats = (localStorage.getItem("WHATS_CLIENTE") || "")
-                  .replace(/\D/g,"");
+/* NAV */
+function go(el,page){
+  if(!clienteValido()){
+    abrirModal();
+    return;
+  }
 
-  return nome.length >= 3 && whats.length >= 10;
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+  frame.src = `${page}?l=${lojaId}`;
 }
 
-/* ================= LOAD ================= */
-async function load(){
-
+/* LOAD */
+(async()=>{
   const { data } = await sb
     .from("user_profile")
     .select("negocio")
@@ -378,23 +312,14 @@ async function load(){
     .single();
 
   nomeLoja.innerText = data?.negocio || "Agenda Fácil";
-  verificarProdutosDaLoja();
 
   if(clienteValido()){
-    const nome = localStorage.getItem("NOME_CLIENTE");
-    atualizarAvatar(nome);
+    atualizarAvatar(getCliente().nome);
     frame.src = `homeclientes.html?l=${lojaId}`;
-    
+  }else{
+    abrirModal();
   }
-  
-  else {
-    frame.src = ""; // BLOQUEIA APP
-    abrirModalCliente();
-  }
-}
-
-
-load();
+})();
 </script>
 
 </body>
