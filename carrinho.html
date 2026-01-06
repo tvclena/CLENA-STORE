@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Carrinho • Agenda Fácil</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#fff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:Inter;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+}
+
+/* HEADER */
+.header{
+  padding:16px;
+  font-weight:800;
+  font-size:18px;
+}
+
+/* CONTAINER */
+.container{
+  padding:16px;
+}
+
+/* CLIENTE */
+.cliente{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+.cliente strong{
+  display:block;
+}
+.cliente small{
+  color:var(--muted);
+}
+
+/* ITEM */
+.item{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.item-info{
+  flex:1;
+}
+
+.item-info strong{
+  font-size:14px;
+}
+
+.item-info small{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.qty{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:6px;
+}
+
+.qty button{
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:50%;
+  background:#e5e7eb;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.remove{
+  color:#dc2626;
+  font-size:12px;
+  cursor:pointer;
+  margin-top:6px;
+}
+
+/* FOOTER */
+.footer{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  padding:16px;
+  box-shadow:0 -8px 24px rgba(0,0,0,.15);
+}
+
+.total{
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+}
+
+.actions button{
+  flex:1;
+  height:46px;
+  border:none;
+  border-radius:999px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.btn-clear{
+  background:#e5e7eb;
+}
+
+.btn-pay{
+  background:var(--primary);
+  color:#fff;
+}
+
+/* EMPTY */
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Carrinho</div>
+
+<div class="container">
+
+  <div id="clienteBox"></div>
+
+  <div id="itens"></div>
+
+  <div id="empty" class="empty" style="display:none">
+    Seu carrinho está vazio 🛒
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="total" id="total"></div>
+  <div class="actions">
+    <button class="btn-clear" onclick="limparCarrinho()">Limpar</button>
+    <button class="btn-pay" onclick="finalizar()">Finalizar</button>
+  </div>
+</div>
+
+<script>
+let carrinho = JSON.parse(localStorage.getItem("carrinho"));
+let cliente = JSON.parse(localStorage.getItem("cliente"));
+
+const itensEl = document.getElementById("itens");
+const totalEl = document.getElementById("total");
+const clienteBox = document.getElementById("clienteBox");
+const emptyEl = document.getElementById("empty");
+
+if(!carrinho || !carrinho.itens || carrinho.itens.length === 0){
+  emptyEl.style.display = "block";
+  document.querySelector(".footer").style.display = "none";
+}
+
+if(cliente){
+  clienteBox.innerHTML = `
+    <div class="cliente">
+      <strong>${cliente.nome}</strong>
+      <small>WhatsApp: ${cliente.whatsapp}</small>
+    </div>
+  `;
+}
+
+function render(){
+  itensEl.innerHTML = "";
+  let total = 0;
+
+  carrinho.itens.forEach((i,idx)=>{
+    total += i.preco * i.quantidade;
+
+    itensEl.innerHTML += `
+      <div class="item">
+        <div class="item-info">
+          <strong>${i.nome}</strong><br>
+          <small>R$ ${i.preco.toFixed(2).replace('.',',')}</small>
+
+          <div class="qty">
+            <button onclick="alterarQtd(${idx},-1)">−</button>
+            <strong>${i.quantidade}</strong>
+            <button onclick="alterarQtd(${idx},1)">+</button>
+          </div>
+
+          <div class="remove" onclick="remover(${idx})">
+            Remover
+          </div>
+        </div>
+
+        <strong>
+          R$ ${(i.preco * i.quantidade).toFixed(2).replace('.',',')}
+        </strong>
+      </div>
+    `;
+  });
+
+  totalEl.innerText =
+    "Total: R$ " + total.toFixed(2).replace('.',',');
+
+  localStorage.setItem("carrinho", JSON.stringify(carrinho));
+}
+
+function alterarQtd(idx, delta){
+  carrinho.itens[idx].quantidade += delta;
+  if(carrinho.itens[idx].quantidade <= 0){
+    carrinho.itens.splice(idx,1);
+  }
+  render();
+}
+
+function remover(idx){
+  carrinho.itens.splice(idx,1);
+  render();
+}
+
+function limparCarrinho(){
+  if(!confirm("Deseja limpar o carrinho?")) return;
+  carrinho.itens = [];
+  localStorage.setItem("carrinho", JSON.stringify(carrinho));
+  location.reload();
+}
+
+function finalizar(){
+  if(!cliente){
+    alert("Identificação do cliente não encontrada.");
+    return;
+  }
+
+  if(!carrinho.itens.length){
+    alert("Carrinho vazio.");
+    return;
+  }
+
+  const payload = {
+    loja_id: carrinho.lojaId,
+    cliente,
+    itens: carrinho.itens
+  };
+
+  console.log("Enviar para backend:", payload);
+
+  // 🔜 fetch("/api/create-pagamento", { method:"POST", body:JSON.stringify(payload) })
+
+  alert("Fluxo de pagamento iniciado (backend)");
+}
+
+render();
+</script>
+
+</body>
+</html>
