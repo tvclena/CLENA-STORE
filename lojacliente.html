@@ -34,77 +34,12 @@ body{margin:0;background:var(--bg)}
   font-size:18px;
 }
 
-/* ===== BANNER ===== */
-.banner-wrapper{
-  margin:0 16px 12px;
-  border-radius:20px;
-  overflow:hidden;
-  position:relative;
-}
-.banner-track{
-  display:flex;
-  transition:transform .4s ease;
-}
-.banner{
-  min-width:100%;
-}
-.banner img{
-  width:100%;
-  height:160px;
-  object-fit:cover;
-  display:block;
-}
-
-/* dots */
-.dots{
-  position:absolute;
-  bottom:8px;
-  width:100%;
-  display:flex;
-  justify-content:center;
-  gap:6px;
-}
-.dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:rgba(255,255,255,.5);
-}
-.dot.active{
-  background:#fff;
-}
-
-/* ===== CATEGORIAS ===== */
-.categorias{
-  display:flex;
-  gap:10px;
-  padding:8px 16px 12px;
-  overflow-x:auto;
-}
-.categorias::-webkit-scrollbar{display:none}
-
-.categoria{
-  padding:8px 14px;
-  background:#fff;
-  border-radius:999px;
-  font-weight:700;
-  font-size:13px;
-  border:1px solid var(--border);
-  white-space:nowrap;
-  cursor:pointer;
-}
-.categoria.active{
-  background:var(--primary);
-  color:#fff;
-  border-color:var(--primary);
-}
-
-/* ===== GRID ===== */
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:14px;
-  padding:0 16px 120px;
+  padding:16px 16px 140px;
 }
 
 /* CARD */
@@ -126,10 +61,25 @@ body{margin:0;background:var(--bg)}
   font-weight:800;
   font-size:14px;
 }
+.badges{
+  display:flex;
+  gap:6px;
+  margin-top:4px;
+}
+.badge{
+  font-size:10px;
+  font-weight:800;
+  padding:3px 8px;
+  border-radius:999px;
+}
+.badge.online{
+  background:#fff7ed;
+  color:#c2410c;
+}
 .card-price{
   color:var(--primary);
   font-weight:800;
-  margin-top:4px;
+  margin-top:6px;
   font-size:14px;
 }
 .card-btn{
@@ -141,9 +91,10 @@ body{margin:0;background:var(--bg)}
   padding:10px;
   border-radius:12px;
   font-weight:800;
+  cursor:pointer;
 }
 
-/* CARRINHO (placeholder) */
+/* CARRINHO */
 .cart{
   position:fixed;
   bottom:16px;
@@ -158,6 +109,72 @@ body{margin:0;background:var(--bg)}
   justify-content:center;
   font-size:22px;
   box-shadow:0 12px 28px rgba(0,0,0,.3);
+  cursor:pointer;
+}
+.cart span{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  background:#111;
+  color:#fff;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:flex-end;
+  z-index:999;
+}
+.modal.show{display:flex}
+
+.sheet{
+  width:100%;
+  height:85vh;
+  background:#fff;
+  border-radius:24px 24px 0 0;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+}
+
+.sheet h3{
+  margin-bottom:12px;
+}
+
+.cart-item{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+.cart-item small{
+  color:var(--muted);
+}
+
+.sheet-footer{
+  margin-top:auto;
+}
+.total{
+  font-weight:800;
+  margin-bottom:12px;
+}
+.btn-finalizar{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
 }
 </style>
 </head>
@@ -165,14 +182,23 @@ body{margin:0;background:var(--bg)}
 <body>
 
 <div class="header">Loja</div>
-
-<div id="bannerArea"></div>
-
-<div class="categorias" id="categorias"></div>
-
 <div class="grid" id="produtos"></div>
 
-<div class="cart">🛒</div>
+<div class="cart" onclick="abrirCarrinho()">
+  🛒 <span id="cartCount">0</span>
+</div>
+
+<!-- MODAL CARRINHO -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <h3>Carrinho</h3>
+    <div id="cartItens"></div>
+    <div class="sheet-footer">
+      <div class="total" id="cartTotal"></div>
+      <button class="btn-finalizar" onclick="finalizarCompra()">Finalizar compra</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const sb = supabase.createClient(
@@ -181,138 +207,104 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
-let banners=[], bannerIndex=0, timer=null;
-let produtos=[], categoriaAtual="Todos";
 const produtosEl = document.getElementById("produtos");
 
-/* ===== BANNERS ===== */
-async function carregarBanners(){
- const {data} = await sb
-  .from("config_loja")
-  .select("banners")
-  .eq("loja_id",lojaId)
-  .single();
+let carrinho = JSON.parse(localStorage.getItem("carrinho")) || {
+  lojaId,
+  cliente: JSON.parse(localStorage.getItem("cliente")),
+  itens:[]
+};
 
- if(!data?.banners?.length) return;
-
- banners=data.banners;
-
- const html=`
-  <div class="banner-wrapper">
-    <div class="banner-track" id="track">
-      ${banners.map(b=>`
-        <div class="banner" onclick="abrirLink('${b.link}')">
-          <img src="${b.imagem}">
-        </div>
-      `).join("")}
-    </div>
-    <div class="dots" id="dots"></div>
-  </div>
- `;
- bannerArea.innerHTML=html;
-
- renderDots();
- autoSlide();
+function salvarCarrinho(){
+  localStorage.setItem("carrinho", JSON.stringify(carrinho));
+  document.getElementById("cartCount").innerText =
+    carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
 }
 
-function renderDots(){
- dots.innerHTML=banners.map((_,i)=>`
-  <div class="dot ${i===0?'active':''}"></div>
+/* PRODUTOS */
+async function carregarProdutos(){
+ const { data } = await sb
+  .from("produtos_servicos")
+  .select("id,nome,preco,imagem_url,descricao,pg_online")
+  .eq("user_id", lojaId)
+  .eq("ativo", true)
+  .eq("tipo", "PRODUTO");
+
+ produtosEl.innerHTML = data.map(p=>`
+  <div class="card">
+    <img src="${p.imagem_url || 'https://via.placeholder.com/400'}">
+    <div class="card-body">
+      <div class="card-title">${p.nome}</div>
+
+      <div class="badges">
+        ${p.pg_online ? `<span class="badge online">💳 Online</span>` : ``}
+      </div>
+
+      <div class="card-price">
+        R$ ${Number(p.preco).toFixed(2).replace('.',',')}
+      </div>
+
+      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">
+        Adicionar
+      </button>
+    </div>
+  </div>
  `).join("");
 }
 
-function slide(){
- bannerIndex=(bannerIndex+1)%banners.length;
- track.style.transform=`translateX(-${bannerIndex*100}%)`;
- document.querySelectorAll(".dot").forEach((d,i)=>{
-  d.classList.toggle("active",i===bannerIndex);
- });
+/* CARRINHO */
+function addCarrinho(id,nome,preco){
+ const item = carrinho.itens.find(i=>i.id===id);
+ if(item){
+  item.quantidade++;
+ }else{
+  carrinho.itens.push({id,nome,preco,quantidade:1});
+ }
+ salvarCarrinho();
 }
 
-function autoSlide(){
- clearInterval(timer);
- timer=setInterval(slide,3000);
+function abrirCarrinho(){
+ document.getElementById("modal").classList.add("show");
+ renderCarrinho();
 }
 
-function abrirLink(link){
- // depois você decide se é produto, serviço ou URL
- console.log("abrir:",link);
+function renderCarrinho(){
+ const box = document.getElementById("cartItens");
+ let total = 0;
+
+ box.innerHTML = carrinho.itens.map(i=>{
+  total += i.preco * i.quantidade;
+  return `
+    <div class="cart-item">
+      <div>
+        <strong>${i.nome}</strong><br>
+        <small>${i.quantidade} x R$ ${i.preco.toFixed(2).replace('.',',')}</small>
+      </div>
+      <div>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</div>
+    </div>
+  `;
+ }).join("");
+
+ document.getElementById("cartTotal").innerText =
+  "Total: R$ " + total.toFixed(2).replace('.',',');
 }
 
-/* ===== PRODUTOS ===== */
-async function carregarProdutos(){
- const { data, error } = await sb
-
-.from("produtos_servicos")
-.select(`
-  id,
-  nome,
-  preco,
-  imagem_url,
-  categoria,
-  descricao
-`)
-
-.eq("user_id", lojaId)
-.eq("ativo", true)
-.eq("tipo", "PRODUTO");
-
- if(error){
-   console.error("Erro ao buscar produtos:", error);
+/* FINALIZAR */
+function finalizarCompra(){
+ if(!carrinho.itens.length){
+  alert("Carrinho vazio");
+  return;
  }
 
- produtos = data || [];
- renderCategorias();
- renderProdutos();
+ console.log("Enviar para backend:", carrinho);
+
+ // AQUI → fetch("/api/create-pagamento", {...})
+
+ alert("Fluxo de pagamento iniciado (backend)");
 }
-
-
-function renderCategorias(){
- const cats=["Todos",...new Set(produtos.map(p=>p.categoria).filter(Boolean))];
-
- categorias.innerHTML=cats.map(c=>`
-  <div class="categoria ${c===categoriaAtual?'active':''}"
-       onclick="selecionarCategoria('${c}')">${c}</div>
- `).join("");
-}
-
-function selecionarCategoria(c){
- categoriaAtual=c;
- renderCategorias();
- renderProdutos();
-}
-
-function renderProdutos(){
- produtosEl.innerHTML = produtos
-  .filter(p => categoriaAtual === "Todos" || p.categoria === categoriaAtual)
-  .map(p => `
-   <div class="card">
-    <img src="${p.imagem_url || 'https://via.placeholder.com/400'}">
-
-    <div class="card-body">
-     <div class="card-title">${p.nome}</div>
-
-     ${
-       p.descricao
-       ? `<div style="font-size:12px;color:#6b7280;margin-top:4px;">
-            ${p.descricao}
-          </div>`
-       : ""
-     }
-
-     <div class="card-price">
-      R$ ${Number(p.preco).toFixed(2).replace('.',',')}
-     </div>
-
-     <button class="card-btn">Adicionar</button>
-    </div>
-   </div>
- `).join("");
-}
-
 
 /* INIT */
-carregarBanners();
+salvarCarrinho();
 carregarProdutos();
 </script>
 
