@@ -179,162 +179,68 @@ html,body{margin:0;background:var(--bg)}
 <script>
 /* ================= SUPABASE ================= */
 const sb = supabase.createClient(
- "https://egxjgmzukjyyxmkukwub.supabase.co",
- "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-let MAPA_AGENDAMENTOS = {};
-let DIAS_VALIDOS = [];
-let carregandoDias = false;
 
-/* PAGINAÇÃO REAL (POR REGISTRO, NÃO POR DATA) */
-let page = 0;
-const PAGE_SIZE = 10;
-
+/* ================= PARAMS ================= */
 const lojaId = new URLSearchParams(location.search).get("l");
 const servicoPreSelecionado =
   new URLSearchParams(location.search).get("servico");
 
-;
-
+/* ================= ESTADO GLOBAL ================= */
 let duracao = 0;
 let dados = {};
+
+let MAPA_AGENDAMENTOS = {};
 let DIAS_VALIDOS = [];
 
-let cursorData = null;
 let carregandoDias = false;
-const BLOCO_DIAS = 7;
+let page = 0;
+const PAGE_SIZE = 10;
 
+/* ================= UTILS ================= */
+const toMin = h => {
+  const [a, b] = h.split(":").map(Number);
+  return a * 60 + b;
+};
 
-/* UTILS */
-const toMin = h => { const [a,b]=h.split(":").map(Number); return a*60+b; }
-const toHour = m => String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
-function hojeLocal(){
+const toHour = m =>
+  String(Math.floor(m / 60)).padStart(2, "0") +
+  ":" +
+  String(m % 60).padStart(2, "0");
+
+function hojeLocal() {
   const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-
-/* ================= SERVIÇOS ================= */
-async function carregarServicos(){
-const { data } = await sb
-  .from("produtos_servicos")
-  .select(`
-    id,
-    nome,
-    preco,
-    imagem_url,
-    duracao_minutos,
-    ordem_exibicao,
-    created_at,
-    updated_at
-  `)
-  .eq("user_id", lojaId)
-  .eq("ativo", true)
-  // 1️⃣ quem tem ordem_exibicao vem primeiro
-  .order("ordem_exibicao", { ascending: true, nullsLast: true })
-  // 2️⃣ se empatar, o atualizado mais recente vem primeiro
-  .order("updated_at", { ascending: false })
-  // 3️⃣ para os sem ordem, respeita a ordem de cadastro
-  .order("created_at", { ascending: true });
-
-
-  const container = document.getElementById("services");
-
- container.innerHTML = data.map(s=>`
-  <div class="service"
-       data-id="${s.id}"
-       onclick="selecionarServico(
-         '${s.id}',
-         ${s.duracao_minutos},
-         '${s.nome}',
-         ${Number(s.preco)}
-       )">
-       
-    <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
-
-    <div class="service-info">
-      <div class="service-name">${s.nome}</div>
-      <div class="service-price">R$ ${s.preco}</div>
-    </div>
-  </div>
-`).join("");
-
-
-  // ✅ SE VEIO SERVIÇO PELA URL, JÁ SELECIONA AUTOMATICAMENTE
-  if(servicoPreSelecionado){
-    const s = data.find(x => x.id === servicoPreSelecionado);
-    if(s){
-      selecionarServico(s.id, s.duracao_minutos, s.nome);
-    }
-  }
-}
-
-
-
-  
-function formatarDia(dataISO){
-  const [ano, mes, dia] = dataISO.split("-");
-  return Number(dia);
-}
-
-function diaSemana(dataISO){
-  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-  const [ano, mes, dia] = dataISO.split("-");
-  const d = new Date(ano, mes - 1, dia);
-  return dias[d.getDay()];
-}
-function addDias(data, qtd){
-  const d = new Date(data);
-  d.setDate(d.getDate() + qtd);
   return d.toISOString().split("T")[0];
 }
 
-async function buscarAgendaComAgendamentos(inicio, fim) {
-
-  // 1️⃣ Agenda aberta da loja
-  const { data: agenda } = await sb
-    .from("agenda_loja")
-    .select("data, horarios")
+/* ================= SERVIÇOS ================= */
+async function carregarServicos() {
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("id,nome,preco,imagem_url,duracao_minutos")
     .eq("user_id", lojaId)
-    .eq("fechado", false)
-    .gte("data", inicio)
-    .lte("data", fim)
-    .order("data");
+    .eq("ativo", true)
+    .order("ordem_exibicao", { ascending: true, nullsLast: true });
 
-  if (!agenda || agenda.length === 0) {
-    return { agenda: [], mapaAgendamentos: {} };
+  const container = document.getElementById("services");
+  container.innerHTML = data.map(s => `
+    <div class="service" data-id="${s.id}"
+      onclick="selecionarServico('${s.id}',${s.duracao_minutos},'${s.nome}',${Number(s.preco)})">
+      <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
+      <div class="service-info">
+        <div class="service-name">${s.nome}</div>
+        <div class="service-price">R$ ${s.preco}</div>
+      </div>
+    </div>
+  `).join("");
+
+  if (servicoPreSelecionado) {
+    const s = data.find(x => x.id === servicoPreSelecionado);
+    if (s) selecionarServico(s.id, s.duracao_minutos, s.nome, s.preco);
   }
-
-  // 2️⃣ Datas envolvidas
-  const datas = agenda.map(a => a.data);
-
-  // 3️⃣ Todos agendamentos de UMA VEZ
-  const { data: ags } = await sb
-    .from("agendamentos")
-    .select("data, hora_inicio, hora_fim")
-    .eq("user_id", lojaId)
-    .in("data", datas);
-
-  // 4️⃣ Mapa rápido em memória
-  const mapaAgendamentos = {};
-
-  (ags || []).forEach(a => {
-    if (!mapaAgendamentos[a.data]) {
-      mapaAgendamentos[a.data] = [];
-    }
-    mapaAgendamentos[a.data].push([
-      toMin(a.hora_inicio),
-      toMin(a.hora_fim)
-    ]);
-  });
-
-  return { agenda, mapaAgendamentos };
 }
-
-
 
 
 
