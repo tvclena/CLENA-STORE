@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     }
 
     // 💰 VALOR DA ASSINATURA (MUDA AQUI QUANDO QUISER)
-    const valor = 5.5;
+    const valor = 2.1;
 
     // 🧾 Cria pagamento PIX
     const payment = await paymentClient.create({
