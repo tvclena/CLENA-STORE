@@ -571,7 +571,7 @@ async function carregarPerfil(){
 
 async function criarAssinatura() {
   const btn = document.getElementById("btnAssinar");
-  btn.innerText = "Processando...";
+  btn.innerText = "Gerando PIX...";
   btn.disabled = true;
 
   try {
@@ -584,22 +584,57 @@ async function criarAssinatura() {
       })
     });
 
-    const data = await res.json();
+    const text = await res.text();
 
-    if (!res.ok || !data.init_point) {
-      throw new Error(data.error || "Erro ao criar assinatura");
+    if (!res.ok) {
+      throw new Error(text);
     }
 
-    // 🔁 Redireciona para pagamento Mercado Pago
-    window.location.href = data.init_point;
+    const data = JSON.parse(text);
+
+    if (!data.qr_code_base64) {
+      throw new Error("QR Code não retornado");
+    }
+
+    mostrarPix(data);
 
   } catch (err) {
-    alert(err.message);
+    alert("Erro ao gerar PIX");
+    console.error(err);
     btn.innerText = "Assinar agora";
     btn.disabled = false;
   }
 }
+function mostrarPix(data) {
+  document.getElementById("subscriptionModal").innerHTML = `
+    <div style="
+      background:#fff;
+      width:92%;
+      max-width:360px;
+      border-radius:22px;
+      padding:22px;
+      text-align:center;
+    ">
+      <h2>Pagamento via PIX</h2>
 
+      <img 
+        src="data:image/png;base64,${data.qr_code_base64}"
+        style="width:220px;margin:14px auto"
+      />
+
+      <textarea readonly style="
+        width:100%;
+        padding:10px;
+        border-radius:10px;
+        font-size:11px;
+      ">${data.qr_code}</textarea>
+
+      <p style="font-size:12px;color:#6b7280;margin-top:10px">
+        Após o pagamento a assinatura será ativada automaticamente.
+      </p>
+    </div>
+  `;
+}
 
 /* ================= NAV ================= */
 function go(el,page){
