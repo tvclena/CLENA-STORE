@@ -133,6 +133,85 @@ footer{border-top:1px solid var(--border);padding:70px 20px}
   .cta{grid-template-columns:1fr;padding:50px}
   .cta h2{font-size:32px}
 }
+/* FOOTER MODERNO */
+footer{
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:80px 20px 30px;
+  border-top:none;
+}
+
+.footer{
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:50px;
+}
+
+.footer h4{
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:18px;
+  color:#fff;
+}
+
+.footer a{
+  display:block;
+  text-decoration:none;
+  color:#9ca3af;
+  font-size:14px;
+  margin-bottom:10px;
+  transition:.25s;
+}
+
+.footer a:hover{
+  color:var(--accent);
+  transform:translateX(4px);
+}
+
+/* LOGO + DESCRIÇÃO */
+.footer-brand{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.footer-brand strong{
+  font-size:20px;
+  font-weight:800;
+  color:#fff;
+}
+
+.footer-brand p{
+  font-size:14px;
+  line-height:1.6;
+  color:#9ca3af;
+  max-width:280px;
+}
+
+/* DIVISOR */
+.footer-divider{
+  margin:50px auto 20px;
+  max-width:1200px;
+  height:1px;
+  background:rgba(255,255,255,.08);
+}
+
+/* COPYRIGHT */
+.footer-bottom{
+  text-align:center;
+  font-size:13px;
+  color:#9ca3af;
+}
+
+/* RESPONSIVO */
+@media(max-width:600px){
+  footer{
+    padding:60px 20px 24px;
+  }
+}
+
 </style>
 </head>
 
@@ -206,25 +285,45 @@ footer{border-top:1px solid var(--border);padding:70px 20px}
 
 <footer>
   <div class="footer">
+
+    <div class="footer-brand">
+      <strong>AGENDA CLENA</strong>
+      <p>
+        Sistema profissional de agendamentos e loja online para salões,
+        barbearias, estúdios e profissionais autônomos.
+      </p>
+    </div>
+
     <div>
       <h4>Institucional</h4>
-      <a href="#">Quem somos</a><br>
-      <a href="#">Contato</a><br>
-      <a href="#">Termos</a>
+      <a href="#">Quem somos</a>
+      <a href="#">Contato</a>
+      <a href="#">Termos de uso</a>
+      <a href="#">Privacidade</a>
     </div>
+
     <div>
       <h4>Sistema</h4>
-      <a href="index.html">Para salões</a><br>
-      <a href="index.html">Para clientes</a><br>
+      <a href="Index.html">Para salões</a>
+      <a href="cliente.html">Para clientes</a>
       <a href="planos.html">Planos</a>
     </div>
+
     <div>
       <h4>Acesso</h4>
-      <a href="login.html">Entrar</a><br>
+      <a href="login.html">Entrar</a>
       <a href="cadastro.html">Criar conta</a>
     </div>
+
+  </div>
+
+  <div class="footer-divider"></div>
+
+  <div class="footer-bottom">
+    © 2026 Agenda Clena — Todos os direitos reservados
   </div>
 </footer>
+
 
 <script>
 function openMenu(){
