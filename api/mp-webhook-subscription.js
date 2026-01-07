@@ -14,10 +14,13 @@ const paymentClient = new Payment(mp);
 
 export default async function handler(req, res) {
   try {
-    // 🔔 Webhook sempre responde 200 rápido
-    const paymentId =
-      req.body?.data?.id ||
-      req.body?.resource?.split("/")?.pop();
+    
+   const body = req.body || {};
+
+const paymentId =
+  body.data?.id ||
+  body.id ||
+  body.resource?.split("/")?.pop();
 
     if (!paymentId) {
       return res.status(200).json({ ignored: true });
