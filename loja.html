@@ -93,16 +93,23 @@ iframe{width:100%;height:100%;border:none}
 }
 .nav-item i{
   font-size:22px;
-  padding:8px;
-  border-radius:12px;
+  padding:10px;
+  border-radius:14px;
+  transition:.25s;
 }
+
 .nav-item.active{
   color:var(--primary);
 }
 .nav-item.active i{
-  background:var(--primary-soft);
-  color:var(--primary);
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(255,106,0,.35);
 }
+.nav-item:active i{
+  transform:scale(.92);
+}
+
 
 /* MODAL CLIENTE */
 #clienteModal{
@@ -174,10 +181,10 @@ iframe{width:100%;height:100%;border:none}
     <i class="ri-calendar-check-line"></i>Agendar
   </div>
   <div class="nav-item" id="navLoja" onclick="go(this,'lojacliente.html')">
-    <i class="ri-scissors-line"></i>Loja
+    <i class="ri-store-2-line"></i>Loja
   </div>
   <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
-    <i class="ri-user-line"></i>Meu espaço
+    <i class="ri-user-3-line"></i>Meu espaço
   </div>
 </nav>
 
