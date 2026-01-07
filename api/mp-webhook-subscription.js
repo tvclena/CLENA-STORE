@@ -1,79 +1,90 @@
-import mercadopago from 'mercadopago'
-import { createClient } from '@supabase/supabase-js'
+import { MercadoPagoConfig, Payment } from "mercadopago";
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
-)
+);
 
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN_DONO
-})
+const mp = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN_DONO,
+});
+
+const paymentClient = new Payment(mp);
 
 export default async function handler(req, res) {
   try {
-    const { type, data } = req.body
-
-    if (type !== 'payment') {
-      return res.status(200).json({ received: true })
+    // 🔐 Mercado Pago envia vários tipos
+    if (req.body?.type !== "payment") {
+      return res.status(200).json({ received: true });
     }
 
-    const paymentId = data.id
-
-    // 🔎 Consulta pagamento real no MP
-    const payment = await mercadopago.payment.findById(paymentId)
-    const mpStatus = payment.body.status
-    const metadata = payment.body.metadata || {}
-
-    if (metadata.tipo !== 'assinatura') {
-      return res.status(200).json({ ignored: true })
+    const paymentId = req.body?.data?.id;
+    if (!paymentId) {
+      return res.status(200).json({ ignored: true });
     }
 
-    const user_id = metadata.user_id
+    // 🔎 Busca pagamento real no Mercado Pago
+    const payment = await paymentClient.get({ id: paymentId });
+
+    const mpStatus = payment.status;
+    const metadata = payment.metadata || {};
+
+    // 🔒 Garante que é assinatura
+    if (metadata.tipo !== "assinatura" || !metadata.user_id) {
+      return res.status(200).json({ ignored: true });
+    }
+
+    const user_id = metadata.user_id;
 
     // 🗄️ Atualiza pagamento
     await supabase
-      .from('pagamentos_assinatura')
+      .from("pagamentos_assinatura")
       .update({
         status: mpStatus,
-        pago_em: mpStatus === 'approved' ? new Date().toISOString() : null,
-        atualizado_em: new Date().toISOString()
+        pago_em: mpStatus === "approved" ? new Date().toISOString() : null,
+        atualizado_em: new Date().toISOString(),
       })
-      .eq('mp_payment_id', paymentId)
+      .eq("mp_payment_id", paymentId);
 
-    // ✅ Se aprovado → ativa assinatura
-    if (mpStatus === 'approved') {
+    // ✅ Ativa assinatura APENAS se aprovado
+    if (mpStatus === "approved") {
 
-      // Busca último pagamento aprovado
-      const { data: ultimo } = await supabase
-        .from('pagamentos_assinatura')
-        .select('*')
-        .eq('user_id', user_id)
-        .eq('status', 'approved')
-        .order('pago_em', { ascending: false })
-        .limit(1)
-        .single()
+      // Evita ativar duas vezes
+      const { data: jaAtiva } = await supabase
+        .from("user_profile")
+        .select("assinatura_valida_ate")
+        .eq("user_id", user_id)
+        .single();
 
-      if (ultimo) {
-        const validade = new Date(ultimo.pago_em)
-        validade.setDate(validade.getDate() + 30)
+      const agora = new Date();
 
-        await supabase
-          .from('user_profile')
-          .update({
-            assinatura_ativa: true,
-            assinatura_plano: 'PROFISSIONAL',
-            assinatura_valor: ultimo.valor,
-            assinatura_valida_ate: validade.toISOString()
-          })
-          .eq('user_id', user_id)
+      if (
+        jaAtiva?.assinatura_valida_ate &&
+        new Date(jaAtiva.assinatura_valida_ate) > agora
+      ) {
+        return res.status(200).json({ already_active: true });
       }
+
+      const validade = new Date();
+      validade.setDate(validade.getDate() + 30);
+
+      await supabase
+        .from("user_profile")
+        .update({
+          status: "active",
+          assinatura_ativa: true,
+          assinatura_plano: "PROFISSIONAL",
+          assinatura_valor: payment.transaction_amount,
+          assinatura_valida_ate: validade.toISOString(),
+        })
+        .eq("user_id", user_id);
     }
 
-    return res.status(200).json({ success: true })
+    return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error('Erro webhook assinatura:', err)
-    return res.status(500).json({ error: 'Erro no webhook' })
+    console.error("❌ Erro webhook assinatura:", err);
+    return res.status(500).json({ error: "Erro no webhook" });
   }
 }
