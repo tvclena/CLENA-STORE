@@ -355,8 +355,8 @@ async function cadastrar(e){
       uf: uf.value.trim().toUpperCase(),
       email_contato: emailValue,
       slug: slug,
-      status: "teste",
-      fim_teste: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+      status: "trial",
+      fim_trial: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
     }, { onConflict: "user_id" });
 
   overlay.style.display = "none";
