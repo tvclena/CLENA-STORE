@@ -743,6 +743,16 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js");
 }
 </script>
+<script>
+  const l = new URLSearchParams(location.search).get("l");
+
+  if (l) {
+    const link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = `/api/manifest?l=${l}&v=1`;
+    document.head.appendChild(link);
+  }
+</script>
 
 </body>
 </html>
