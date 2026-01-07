@@ -35,31 +35,38 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Usuário não encontrado" });
     }
 
-    const payment = await paymentClient.create({
-      transaction_amount: 9.9,
-      description: "Assinatura Agenda Fácil",
-      payment_method_id: "pix",
-      payer: { email },
-      metadata: {
-        user_id,
-        tipo: "assinatura",
-      },
-    });
+   const valor = 9.9;
 
-    await supabase.from("pagamentos_assinatura").insert({
+const payment = await paymentClient.create({
+  body: {
+    transaction_amount: valor,
+    description: "Assinatura Agenda Fácil",
+    payment_method_id: "pix",
+    payer: { email },
+    metadata: {
       user_id,
-      mp_payment_id: payment.id,
-      status: payment.status,
-      valor: 9.9,
-    });
+      tipo: "assinatura",
+    },
+  },
+});
 
-    return res.status(200).json({
-      mp_payment_id: payment.id,
-      status: payment.status,
-      qr_code: payment.point_of_interaction.transaction_data.qr_code,
-      qr_code_base64:
-        payment.point_of_interaction.transaction_data.qr_code_base64,
-    });
+   await supabase.from("pagamentos_assinatura").insert({
+  user_id,
+  mp_payment_id: payment.body.id,
+  status: payment.body.status,
+  valor,
+});
+
+    
+return res.status(200).json({
+  mp_payment_id: payment.body.id,
+  status: payment.body.status,
+  qr_code: payment.body.point_of_interaction.transaction_data.qr_code,
+  qr_code_base64:
+    payment.body.point_of_interaction.transaction_data.qr_code_base64,
+  ticket_url:
+    payment.body.point_of_interaction.transaction_data.ticket_url || null,
+});
 
   } catch (err) {
     console.error("❌ create-subscription error:", err);
