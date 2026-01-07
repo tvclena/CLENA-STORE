@@ -607,37 +607,128 @@ async function criarAssinatura() {
 
 
 
-  
 function mostrarPix(data) {
   document.getElementById("subscriptionModal").innerHTML = `
     <div style="
       background:#fff;
       width:92%;
-      max-width:360px;
-      border-radius:22px;
-      padding:22px;
+      max-width:380px;
+      border-radius:26px;
+      padding:22px 20px 24px;
       text-align:center;
+      box-shadow:0 30px 80px rgba(0,0,0,.35);
+      animation: pop .25s ease-out;
     ">
-      <h2>Pagamento via PIX</h2>
+      <style>
+        @keyframes pop {
+          from { transform: scale(.92); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+      </style>
 
-      <img 
-        src="data:image/png;base64,${data.qr_code_base64}"
-        style="width:220px;margin:14px auto"
-      />
+      <div style="
+        width:56px;
+        height:56px;
+        margin:0 auto 10px;
+        border-radius:50%;
+        background:linear-gradient(135deg,#ff6a00,#ff9a57);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#fff;
+        font-size:26px;
+        font-weight:900;
+      ">
+        PIX
+      </div>
 
-      <textarea readonly style="
-        width:100%;
-        padding:10px;
-        border-radius:10px;
-        font-size:11px;
-      ">${data.qr_code}</textarea>
+      <h2 style="font-size:18px;margin-bottom:6px">
+        Pagamento via PIX
+      </h2>
 
-      <p style="font-size:12px;color:#6b7280;margin-top:10px">
-        Após o pagamento a assinatura será ativada automaticamente.
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px">
+        Escaneie o QR Code ou copie a chave abaixo
       </p>
+
+      <div style="
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+        padding:16px;
+        margin-bottom:14px;
+      ">
+        <img 
+          src="data:image/png;base64,${data.qr_code_base64}"
+          style="
+            width:220px;
+            height:220px;
+            object-fit:contain;
+            margin:0 auto;
+            display:block;
+          "
+        />
+      </div>
+
+      <div style="
+        background:#f3f4f6;
+        border-radius:14px;
+        padding:10px;
+        margin-bottom:12px;
+      ">
+        <textarea id="pixCode" readonly style="
+          width:100%;
+          border:none;
+          resize:none;
+          background:transparent;
+          font-size:11px;
+          color:#111;
+          outline:none;
+          height:72px;
+        ">${data.qr_code}</textarea>
+      </div>
+
+      <button onclick="copiarPix()" style="
+        width:100%;
+        padding:14px;
+        border:none;
+        border-radius:999px;
+        background:linear-gradient(135deg,#ff6a00,#ff9a57);
+        color:#fff;
+        font-weight:900;
+        font-size:14px;
+        cursor:pointer;
+        margin-bottom:10px;
+      ">
+        Copiar chave PIX
+      </button>
+
+      <div style="
+        font-size:12px;
+        color:#6b7280;
+        line-height:1.4;
+      ">
+        Após o pagamento a assinatura será ativada automaticamente.
+      </div>
     </div>
   `;
 }
+function copiarPix() {
+  const txt = document.getElementById("pixCode");
+  txt.select();
+  txt.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+
+  const btn = event.target;
+  const original = btn.innerText;
+  btn.innerText = "Chave copiada ✔";
+  btn.style.background = "#16a34a";
+
+  setTimeout(() => {
+    btn.innerText = original;
+    btn.style.background = "linear-gradient(135deg,#ff6a00,#ff9a57)";
+  }, 1600);
+}
+
 
 /* ================= NAV ================= */
 function go(el,page){
