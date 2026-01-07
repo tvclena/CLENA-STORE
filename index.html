@@ -76,7 +76,25 @@ nav a{text-decoration:none;color:#111;font-weight:500}
 .hero h1 span{color:var(--primary)}
 .hero p{font-size:19px;color:var(--muted);max-width:560px;margin-bottom:34px}
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
-.hero-box{background:linear-gradient(135deg,#f3f4f6,#e5e7eb);border-radius:40px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#9ca3af}
+.hero-box{
+  background:linear-gradient(135deg,#f3f4f6,#e5e7eb);
+  border-radius:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  padding:20px;
+}
+
+/* IMAGEM DO MOCKUP */
+.hero-image{
+  width:100%;
+  max-width:420px;
+  height:auto;
+  object-fit:contain;
+  border-radius:24px;
+  box-shadow:0 25px 60px rgba(0,0,0,.18);
+}
 
 /* NUMBERS */
 .numbers{background:var(--bg);padding:50px 20px}
@@ -107,6 +125,10 @@ footer{border-top:1px solid var(--border);padding:70px 20px}
   .hero{grid-template-columns:1fr;padding-top:60px}
   .hero h1{font-size:38px}
   .hero-box{height:240px}
+  .hero-image{
+  max-width:100%;
+}
+
   .cta{grid-template-columns:1fr;padding:50px}
   .cta h2{font-size:32px}
 }
@@ -155,7 +177,13 @@ footer{border-top:1px solid var(--border);padding:70px 20px}
       <a href="planos.html"><button class="btn btn-outline">Ver planos</button></a>
     </div>
   </div>
-  <div class="hero-box">Mockup do sistema</div>
+<div class="hero-box">
+  <img 
+    src="mockup-sistema.png"
+    alt="Mockup do sistema Agenda Clena"
+    class="hero-image"
+  >
+</div>
 </section>
 
 <section class="numbers">
