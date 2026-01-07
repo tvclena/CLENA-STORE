@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -22,38 +22,38 @@
 body{margin:0;background:var(--bg)}
 
 .header{
-  padding:16px;
-  text-align:center;
-  font-weight:800;
   background:#fff;
+  padding:16px;
+  font-weight:800;
+  text-align:center;
   border-bottom:1px solid var(--border);
 }
 
-.section{padding:16px}
+.section{padding:20px}
 
 .services{
   display:flex;
   gap:16px;
   overflow-x:auto;
 }
-.services::-webkit-scrollbar{display:none}
 
 .service{
   min-width:220px;
   background:#fff;
   border-radius:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,.15);
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
   cursor:pointer;
-  overflow:hidden;
 }
+
 .service img{
   width:100%;
-  height:140px;
+  height:130px;
   object-fit:cover;
 }
+
 .service-info{padding:12px}
 .service-name{font-weight:800}
-.service-price{color:var(--primary);margin-top:6px;font-weight:700}
+.service-price{color:var(--primary);margin-top:6px}
 
 .overlay{
   position:fixed;
@@ -62,38 +62,38 @@ body{margin:0;background:var(--bg)}
   display:flex;
   align-items:center;
   justify-content:center;
-  z-index:9999;
+  z-index:999;
 }
 
 .modal{
   background:#fff;
-  border-radius:22px;
+  border-radius:18px;
   padding:20px;
   width:90%;
   max-width:420px;
 }
 
-.modal h2{
-  margin:0 0 12px;
-}
+.modal h3{margin-top:0}
 
 .grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
+  gap:10px;
 }
 
 .item{
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:12px;
   padding:14px 0;
   text-align:center;
   font-weight:700;
   cursor:pointer;
 }
+
 .item:hover{background:#fff3ea}
 
 .btn{
+  margin-top:16px;
   width:100%;
   padding:12px;
   border:none;
@@ -101,10 +101,9 @@ body{margin:0;background:var(--bg)}
   font-weight:700;
   cursor:pointer;
 }
-.btn-primary{background:#2563eb;color:#fff}
-.btn-gray{background:#e5e7eb}
 
-.center{grid-column:1/-1;text-align:center;color:#6b7280}
+.btn.primary{background:#2563eb;color:#fff}
+.btn.gray{background:#e5e7eb}
 </style>
 </head>
 
@@ -113,7 +112,6 @@ body{margin:0;background:var(--bg)}
 <div class="header">Agendar Serviço</div>
 
 <div class="section">
-  <h3>Escolha um serviço</h3>
   <div class="services" id="services"></div>
 </div>
 
@@ -127,9 +125,10 @@ const sb = supabase.createClient(
 const lojaId = new URLSearchParams(location.search).get("l");
 
 /* ================= ESTADO ================= */
-let SERVICO = {};
-let DIAS = [];
-let MAPA = {};
+let servicoSelecionado = null;
+let duracaoServico = 0;
+let diasValidos = [];
+let mapaAgendamentos = {};
 
 /* ================= UTILS ================= */
 const toMin = h => {
@@ -137,14 +136,9 @@ const toMin = h => {
   return a*60+b;
 };
 const toHour = m =>
-  String(Math.floor(m/60)).padStart(2,"0")+":"+
-  String(m%60).padStart(2,"0");
+  String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
 
 const hojeISO = () => new Date().toISOString().split("T")[0];
-
-const diaSemana = d =>
-  ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"]
-  [new Date(d).getDay()];
 
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
@@ -156,8 +150,8 @@ async function carregarServicos(){
     .order("ordem_exibicao",{ascending:true,nullsLast:true});
 
   document.getElementById("services").innerHTML = data.map(s=>`
-    <div class="service" onclick='abrirDatas(${JSON.stringify(s)})'>
-      <img src="${s.imagem_url || "https://via.placeholder.com/400"}">
+    <div class="service" onclick="abrirDatas('${s.id}',${s.duracao_minutos},'${s.nome}',${s.preco})">
+      <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
       <div class="service-info">
         <div class="service-name">${s.nome}</div>
         <div class="service-price">R$ ${s.preco}</div>
@@ -167,128 +161,141 @@ async function carregarServicos(){
 }
 
 /* ================= DATAS ================= */
-async function abrirDatas(servico){
-  SERVICO = servico;
+async function abrirDatas(id,dur,nome,valor){
+  servicoSelecionado = {id,nome,valor};
+  duracaoServico = dur;
 
-  document.body.insertAdjacentHTML("beforeend",`
-    <div class="overlay" id="modalDatas">
-      <div class="modal">
-        <h2>Escolha a data</h2>
-        <div id="listaDias" class="grid">
-          <div class="center">🔄 Carregando...</div>
-        </div>
-        <br>
-        <button class="btn btn-gray" onclick="fechar('modalDatas')">Cancelar</button>
-      </div>
+  const overlay = document.createElement("div");
+  overlay.className="overlay";
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Escolha a data</h3>
+      <div id="dias" class="grid">Carregando...</div>
+      <button class="btn gray" onclick="this.closest('.overlay').remove()">Cancelar</button>
     </div>
-  `);
+  `;
+  document.body.appendChild(overlay);
 
   const { data: agenda } = await sb
     .from("agenda_loja")
     .select("data,horarios")
     .eq("user_id", lojaId)
-    .eq("fechado", false)
     .gte("data", hojeISO())
+    .eq("fechado", false)
     .order("data");
 
-  const datas = agenda.map(a=>a.data);
+  diasValidos = [];
 
-  const { data: ags } = await sb
-    .from("agendamentos")
-    .select("data,hora_inicio,hora_fim")
-    .eq("user_id", lojaId)
-    .in("data", datas);
+  for(const d of agenda){
+    const blocos = Array.isArray(d.horarios)
+      ? d.horarios
+      : JSON.parse(d.horarios || "[]");
 
-  MAPA = {};
-  ags.forEach(a=>{
-    if(!MAPA[a.data]) MAPA[a.data]=[];
-    MAPA[a.data].push([toMin(a.hora_inicio),toMin(a.hora_fim)]);
-  });
+    const { data: ags } = await sb
+      .from("agendamentos")
+      .select("hora_inicio,hora_fim")
+      .eq("user_id", lojaId)
+      .eq("data", d.data);
 
-  DIAS = [];
-
-  agenda.forEach(d=>{
-    const blocos = JSON.parse(d.horarios);
-    const ocupados = MAPA[d.data] || [];
+    const ocupados = ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
     let livre=false;
 
     blocos.forEach(b=>{
-      let i = toMin(b.inicio);
-      let f = toMin(b.fim);
-      while(i + servico.duracao_minutos <= f){
-        if(!ocupados.some(o => !(i+servico.duracao_minutos<=o[0] || i>=o[1]))){
+      let i=toMin(b.inicio), f=toMin(b.fim);
+      while(i+duracaoServico<=f){
+        if(!ocupados.some(o=>!(i+duracaoServico<=o[0]||i>=o[1]))){
           livre=true; break;
         }
-        i += servico.duracao_minutos;
+        i+=duracaoServico;
       }
     });
 
-    if(livre) DIAS.push(d);
-  });
+    if(livre) diasValidos.push(d);
+  }
 
-  document.getElementById("listaDias").innerHTML = DIAS.map((d,i)=>`
+  document.getElementById("dias").innerHTML = diasValidos.map((d,i)=>`
     <div class="item" onclick="abrirHorarios(${i})">
       <div>${d.data.split("-")[2]}</div>
-      <small>${diaSemana(d.data)}</small>
     </div>
-  `).join("") || `<div class="center">❌ Nenhum dia disponível</div>`;
+  `).join("");
 }
 
 /* ================= HORÁRIOS ================= */
-function abrirHorarios(i){
-  fechar("modalDatas");
+async function abrirHorarios(index){
+  const dia = diasValidos[index];
 
-  const dia = DIAS[i];
-  const blocos = JSON.parse(dia.horarios);
-  const ocupados = MAPA[dia.data] || [];
-  let slots = [];
+  document.querySelector(".overlay").remove();
+
+  const overlay = document.createElement("div");
+  overlay.className="overlay";
+  overlay.innerHTML = `
+    <div class="modal">
+      <h3>Horários disponíveis</h3>
+      <div id="horarios" class="grid">Carregando...</div>
+      <button class="btn gray" onclick="this.closest('.overlay').remove()">Voltar</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const blocos = Array.isArray(dia.horarios)
+    ? dia.horarios
+    : JSON.parse(dia.horarios || "[]");
+
+  const { data: ags } = await sb
+    .from("agendamentos")
+    .select("hora_inicio,hora_fim")
+    .eq("user_id", lojaId)
+    .eq("data", dia.data);
+
+  const ocupados = ags.map(a=>[toMin(a.hora_inicio),toMin(a.hora_fim)]);
+  let slots=[];
 
   blocos.forEach(b=>{
-    let s = toMin(b.inicio);
-    let e = toMin(b.fim);
-    while(s + SERVICO.duracao_minutos <= e){
-      if(!ocupados.some(o => !(s+SERVICO.duracao_minutos<=o[0] || s>=o[1]))){
-        slots.push(toHour(s));
+    let i=toMin(b.inicio), f=toMin(b.fim);
+    while(i+duracaoServico<=f){
+      if(!ocupados.some(o=>!(i+duracaoServico<=o[0]||i>=o[1]))){
+        slots.push(toHour(i));
       }
-      s += SERVICO.duracao_minutos;
+      i+=duracaoServico;
     }
   });
 
-  document.body.insertAdjacentHTML("beforeend",`
-    <div class="overlay" id="modalHoras">
-      <div class="modal">
-        <h2>Horários</h2>
-        <div class="grid">
-          ${slots.map(h=>`<div class="item" onclick="confirmar('${dia.data}','${h}')">${h}</div>`).join("")}
-        </div>
-        <br>
-        <button class="btn btn-gray" onclick="fechar('modalHoras')">Voltar</button>
-      </div>
-    </div>
-  `);
+  document.getElementById("horarios").innerHTML = slots.map(h=>`
+    <div class="item" onclick="confirmar('${dia.data}','${h}')">${h}</div>
+  `).join("");
 }
 
 /* ================= CONFIRMAR ================= */
 async function confirmar(data,hora){
-  fechar("modalHoras");
+  const fim = toHour(toMin(hora)+duracaoServico);
 
-  await sb.from("agendamentos").insert({
+  const { error } = await sb.from("agendamentos").insert({
     user_id: lojaId,
-    servico_id: SERVICO.id,
+    loja_id: lojaId,
+    servico_id: servicoSelecionado.id,
+    valor_servico: servicoSelecionado.valor,
     data,
     hora_inicio: hora,
-    hora_fim: toHour(toMin(hora)+SERVICO.duracao_minutos),
-    valor_servico: SERVICO.preco
+    hora_fim: fim,
+    cliente_nome: localStorage.getItem("NOME_CLIENTE") || "CLIENTE",
+    cliente_whatsapp: localStorage.getItem("WHATS_CLIENTE") || ""
   });
 
-  alert("✅ Agendamento confirmado!");
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  document.querySelector(".overlay").innerHTML = `
+    <div class="modal">
+      <h3>Agendamento confirmado ✅</h3>
+      <p>${data} às ${hora}</p>
+      <button class="btn primary" onclick="location.reload()">Fechar</button>
+    </div>
+  `;
 }
 
-/* ================= HELPERS ================= */
-function fechar(id){
-  document.getElementById(id)?.remove();
-}
-
+/* START */
 carregarServicos();
 </script>
 
