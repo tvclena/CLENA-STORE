@@ -24,7 +24,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "user_id e email obrigatórios" });
     }
 
-    // 🔎 Confirma usuário
     const { data: profile, error } = await supabase
       .from("user_profile")
       .select("user_id")
@@ -35,12 +34,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Usuário não encontrado" });
     }
 
-    // 💰 Valor
-    const valor = 9.9;
-
-    // 💳 Cria pagamento PIX
     const payment = await paymentClient.create({
-      transaction_amount: valor,
+      transaction_amount: 9.9,
       description: "Assinatura Agenda Fácil",
       payment_method_id: "pix",
       payer: { email },
@@ -50,15 +45,13 @@ export default async function handler(req, res) {
       },
     });
 
-    // 🗄️ Salva pagamento
     await supabase.from("pagamentos_assinatura").insert({
       user_id,
       mp_payment_id: payment.id,
       status: payment.status,
-      valor,
+      valor: 9.9,
     });
 
-    // ✅ RETORNO JSON (O MAIS IMPORTANTE)
     return res.status(200).json({
       mp_payment_id: payment.id,
       status: payment.status,
@@ -70,7 +63,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("❌ create-subscription error:", err);
     return res.status(500).json({
-      error: "Erro interno ao criar assinatura",
+      error: "Erro ao criar assinatura",
       detail: err.message,
     });
   }
