@@ -711,7 +711,15 @@ function mostrarPix(data) {
       </div>
     </div>
   `;
+
+    window._mpPaymentId = data.mp_payment_id;
+  iniciarVerificacaoPagamento();
 }
+
+
+
+
+  
 function copiarPix() {
   const txt = document.getElementById("pixCode");
   txt.select();
@@ -729,6 +737,119 @@ function copiarPix() {
   }, 1600);
 }
 
+let intervaloPagamento = null;
+
+function iniciarVerificacaoPagamento() {
+  if (intervaloPagamento) clearInterval(intervaloPagamento);
+
+  intervaloPagamento = setInterval(async () => {
+    try {
+      const { data, error } = await sb
+        .from("pagamentos_assinatura")
+        .select("status")
+        .eq("mp_payment_id", window._mpPaymentId)
+        .single();
+
+      if (error || !data) return;
+
+      if (data.status === "approved") {
+        clearInterval(intervaloPagamento);
+        mostrarSucessoPagamento();
+      }
+    } catch (err) {
+      console.warn("Aguardando pagamento...");
+    }
+  }, 3000);
+}
+function mostrarSucessoPagamento() {
+  const modal = document.getElementById("subscriptionModal");
+
+  modal.innerHTML = `
+    <div style="
+      background:radial-gradient(circle at top,#fff7e6,#ffffff);
+      width:92%;
+      max-width:360px;
+      border-radius:26px;
+      padding:28px 22px 26px;
+      text-align:center;
+      box-shadow:
+        0 0 0 1px rgba(255,170,0,.15),
+        0 30px 90px rgba(255,170,0,.35);
+      animation: successPop .6s ease-out;
+    ">
+      <style>
+        @keyframes successPop {
+          0% { transform: scale(.85); opacity:0 }
+          60% { transform: scale(1.05) }
+          100% { transform: scale(1); opacity:1 }
+        }
+        @keyframes draw {
+          from { stroke-dashoffset: 100 }
+          to { stroke-dashoffset: 0 }
+        }
+      </style>
+
+      <svg width="90" height="90" viewBox="0 0 100 100" style="margin-bottom:12px">
+        <circle cx="50" cy="50" r="45"
+          fill="none"
+          stroke="#ffb300"
+          stroke-width="6"
+          opacity=".25"/>
+        <path
+          d="M30 52 L45 66 L70 36"
+          fill="none"
+          stroke="#ffb300"
+          stroke-width="7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-dasharray="100"
+          stroke-dashoffset="100"
+          style="animation:draw .8s ease-out forwards"/>
+      </svg>
+
+      <h2 style="
+        font-size:20px;
+        font-weight:900;
+        color:#a16207;
+        margin-bottom:6px;
+      ">
+        Pagamento confirmado!
+      </h2>
+
+      <p style="
+        font-size:13px;
+        color:#6b7280;
+        margin-bottom:18px;
+      ">
+        Sua assinatura foi ativada com sucesso.
+      </p>
+
+      <button onclick="finalizarPagamento()" style="
+        width:100%;
+        padding:14px;
+        border:none;
+        border-radius:999px;
+        background:linear-gradient(135deg,#ffb300,#ff8f00);
+        color:#fff;
+        font-weight:900;
+        cursor:pointer;
+        box-shadow:0 10px 30px rgba(255,170,0,.45);
+      ">
+        Começar a usar
+      </button>
+    </div>
+  `;
+}
+function finalizarPagamento() {
+  document.getElementById("subscriptionModal").style.display = "none";
+  document.getElementById("appRoot").classList.remove("locked");
+  carregarPerfil();
+}
+
+
+
+
+  
 
 /* ================= NAV ================= */
 function go(el,page){
