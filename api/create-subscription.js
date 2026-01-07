@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Usuário não encontrado" });
     }
 
-   const valor = 9.9;
+const valor = 9.9;
 
 const payment = await paymentClient.create({
   body: {
@@ -50,22 +50,19 @@ const payment = await paymentClient.create({
   },
 });
 
-   await supabase.from("pagamentos_assinatura").insert({
+await supabase.from("pagamentos_assinatura").insert({
   user_id,
-  mp_payment_id: payment.body.id,
-  status: payment.body.status,
+  mp_payment_id: payment.id,
+  status: payment.status,
   valor,
 });
 
-    
 return res.status(200).json({
-  mp_payment_id: payment.body.id,
-  status: payment.body.status,
-  qr_code: payment.body.point_of_interaction.transaction_data.qr_code,
+  mp_payment_id: payment.id,
+  status: payment.status,
+  qr_code: payment.point_of_interaction.transaction_data.qr_code,
   qr_code_base64:
-    payment.body.point_of_interaction.transaction_data.qr_code_base64,
-  ticket_url:
-    payment.body.point_of_interaction.transaction_data.ticket_url || null,
+    payment.point_of_interaction.transaction_data.qr_code_base64,
 });
 
   } catch (err) {
