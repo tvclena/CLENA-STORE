@@ -569,7 +569,6 @@ async function carregarPerfil(){
   verificarAssinatura();
 
 } 
-
 async function criarAssinatura() {
   const btn = document.getElementById("btnAssinar");
   btn.innerText = "Gerando PIX...";
@@ -581,31 +580,34 @@ async function criarAssinatura() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_id: user.id,
-        email: user.email
-      })
+        email: user.email,
+      }),
     });
 
-    const text = await res.text();
-
     if (!res.ok) {
-      throw new Error(text);
+      const errText = await res.text();
+      throw new Error(errText);
     }
 
-    const data = JSON.parse(text);
+    const data = await res.json();
 
-    if (!data.qr_code_base64) {
-      throw new Error("QR Code não retornado");
+    if (!data.qr_code_base64 || !data.qr_code) {
+      throw new Error("PIX não retornado");
     }
 
     mostrarPix(data);
 
   } catch (err) {
-    alert("Erro ao gerar PIX");
     console.error(err);
+    alert("Erro ao gerar PIX");
     btn.innerText = "Assinar agora";
     btn.disabled = false;
   }
 }
+
+
+
+  
 function mostrarPix(data) {
   document.getElementById("subscriptionModal").innerHTML = `
     <div style="
