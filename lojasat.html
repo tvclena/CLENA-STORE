@@ -22,7 +22,6 @@
   --muted:#6b7280;
   --radius:22px;
 }
-
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:var(--bg);color:var(--text);overflow-x:hidden}
 
@@ -30,9 +29,7 @@ body{margin:0;background:var(--bg);color:var(--text);overflow-x:hidden}
 header{
   background:#fff;
   border-bottom:1px solid var(--border);
-  position:sticky;
-  top:0;
-  z-index:10;
+  position:sticky;top:0;z-index:10;
 }
 .header{
   max-width:1200px;
@@ -42,10 +39,7 @@ header{
   justify-content:space-between;
   align-items:center;
 }
-.header h1{
-  font-size:20px;
-  font-weight:800;
-}
+.header h1{font-size:20px;font-weight:800}
 
 /* HERO */
 .hero{
@@ -62,14 +56,8 @@ header{
   border-radius:36px;
   padding:40px;
 }
-.hero-box h2{
-  font-size:40px;
-  margin-bottom:12px;
-}
-.hero-box p{
-  font-size:16px;
-  opacity:.95;
-}
+.hero-box h2{font-size:40px;margin-bottom:12px}
+.hero-box p{font-size:16px;opacity:.95}
 .hero-img{
   background:#fff;
   border-radius:36px;
@@ -78,10 +66,7 @@ header{
   justify-content:center;
   box-shadow:0 30px 80px rgba(0,0,0,.12);
 }
-.hero-img i{
-  font-size:120px;
-  color:var(--primary);
-}
+.hero-img i{font-size:120px;color:var(--primary)}
 
 /* FILTERS */
 .filters{
@@ -89,7 +74,7 @@ header{
   margin:auto;
   padding:0 20px;
   display:grid;
-  grid-template-columns:2fr 1fr 1fr 1fr;
+  grid-template-columns:2fr 1fr auto 1fr;
   gap:10px;
 }
 .filters input,.filters select{
@@ -98,6 +83,15 @@ header{
   border:1px solid var(--border);
   font-size:14px;
 }
+.perto{
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
 
 /* LIST */
 .list{
@@ -105,8 +99,13 @@ header{
   margin:30px auto 80px;
   padding:0 20px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
   gap:20px;
+}
+@media(max-width:600px){
+  .list{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:601px){
+  .list{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
 }
 
 /* CARD */
@@ -115,29 +114,16 @@ header{
   border-radius:26px;
   padding:18px;
   box-shadow:0 14px 40px rgba(0,0,0,.08);
-  transition:.3s;
 }
-.card:hover{transform:translateY(-6px)}
 .logo{
   width:64px;height:64px;
   border-radius:50%;
   background:#eee center/cover;
   margin-bottom:10px;
 }
-.card h3{
-  font-size:16px;
-  font-weight:800;
-}
-.card small{
-  color:var(--muted);
-  font-size:12px;
-}
-.badges{
-  display:flex;
-  gap:8px;
-  margin:10px 0;
-  flex-wrap:wrap;
-}
+.card h3{font-size:16px;font-weight:800}
+.card small{color:var(--muted);font-size:12px}
+.badges{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
 .badge{
   font-size:11px;
   padding:6px 10px;
@@ -146,8 +132,7 @@ header{
 }
 .open{background:#dcfce7;color:#166534}
 .closed{background:#fee2e2;color:#991b1b}
-.prod{background:#ede9fe;color:#5b21b6}
-.serv{background:#e0f2fe;color:#075985}
+.dist{background:#e0f2fe;color:#075985}
 
 .card button{
   width:100%;
@@ -159,11 +144,21 @@ header{
   cursor:pointer;
 }
 
-/* RESPONSIVE */
-@media(max-width:900px){
-  .hero{grid-template-columns:1fr}
-  .hero-box h2{font-size:30px}
-  .filters{grid-template-columns:1fr 1fr}
+/* POPUP */
+#popup{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+#popup .box{
+  background:#fff;
+  padding:22px;
+  border-radius:22px;
+  max-width:320px;
+  text-align:center;
 }
 </style>
 </head>
@@ -189,7 +184,7 @@ header{
 <section class="filters">
   <input id="fNome" placeholder="Buscar loja">
   <input id="fCidade" placeholder="Cidade">
-  <input id="fHora" type="time">
+  <button class="perto" onclick="pertoDeMim()">📍 Perto de mim</button>
   <select id="fStatus">
     <option value="">Aberta ou fechada</option>
     <option value="open">Aberta agora</option>
@@ -199,41 +194,77 @@ header{
 
 <section class="list" id="lista"></section>
 
+<div id="popup">
+  <div class="box">
+    <h3>Cidade detectada</h3>
+    <p id="cidadeDetectada"></p>
+    <button class="perto" onclick="confirmarCidade()">Confirmar</button>
+  </div>
+</div>
+
 <script>
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let lojas=[];
+let lojas=[], userLat=null, userLon=null, cidadeGeo=null;
 
-/* STATUS AGENDA REAL */
+/* DISTÂNCIA */
+function km(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+
+    Math.cos(lat1*Math.PI/180)*
+    Math.cos(lat2*Math.PI/180)*
+    Math.sin(dLon/2)**2;
+  return (R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+}
+
+/* STATUS AGENDA */
 async function statusAgenda(lojaId){
-  const hoje = new Date();
-  const hojeStr = hoje.toISOString().slice(0,10);
+  const agora=new Date();
+  const hoje=agora.toISOString().slice(0,10);
 
   const { data } = await sb
     .from("agenda_loja")
     .select("*")
     .eq("user_id",lojaId)
-    .gte("data",hojeStr)
+    .gte("data",hoje)
     .order("data",{ascending:true});
 
-  if(!data?.length) return {label:"Fechada",cls:"closed"};
-
-  for(const d of data){
+  for(const d of data||[]){
     if(d.fechado) continue;
     for(const h of d.horarios||[]){
-      const ini = new Date(`${d.data}T${h.inicio}`);
-      const fim = new Date(`${d.data}T${h.fim}`);
-      if(hoje>=ini && hoje<=fim)
-        return {label:"Aberta agora",cls:"open"};
-      if(d.data===hojeStr && hoje<ini)
-        return {label:`Abre hoje ${h.inicio}`,cls:"closed"};
+      const ini=new Date(`${d.data}T${h.inicio}`);
+      const fim=new Date(`${d.data}T${h.fim}`);
+      if(agora>=ini && agora<=fim)
+        return {txt:"Aberta agora",cls:"open"};
+      if(d.data===hoje && agora<ini)
+        return {txt:`Abre hoje ${h.inicio}`,cls:"closed"};
     }
-    return {label:`Abre ${d.data} ${d.horarios?.[0]?.inicio||""}`,cls:"closed"};
+    return {txt:`Abre ${d.data} ${d.horarios?.[0]?.inicio||""}`,cls:"closed"};
   }
-  return {label:"Fechada",cls:"closed"};
+  return {txt:"Fechada",cls:"closed"};
+}
+
+/* PERTO DE MIM */
+function pertoDeMim(){
+  navigator.geolocation.getCurrentPosition(async p=>{
+    userLat=p.coords.latitude;
+    userLon=p.coords.longitude;
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLat}&lon=${userLon}`);
+    const j=await r.json();
+    cidadeGeo=j.address.city||j.address.town||j.address.village;
+    cidadeDetectada.innerText=cidadeGeo;
+    popup.style.display="flex";
+  });
+}
+function confirmarCidade(){
+  fCidade.value=cidadeGeo;
+  popup.style.display="none";
+  render();
 }
 
 /* LOAD */
@@ -241,38 +272,42 @@ async function statusAgenda(lojaId){
   const { data } = await sb.from("user_profile")
     .select("*")
     .eq("status","active");
-
   lojas=data||[];
   render();
 })();
 
 async function render(){
   lista.innerHTML="";
-  for(const l of lojas){
+  let arr=[...lojas];
+
+  for(const l of arr){
     if(fNome.value && !l.negocio.toLowerCase().includes(fNome.value.toLowerCase())) continue;
     if(fCidade.value && l.cidade?.toLowerCase()!==fCidade.value.toLowerCase()) continue;
 
-    const st = await statusAgenda(l.user_id);
+    const st=await statusAgenda(l.user_id);
+    if(fStatus.value==="open" && st.cls!=="open") continue;
+    if(fStatus.value==="closed" && st.cls!=="closed") continue;
+
+    let dist="";
+    if(userLat && l.latitude){
+      dist=`${km(userLat,userLon,l.latitude,l.longitude)} km`;
+    }
 
     lista.innerHTML+=`
       <div class="card">
         <div class="logo" style="background-image:url('${l.avatar_url||""}')"></div>
         <h3>${l.negocio}</h3>
         <small>${l.tipo} • ${l.cidade}/${l.uf}</small>
-
         <div class="badges">
-          <div class="badge ${st.cls}">${st.label}</div>
+          <div class="badge ${st.cls}">${st.txt}</div>
+          ${dist?`<div class="badge dist">${dist}</div>`:""}
         </div>
-
-        <button onclick="location.href='app.html?l=${l.user_id}'">
-          Entrar
-        </button>
-      </div>
-    `;
+        <button onclick="location.href='app.html?l=${l.user_id}'">Entrar</button>
+      </div>`;
   }
 }
 
-[fNome,fCidade,fHora,fStatus].forEach(i=>i.addEventListener("input",render));
+[fNome,fCidade,fStatus].forEach(i=>i.addEventListener("input",render));
 </script>
 
 </body>
