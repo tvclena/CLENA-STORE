@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agenda Fácil</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --primary-soft:rgba(255,106,0,.14);
+  --bg:#f4f6fb;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --topbar-h:64px;
+  --navbar-h:72px;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
+
+/* TOPBAR */
+.topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--topbar-h);
+  padding:0 18px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:100;
+}
+.topbar h1{
+  font-size:17px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  overflow:hidden;
+}
+.avatar img{width:100%;height:100%;object-fit:cover}
+
+/* CONTENT */
+.content{
+  position:fixed;
+  top:var(--topbar-h);
+  bottom:var(--navbar-h);
+  left:0;right:0;
+  background:#fff;
+}
+iframe{width:100%;height:100%;border:none}
+
+/* NAVBAR */
+.navbar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:var(--navbar-h);
+  background:#fff;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+}
+.nav-item{
+  font-size:11px;
+  color:var(--muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+}
+.nav-item i{
+  font-size:22px;
+  padding:8px;
+  border-radius:12px;
+}
+.nav-item.active{
+  color:var(--primary);
+}
+.nav-item.active i{
+  background:var(--primary-soft);
+  color:var(--primary);
+}
+
+/* MENU PERFIL */
+#perfilMenu{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index:9999;
+}
+.menu-bg{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.45);
+}
+.menu{
+  position:absolute;
+  right:16px;
+  top:72px;
+  width:280px;
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  padding:16px;
+}
+.menu h3{font-size:16px;font-weight:800;margin-bottom:4px}
+.menu small{color:var(--muted)}
+.menu button{
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:700;
+  margin-top:10px;
+  cursor:pointer;
+}
+.menu .danger{color:#ef4444}
+
+/* PERFIL MODAL */
+#perfilModal{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index:9999;
+}
+.modal{
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:92%;
+  max-width:420px;
+  background:#fff;
+  border-radius:22px;
+  padding:20px;
+}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:10px}
+.modal input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+}
+.modal button{
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <h1 id="nomeLoja">Agenda Fácil</h1>
+  <div class="avatar" id="avatar" onclick="abrirMenu()">?</div>
+</div>
+
+<div class="content">
+  <iframe id="frame"></iframe>
+</div>
+
+<nav class="navbar">
+  <div class="nav-item active" onclick="go(this,'homeclientes.html')">
+    <i class="ri-home-5-line"></i>Início
+  </div>
+  <div class="nav-item" onclick="go(this,'agendar.html')">
+    <i class="ri-calendar-check-line"></i>Agendar
+  </div>
+  <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
+    <i class="ri-user-line"></i>Meu espaço
+  </div>
+</nav>
+
+<!-- MENU PERFIL -->
+<div id="perfilMenu">
+  <div class="menu-bg" onclick="fecharMenu()"></div>
+  <div class="menu">
+    <h3 id="perfilNome"></h3>
+    <small id="perfilEmail"></small>
+
+    <button onclick="abrirPerfil()">Editar perfil</button>
+    <button onclick="irLojas()">Ver outras lojas</button>
+    <button class="danger" onclick="sair()">Sair</button>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div id="perfilModal">
+  <div class="menu-bg" onclick="fecharPerfil()"></div>
+  <div class="modal">
+    <h2>Meu perfil</h2>
+
+    <input type="file" accept="image/*" onchange="uploadFoto(this)">
+    <input id="nome" placeholder="Nome completo">
+    <input id="whats" placeholder="WhatsApp">
+    <input id="cep" placeholder="CEP" onblur="buscarCEP()">
+    <input id="rua" placeholder="Rua">
+    <input id="numero" placeholder="Número">
+    <input id="bairro" placeholder="Bairro">
+    <input id="cidade" placeholder="Cidade">
+    <input id="uf" placeholder="UF">
+
+    <button onclick="salvarPerfil()">Salvar</button>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+const frame = document.getElementById("frame");
+let user, perfil;
+
+/* INIT */
+(async()=>{
+  const { data:{session} } = await sb.auth.getSession();
+  if(!session){
+    location.href = `index.html?l=${lojaId}`;
+    return;
+  }
+  user = session.user;
+
+  const { data:p } = await sb.from("clientes_profile").select("*").eq("id",user.id).single();
+  perfil = p;
+
+  carregarAvatar();
+  perfilNome.innerText = perfil.nome;
+  perfilEmail.innerText = perfil.email;
+
+  const { data:loja } = await sb.from("user_profile").select("negocio").eq("user_id",lojaId).single();
+  nomeLoja.innerText = loja?.negocio || "Agenda Fácil";
+
+  frame.src = `homeclientes.html?l=${lojaId}`;
+})();
+
+/* AVATAR */
+function carregarAvatar(){
+  if(perfil.foto_url){
+    avatar.innerHTML = `<img src="${perfil.foto_url}">`;
+  }else{
+    avatar.innerText = perfil.nome[0];
+  }
+}
+async function uploadFoto(input){
+  const file = input.files[0];
+  const path = `${user.id}.jpg`;
+
+  await sb.storage.from("avatars").upload(path,file,{upsert:true});
+  const { data } = sb.storage.from("avatars").getPublicUrl(path);
+
+  perfil.foto_url = data.publicUrl;
+  await sb.from("clientes_profile").update({foto_url:perfil.foto_url}).eq("id",user.id);
+  carregarAvatar();
+}
+
+/* CEP */
+async function buscarCEP(){
+  const c = cep.value.replace(/\D/g,"");
+  if(c.length!==8) return;
+  const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+  const d = await r.json();
+  rua.value=d.logradouro||"";
+  bairro.value=d.bairro||"";
+  cidade.value=d.localidade||"";
+  uf.value=d.uf||"";
+}
+
+/* PERFIL */
+function abrirMenu(){perfilMenu.style.display="block"}
+function fecharMenu(){perfilMenu.style.display="none"}
+function abrirPerfil(){
+  fecharMenu();
+  perfilModal.style.display="block";
+  nome.value=perfil.nome||"";
+  whats.value=perfil.whatsapp||"";
+  cep.value=perfil.cep||"";
+  rua.value=perfil.rua||"";
+  numero.value=perfil.numero||"";
+  bairro.value=perfil.bairro||"";
+  cidade.value=perfil.cidade||"";
+  uf.value=perfil.uf||"";
+}
+function fecharPerfil(){perfilModal.style.display="none"}
+
+async function salvarPerfil(){
+  await sb.from("clientes_profile").update({
+    nome:nome.value,
+    whatsapp:whats.value,
+    cep:cep.value,
+    rua:rua.value,
+    numero:numero.value,
+    bairro:bairro.value,
+    cidade:cidade.value,
+    uf:uf.value
+  }).eq("id",user.id);
+
+  location.reload();
+}
+
+/* NAV */
+function go(el,page){
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  el.classList.add("active");
+  frame.src = `${page}?l=${lojaId}`;
+}
+
+/* LOJAS */
+function irLojas(){
+  location.href = `lojasat.html`;
+}
+async function sair(){
+  await sb.auth.signOut();
+  location.href = `index.html?l=${lojaId}`;
+}
+</script>
+
+</body>
+</html>
