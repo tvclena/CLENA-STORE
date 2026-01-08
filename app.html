@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <title>Agenda Fácil</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="/manifest.json">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#ff6a00">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,40 +21,37 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --topbar-h:64px;
-  --navbar-h:72px;
+  --danger:#dc2626;
+  --topbar-h:56px;
+  --navbar-h:68px;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
+*{box-sizing:border-box;font-family:Inter}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 /* TOPBAR */
 .topbar{
   position:fixed;top:0;left:0;right:0;
   height:var(--topbar-h);
-  padding:0 18px;
   background:#fff;
   border-bottom:1px solid var(--border);
+  padding:0 16px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  z-index:100;
+  z-index:10;
 }
-.topbar h1{
-  font-size:17px;
-  font-weight:800;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+.topbar h1{font-size:18px;font-weight:800}
+
+/* AVATAR */
 .avatar{
-  width:40px;height:40px;border-radius:50%;
+  width:36px;height:36px;border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  color:#fff;font-weight:800;
   display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;
   cursor:pointer;
-  overflow:hidden;
+  background-size:cover;
+  background-position:center;
 }
-.avatar img{width:100%;height:100%;object-fit:cover}
 
 /* CONTENT */
 .content{
@@ -81,92 +80,82 @@ iframe{width:100%;height:100%;border:none}
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:4px;
   cursor:pointer;
 }
-.nav-item i{
-  font-size:22px;
-  padding:8px;
-  border-radius:12px;
-}
-.nav-item.active{
-  color:var(--primary);
-}
-.nav-item.active i{
-  background:var(--primary-soft);
-  color:var(--primary);
-}
+.nav-item i{font-size:22px}
+.nav-item.active{color:var(--primary)}
 
-/* MENU PERFIL */
-#perfilMenu{
+/* OVERLAY */
+.overlay{
   position:fixed;
   inset:0;
+  background:rgba(0,0,0,.45);
   display:none;
+  align-items:flex-end;
   z-index:9999;
 }
-.menu-bg{
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,.45);
-}
-.menu{
-  position:absolute;
-  right:16px;
-  top:72px;
-  width:280px;
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 20px 60px rgba(0,0,0,.25);
-  padding:16px;
-}
-.menu h3{font-size:16px;font-weight:800;margin-bottom:4px}
-.menu small{color:var(--muted)}
-.menu button{
+
+/* PROFILE */
+.profile-box{
   width:100%;
+  background:#fff;
+  border-radius:22px 22px 0 0;
+  padding:18px;
+  max-height:92vh;
+  overflow:auto;
+}
+.profile-img{
+  width:86px;height:86px;border-radius:50%;
+  background:#eee;
+  background-size:cover;
+  background-position:center;
+  margin:0 auto;
+  position:relative;
+}
+.profile-img .cam{
+  position:absolute;
+  right:-4px;bottom:-4px;
+  width:34px;height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  border:3px solid #fff;
+}
+.field{margin-bottom:10px}
+.field input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  font-weight:800;
+  cursor:pointer;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-danger{background:#fee2e2;color:var(--danger);margin-top:8px}
+
+/* MINHAS LOJAS */
+.lojas-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.loja-item{
   padding:12px;
   border-radius:14px;
   border:1px solid var(--border);
-  background:#fff;
-  font-weight:700;
-  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
   cursor:pointer;
 }
-.menu .danger{color:#ef4444}
-
-/* PERFIL MODAL */
-#perfilModal{
-  position:fixed;
-  inset:0;
-  display:none;
-  z-index:9999;
-}
-.modal{
-  position:absolute;
-  left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  width:92%;
-  max-width:420px;
-  background:#fff;
-  border-radius:22px;
-  padding:20px;
-}
-.modal h2{font-size:20px;font-weight:800;margin-bottom:10px}
-.modal input{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  margin-bottom:10px;
-}
-.modal button{
-  width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:none;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-}
+.loja-item.active{border-color:var(--primary)}
 </style>
 </head>
 
@@ -174,7 +163,7 @@ iframe{width:100%;height:100%;border:none}
 
 <div class="topbar">
   <h1 id="nomeLoja">Agenda Fácil</h1>
-  <div class="avatar" id="avatar" onclick="abrirMenu()">?</div>
+  <div class="avatar" id="avatar" onclick="openProfile()">A</div>
 </div>
 
 <div class="content">
@@ -182,47 +171,38 @@ iframe{width:100%;height:100%;border:none}
 </div>
 
 <nav class="navbar">
-  <div class="nav-item active" onclick="go(this,'homeclientes.html')">
-    <i class="ri-home-5-line"></i>Início
-  </div>
-  <div class="nav-item" onclick="go(this,'agendar.html')">
-    <i class="ri-calendar-check-line"></i>Agendar
-  </div>
-  <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
-    <i class="ri-user-line"></i>Meu espaço
-  </div>
+  <div class="nav-item active" onclick="go(this,'homeclientes.html')"><i class="ri-home-5-line"></i>Início</div>
+  <div class="nav-item" onclick="go(this,'agendar.html')"><i class="ri-calendar-line"></i>Agendar</div>
+  <div class="nav-item" onclick="go(this,'agendamentosclientes.html')"><i class="ri-user-line"></i>Meu espaço</div>
 </nav>
 
-<!-- MENU PERFIL -->
-<div id="perfilMenu">
-  <div class="menu-bg" onclick="fecharMenu()"></div>
-  <div class="menu">
-    <h3 id="perfilNome"></h3>
-    <small id="perfilEmail"></small>
+<!-- PROFILE -->
+<div class="overlay" id="profileModal" onclick="closeProfile(event)">
+  <div class="profile-box" onclick="event.stopPropagation()">
 
-    <button onclick="abrirPerfil()">Editar perfil</button>
-    <button onclick="irLojas()">Ver outras lojas</button>
-    <button class="danger" onclick="sair()">Sair</button>
-  </div>
-</div>
+    <div class="profile-img" id="profileImg">
+      <div class="cam" onclick="foto.click()"><i class="ri-camera-line"></i></div>
+    </div>
+    <input type="file" id="foto" hidden accept="image/*">
 
-<!-- PERFIL -->
-<div id="perfilModal">
-  <div class="menu-bg" onclick="fecharPerfil()"></div>
-  <div class="modal">
-    <h2>Meu perfil</h2>
+    <div class="field"><input id="pNome" placeholder="Nome"></div>
+    <div class="field"><input id="pWhats" placeholder="WhatsApp"></div>
+    <div class="field"><input id="pCep" placeholder="CEP"></div>
+    <div class="field"><input id="pRua" placeholder="Rua"></div>
+    <div class="field"><input id="pNumero" placeholder="Número"></div>
+    <div class="field"><input id="pCidade" placeholder="Cidade"></div>
+    <div class="field"><input id="pUf" placeholder="UF"></div>
 
-    <input type="file" accept="image/*" onchange="uploadFoto(this)">
-    <input id="nome" placeholder="Nome completo">
-    <input id="whats" placeholder="WhatsApp">
-    <input id="cep" placeholder="CEP" onblur="buscarCEP()">
-    <input id="rua" placeholder="Rua">
-    <input id="numero" placeholder="Número">
-    <input id="bairro" placeholder="Bairro">
-    <input id="cidade" placeholder="Cidade">
-    <input id="uf" placeholder="UF">
+    <button class="btn btn-primary" onclick="salvarPerfil()">Salvar</button>
 
-    <button onclick="salvarPerfil()">Salvar</button>
+    <h4 style="margin-top:14px">Minhas lojas</h4>
+    <div class="lojas-list" id="listaLojas"></div>
+
+    <button class="btn" onclick="location.href='lojasat.html'" style="margin-top:10px">
+      <i class="ri-store-2-line"></i> +
+    </button>
+
+    <button class="btn btn-danger" onclick="sair()">Sair</button>
   </div>
 </div>
 
@@ -234,105 +214,89 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 const frame = document.getElementById("frame");
+
 let user, perfil;
 
 /* INIT */
 (async()=>{
   const { data:{session} } = await sb.auth.getSession();
-  if(!session){
-    location.href = `index.html?l=${lojaId}`;
-    return;
-  }
+  if(!session){ location.href=`index.html?l=${lojaId}`; return; }
   user = session.user;
 
   const { data:p } = await sb.from("clientes_profile").select("*").eq("id",user.id).single();
   perfil = p;
 
-  carregarAvatar();
-  perfilNome.innerText = perfil.nome;
-  perfilEmail.innerText = perfil.email;
+  frame.src = `homeclientes.html?l=${perfil.loja_ativa || lojaId}`;
 
-  const { data:loja } = await sb.from("user_profile").select("negocio").eq("user_id",lojaId).single();
-  nomeLoja.innerText = loja?.negocio || "Agenda Fácil";
-
-  frame.src = `homeclientes.html?l=${lojaId}`;
+  carregarPerfil();
 })();
 
-/* AVATAR */
-function carregarAvatar(){
-  if(perfil.foto_url){
-    avatar.innerHTML = `<img src="${perfil.foto_url}">`;
+function carregarPerfil(){
+  if(perfil.avatar_url){
+    avatar.style.backgroundImage = `url(${perfil.avatar_url})`;
+    avatar.textContent="";
+    profileImg.style.backgroundImage = `url(${perfil.avatar_url})`;
   }else{
-    avatar.innerText = perfil.nome[0];
+    avatar.textContent = perfil.nome?.[0] || "A";
   }
-}
-async function uploadFoto(input){
-  const file = input.files[0];
-  const path = `${user.id}.jpg`;
 
-  await sb.storage.from("avatars").upload(path,file,{upsert:true});
-  const { data } = sb.storage.from("avatars").getPublicUrl(path);
+  pNome.value = perfil.nome || "";
+  pWhats.value = perfil.whatsapp || "";
+  pCep.value = perfil.cep || "";
+  pRua.value = perfil.rua || "";
+  pNumero.value = perfil.numero || "";
+  pCidade.value = perfil.cidade || "";
+  pUf.value = perfil.uf || "";
 
-  perfil.foto_url = data.publicUrl;
-  await sb.from("clientes_profile").update({foto_url:perfil.foto_url}).eq("id",user.id);
-  carregarAvatar();
-}
-
-/* CEP */
-async function buscarCEP(){
-  const c = cep.value.replace(/\D/g,"");
-  if(c.length!==8) return;
-  const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
-  const d = await r.json();
-  rua.value=d.logradouro||"";
-  bairro.value=d.bairro||"";
-  cidade.value=d.localidade||"";
-  uf.value=d.uf||"";
+  renderLojas();
 }
 
-/* PERFIL */
-function abrirMenu(){perfilMenu.style.display="block"}
-function fecharMenu(){perfilMenu.style.display="none"}
-function abrirPerfil(){
-  fecharMenu();
-  perfilModal.style.display="block";
-  nome.value=perfil.nome||"";
-  whats.value=perfil.whatsapp||"";
-  cep.value=perfil.cep||"";
-  rua.value=perfil.rua||"";
-  numero.value=perfil.numero||"";
-  bairro.value=perfil.bairro||"";
-  cidade.value=perfil.cidade||"";
-  uf.value=perfil.uf||"";
+function renderLojas(){
+  listaLojas.innerHTML = "";
+  (perfil.lojas || []).forEach(l=>{
+    const div = document.createElement("div");
+    div.className = "loja-item" + (l===perfil.loja_ativa?" active":"");
+    div.innerHTML = `<span>${l}</span><span>Entrar</span>`;
+    div.onclick = async ()=>{
+      await sb.from("clientes_profile").update({loja_ativa:l}).eq("id",user.id);
+      location.href = `app.html?l=${l}`;
+    };
+    listaLojas.appendChild(div);
+  });
 }
-function fecharPerfil(){perfilModal.style.display="none"}
 
 async function salvarPerfil(){
+  let avatarUrl = perfil.avatar_url;
+
+  if(foto.files.length){
+    const path = `perfil/${user.id}.jpg`;
+    await sb.storage.from("avatars").upload(path,foto.files[0],{upsert:true});
+    avatarUrl = sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+  }
+
   await sb.from("clientes_profile").update({
-    nome:nome.value,
-    whatsapp:whats.value,
-    cep:cep.value,
-    rua:rua.value,
-    numero:numero.value,
-    bairro:bairro.value,
-    cidade:cidade.value,
-    uf:uf.value
+    nome:pNome.value,
+    whatsapp:pWhats.value,
+    cep:pCep.value,
+    rua:pRua.value,
+    numero:pNumero.value,
+    cidade:pCidade.value,
+    uf:pUf.value,
+    avatar_url:avatarUrl
   }).eq("id",user.id);
 
   location.reload();
 }
 
-/* NAV */
 function go(el,page){
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
-  frame.src = `${page}?l=${lojaId}`;
+  frame.src = `${page}?l=${perfil.loja_ativa}`;
 }
 
-/* LOJAS */
-function irLojas(){
-  location.href = `lojasat.html`;
-}
+function openProfile(){ profileModal.style.display="flex"; }
+function closeProfile(e){ if(!e || e.target.id==="profileModal") profileModal.style.display="none"; }
+
 async function sair(){
   await sb.auth.signOut();
   location.href = `index.html?l=${lojaId}`;
