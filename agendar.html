@@ -209,6 +209,7 @@ const sb = supabase.createClient(
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 let usuarioLogado = null;
+let clienteDB = null;
 
 async function verificarLogin(){
   const { data } = await sb.auth.getUser();
@@ -247,6 +248,22 @@ function hojeLocal(){
 }
 
 
+async function carregarCliente(){
+  if(!usuarioLogado) return;
+
+  const { data } = await sb
+    .from("clientes_profile")
+    .select("nome, whatsapp, email")
+    .eq("id", usuarioLogado.id)
+    .maybeSingle();
+
+  clienteDB = data || null;
+}
+
+
+
+
+  
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
 const { data } = await sb
@@ -525,25 +542,25 @@ async function selecionarDia(index){
   `).join("");
 }
 
-async function confirmar(h){
-  const cliente = getCliente();
+const cliente = getCliente();
 
-  if(!cliente || !cliente.whatsapp){
-    abrirModal();
-    return;
-  }
+if(!cliente){
+  abrirModal();
+  return;
+}
 
-  const fim = toHour(toMin(h) + duracao);
+const { error } = await sb.from("agendamentos").insert({
+  user_id: lojaId,
+  loja_id: lojaId,
+  servico_id: dados.servico,
+  valor_servico: dados.valor_servico,
+  data: dados.data,
+  hora_inicio: h,
+  hora_fim: fim,
+  cliente_nome: cliente.nome,
+  cliente_whatsapp: cliente.whatsapp // ✅ NUNCA NULL
+});
 
-  const payload = {
-    servico_id: dados.servico,
-    valor_servico: dados.valor_servico,
-    data: dados.data,
-    hora_inicio: h,
-    hora_fim: fim,
-    cliente_nome: cliente.nome,
-    cliente_whatsapp: cliente.whatsapp
-  };
 
   let query = sb.from("agendamentos");
 
@@ -597,10 +614,10 @@ async function confirmar(h){
 
 (async ()=>{
   await verificarLogin();
+  await carregarCliente(); // 🔥 ESSENCIAL
   carregarServicos();
 
-  // Só abre modal se NÃO estiver logado
-  if(!usuarioLogado && !clienteValido()){
+  if(!clienteValido()){
     abrirModal();
   }
 })();
@@ -621,30 +638,18 @@ document.getElementById("days").addEventListener("scroll", e=>{
   }
 });
 
-  
 function getCliente(){
-  // 1️⃣ Usuário logado
-  if(usuarioLogado){
-    const nome =
-      usuarioLogado.user_metadata?.nome ||
-      usuarioLogado.user_metadata?.full_name ||
-      "CLIENTE";
 
-    const whatsapp =
-      usuarioLogado.user_metadata?.whatsapp ||
-      usuarioLogado.user_metadata?.phone ||
-      null;
-
-    if(!whatsapp) return null; // 🔒 força modal
-
+  // 1️⃣ Cliente logado → SEMPRE do banco
+  if(clienteDB?.whatsapp){
     return {
-      nome,
-      whatsapp,
-      email: usuarioLogado.email || null
+      nome: clienteDB.nome,
+      whatsapp: clienteDB.whatsapp,
+      email: clienteDB.email || usuarioLogado.email
     };
   }
 
-  // 2️⃣ Cliente público
+  // 2️⃣ Cliente público (sem login)
   try{
     const raw = localStorage.getItem("CLIENTE_LOJA");
     if(!raw) return null;
@@ -662,11 +667,11 @@ function getCliente(){
   }
 }
 
-
 function clienteValido(){
   const c = getCliente();
-  return c?.nome && c?.whatsapp;
+  return !!(c?.nome && c?.whatsapp);
 }
+
 
 function abrirModal(){
   const modal = document.getElementById("clienteModal");
@@ -703,7 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function salvarCliente(){
+async function salvarCliente(){
   const nome = cliNome.value.trim().toUpperCase();
   const whats = cliWhats.value.replace(/\D/g,"");
   const email = cliEmail.value.trim() || null;
@@ -713,14 +718,20 @@ function salvarCliente(){
     return;
   }
 
-  localStorage.setItem("CLIENTE_LOJA", JSON.stringify({
+  // 🔥 SALVA NO PERFIL DO CLIENTE
+  await sb.from("clientes_profile").upsert({
+    id: usuarioLogado.id,
     nome,
     whatsapp: whats,
     email
-  }));
+  });
+
+  // Atualiza memória
+  clienteDB = { nome, whatsapp: whats, email };
 
   fecharModal();
 }
+
 
 
 
