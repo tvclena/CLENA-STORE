@@ -303,17 +303,31 @@ const bloqueado = mins < 40 && mins >= 0;
 
 async function cancelar(id){
   if(!confirm("Deseja cancelar este agendamento?")) return;
-  await sb.from("agendamentos").update({status:"cancelado"}).eq("id",id);
+
+  const { error } = await sb
+    .from("agendamentos")
+    .update({ status: "cancelado" })
+    .eq("id", id)
+    .eq("cliente_whatsapp", clienteWhats)
+    .eq("loja_id", lojaId);
+
+  if(error){
+    alert("Erro ao cancelar. Atualize a página.");
+    console.error(error);
+    return;
+  }
+
   carregar();
+}
+
+
+function alterar(id, servicoId){
+  window.location.href =
+    `agendar.html?l=${lojaId}&servico=${servicoId}&alterar=${id}`;
 }
 
 /* ===== INIT ===== */
 carregar();
-
-  function alterar(id, servicoId){
-  window.location.href =
-    `agendar.html?l=${lojaId}&servico=${servicoId}&alterar=${id}`;
-}
 
 </script>
 
