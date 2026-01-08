@@ -320,25 +320,30 @@ function usarPaleta(bg, txt){
 
 /* ABRIR POPUP */
 async function abrirConfigLoja(){
-  document.getElementById("configLojaOverlay").style.display="flex";
+  document.getElementById("configLojaOverlay").style.display = "flex";
 
-const { data } = await sb
-  .from("loja_config")
-  .select("*")
-  .eq("user_id", lojaId)
-  .single();
+  const { data, error } = await sb
+    .from("loja_config")
+    .select("*")
+    .eq("user_id", lojaId)
+    .maybeSingle();
 
-
-  if(data){
-    corPrimaryAtual = data.primary_color || corPrimaryAtual;
-    corTextoAtual = data.text_color || corTextoAtual;
+  if(error){
+    console.error(error);
+    return;
   }
 
-  document.getElementById("corPrimary").value = corPrimaryAtual;
-  document.getElementById("corTexto").value = corTextoAtual;
+  if(data){
+    corPrimaryAtual = data.primary_color;
+    corTextoAtual   = data.text_color;
+  }
+
+  corPrimary.value = corPrimaryAtual;
+  corTexto.value   = corTextoAtual;
 
   aplicarTema();
 }
+
 
 /* FECHAR */
 function fecharConfigLoja(){
@@ -347,16 +352,36 @@ function fecharConfigLoja(){
 
 /* SALVAR */
 async function salvarConfigLoja(){
-  await sb.from("loja_config")await sb.from("loja_config").upsert({
-  user_id: lojaId,
-  primary_color: corPrimaryAtual,
-  text_color: corTextoAtual
-});
+  const { error } = await sb
+    .from("loja_config")
+    .upsert({
+      user_id: lojaId,
+      primary_color: corPrimaryAtual,
+      secondary_color: corPrimaryAtual,
+      text_color: corTextoAtual,
+      updated_at: new Date()
+    });
 
+  if(error){
+    console.error(error);
+    alert("Erro ao salvar aparência");
+    return;
+  }
 
   aplicarTema();
   alert("Aparência salva com sucesso 🎉");
   fecharConfigLoja();
+}
+function aplicarTema(){
+  document.documentElement.style.setProperty("--primary", corPrimaryAtual);
+  document.documentElement.style.setProperty("--primary-2", corPrimaryAtual);
+  document.documentElement.style.setProperty("--text", corTextoAtual);
+
+  const preview = document.getElementById("previewCard");
+  if(preview){
+    preview.style.background = corPrimaryAtual;
+    preview.style.color = corTextoAtual;
+  }
 }
 
 
@@ -435,6 +460,7 @@ function suporte(){
 function abrirConfigLoja(){
   document.getElementById("configLojaOverlay").style.display = "flex";
 }
+
 document.addEventListener("DOMContentLoaded", ()=>{
   document.getElementById("corPrimary").addEventListener("input", e=>{
     corPrimaryAtual = e.target.value;
