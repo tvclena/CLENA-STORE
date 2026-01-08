@@ -186,6 +186,32 @@ input{
   background:#e5e7eb;
   color:#111;
 }
+
+/* LINK + BOTÃO */
+.link-row{
+  display:flex;
+  gap:10px;
+  align-items:stretch;
+}
+
+.btn-palette{
+  min-width:52px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(135deg,#111827,#374151);
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+  transition:.25s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.btn-palette:active{
+  transform:scale(.95);
+}
+
 </style>
 </head>
 
@@ -196,7 +222,13 @@ input{
   <h2 id="nomeLoja">Sua loja</h2>
   <p>Compartilhe com seus clientes</p>
 
+<div class="link-row">
   <div class="link-box" id="linkLoja">Carregando…</div>
+
+  <button class="btn-palette" onclick="abrirConfigLoja()" title="Personalizar aparência">
+    🎨
+  </button>
+</div>
 
   <button onclick="copiarLink()">📋 Copiar link</button>
   <button class="whats" style="margin-top:10px" onclick="compartilharWhats()">📲 Compartilhar no WhatsApp</button>
@@ -262,6 +294,69 @@ const sb = supabase.createClient(
 );
 
 let lojaId, linkPublico, nomeLoja;
+let corPrimaryAtual = "#ff6a00";
+let corTextoAtual = "#ffffff";
+
+/* APLICA TEMA NA PÁGINA */
+function aplicarTema(){
+  document.documentElement.style.setProperty("--primary", corPrimaryAtual);
+  document.documentElement.style.setProperty("--text", corTextoAtual);
+
+  const preview = document.getElementById("previewCard");
+  if(preview){
+    preview.style.background = corPrimaryAtual;
+    preview.style.color = corTextoAtual;
+  }
+}
+
+/* PALETAS */
+function usarPaleta(bg, txt){
+  corPrimaryAtual = bg;
+  corTextoAtual = txt;
+  document.getElementById("corPrimary").value = bg;
+  document.getElementById("corTexto").value = txt;
+  aplicarTema();
+}
+
+/* ABRIR POPUP */
+async function abrirConfigLoja(){
+  document.getElementById("configLojaOverlay").style.display="flex";
+
+  const { data } = await sb
+    .from("loja_config")
+    .select("*")
+    .eq("loja_id", lojaId)
+    .single();
+
+  if(data){
+    corPrimaryAtual = data.primary_color || corPrimaryAtual;
+    corTextoAtual = data.text_color || corTextoAtual;
+  }
+
+  document.getElementById("corPrimary").value = corPrimaryAtual;
+  document.getElementById("corTexto").value = corTextoAtual;
+
+  aplicarTema();
+}
+
+/* FECHAR */
+function fecharConfigLoja(){
+  document.getElementById("configLojaOverlay").style.display="none";
+}
+
+/* SALVAR */
+async function salvarConfigLoja(){
+  await sb.from("loja_config").upsert({
+    loja_id: lojaId,
+    primary_color: corPrimaryAtual,
+    text_color: corTextoAtual
+  });
+
+  aplicarTema();
+  alert("Aparência salva com sucesso 🎉");
+  fecharConfigLoja();
+}
+
 
 (async ()=>{
   const {data:{session}} = await sb.auth.getSession();
@@ -335,7 +430,87 @@ async function salvarToken(){
 function suporte(){
   window.open("https://wa.me/5575998112535","_blank");
 }
+function abrirConfigLoja(){
+  document.getElementById("configLojaOverlay").style.display = "flex";
+}
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.getElementById("corPrimary").addEventListener("input", e=>{
+    corPrimaryAtual = e.target.value;
+    aplicarTema();
+  });
+
+  document.getElementById("corTexto").addEventListener("input", e=>{
+    corTextoAtual = e.target.value;
+    aplicarTema();
+  });
+});
+
 </script>
+<!-- ================= POPUP CONFIGURAÇÃO DA LOJA ================= -->
+<div id="configLojaOverlay" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+">
+  <div style="
+    background:#fff;
+    width:94%;
+    max-width:420px;
+    border-radius:28px;
+    padding:20px;
+    box-shadow:0 30px 90px rgba(0,0,0,.35);
+    animation:cardIn .35s ease forwards;
+  ">
+
+    <h2 style="margin-bottom:6px">🎨 Aparência da loja</h2>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:14px">
+      Escolha uma paleta ou personalize manualmente
+    </p>
+
+    <!-- PALETAS PRÉ-DEFINIDAS -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px">
+      <div class="paleta" style="background:#ff6a00" onclick="usarPaleta('#ff6a00','#ffffff')"></div>
+      <div class="paleta" style="background:#2563eb" onclick="usarPaleta('#2563eb','#ffffff')"></div>
+      <div class="paleta" style="background:#16a34a" onclick="usarPaleta('#16a34a','#ffffff')"></div>
+      <div class="paleta" style="background:#7c3aed" onclick="usarPaleta('#7c3aed','#ffffff')"></div>
+      <div class="paleta" style="background:#0f172a" onclick="usarPaleta('#0f172a','#ffffff')"></div>
+    </div>
+
+    <!-- CORES MANUAIS -->
+    <label style="font-size:12px;font-weight:800">Cor principal</label>
+    <input type="color" id="corPrimary" style="width:100%;height:42px;border-radius:10px;border:none;margin-bottom:10px">
+
+    <label style="font-size:12px;font-weight:800">Cor do texto</label>
+    <input type="color" id="corTexto" style="width:100%;height:42px;border-radius:10px;border:none">
+
+    <!-- PREVIEW -->
+    <div id="previewCard" style="
+      margin:16px 0;
+      border-radius:18px;
+      padding:14px;
+      color:#fff;
+      font-weight:800;
+    ">
+      Exemplo de banner da loja
+    </div>
+
+    <button onclick="salvarConfigLoja()">💾 Salvar aparência</button>
+    <button class="btn-close" style="margin-top:10px" onclick="fecharConfigLoja()">Fechar</button>
+  </div>
+</div>
+
+<style>
+.paleta{
+  height:44px;
+  border-radius:12px;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+</style>
 
 </body>
 </html>
