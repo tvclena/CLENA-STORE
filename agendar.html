@@ -695,11 +695,13 @@ async function confirmar(h){
   }
   // ➕ NOVO AGENDAMENTO
   else{
-    query = query.insert({
-      ...payload,
-      user_id: lojaId,
-      loja_id: lojaId
-    });
+query = query.insert({
+  ...payload,
+
+  loja_id: lojaId,              // dono da agenda
+  cliente_id: usuarioLogado.id, // 🔥 CLIENTE CORRETO
+});
+
   }
 
   const { error } = await query;
