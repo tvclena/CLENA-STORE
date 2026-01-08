@@ -238,11 +238,17 @@ async function load(){
   }
 
   /* LOJA */
-  const { data:loja } = await sb
-    .from("user_profile")
-    .select("*")
-    .eq("user_id",lojaId)
-    .single();
+ const { data:loja } = await sb
+  .from("user_profile")
+  .select("*")
+  .eq("user_id",lojaId)
+  .maybeSingle();
+
+if(!loja){
+  document.body.innerHTML = "<p style='text-align:center'>Loja não encontrada</p>";
+  return;
+}
+
 
   nomeLoja.innerText = loja.negocio;
   cidadeLoja.innerText = `${loja.cidade} • ${loja.uf}`;
