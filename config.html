@@ -346,11 +346,12 @@ function fecharConfigLoja(){
 
 /* SALVAR */
 async function salvarConfigLoja(){
-  await sb.from("loja_config").upsert({
-    loja_id: lojaId,
-    primary_color: corPrimaryAtual,
-    text_color: corTextoAtual
-  });
+  await sb.from("loja_config")await sb.from("loja_config").upsert({
+  user_id: lojaId,
+  primary_color: corPrimaryAtual,
+  text_color: corTextoAtual
+});
+
 
   aplicarTema();
   alert("Aparência salva com sucesso 🎉");
