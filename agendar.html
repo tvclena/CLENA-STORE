@@ -524,10 +524,9 @@ async function selecionarDia(index){
 }
 
 async function confirmar(h){
-
   const cliente = getCliente();
 
-  if(!cliente){
+  if(!cliente || !cliente.whatsapp){
     abrirModal();
     return;
   }
@@ -543,7 +542,7 @@ async function confirmar(h){
     hora_inicio: h,
     hora_fim: fim,
     cliente_nome: cliente.nome,
-    cliente_whatsapp: cliente.whatsapp
+    cliente_whatsapp: cliente.whatsapp // ✅ GARANTIDO
   });
 
   if(error){
@@ -551,6 +550,10 @@ async function confirmar(h){
     console.error(error);
     return;
   }
+
+  // sucesso…
+}
+
 
   document.body.insertAdjacentHTML("beforeend", `
     <div class="overlay" id="overlayConfirm">
@@ -602,22 +605,38 @@ document.getElementById("days").addEventListener("scroll", e=>{
 
   
 function getCliente(){
-  // 1️⃣ Usuário logado (app)
+  // 1️⃣ Usuário logado
   if(usuarioLogado){
+    const nome =
+      usuarioLogado.user_metadata?.nome ||
+      usuarioLogado.user_metadata?.full_name ||
+      "CLIENTE";
+
+    const whatsapp =
+      usuarioLogado.user_metadata?.whatsapp ||
+      usuarioLogado.user_metadata?.phone ||
+      null;
+
     return {
-      nome: usuarioLogado.user_metadata?.nome || "CLIENTE",
-      whatsapp: usuarioLogado.user_metadata?.whatsapp || null,
+      nome,
+      whatsapp,
       email: usuarioLogado.email || null
     };
   }
 
-  // 2️⃣ Cliente público (link da loja)
+  // 2️⃣ Cliente público
   try{
     const raw = localStorage.getItem("CLIENTE_LOJA");
     if(!raw) return null;
+
     const c = JSON.parse(raw);
     if(!c?.whatsapp) return null;
-    return c;
+
+    return {
+      nome: c.nome,
+      whatsapp: c.whatsapp,
+      email: c.email || null
+    };
   }catch{
     return null;
   }
