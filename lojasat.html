@@ -21,11 +21,14 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --radius:22px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:var(--text);overflow-x:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
 
 /* HEADER */
 header{
@@ -36,15 +39,12 @@ header{
 .header{
   max-width:1200px;
   margin:auto;
-  padding:16px 20px;
+  padding:16px;
   display:flex;
   align-items:center;
   justify-content:space-between;
 }
-.header h1{
-  font-size:20px;
-  font-weight:800;
-}
+.header h1{font-size:18px;font-weight:800}
 .location{
   font-size:13px;
   color:var(--muted);
@@ -57,135 +57,113 @@ header{
 /* HERO */
 .hero{
   max-width:1200px;
-  margin:30px auto 20px;
-  padding:0 20px;
+  margin:20px auto;
+  padding:0 16px;
   display:grid;
-  grid-template-columns:1.1fr .9fr;
-  gap:30px;
+  gap:16px;
 }
 .hero-box{
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  border-radius:36px;
-  padding:40px;
+  border-radius:24px;
+  padding:24px;
   color:#fff;
 }
 .hero-box h2{
-  font-size:36px;
-  line-height:1.1;
-  margin-bottom:12px;
-}
-.hero-box p{
-  opacity:.95;
-  font-size:16px;
-}
-.hero-image{
-  background:#fff;
-  border-radius:36px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 30px 80px rgba(0,0,0,.12);
-}
-.hero-image i{
-  font-size:120px;
-  color:var(--primary);
+  font-size:26px;
+  margin-bottom:8px;
 }
 
 /* FILTERS */
 .filters{
   max-width:1200px;
-  margin:10px auto 10px;
-  padding:0 20px;
+  margin:10px auto;
+  padding:0 16px;
   display:grid;
-  grid-template-columns:2fr 1fr 1fr 1fr;
+  grid-template-columns:1fr 1fr;
   gap:10px;
 }
 .filters input,.filters select{
-  padding:14px;
+  padding:12px;
   border-radius:14px;
   border:1px solid var(--border);
-  font-size:14px;
 }
 
-/* LIST */
+/* LIST GRID */
 .list{
   max-width:1200px;
-  margin:10px auto 60px;
-  padding:0 20px;
+  margin:20px auto 60px;
+  padding:0 16px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:22px;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+/* 3 por linha em celulares grandes */
+@media(min-width:480px){
+  .list{grid-template-columns:repeat(3,1fr)}
+}
+
+/* Desktop */
+@media(min-width:900px){
+  .list{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 }
 
 /* CARD */
 .card{
   background:var(--card);
-  border-radius:26px;
-  padding:18px;
-  box-shadow:0 14px 40px rgba(0,0,0,.08);
-  transition:.3s;
-  cursor:pointer;
-  position:relative;
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
 }
-.card:hover{
-  transform:translateY(-6px);
-}
-.card .logo{
-  width:56px;height:56px;
+.logo{
+  width:52px;height:52px;
   border-radius:50%;
   background:#eee;
   background-size:cover;
   background-position:center;
-  margin-bottom:12px;
+  margin-bottom:8px;
 }
 .card h3{
-  font-size:16px;
+  font-size:14px;
   font-weight:800;
 }
 .card small{
-  color:var(--muted);
   font-size:12px;
+  color:var(--muted);
 }
 .badges{
   display:flex;
-  gap:8px;
-  margin:10px 0;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:8px 0;
 }
 .badge{
   font-size:11px;
-  padding:6px 10px;
+  padding:5px 8px;
   border-radius:999px;
   font-weight:700;
 }
-.badge.open{background:#dcfce7;color:#166534}
-.badge.closed{background:#fee2e2;color:#991b1b}
-.badge.prod{background:#ede9fe;color:#5b21b6}
-.badge.serv{background:#e0f2fe;color:#075985}
+.open{background:#dcfce7;color:#166534}
+.closed{background:#fee2e2;color:#991b1b}
+.prod{background:#ede9fe;color:#5b21b6}
+.serv{background:#e0f2fe;color:#075985}
 
 .card button{
   width:100%;
-  margin-top:12px;
-  padding:12px;
+  margin-top:6px;
+  padding:10px;
   border:none;
   border-radius:999px;
   background:var(--primary);
   color:#fff;
   font-weight:800;
-  cursor:pointer;
 }
 
 /* EMPTY */
 .empty{
   text-align:center;
   color:var(--muted);
-  margin-top:60px;
-}
-
-/* RESPONSIVE */
-@media(max-width:900px){
-  .hero{grid-template-columns:1fr}
-  .hero-box h2{font-size:30px}
-  .filters{grid-template-columns:1fr 1fr}
+  margin-top:40px;
 }
 </style>
 </head>
@@ -204,32 +182,23 @@ header{
 
 <section class="hero">
   <div class="hero-box">
-    <h2>Agende com<br>os melhores perto de você</h2>
-    <p>
-      Um único cadastro funciona em todas as lojas disponíveis.
-      Escolha, entre e agende em segundos.
-    </p>
-  </div>
-  <div class="hero-image">
-    <i class="ri-store-2-line"></i>
+    <h2>Agende perto de você</h2>
+    <p>Use um único cadastro em todas as lojas disponíveis.</p>
   </div>
 </section>
 
 <section class="filters">
-  <input id="fNome" placeholder="Buscar por nome">
+  <input id="fNome" placeholder="Buscar loja">
   <input id="fCidade" placeholder="Cidade">
-  <input id="fHora" type="time">
   <select id="fStatus">
     <option value="">Aberta ou fechada</option>
-    <option value="open">Aberta</option>
+    <option value="open">Aberta agora</option>
     <option value="closed">Fechada</option>
   </select>
 </section>
 
 <section class="list" id="lista"></section>
-<div class="empty" id="empty" style="display:none">
-  Nenhuma loja encontrada
-</div>
+<div class="empty" id="empty" style="display:none">Nenhuma loja encontrada</div>
 
 <script>
 const sb = supabase.createClient(
@@ -237,79 +206,69 @@ const sb = supabase.createClient(
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let lojas = [];
-let cidadeDetectada = null;
+let lojas=[];
 
-/* ================= LOCALIZAÇÃO ================= */
-function pedirLocalizacao(){
-  if(!navigator.geolocation){
-    alert("Localização não suportada");
-    return;
+/* ===== STATUS DA AGENDA ===== */
+async function statusAgenda(lojaId){
+  const hoje = new Date();
+  const dataHoje = hoje.toISOString().slice(0,10);
+  const horaAtual = hoje.toTimeString().slice(0,5);
+
+  const { data } = await sb
+    .from("agenda_loja")
+    .select("data,fechado,horarios")
+    .eq("user_id",lojaId)
+    .order("data",{ascending:true});
+
+  if(!data || !data.length) return { aberta:false };
+
+  // HOJE
+  const hojeAgenda = data.find(d=>d.data===dataHoje);
+  if(hojeAgenda && !hojeAgenda.fechado){
+    for(const h of hojeAgenda.horarios||[]){
+      if(horaAtual>=h.inicio && horaAtual<=h.fim){
+        return { aberta:true };
+      }
+    }
   }
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
-    const j = await r.json();
-    cidadeDetectada = j.address.city || j.address.town || j.address.village;
-    cidadeAtual.innerText = cidadeDetectada;
-    fCidade.value = cidadeDetectada;
-    render();
-  });
+
+  // PRÓXIMA ABERTURA
+  const prox = data.find(d=>!d.fechado && d.horarios?.length);
+  if(prox){
+    return {
+      aberta:false,
+      abre:`${prox.data} às ${prox.horarios[0].inicio}`
+    };
+  }
+
+  return { aberta:false };
 }
 
-/* ================= LOAD LOJAS ================= */
+/* ===== LOAD ===== */
 async function carregarLojas(){
   const { data } = await sb
     .from("user_profile")
-    .select("user_id,negocio,tipo,cidade,uf,avatar_url,status")
+    .select("user_id,negocio,tipo,cidade,uf,avatar_url")
     .eq("status","active");
 
-  lojas = data || [];
+  lojas=data||[];
   render();
 }
 
-/* ================= AGENDA ================= */
-async function agendaAberta(lojaId){
-  const hoje = new Date().toISOString().slice(0,10);
-  const { data } = await sb
-    .from("agenda_loja")
-    .select("fechado,horarios")
-    .eq("user_id",lojaId)
-    .eq("data",hoje)
-    .maybeSingle();
-
-  if(!data || data.fechado) return false;
-  return Array.isArray(data.horarios) && data.horarios.length>0;
-}
-
-/* ================= PROD/SERV ================= */
-async function tipoLoja(lojaId){
-  const { data } = await sb
-    .from("produtos_servicos")
-    .select("tipo")
-    .eq("user_id",lojaId)
-    .eq("ativo",true);
-
-  return data?.some(p=>p.tipo==="PRODUTO") ? "PRODUTO" : "SERVICO";
-}
-
-/* ================= RENDER ================= */
+/* ===== RENDER ===== */
 async function render(){
   lista.innerHTML="";
-  let achou=false;
+  let ok=false;
 
   for(const l of lojas){
     if(fNome.value && !l.negocio.toLowerCase().includes(fNome.value.toLowerCase())) continue;
-    if(fCidade.value && l.cidade?.toLowerCase() !== fCidade.value.toLowerCase()) continue;
+    if(fCidade.value && l.cidade?.toLowerCase()!==fCidade.value.toLowerCase()) continue;
 
-    const aberta = await agendaAberta(l.user_id);
-    if(fStatus.value==="open" && !aberta) continue;
-    if(fStatus.value==="closed" && aberta) continue;
+    const st = await statusAgenda(l.user_id);
+    if(fStatus.value==="open" && !st.aberta) continue;
+    if(fStatus.value==="closed" && st.aberta) continue;
 
-    const tipo = await tipoLoja(l.user_id);
-
-    achou=true;
+    ok=true;
     lista.innerHTML+=`
       <div class="card">
         <div class="logo" style="background-image:url('${l.avatar_url||""}')"></div>
@@ -317,45 +276,37 @@ async function render(){
         <small>${l.tipo} • ${l.cidade}/${l.uf}</small>
 
         <div class="badges">
-          <div class="badge ${aberta?"open":"closed"}">
-            ${aberta?"Aberta":"Fechada"}
+          <div class="badge ${st.aberta?"open":"closed"}">
+            ${st.aberta?"Aberta agora":st.abre?`Abre ${st.abre}`:"Fechada"}
           </div>
-          <div class="badge ${tipo==="PRODUTO"?"prod":"serv"}">
-            ${tipo==="PRODUTO"?"🛒 Produto":"✂️ Serviço"}
-          </div>
+          <div class="badge serv">✂️ Serviço</div>
         </div>
 
-        <button onclick="entrar('${l.user_id}')">
-          Acessar loja
-        </button>
+        <button onclick="entrar('${l.user_id}')">Acessar</button>
       </div>
     `;
   }
 
-  empty.style.display = achou ? "none" : "block";
+  empty.style.display = ok?"none":"block";
 }
 
-/* ================= ENTRAR ================= */
+/* ===== ENTRAR ===== */
 async function entrar(lojaId){
-  const { data:perfil } = await sb
-    .from("clientes_profile")
-    .select("lojas")
-    .eq("id",(await sb.auth.getUser()).data.user.id)
-    .single();
-
-  const lojasCliente = perfil?.lojas || [];
-  if(!lojasCliente.includes(lojaId)) lojasCliente.push(lojaId);
+  const { data:{user} } = await sb.auth.getUser();
+  const { data:p } = await sb.from("clientes_profile").select("lojas").eq("id",user.id).single();
+  const arr=p?.lojas||[];
+  if(!arr.includes(lojaId)) arr.push(lojaId);
 
   await sb.from("clientes_profile").update({
-    lojas: lojasCliente,
-    loja_ativa: lojaId
-  }).eq("id",(await sb.auth.getUser()).data.user.id);
+    lojas:arr,
+    loja_ativa:lojaId
+  }).eq("id",user.id);
 
-  location.href = `app.html?l=${lojaId}`;
+  location.href=`app.html?l=${lojaId}`;
 }
 
-/* EVENTS */
-[fNome,fCidade,fHora,fStatus].forEach(i=>i.addEventListener("input",render));
+/* FILTROS */
+[fNome,fCidade,fStatus].forEach(e=>e.addEventListener("input",render));
 
 carregarLojas();
 </script>
