@@ -6,12 +6,33 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
+<!-- 🎨 APLICA TEMA ANTES DE RENDERIZAR -->
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const lojaId = params.get("l");
+  if(!lojaId) return;
+
+  const tema = localStorage.getItem("loja_tema_" + lojaId);
+  if(!tema) return;
+
+  try{
+    const cfg = JSON.parse(tema);
+    const root = document.documentElement;
+    if(cfg.primary) root.style.setProperty("--primary", cfg.primary);
+    if(cfg.secondary) root.style.setProperty("--primary-2", cfg.secondary);
+    if(cfg.text) root.style.setProperty("--text", cfg.text);
+  }catch(e){}
+})();
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
+  --primary-2:#ff9a57;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
@@ -21,12 +42,12 @@
 }
 
 *{box-sizing:border-box;font-family:Inter}
-html,body{margin:0;background:var(--bg)}
+html,body{margin:0;background:var(--bg);color:var(--text)}
 
 .header{
   height:58px;
-  background:#fff;
-  border-bottom:1px solid var(--border);
+  background:var(--primary);
+  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -37,17 +58,18 @@ html,body{margin:0;background:var(--bg)}
 }
 
 .container{
-  padding:18px;
+  padding:18px 14px 28px;
   display:flex;
   flex-direction:column;
   gap:18px;
 }
 
+/* ===== CARD ===== */
 .card{
   background:var(--card);
-  border-radius:22px;
+  border-radius:24px;
   padding:18px;
-  box-shadow:0 12px 36px rgba(0,0,0,.12);
+  box-shadow:0 14px 40px rgba(0,0,0,.14);
   display:flex;
   flex-direction:column;
   gap:14px;
@@ -57,6 +79,7 @@ html,body{margin:0;background:var(--bg)}
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
 }
 
 .title{
@@ -65,16 +88,17 @@ html,body{margin:0;background:var(--bg)}
 }
 
 .badge{
-  background:rgba(255,106,0,.15);
+  background:color-mix(in srgb, var(--primary) 20%, transparent);
   color:var(--primary);
   padding:6px 14px;
   border-radius:999px;
   font-size:12px;
   font-weight:800;
+  white-space:nowrap;
 }
 
 .info{
-  font-size:14px;
+  font-size:13px;
   color:var(--muted);
 }
 
@@ -86,12 +110,13 @@ html,body{margin:0;background:var(--bg)}
 .actions{
   display:flex;
   gap:12px;
+  margin-top:6px;
 }
 
 button{
   flex:1;
-  padding:13px;
-  border-radius:14px;
+  padding:14px;
+  border-radius:16px;
   border:none;
   font-weight:800;
   cursor:pointer;
@@ -101,10 +126,11 @@ button{
 .btn-outline{
   background:#fff;
   border:1px solid var(--border);
+  color:var(--text);
 }
 
 .btn-danger{
-  background:#fee2e2;
+  background:color-mix(in srgb, var(--danger) 15%, #fff);
   color:var(--danger);
 }
 
@@ -114,9 +140,24 @@ button:disabled{
 }
 
 .lock{
+  margin-top:4px;
   color:var(--danger);
   font-size:13px;
   font-weight:700;
+}
+
+/* ===== EMPTY ===== */
+.empty{
+  text-align:center;
+  padding:26px 18px;
+}
+.empty h2{
+  font-size:18px;
+  margin-bottom:6px;
+}
+.empty p{
+  color:var(--muted);
+  font-size:14px;
 }
 </style>
 </head>
@@ -159,9 +200,9 @@ async function carregarUsuario(){
 
   if(!usuario){
     lista.innerHTML = `
-      <div class="card">
-        <div class="title">Você não está logado</div>
-        <div class="info">Entre na sua conta para ver seus agendamentos.</div>
+      <div class="card empty">
+        <h2>Você não está logado</h2>
+        <p>Entre na sua conta para visualizar seus agendamentos.</p>
       </div>
     `;
     return false;
@@ -171,9 +212,9 @@ async function carregarUsuario(){
 
   if(!whatsapp){
     lista.innerHTML = `
-      <div class="card">
-        <div class="title">WhatsApp não encontrado</div>
-        <div class="info">Seu cadastro não possui WhatsApp.</div>
+      <div class="card empty">
+        <h2>Cadastro incompleto</h2>
+        <p>Seu usuário não possui WhatsApp cadastrado.</p>
       </div>
     `;
     return false;
@@ -195,9 +236,9 @@ async function carregarAgendamentos(){
 
   if(!ags || ags.length === 0){
     lista.innerHTML = `
-      <div class="card">
-        <div class="title">Nenhum agendamento encontrado</div>
-        <div class="info">Você ainda não possui agendamentos.</div>
+      <div class="card empty">
+        <h2>Nenhum agendamento encontrado</h2>
+        <p>Você ainda não possui agendamentos ativos.</p>
       </div>
     `;
     return;
