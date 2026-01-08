@@ -464,73 +464,6 @@ carregarDiasLazy();
 
 /* ================= DIA → HORÁRIOS ================= */
 async function selecionarDia(index){
-async function confirmar(h){
-
-  const cliente = getCliente();
-  if(!cliente){
-    abrirModal();
-    return;
-  }
-
-  const fim = toHour(toMin(h) + duracao);
-
-  const payload = {
-    servico_id: dados.servico,
-    valor_servico: dados.valor_servico,
-    data: dados.data,
-    hora_inicio: h,
-    hora_fim: fim,
-    cliente_nome: cliente.nome,
-    cliente_whatsapp: cliente.whatsapp
-  };
-
-  let query = sb.from("agendamentos");
-
-  // ✏️ ALTERAR AGENDAMENTO
-  if(alterarId){
-    query = query
-      .update(payload)
-      .eq("id", alterarId)
-      .eq("loja_id", lojaId);
-  }
-  // ➕ NOVO AGENDAMENTO
-  else{
-    query = query.insert({
-      ...payload,
-      user_id: lojaId,
-      loja_id: lojaId
-    });
-  }
-
-  const { error } = await query;
-
-  if(error){
-    alert("❌ Erro ao salvar o agendamento.\n" + error.message);
-    console.error(error);
-    return;
-  }
-
-  document.body.insertAdjacentHTML("beforeend", `
-    <div class="overlay" id="overlayConfirm">
-      <div class="msg-final">
-        ✅ <strong>${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}</strong><br><br>
-
-        Serviço: <b>${dados.servico_nome}</b><br>
-        Data: <b>${dados.data}</b><br>
-        Horário: <b>${h}</b><br><br>
-
-        <div style="display:flex;gap:10px">
-          <button onclick="irParaAgendamentos()" style="flex:1">
-            📋 Meus Agendamentos
-          </button>
-          <button onclick="fecharOverlay()" style="flex:1">
-            ✖ Fechar
-          </button>
-        </div>
-      </div>
-    </div>
-  `);
-}
 
   /* ===== MARCA VISUAL DO DIA ===== */
   document.querySelectorAll("#days .item")
@@ -731,6 +664,73 @@ async function salvarCliente(){
   fecharModal();
 }
 
+async function confirmar(h){
+
+  const cliente = getCliente();
+  if(!cliente){
+    abrirModal();
+    return;
+  }
+
+  const fim = toHour(toMin(h) + duracao);
+
+  const payload = {
+    servico_id: dados.servico,
+    valor_servico: dados.valor_servico,
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp
+  };
+
+  let query = sb.from("agendamentos");
+
+  // ✏️ ALTERAR AGENDAMENTO EXISTENTE
+  if(alterarId){
+    query = query
+      .update(payload)
+      .eq("id", alterarId)
+      .eq("loja_id", lojaId);
+  }
+  // ➕ NOVO AGENDAMENTO
+  else{
+    query = query.insert({
+      ...payload,
+      user_id: lojaId,
+      loja_id: lojaId
+    });
+  }
+
+  const { error } = await query;
+
+  if(error){
+    alert("❌ Erro ao salvar o agendamento.\n" + error.message);
+    console.error(error);
+    return;
+  }
+
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="overlay" id="overlayConfirm">
+      <div class="msg-final">
+        ✅ <strong>${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}</strong><br><br>
+
+        Serviço: <b>${dados.servico_nome}</b><br>
+        Data: <b>${dados.data}</b><br>
+        Horário: <b>${h}</b><br><br>
+
+        <div style="display:flex;gap:10px">
+          <button onclick="irParaAgendamentos()" style="flex:1">
+            📋 Meus Agendamentos
+          </button>
+          <button onclick="fecharOverlay()" style="flex:1">
+            ✖ Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  `);
+}
 
 
 
