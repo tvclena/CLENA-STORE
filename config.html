@@ -354,13 +354,18 @@ function fecharConfigLoja(){
 async function salvarConfigLoja(){
   const { error } = await sb
     .from("loja_config")
-    .upsert({
-      user_id: lojaId,
-      primary_color: corPrimaryAtual,
-      secondary_color: corPrimaryAtual,
-      text_color: corTextoAtual,
-      updated_at: new Date()
-    });
+    .upsert(
+      {
+        user_id: lojaId,
+        primary_color: corPrimaryAtual,
+        secondary_color: corPrimaryAtual,
+        text_color: corTextoAtual,
+        updated_at: new Date()
+      },
+      {
+        onConflict: "user_id"
+      }
+    );
 
   if(error){
     console.error(error);
@@ -369,9 +374,10 @@ async function salvarConfigLoja(){
   }
 
   aplicarTema();
-  alert("Aparência salva com sucesso 🎉");
+  alert("Aparência atualizada com sucesso 🎉");
   fecharConfigLoja();
 }
+
 function aplicarTema(){
   document.documentElement.style.setProperty("--primary", corPrimaryAtual);
   document.documentElement.style.setProperty("--primary-2", corPrimaryAtual);
