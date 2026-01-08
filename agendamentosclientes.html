@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-<!-- THEMA LOAD (ANTES DE TUDO) -->
+<!-- ===== THEMA LOAD (ANTES DE TUDO) ===== -->
 <script>
 (function(){
   const params = new URLSearchParams(location.search);
@@ -43,7 +43,12 @@
 }
 
 *{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);padding:16px}
+body{
+  margin:0;
+  background:var(--bg);
+  padding:16px;
+  color:var(--text);
+}
 
 /* HEADER */
 .header{
@@ -52,7 +57,7 @@ body{margin:0;background:var(--bg);padding:16px}
   gap:12px;
   font-size:18px;
   font-weight:900;
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
 
 /* CARD */
@@ -68,6 +73,7 @@ body{margin:0;background:var(--bg);padding:16px}
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
 }
 
 .badge{
@@ -98,7 +104,7 @@ body{margin:0;background:var(--bg);padding:16px}
 .actions{
   display:flex;
   gap:10px;
-  margin-top:12px;
+  margin-top:14px;
 }
 
 button{
@@ -136,7 +142,7 @@ button:disabled{
 .empty{
   background:var(--card);
   border-radius:22px;
-  padding:20px;
+  padding:22px;
   text-align:center;
   color:var(--muted);
 }
@@ -180,15 +186,18 @@ async function carregar(){
 
   const { data:auth } = await sb.auth.getUser();
   if(!auth?.user){
-    lista.innerHTML = `<div class="empty">Faça login para ver seus agendamentos</div>`;
+    lista.innerHTML = `
+      <div class="empty">
+        Faça login para visualizar seus agendamentos
+      </div>`;
     return;
   }
 
   const { data: ags } = await sb
     .from("agendamentos")
-    .select("id,data,hora_inicio,hora_fim,servico_id")
+    .select("id,data,hora_inicio,hora_fim,servico_id,status")
     .eq("loja_id", lojaId)
-    .eq("user_id", auth.user.id)
+    .eq("cliente_id", auth.user.id)
     .eq("status","CONFIRMADO")
     .order("data");
 
@@ -206,7 +215,7 @@ async function carregar(){
     .select("id,nome");
 
   const mapa = {};
-  servs.forEach(s=>mapa[s.id]=s.nome);
+  servs.forEach(s => mapa[s.id] = s.nome);
 
   lista.innerHTML = ags.map(a=>{
     const mins = minutosAte(a.data, a.hora_inicio);
@@ -224,19 +233,22 @@ async function carregar(){
 
         <div class="actions">
           <button class="btn-outline"
-            ${bloqueado?"disabled":""}
+            ${bloqueado ? "disabled" : ""}
             onclick="alterar('${a.id}','${a.servico_id}')">
             Alterar
           </button>
 
           <button class="btn-danger"
-            ${bloqueado?"disabled":""}
+            ${bloqueado ? "disabled" : ""}
             onclick="cancelar('${a.id}')">
             Cancelar
           </button>
         </div>
 
-        ${bloqueado?`<div class="lock">🔒 Alterações permitidas até 40 minutos antes</div>`:""}
+        ${bloqueado
+          ? `<div class="lock">🔒 Alterações permitidas até 40 minutos antes</div>`
+          : ""
+        }
       </div>
     `;
   }).join("");
@@ -252,7 +264,7 @@ async function cancelar(id){
   if(!confirm("Deseja cancelar este agendamento?")) return;
 
   await sb.from("agendamentos")
-    .update({ status:"cancelado" })
+    .update({ status:"CANCELADO" })
     .eq("id",id);
 
   carregar();
