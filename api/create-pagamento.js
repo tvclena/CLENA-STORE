@@ -103,6 +103,26 @@ export default async function handler(req, res) {
       .select()
       .single();
 
+
+
+
+    /* ===== 🔔 NOTIFICA LOJA (NOVA COMPRA) ===== */
+await supabase.rpc("fn_enqueue_push", {
+  p_user_id: loja.user_id,
+  p_tipo: "COMPRA",
+  p_titulo: "Nova venda 💰",
+  p_mensagem: `Novo pedido no valor de R$ ${total.toFixed(2).replace(".", ",")}`,
+  p_url: "/pedidos.html"
+});
+
+
+
+
+    
+
+
+
+    
     /* ===== MERCADO PAGO (CORRETO) ===== */
     const client = new MercadoPagoConfig({
       accessToken: cred.mp_access_token
