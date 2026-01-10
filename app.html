@@ -329,8 +329,28 @@ let user,perfil,edit=false,removeId=null;
   const {data}=await sb.from("clientes_profile").select("*").eq("id",user.id).single();
   perfil=data;
 
-  frame.src=`homeclientes.html?l=${perfil.loja_ativa}`;
-  carregarPerfil();
+// 🔑 define loja respeitando ?l=
+const params = new URLSearchParams(location.search);
+let lojaId = params.get("l");
+
+// fallback para loja ativa
+if (!lojaId && perfil.loja_ativa) {
+  lojaId = perfil.loja_ativa;
+  history.replaceState(null, "", `app.html?l=${lojaId}`);
+}
+
+// carrega iframe com a loja correta
+frame.src = `homeclientes.html?l=${lojaId}`;
+// 🔄 sincroniza loja ativa em memória e no banco
+if (lojaId !== perfil.loja_ativa) {
+  perfil.loja_ativa = lojaId;
+  await sb.from("clientes_profile")
+    .update({ loja_ativa: lojaId })
+    .eq("id", user.id);
+}
+
+carregarPerfil();
+
 })();
 
 function carregarPerfil(){
@@ -411,7 +431,15 @@ async function salvarPerfil(){
 function openProfile(){profileOverlay.style.display="flex"}
 function closeProfile(e){if(!e||e.target.id==="profileOverlay")profileOverlay.style.display="none"}
 async function sair(){await sb.auth.signOut();location.href="index.html"}
-function go(el,p){document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));el.classList.add("active");frame.src=`${p}?l=${perfil.loja_ativa}`}
+function go(el,p){
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+
+  const params = new URLSearchParams(location.search);
+  const lojaId = params.get("l") || perfil.loja_ativa;
+
+  frame.src = `${p}?l=${lojaId}`;
+}
 </script>
 
 </body>
