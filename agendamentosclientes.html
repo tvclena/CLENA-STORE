@@ -269,37 +269,37 @@ function alterar(id, servico){
 async function cancelar(id){
   if(!confirm("Deseja cancelar este agendamento?")) return;
 
-async function cancelar(id){
-  if(!confirm("Deseja cancelar este agendamento?")) return;
+  try{
+    const res = await fetch("/api/update-agendamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        agendamento_id: id,
+        loja_id: lojaId,
+        novo_status: "CANCELADO",
+        motivo: "CANCELAMENTO_CLIENTE"
+      })
+    });
 
-  const res = await fetch("/api/update-agendamento", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      agendamento_id: id,
-      loja_id: lojaId,
-      novo_status: "CANCELADO",
-      motivo: "CANCELAMENTO_CLIENTE"
-    })
-  });
+    const json = await res.json();
 
-  const json = await res.json();
+    if(!res.ok){
+      alert("Erro ao cancelar agendamento");
+      console.error(json);
+      return;
+    }
 
-  if(!res.ok){
-    alert("Erro ao cancelar agendamento");
-    console.error(json);
-    return;
+    carregar();
+  }catch(err){
+    alert("Falha de conexão com o servidor");
+    console.error(err);
   }
-
-  carregar();
-}
-
-  carregar();
 }
 
 /* ================= INIT ================= */
 carregar();
 </script>
+
 
 </body>
 </html>
