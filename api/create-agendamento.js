@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { enviarEmail } from "../lib/email.js";
+import { enviarEmail } from "../../lib/email.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -7,11 +7,26 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+
+  // 🔓 CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
   try {
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body;
+
     const {
       loja_id,
       servico_id,
@@ -24,7 +39,7 @@ export default async function handler(req, res) {
       cliente_whatsapp,
       cliente_email,
       cliente_id
-    } = req.body;
+    } = body;
 
     // 1️⃣ SALVA AGENDAMENTO
     const { error } = await supabase
@@ -72,6 +87,8 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error("❌ ERRO AGENDAMENTO:", err);
-    return res.status(500).json({ error: "Erro ao criar agendamento" });
+    return res.status(500).json({
+      error: err.message || "Erro ao criar agendamento"
+    });
   }
 }
