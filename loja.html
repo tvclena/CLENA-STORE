@@ -228,6 +228,11 @@ async function entrar(){
     alert("Erro ao autenticar");
     return;
   }
+// 🔗 salva vínculo cliente ↔ loja (MINHAS LOJAS)
+await sb.from("clientes_loja").upsert({
+  cliente_id: user.id,
+  loja_id: lojaId
+});
 
   // 4️⃣ busca perfil (SEM single)
   const { data: perfil } = await sb
