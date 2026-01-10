@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { enviarEmail } from "../lib/email.js";
+import { enviarEmail } from "../../lib/email.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -41,14 +41,14 @@ export default async function handler(req, res) {
       cliente_id
     } = body;
 
-    if (!loja_id || !servico_id || !data || !hora_inicio || !cliente_nome) {
+    // 🔍 Validação mínima
+    if (!loja_id || !servico_id || !data || !hora_inicio || !hora_fim) {
       return res.status(400).json({
-        error: "Payload incompleto",
-        received: body
+        error: "Dados obrigatórios ausentes"
       });
     }
 
-    // 1️⃣ SALVA AGENDAMENTO (ISSO NÃO PODE FALHAR)
+    // 1️⃣ SALVA AGENDAMENTO
     const { error: insertError } = await supabase
       .from("agendamentos")
       .insert({
@@ -66,28 +66,32 @@ export default async function handler(req, res) {
 
     if (insertError) {
       console.error("❌ ERRO INSERT:", insertError);
-      return res.status(500).json({
-        error: "Erro ao salvar agendamento",
-        details: insertError.message
-      });
+      throw new Error("Erro ao salvar agendamento no banco");
     }
 
-    // 2️⃣ BUSCA EMAIL DA LOJA
-    const { data: loja } = await supabase
+    // 2️⃣ BUSCA DADOS DA LOJA (CAMPO CORRETO)
+    const { data: loja, error: lojaError } = await supabase
       .from("user_profile")
-      .select("email, negocio")
+      .select("email_contato, negocio")
       .eq("user_id", loja_id)
       .single();
 
-    // 3️⃣ EMAIL (SE FALHAR, NÃO QUEBRA)
-    if (loja?.email) {
+    if (lojaError) {
+      console.error("❌ ERRO LOJA:", lojaError);
+      throw new Error("Erro ao buscar dados da loja");
+    }
+
+    console.log("📩 EMAIL DA LOJA:", loja.email_contato);
+
+    // 3️⃣ ENVIA EMAIL
+    if (loja?.email_contato) {
       try {
         await enviarEmail({
-          to: loja.email,
+          to: loja.email_contato,
           subject: "📅 Novo agendamento realizado",
           html: `
             <h2>Novo agendamento</h2>
-            <p><strong>Loja:</strong> ${loja.negocio || "Loja"}</p>
+            <p><strong>Loja:</strong> ${loja.negocio}</p>
             <p><strong>Cliente:</strong> ${cliente_nome}</p>
             <p><strong>WhatsApp:</strong> ${cliente_whatsapp}</p>
             <p><strong>Serviço:</strong> ${servico_nome}</p>
@@ -95,21 +99,19 @@ export default async function handler(req, res) {
             <p><strong>Horário:</strong> ${hora_inicio} - ${hora_fim}</p>
           `
         });
-      } catch (emailErr) {
-        console.warn("⚠️ Email não enviado:", emailErr.message);
+      } catch (emailError) {
+        console.error("⚠️ EMAIL NÃO ENVIADO:", emailError);
       }
+    } else {
+      console.warn("⚠️ Loja sem email_contato cadastrado");
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Agendamento criado com sucesso"
-    });
+    return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error("🔥 ERRO GERAL API:", err);
+    console.error("❌ ERRO GERAL AGENDAMENTO:", err);
     return res.status(500).json({
-      error: "Erro interno no servidor",
-      details: err.message
+      error: err.message || "Erro interno no servidor"
     });
   }
 }
