@@ -690,34 +690,30 @@ async function confirmar(h){
     cliente_whatsapp: cliente.whatsapp
   };
 
-  let query = sb.from("agendamentos");
-
-  // ✏️ ALTERAR AGENDAMENTO EXISTENTE
-  if(alterarId){
-    query = query
-      .update(payload)
-      .eq("id", alterarId)
-      .eq("loja_id", lojaId);
-  }
-  // ➕ NOVO AGENDAMENTO
-  else{
-query = query.insert({
-  ...payload,
-
-  user_id: lojaId,          // 🔥 OBRIGATÓRIO (dono da agenda)
-  loja_id: lojaId,          // loja
-  cliente_id: usuarioLogado?.id || null // cliente (se logado)
+ const response = await fetch("/api/create-agendamento", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    loja_id: lojaId,
+    servico_id: dados.servico,
+    servico_nome: dados.servico_nome,
+    valor_servico: dados.valor_servico,
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    cliente_id: usuarioLogado?.id || null
+  })
 });
 
-  }
-
-  const { error } = await query;
-
-  if(error){
-    alert("❌ Erro ao salvar o agendamento.\n" + error.message);
-    console.error(error);
-    return;
-  }
+if(!response.ok){
+  alert("❌ Erro ao salvar o agendamento.");
+  return;
+}
 
   document.body.insertAdjacentHTML("beforeend", `
     <div class="overlay" id="overlayConfirm">
