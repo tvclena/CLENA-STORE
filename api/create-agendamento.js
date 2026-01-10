@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { enviarEmail } from "../../lib/email.js";
+import { enviarEmail } from "../lib/email.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -8,15 +8,11 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
 
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
+  if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -25,6 +21,8 @@ export default async function handler(req, res) {
     const body = typeof req.body === "string"
       ? JSON.parse(req.body)
       : req.body;
+
+    console.log("📩 PAYLOAD:", body);
 
     const {
       loja_id,
@@ -40,16 +38,7 @@ export default async function handler(req, res) {
       cliente_id
     } = body;
 
-    // 🔎 Validação mínima
-    if (!loja_id || !servico_id || !data || !hora_inicio || !hora_fim) {
-      return res.status(400).json({
-        error: "Dados obrigatórios não informados"
-      });
-    }
-
-    /* ==============================
-       1️⃣ SALVA AGENDAMENTO
-    ============================== */
+    // 1️⃣ SALVA AGENDAMENTO
     const { error: insertError } = await supabase
       .from("agendamentos")
       .insert({
@@ -67,15 +56,10 @@ export default async function handler(req, res) {
 
     if (insertError) {
       console.error("❌ ERRO INSERT:", insertError);
-      return res.status(500).json({
-        error: "Erro ao salvar agendamento",
-        detalhe: insertError.message
-      });
+      throw insertError;
     }
 
-    /* ==============================
-       2️⃣ BUSCA EMAIL DA LOJA
-    ============================== */
+    // 2️⃣ BUSCA EMAIL DA LOJA
     const { data: loja, error: lojaError } = await supabase
       .from("user_profile")
       .select("email_contato, negocio")
@@ -83,46 +67,32 @@ export default async function handler(req, res) {
       .single();
 
     if (lojaError) {
-      console.warn("⚠️ Não foi possível buscar dados da loja:", lojaError.message);
+      console.warn("⚠️ Loja sem email:", lojaError.message);
     }
 
-    /* ==============================
-       3️⃣ ENVIA EMAIL (SEM QUEBRAR)
-    ============================== */
+    // 3️⃣ ENVIA EMAIL
     if (loja?.email_contato) {
-      try {
-        await enviarEmail({
-          to: loja.email_contato,
-          subject: "📅 Novo agendamento realizado",
-          html: `
-            <h2>Novo agendamento</h2>
-            <p><strong>Loja:</strong> ${loja.negocio}</p>
-            <p><strong>Cliente:</strong> ${cliente_nome}</p>
-            <p><strong>WhatsApp:</strong> ${cliente_whatsapp}</p>
-            ${cliente_email ? `<p><strong>Email:</strong> ${cliente_email}</p>` : ""}
-            <p><strong>Serviço:</strong> ${servico_nome}</p>
-            <p><strong>Data:</strong> ${data}</p>
-            <p><strong>Horário:</strong> ${hora_inicio} - ${hora_fim}</p>
-          `
-        });
-      } catch (emailError) {
-        console.error("⚠️ ERRO AO ENVIAR EMAIL:", emailError.message);
-        // 🔥 NÃO quebra a API
-      }
-    } else {
-      console.warn("⚠️ Loja sem email_contato cadastrado");
+      await enviarEmail({
+        to: loja.email_contato,
+        subject: "📅 Novo agendamento realizado",
+        html: `
+          <h2>Novo agendamento</h2>
+          <p><strong>Negócio:</strong> ${loja.negocio}</p>
+          <p><strong>Cliente:</strong> ${cliente_nome}</p>
+          <p><strong>WhatsApp:</strong> ${cliente_whatsapp}</p>
+          <p><strong>Serviço:</strong> ${servico_nome}</p>
+          <p><strong>Data:</strong> ${data}</p>
+          <p><strong>Horário:</strong> ${hora_inicio} - ${hora_fim}</p>
+        `
+      });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Agendamento criado com sucesso"
-    });
+    return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error("🔥 ERRO GERAL API:", err);
+    console.error("❌ ERRO GERAL:", err);
     return res.status(500).json({
-      error: "Erro interno no servidor",
-      detalhe: err.message
+      error: err.message || "Erro interno"
     });
   }
 }
