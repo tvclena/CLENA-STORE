@@ -677,7 +677,23 @@ async function salvarCliente(){
   fecharModal();
 }
 
+
+
+
+
 async function confirmar(h){
+
+  // 🔒 TRAVA ABSOLUTA: garante que a data foi escolhida
+  if (!dados || !dados.data) {
+    alert("Selecione a data antes de escolher o horário.");
+    return;
+  }
+
+  // 🔒 TRAVA: garante que o serviço foi selecionado
+  if (!dados.servico) {
+    alert("Selecione um serviço antes de continuar.");
+    return;
+  }
 
   const cliente = getCliente();
   if(!cliente){
@@ -687,28 +703,28 @@ async function confirmar(h){
 
   const fim = toHour(toMin(h) + duracao);
 
-const endpoint = alterarId
-  ? "/api/update-agendamento"
-  : "/api/create-agendamento";
+  // 🔁 ENDPOINT CORRETO
+  const endpoint = alterarId
+    ? "/api/update-agendamento"
+    : "/api/create-agendamento";
 
-
- const payload = alterarId
-  ? {
-      agendamento_id: alterarId,
-      loja_id: lojaId,
-      servico_id: dados.servico,
-      servico_nome: dados.servico_nome,
-      valor_servico: dados.valor_servico,
-      data: dados.data,
-      hora_inicio: h,
-      hora_fim: fim,
-      cliente_nome: cliente.nome,
-      cliente_whatsapp: cliente.whatsapp,
-      cliente_email: cliente.email || null,
-      cliente_id: usuarioLogado?.id || null, // ✅ ESSENCIAL
-      motivo: "ALTERACAO_CLIENTE"
-    }
-
+  // 📦 PAYLOAD 100% COMPATÍVEL COM O BACKEND
+  const payload = alterarId
+    ? {
+        agendamento_id: alterarId,
+        loja_id: lojaId,
+        servico_id: dados.servico,
+        servico_nome: dados.servico_nome,
+        valor_servico: dados.valor_servico,
+        data: dados.data,
+        hora_inicio: h,
+        hora_fim: fim,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp,
+        cliente_email: cliente.email || null,
+        cliente_id: usuarioLogado?.id || null,
+        motivo: "ALTERACAO_CLIENTE"
+      }
     : {
         loja_id: lojaId,
         servico_id: dados.servico,
@@ -728,19 +744,21 @@ const endpoint = alterarId
   try{
     response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(payload)
     });
   }catch(err){
     console.error("❌ ERRO DE REDE:", err);
-    alert("❌ Falha de conexão com o servidor");
+    alert("Falha de conexão com o servidor.");
     return;
   }
 
   if(!response.ok){
     const erro = await response.text();
     console.error("❌ ERRO API:", erro);
-    alert("❌ Erro ao salvar agendamento");
+    alert("Erro ao salvar agendamento.");
     return;
   }
 
@@ -760,7 +778,7 @@ const endpoint = alterarId
           <button onclick="irParaAgendamentos()" style="flex:1">
             📋 Meus Agendamentos
           </button>
-          <button onclick="fecharOverlay()" style="flex:1">
+          <button onclick="document.getElementById('overlayConfirm').remove()" style="flex:1">
             ✖ Fechar
           </button>
         </div>
