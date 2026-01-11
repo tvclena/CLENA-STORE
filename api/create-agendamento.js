@@ -50,23 +50,32 @@ if (!loja_id || !data || !hora_inicio || !hora_fim) {
     error: "Dados obrigatórios ausentes"
   });
 }
-}
+
 
   let dbError;
 
 if (agendamento_id) {
   // ✏️ ALTERAÇÃO DE AGENDAMENTO
-  const { error } = await supabase
-    .from("agendamentos")
-    .update({
-      data,
-      hora_inicio,
-      hora_fim
-    })
-    .eq("id", agendamento_id)
-    .eq("loja_id", loja_id);
+const { data: atualizado, error } = await supabase
+  .from("agendamentos")
+  .update({
+    data,
+    hora_inicio,
+    hora_fim
+  })
+  .eq("id", agendamento_id)
+  .eq("loja_id", loja_id)
+  .eq("status", "CONFIRMADO")
+  .select()
+  .single();
 
-  dbError = error;
+if (!atualizado) {
+  return res.status(404).json({
+    error: "Agendamento não encontrado ou não pertence à loja"
+  });
+}
+
+dbError = error;
 
 } else {
   // ➕ CRIAÇÃO DE AGENDAMENTO
@@ -140,10 +149,12 @@ if (!agendamento_id && loja?.email_contato) {
       console.warn("⚠️ Loja não possui email_contato cadastrado");
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Agendamento criado com sucesso"
-    });
+return res.status(200).json({
+  success: true,
+  message: agendamento_id
+    ? "Agendamento alterado com sucesso"
+    : "Agendamento criado com sucesso"
+});
 
   } catch (err) {
     console.error("🔥 ERRO GERAL NA API:", err);
