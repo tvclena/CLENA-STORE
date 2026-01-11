@@ -683,91 +683,52 @@ async function salvarCliente(){
 
 
 
-
 async function confirmar(h){
 
-  // 🔒 TRAVA ABSOLUTA: garante que a data foi escolhida
-  if (!dados || !dados.data) {
-    alert("Selecione a data antes de escolher o horário.");
-    return;
-  }
-
-  // 🔒 TRAVA: garante que o serviço foi selecionado
-  if (!dados.servico) {
-    alert("Selecione um serviço antes de continuar.");
+  if (!dados?.data || !dados?.servico) {
+    alert("Selecione o serviço e a data antes de continuar.");
     return;
   }
 
   const cliente = getCliente();
-  if(!cliente){
+  if (!cliente) {
     abrirModal();
     return;
   }
 
   const fim = toHour(toMin(h) + duracao);
 
-  // 🔁 ENDPOINT CORRETO
- const endpoint =
-  alterarId && alterarId.length > 10
-    ? "/api/update-agendamento"
-    : "/api/create-agendamento";
+  // ✅ SEMPRE O MESMO ENDPOINT
+  const endpoint = "/api/agendamento";
 
+  const payload = {
+    agendamento_id: alterarId || null, // 🔥 define update ou create
+    loja_id: lojaId,
+    servico_id: dados.servico,
+    servico_nome: dados.servico_nome,
+    valor_servico: dados.valor_servico,
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    cliente_id: usuarioLogado?.id || null
+  };
 
-  // 📦 PAYLOAD 100% COMPATÍVEL COM O BACKEND
-  const payload = alterarId
-    ? {
-        agendamento_id: alterarId,
-        loja_id: lojaId,
-        servico_id: dados.servico,
-        servico_nome: dados.servico_nome,
-        valor_servico: dados.valor_servico,
-        data: dados.data,
-        hora_inicio: h,
-        hora_fim: fim,
-        cliente_nome: cliente.nome,
-        cliente_whatsapp: cliente.whatsapp,
-        cliente_email: cliente.email || null,
-        cliente_id: usuarioLogado?.id || null,
-        motivo: "ALTERACAO_CLIENTE"
-      }
-    : {
-        loja_id: lojaId,
-        servico_id: dados.servico,
-        servico_nome: dados.servico_nome,
-        valor_servico: dados.valor_servico,
-        data: dados.data,
-        hora_inicio: h,
-        hora_fim: fim,
-        cliente_nome: cliente.nome,
-        cliente_whatsapp: cliente.whatsapp,
-        cliente_email: cliente.email || null,
-        cliente_id: usuarioLogado?.id || null
-      };
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-  let response;
-
-  try{
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-  }catch(err){
-    console.error("❌ ERRO DE REDE:", err);
-    alert("Falha de conexão com o servidor.");
-    return;
-  }
-
-  if(!response.ok){
+  if (!response.ok) {
     const erro = await response.text();
     console.error("❌ ERRO API:", erro);
     alert("Erro ao salvar agendamento.");
     return;
   }
 
-  // ✅ SUCESSO
   document.body.insertAdjacentHTML("beforeend", `
     <div class="overlay" id="overlayConfirm">
       <div class="msg-final">
@@ -779,19 +740,13 @@ async function confirmar(h){
         Data: <b>${dados.data}</b><br>
         Horário: <b>${h}</b><br><br>
 
-        <div style="display:flex;gap:10px">
-          <button onclick="irParaAgendamentos()" style="flex:1">
-            📋 Meus Agendamentos
-          </button>
-          <button onclick="document.getElementById('overlayConfirm').remove()" style="flex:1">
-            ✖ Fechar
-          </button>
-        </div>
+        <button onclick="irParaAgendamentos()" style="width:100%">
+          📋 Meus Agendamentos
+        </button>
       </div>
     </div>
   `);
 }
-
 
 
 
