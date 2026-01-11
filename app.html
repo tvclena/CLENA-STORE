@@ -445,10 +445,22 @@ async function trocarLoja(lojaId){
     .eq("id", user.id);
 
   perfil.loja_ativa = lojaId;
-  history.replaceState(null, "", `app.html?l=${lojaId}`);
-  frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
+ async function trocarLoja(lojaId){
+  // salva como recente
+  await sb.from("clientes_loja").upsert({
+    cliente_id: user.id,
+    loja_id: lojaId
+  });
 
-  renderLojas();
+  // atualiza loja ativa
+  await sb.from("clientes_profile")
+    .update({ loja_ativa: lojaId })
+    .eq("id", user.id);
+
+  // 🔥 RECARREGA O APP COM A NOVA LOJA
+  location.href = `app.html?l=${lojaId}`;
+}
+
 }
 
 function go(el,p){
