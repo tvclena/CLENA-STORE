@@ -379,23 +379,35 @@ function carregarPerfil(){
 }
 
 async function renderLojas(){
-  lojasScroll.innerHTML="";
-  for(const id of perfil.lojas||[]){
-    const {data:l}=await sb.from("user_profile").select("negocio,avatar_url").eq("user_id",id).single();
-    const div=document.createElement("div");
-    div.className="loja-card"+(id===perfil.loja_ativa?" active":"")+(edit?" editing":"");
-    div.innerHTML=`
-      <div class="loja-logo" style="background-image:url('${l?.avatar_url||""}')"></div>
-      <span>${l?.negocio||"Loja"}</span>
+  lojasScroll.innerHTML = "";
+
+  const { data: lojas } = await sb
+    .from("clientes_loja")
+    .select(`
+      loja_id,
+      user_profile:loja_id (negocio, avatar_url)
+    `)
+    .eq("cliente_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(5);
+
+  for(const l of lojas || []){
+    const div = document.createElement("div");
+    div.className = "loja-card" + (l.loja_id === perfil.loja_ativa ? " active" : "");
+    div.innerHTML = `
+      <div class="loja-logo" style="background-image:url('${l.user_profile?.avatar_url || ""}')"></div>
+      <span>${l.user_profile?.negocio || "Loja"}</span>
     `;
-    div.onclick=()=>{
-      if(edit){removeId=id;confirmOverlay.style.display="flex";}
-      else trocarLoja(id);
-    };
+    div.onclick = () => trocarLoja(l.loja_id);
     lojasScroll.appendChild(div);
   }
-  lojasScroll.innerHTML+=`<div class="add-loja" onclick="location.href='lojasat.html?from=app'">+</div>`;
+
+  // botão +
+  lojasScroll.innerHTML += `
+    <div class="add-loja" onclick="location.href='lojasat.html?from=app'">+</div>
+  `;
 }
+
 
 function toggleEdit(){
   edit=!edit;
