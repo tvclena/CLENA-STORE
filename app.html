@@ -320,76 +320,76 @@ const sb = supabase.createClient(
 const frame=document.getElementById("frame");
 let user,perfil,edit=false,removeId=null;
 
-(async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session) location.href="index.html";
-  user=session.user;
 
-const params = new URLSearchParams(location.search);
-let lojaId = params.get("l");
+  
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    location.href = "index.html";
+    return;
+  }
 
-// busca perfil (SEM quebrar)
-const { data: perfilDB } = await sb
-  .from("clientes_profile")
-  .select("*")
-  .eq("id", user.id)
-  .maybeSingle();
+  user = session.user;
 
-let perfil = perfilDB;
+  const params = new URLSearchParams(location.search);
+  let lojaId = params.get("l");
 
-// 🔥 cria perfil se não existir
-if (!perfil) {
-  const { data: criado } = await sb
+  // 🔍 busca perfil
+  const { data: perfilDB } = await sb
     .from("clientes_profile")
-    .insert({
-      id: user.id,
-      nome: user.user_metadata?.name || user.email,
-      email: user.email,
-      loja_ativa: lojaId
-    })
-    .select()
-    .single();
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
 
-  perfil = criado;
+  // 🔥 cria perfil se não existir
+  if (!perfilDB) {
+    const { data: criado } = await sb
+      .from("clientes_profile")
+      .insert({
+        id: user.id,
+        nome: user.user_metadata?.name || user.email,
+        email: user.email,
+        loja_ativa: lojaId
+      })
+      .select()
+      .single();
+
+    perfil = criado;
+  } else {
+    perfil = perfilDB;
+  }
+
+  // 🔑 fallback de loja
+  if (!lojaId && perfil.loja_ativa) {
+    lojaId = perfil.loja_ativa;
+    history.replaceState(null, "", `app.html?l=${lojaId}`);
+  }
+// 🚨 se ainda não houver loja, força ir para seleção
+if (!lojaId) {
+  location.href = "lojasat.html";
+  return;
 }
 
-// 🔑 fallback de loja
-if (!lojaId && perfil.loja_ativa) {
-  lojaId = perfil.loja_ativa;
-  history.replaceState(null, "", `app.html?l=${lojaId}`);
-}
+  // 🔄 sincroniza loja ativa
+  if (lojaId && lojaId !== perfil.loja_ativa) {
+    await sb.from("clientes_loja").upsert({
+      cliente_id: user.id,
+      loja_id: lojaId
+    });
 
+    await sb.from("clientes_profile")
+      .update({ loja_ativa: lojaId })
+      .eq("id", user.id);
 
-// 🔑 define loja respeitando ?l=
-const params = new URLSearchParams(location.search);
-let lojaId = params.get("l");
+    perfil.loja_ativa = lojaId;
+  }
 
-// fallback para loja ativa
-if (!lojaId && perfil.loja_ativa) {
-  lojaId = perfil.loja_ativa;
-  history.replaceState(null, "", `app.html?l=${lojaId}`);
-}
+  // 🖼️ carrega iframe
+  frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
 
-// carrega iframe com a loja correta
-frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
-// 🔄 sincroniza loja ativa em memória e no banco
-if (lojaId !== perfil.loja_ativa) {
-
-  await sb.from("clientes_loja").upsert({
-    cliente_id: user.id,
-    loja_id: lojaId
-  });
-
-  perfil.loja_ativa = lojaId;
-  await sb.from("clientes_profile")
-    .update({ loja_ativa: lojaId })
-    .eq("id", user.id);
-}
-
-
-carregarPerfil();
-
+  carregarPerfil();
 })();
+
 
 function carregarPerfil(){
   pNome.value=perfil.nome||"";
