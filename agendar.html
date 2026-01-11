@@ -680,49 +680,69 @@ async function confirmar(h){
 
   const fim = toHour(toMin(h) + duracao);
 
-  const payload = {
-    servico_id: dados.servico,
-    valor_servico: dados.valor_servico,
-    data: dados.data,
-    hora_inicio: h,
-    hora_fim: fim,
-    cliente_nome: cliente.nome,
-    cliente_whatsapp: cliente.whatsapp
-  };
+  // 🔁 DEFINE ENDPOINT CORRETO
+  const endpoint = alterarId
+    ? "/api/update-agendamento"
+    : "/api/create-agendamento";
 
-  let query = sb.from("agendamentos");
+  // 🔁 DEFINE PAYLOAD CORRETO
+  const payload = alterarId
+    ? {
+        agendamento_id: alterarId,
+        loja_id: lojaId,
+        servico_id: dados.servico,
+        servico_nome: dados.servico_nome,
+        valor_servico: dados.valor_servico,
+        data: dados.data,
+        hora_inicio: h,
+        hora_fim: fim,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp,
+        cliente_email: cliente.email || null,
+        motivo: "ALTERACAO_CLIENTE"
+      }
+    : {
+        loja_id: lojaId,
+        servico_id: dados.servico,
+        servico_nome: dados.servico_nome,
+        valor_servico: dados.valor_servico,
+        data: dados.data,
+        hora_inicio: h,
+        hora_fim: fim,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp,
+        cliente_email: cliente.email || null,
+        cliente_id: usuarioLogado?.id || null
+      };
 
-  // ✏️ ALTERAR AGENDAMENTO EXISTENTE
-  if(alterarId){
-    query = query
-      .update(payload)
-      .eq("id", alterarId)
-      .eq("loja_id", lojaId);
-  }
-  // ➕ NOVO AGENDAMENTO
-  else{
-query = query.insert({
-  ...payload,
+  let response;
 
-  user_id: lojaId,          // 🔥 OBRIGATÓRIO (dono da agenda)
-  loja_id: lojaId,          // loja
-  cliente_id: usuarioLogado?.id || null // cliente (se logado)
-});
-
-  }
-
-  const { error } = await query;
-
-  if(error){
-    alert("❌ Erro ao salvar o agendamento.\n" + error.message);
-    console.error(error);
+  try{
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }catch(err){
+    console.error("❌ ERRO DE REDE:", err);
+    alert("❌ Falha de conexão com o servidor");
     return;
   }
 
+  if(!response.ok){
+    const erro = await response.text();
+    console.error("❌ ERRO API:", erro);
+    alert("❌ Erro ao salvar agendamento");
+    return;
+  }
+
+  // ✅ SUCESSO
   document.body.insertAdjacentHTML("beforeend", `
     <div class="overlay" id="overlayConfirm">
       <div class="msg-final">
-        ✅ <strong>${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}</strong><br><br>
+        ✅ <strong>
+          ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
+        </strong><br><br>
 
         Serviço: <b>${dados.servico_nome}</b><br>
         Data: <b>${dados.data}</b><br>
@@ -740,6 +760,7 @@ query = query.insert({
     </div>
   `);
 }
+
 
 
 
