@@ -317,9 +317,11 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const frame = document.getElementById("frame");
-let user, perfil;
+const frame=document.getElementById("frame");
+let user,perfil,edit=false,removeId=null;
 
+
+  
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
@@ -362,6 +364,11 @@ let user, perfil;
     lojaId = perfil.loja_ativa;
     history.replaceState(null, "", `app.html?l=${lojaId}`);
   }
+// 🚨 se ainda não houver loja, força ir para seleção
+if (!lojaId) {
+  location.href = "lojasat.html";
+  return;
+}
 
   // 🔄 sincroniza loja ativa
   if (lojaId && lojaId !== perfil.loja_ativa) {
@@ -383,22 +390,21 @@ let user, perfil;
   carregarPerfil();
 })();
 
-function carregarPerfil(){
-  pNome.value = perfil.nome || "";
-  pWhats.value = perfil.whatsapp || "";
-  pCep.value = perfil.cep || "";
-  pRua.value = perfil.rua || "";
-  pNumero.value = perfil.numero || "";
-  pCidade.value = perfil.cidade || "";
-  pUf.value = perfil.uf || "";
 
-  if (perfil.avatar_url) {
-    avatar.style.backgroundImage = `url(${perfil.avatar_url})`;
-    avatar.textContent = "";
-    profileImg.style.backgroundImage = `url(${perfil.avatar_url})`;
-  } else {
-    avatar.textContent = (perfil.nome || "A")[0];
-  }
+function carregarPerfil(){
+  pNome.value=perfil.nome||"";
+  pWhats.value=perfil.whatsapp||"";
+  pCep.value=perfil.cep||"";
+  pRua.value=perfil.rua||"";
+  pNumero.value=perfil.numero||"";
+  pCidade.value=perfil.cidade||"";
+  pUf.value=perfil.uf||"";
+
+  if(perfil.avatar_url){
+    avatar.style.backgroundImage=`url(${perfil.avatar_url})`;
+    avatar.textContent="";
+    profileImg.style.backgroundImage=`url(${perfil.avatar_url})`;
+  }else avatar.textContent=(perfil.nome||"A")[0];
 
   renderLojas();
 }
@@ -416,11 +422,17 @@ async function renderLojas(){
     .order("updated_at", { ascending: false })
     .limit(5);
 
-  const lojaAtual = new URLSearchParams(location.search).get("l");
+  const idsRenderizados = new Set();
 
-  for (const l of lojas || []) {
+  for(const l of lojas || []){
+    if(idsRenderizados.has(l.loja_id)) continue;
+    idsRenderizados.add(l.loja_id);
+
     const div = document.createElement("div");
-    div.className = "loja-card" + (l.loja_id === lojaAtual ? " active" : "");
+const lojaAtual = new URLSearchParams(location.search).get("l");
+
+div.className =
+  "loja-card" + (l.loja_id === lojaAtual ? " active" : "");
     div.innerHTML = `
       <div class="loja-logo" style="background-image:url('${l.user_profile?.avatar_url || ""}')"></div>
       <span>${l.user_profile?.negocio || "Loja"}</span>
@@ -429,41 +441,90 @@ async function renderLojas(){
     lojasScroll.appendChild(div);
   }
 
+  // botão +
   lojasScroll.innerHTML += `
     <div class="add-loja" onclick="location.href='lojasat.html?from=app'">+</div>
   `;
 }
 
+
+function toggleEdit(){
+  edit=!edit;
+  renderLojas();
+}
+
 async function trocarLoja(lojaId){
+  // 1️⃣ grava histórico
   await sb.from("clientes_loja").upsert({
     cliente_id: user.id,
     loja_id: lojaId
   });
 
+  // 2️⃣ atualiza loja ativa no banco
   await sb.from("clientes_profile")
     .update({ loja_ativa: lojaId })
     .eq("id", user.id);
 
-  perfil.loja_ativa = lojaId;
+  // 3️⃣ ATUALIZA URL (fonte da verdade)
   history.replaceState(null, "", `app.html?l=${lojaId}`);
+
+  // 4️⃣ ATUALIZA MEMÓRIA
+  perfil.loja_ativa = lojaId;
+
+  // 5️⃣ RECARREGA IFRAME COM A NOVA LOJA
   frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
 
+  // 6️⃣ RE-RENDERIZA A LISTA (ativa o círculo correto)
   renderLojas();
 }
 
+
+async function confirmRemove(){
+  perfil.lojas=perfil.lojas.filter(l=>l!==removeId);
+  if(perfil.loja_ativa===removeId) perfil.loja_ativa=perfil.lojas[0]||null;
+  await sb.from("clientes_profile").update({
+    lojas:perfil.lojas,
+    loja_ativa:perfil.loja_ativa
+  }).eq("id",user.id);
+  closeConfirm();
+  location.reload();
+}
+
+function closeConfirm(){confirmOverlay.style.display="none";removeId=null}
+
+async function salvarPerfil(){
+  let avatarUrl=perfil.avatar_url;
+  if(foto.files.length){
+    const path=`perfil/${user.id}.jpg`;
+    await sb.storage.from("avatars").upload(path,foto.files[0],{upsert:true});
+    avatarUrl=sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+  }
+  await sb.from("clientes_profile").update({
+    nome:pNome.value,whatsapp:pWhats.value,cep:pCep.value,
+    rua:pRua.value,numero:pNumero.value,cidade:pCidade.value,uf:pUf.value,
+    avatar_url:avatarUrl
+  }).eq("id",user.id);
+  location.reload();
+}
+
+function openProfile(){profileOverlay.style.display="flex"}
+function closeProfile(e){if(!e||e.target.id==="profileOverlay")profileOverlay.style.display="none"}
+async function sair(){await sb.auth.signOut();location.href="index.html"}
 function go(el,p){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
 
   const lojaId = new URLSearchParams(location.search).get("l");
+
   frame.src = `${p}?l=${lojaId}&t=${Date.now()}`;
 }
 
-function openProfile(){ profileOverlay.style.display="flex"; }
-function closeProfile(e){ if(!e || e.target.id==="profileOverlay") profileOverlay.style.display="none"; }
-async function sair(){ await sb.auth.signOut(); location.href="index.html"; }
-</script>
+  const params = new URLSearchParams(location.search);
+  const lojaId = params.get("l") || perfil.loja_ativa;
 
+frame.src = `${p}?l=${lojaId}&t=${Date.now()}`;
+}
+</script>
 
 </body>
 </html>
