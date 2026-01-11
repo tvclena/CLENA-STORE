@@ -425,20 +425,24 @@ async function trocarLoja(lojaId){
     loja_id: lojaId
   });
 
-  // atualiza loja ativa
+  // atualiza loja ativa no banco
   await sb.from("clientes_profile")
     .update({ loja_ativa: lojaId })
     .eq("id", user.id);
 
-  // atualiza URL sem recarregar tudo
+  // 🔥 ATUALIZA EM MEMÓRIA (ESSENCIAL)
+  perfil.loja_ativa = lojaId;
+
+  // atualiza URL
   history.replaceState(null, "", `app.html?l=${lojaId}`);
 
-  // recarrega iframe corretamente
-  frame.src = `homeclientes.html?l=${lojaId}`;
+  // 🔥 FORÇA RELOAD DO IFRAME
+  frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
 
-  // re-renderiza as lojas (ordem correta)
+  // re-renderiza as lojas (active correto)
   renderLojas();
 }
+
 
 async function confirmRemove(){
   perfil.lojas=perfil.lojas.filter(l=>l!==removeId);
@@ -478,7 +482,7 @@ function go(el,p){
   const params = new URLSearchParams(location.search);
   const lojaId = params.get("l") || perfil.loja_ativa;
 
-  frame.src = `${p}?l=${lojaId}`;
+frame.src = `${p}?l=${lojaId}&t=${Date.now()}`;
 }
 </script>
 
