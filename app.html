@@ -325,8 +325,40 @@ let user,perfil,edit=false,removeId=null;
   if(!session) location.href="index.html";
   user=session.user;
 
-  const {data}=await sb.from("clientes_profile").select("*").eq("id",user.id).single();
-  perfil=data;
+const params = new URLSearchParams(location.search);
+let lojaId = params.get("l");
+
+// busca perfil (SEM quebrar)
+const { data: perfilDB } = await sb
+  .from("clientes_profile")
+  .select("*")
+  .eq("id", user.id)
+  .maybeSingle();
+
+let perfil = perfilDB;
+
+// 🔥 cria perfil se não existir
+if (!perfil) {
+  const { data: criado } = await sb
+    .from("clientes_profile")
+    .insert({
+      id: user.id,
+      nome: user.user_metadata?.name || user.email,
+      email: user.email,
+      loja_ativa: lojaId
+    })
+    .select()
+    .single();
+
+  perfil = criado;
+}
+
+// 🔑 fallback de loja
+if (!lojaId && perfil.loja_ativa) {
+  lojaId = perfil.loja_ativa;
+  history.replaceState(null, "", `app.html?l=${lojaId}`);
+}
+
 
 // 🔑 define loja respeitando ?l=
 const params = new URLSearchParams(location.search);
