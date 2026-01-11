@@ -2,11 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-
 <title>Agenda Clena • Encontre sua loja</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#ff6a00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -30,59 +34,97 @@ body{
   color:var(--text);
 }
 
-/* HEADER */
-header{
+/* ===== FIXED HEADER ===== */
+.header{
+  position:fixed;
+  top:0;left:0;right:0;
   background:#fff;
-  padding:14px 18px;
+  z-index:100;
   border-bottom:1px solid var(--border);
 }
-header h1{
+
+.header h1{
   margin:0;
+  padding:14px 16px 6px;
   font-size:18px;
   font-weight:800;
 }
 
-/* HERO */
+/* ===== HERO ===== */
 .hero{
-  margin:16px;
-  padding:26px;
-  border-radius:24px;
+  padding:12px 16px 14px;
+}
+
+.banner{
+  border-radius:22px;
+  padding:20px;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
+  margin-bottom:12px;
 }
-.hero h2{margin:0 0 6px;font-size:22px}
-.hero p{margin:0 0 16px;font-size:14px;opacity:.95}
 
-/* SEARCH */
+.banner h2{
+  margin:0 0 4px;
+  font-size:20px;
+}
+
+.banner p{
+  margin:0;
+  font-size:13px;
+  opacity:.95;
+}
+
+/* ===== SEARCH + FILTERS ===== */
 .search-box{
-  background:#fff;
-  border-radius:999px;
-  padding:14px 18px;
+  display:grid;
+  gap:10px;
+}
+
+.search{
   display:flex;
   align-items:center;
   gap:10px;
-  box-shadow:0 15px 40px rgba(0,0,0,.18);
+  background:#fff;
+  border-radius:999px;
+  padding:14px 18px;
+  box-shadow:0 10px 28px rgba(0,0,0,.15);
 }
-.search-box input{
+
+.search i{font-size:20px;color:#9ca3af}
+
+.search input{
   border:none;
   outline:none;
   width:100%;
   font-size:15px;
 }
-.search-box i{
-  font-size:20px;
-  color:#9ca3af;
+
+.filters{
+  display:flex;
+  gap:8px;
 }
 
-/* LIST */
+.filters input{
+  flex:1;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+
+/* ===== CONTENT ===== */
+.content{
+  padding:260px 16px 120px;
+}
+
+/* ===== LIST ===== */
 .list{
-  padding:16px;
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:14px;
 }
 
-/* CARD */
+/* ===== CARD ===== */
 .card{
   background:#fff;
   border-radius:22px;
@@ -91,34 +133,39 @@ header h1{
   display:flex;
   flex-direction:column;
 }
+
 .logo{
-  width:56px;
-  height:56px;
+  width:56px;height:56px;
   border-radius:50%;
   background:#eee center/cover;
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
+
 .card h3{
   font-size:14px;
   font-weight:800;
   margin:0;
 }
+
 .card small{
   font-size:12px;
   color:var(--muted);
 }
+
 .tags{
   display:flex;
   gap:6px;
   flex-wrap:wrap;
-  margin:8px 0;
+  margin:6px 0;
 }
+
 .tag{
   font-size:11px;
   padding:5px 10px;
   border-radius:999px;
   background:#f3f4f6;
 }
+
 .card button{
   margin-top:auto;
   padding:10px;
@@ -129,70 +176,65 @@ header h1{
   cursor:pointer;
 }
 
-/* LOGIN */
-#auth{
+/* ===== LOADER ===== */
+.loader{
+  text-align:center;
+  padding:16px;
+  color:var(--muted);
+}
+
+/* ===== SCROLL TOP ===== */
+#topBtn{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-#auth .box{
-  background:#fff;
-  width:90%;
-  max-width:320px;
-  border-radius:24px;
-  padding:22px;
-}
-#auth h3{margin:0 0 12px}
-#auth input{
-  width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:12px;
-  border:1px solid var(--border);
-}
-#auth button{
-  width:100%;
-  padding:12px;
-  border-radius:999px;
+  right:16px;
+  bottom:20px;
+  width:46px;
+  height:46px;
+  border-radius:50%;
   border:none;
   background:var(--primary);
   color:#fff;
-  font-weight:800;
+  font-size:22px;
+  display:none;
+  z-index:200;
 }
 </style>
 </head>
 
 <body>
 
-<header>
+<!-- HEADER FIXO -->
+<div class="header">
   <h1>Agenda Clena</h1>
-</header>
 
-<section class="hero">
-  <h2>Agende com quem você confia</h2>
-  <p>Busque por loja, serviço ou produto</p>
+  <div class="hero">
+    <div class="banner">
+      <h2>Agende com quem você confia</h2>
+      <p>Busque por lojas, serviços ou produtos</p>
+    </div>
 
-  <div class="search-box">
-    <i class="ri-search-line"></i>
-    <input id="busca" placeholder="Ex: corte de cabelo, barba, esmaltação">
-  </div>
-</section>
+    <div class="search-box">
+      <div class="search">
+        <i class="ri-search-line"></i>
+        <input id="busca" placeholder="Buscar serviço, produto ou loja">
+      </div>
 
-<section class="list" id="lista"></section>
-
-<!-- LOGIN -->
-<div id="auth">
-  <div class="box">
-    <h3>Entrar ou criar conta</h3>
-    <input id="email" placeholder="Email">
-    <input id="senha" type="password" placeholder="Senha">
-    <button onclick="login()">Continuar</button>
+      <div class="filters">
+        <input id="cidade" placeholder="Filtrar por cidade">
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="list" id="lista"></div>
+  <div class="loader" id="loader">Carregando mais lojas…</div>
+</div>
+
+<button id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="ri-arrow-up-line"></i>
+</button>
 
 <script>
 const sb = supabase.createClient(
@@ -203,100 +245,88 @@ const sb = supabase.createClient(
 let lojas = [];
 let servicos = [];
 let produtos = [];
-let lojaSelecionada = null;
-let usuario = null;
 
-/* USUÁRIO */
-(async()=>{
-  const { data:{ user } } = await sb.auth.getUser();
-  usuario = user || null;
-})();
+let offset = 0;
+const limit = 20;
+let carregando = false;
+let acabou = false;
 
-/* CARREGAR DADOS */
-(async()=>{
-  const { data: lojasDB } = await sb
+/* ===== LOAD DATA ===== */
+async function carregarDados(){
+  if(carregando || acabou) return;
+  carregando = true;
+
+  const { data } = await sb
     .from("user_profile")
     .select("*")
-    .eq("status","active");
+    .eq("status","active")
+    .range(offset, offset + limit - 1);
 
-  const { data: servDB } = await sb
-    .from("servicos_loja")
-    .select("loja_id,nome");
+  if(!data || data.length < limit) acabou = true;
 
-  const { data: prodDB } = await sb
-    .from("produtos_loja")
-    .select("loja_id,nome");
+  lojas.push(...(data || []));
+  offset += limit;
 
-  lojas = lojasDB || [];
-  servicos = servDB || [];
-  produtos = prodDB || [];
+  if(servicos.length === 0){
+    const { data:s } = await sb.from("servicos_loja").select("loja_id,nome");
+    const { data:p } = await sb.from("produtos_loja").select("loja_id,nome");
+    servicos = s || [];
+    produtos = p || [];
+  }
 
   render();
-})();
+  carregando = false;
+}
 
-/* RENDER */
+/* ===== RENDER ===== */
 function render(){
-  const termo = busca.value.toLowerCase();
   lista.innerHTML = "";
 
-  const filtradas = lojas.filter(l=>{
-    if(!termo) return true;
+  const termo = busca.value.toLowerCase().trim();
+  const city = cidade.value.toLowerCase().trim();
 
-    if(l.negocio?.toLowerCase().includes(termo)) return true;
+  for(const l of lojas){
 
-    if(servicos.some(s=>s.loja_id===l.user_id && s.nome.toLowerCase().includes(termo))) return true;
+    if(city && l.cidade?.toLowerCase() !== city) continue;
 
-    if(produtos.some(p=>p.loja_id===l.user_id && p.nome.toLowerCase().includes(termo))) return true;
-
-    return false;
-  });
-
-  for(const l of filtradas){
-    const tags = servicos
-      .filter(s=>s.loja_id===l.user_id && s.nome.toLowerCase().includes(termo))
-      .slice(0,3)
-      .map(s=>`<span class="tag">${s.nome}</span>`)
-      .join("");
+    if(termo){
+      const lojaMatch = l.negocio?.toLowerCase().includes(termo);
+      const servMatch = servicos.some(s => s.loja_id === l.user_id && s.nome.toLowerCase().includes(termo));
+      const prodMatch = produtos.some(p => p.loja_id === l.user_id && p.nome.toLowerCase().includes(termo));
+      if(!lojaMatch && !servMatch && !prodMatch) continue;
+    }
 
     lista.innerHTML += `
       <div class="card">
         <div class="logo" style="background-image:url('${l.avatar_url||""}')"></div>
         <h3>${l.negocio}</h3>
-        <small>${l.cidade}/${l.uf}</small>
-        <div class="tags">${tags}</div>
-        <button onclick="entrar('${l.user_id}')">Entrar</button>
+        <small>${l.cidade||""}/${l.uf||""}</small>
+        <div class="tags">
+          ${servicos.filter(s=>s.loja_id===l.user_id).slice(0,2).map(s=>`<span class="tag">${s.nome}</span>`).join("")}
+        </div>
+        <button onclick="location.href='app.html?l=${l.user_id}'">Entrar</button>
       </div>
     `;
   }
+
+  loader.style.display = acabou ? "none" : "block";
 }
 
-/* ENTRAR */
-async function entrar(id){
-  if(!usuario){
-    lojaSelecionada = id;
-    auth.style.display="flex";
-    return;
+/* ===== EVENTS ===== */
+window.addEventListener("scroll",()=>{
+  if(window.scrollY > 300) topBtn.style.display="block";
+  else topBtn.style.display="none";
+
+  if(window.innerHeight + window.scrollY > document.body.offsetHeight - 300){
+    carregarDados();
   }
-  location.href = `app.html?l=${id}`;
-}
-
-/* LOGIN */
-async function login(){
-  const e = email.value.trim();
-  const s = senha.value.trim();
-  if(!e || !s) return;
-
-  let { error } = await sb.auth.signInWithPassword({ email:e, password:s });
-
-  if(error){
-    await sb.auth.signUp({ email:e, password:s });
-  }
-
-  auth.style.display="none";
-  if(lojaSelecionada) location.href = `app.html?l=${lojaSelecionada}`;
-}
+});
 
 busca.addEventListener("input", render);
+cidade.addEventListener("input", render);
+
+/* INIT */
+carregarDados();
 </script>
 
 </body>
