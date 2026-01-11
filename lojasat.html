@@ -2,14 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-T97MS35TJ6');
-</script>
-<title>Agenda Clena • Escolha sua loja</title>
+
+<title>Agenda Clena • Encontre sua loja</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#ff6a00">
@@ -22,7 +16,7 @@
 :root{
   --primary:#ff6a00;
   --accent:#b8ff65;
-  --bg:#f6f7fb;
+  --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --text:#1f2937;
@@ -39,8 +33,8 @@ body{
 /* HEADER */
 header{
   background:#fff;
+  padding:14px 18px;
   border-bottom:1px solid var(--border);
-  padding:14px 16px;
 }
 header h1{
   margin:0;
@@ -51,33 +45,33 @@ header h1{
 /* HERO */
 .hero{
   margin:16px;
-  padding:22px;
-  border-radius:22px;
+  padding:26px;
+  border-radius:24px;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);
   color:#fff;
 }
 .hero h2{margin:0 0 6px;font-size:22px}
-.hero p{margin:0;font-size:14px;opacity:.95}
+.hero p{margin:0 0 16px;font-size:14px;opacity:.95}
 
-/* FILTERS */
-.filters{
-  margin:16px;
-  display:grid;
-  grid-template-columns:1fr 1fr auto;
-  gap:8px;
+/* SEARCH */
+.search-box{
+  background:#fff;
+  border-radius:999px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 15px 40px rgba(0,0,0,.18);
 }
-.filters input{
-  padding:12px;
-  border-radius:12px;
-  border:1px solid var(--border);
-}
-.filters button{
-  padding:12px;
-  border-radius:12px;
+.search-box input{
   border:none;
-  background:var(--primary);
-  color:#fff;
-  font-weight:700;
+  outline:none;
+  width:100%;
+  font-size:15px;
+}
+.search-box i{
+  font-size:20px;
+  color:#9ca3af;
 }
 
 /* LIST */
@@ -91,18 +85,18 @@ header h1{
 /* CARD */
 .card{
   background:#fff;
-  border-radius:20px;
+  border-radius:22px;
   padding:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  box-shadow:0 12px 30px rgba(0,0,0,.1);
   display:flex;
   flex-direction:column;
 }
 .logo{
-  width:52px;
-  height:52px;
+  width:56px;
+  height:56px;
   border-radius:50%;
   background:#eee center/cover;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 .card h3{
   font-size:14px;
@@ -113,24 +107,18 @@ header h1{
   font-size:12px;
   color:var(--muted);
 }
-.stars{
-  margin:4px 0;
+.tags{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin:8px 0;
 }
-.stars i{
-  font-size:14px;
-  color:#facc15;
-}
-.badge{
-  margin:6px 0;
-  display:inline-block;
-  padding:5px 10px;
+.tag{
   font-size:11px;
-  font-weight:700;
+  padding:5px 10px;
   border-radius:999px;
+  background:#f3f4f6;
 }
-.open{background:#dcfce7;color:#166534}
-.closed{background:#fee2e2;color:#991b1b}
-
 .card button{
   margin-top:auto;
   padding:10px;
@@ -141,7 +129,7 @@ header h1{
   cursor:pointer;
 }
 
-/* LOGIN MODAL */
+/* LOGIN */
 #auth{
   position:fixed;
   inset:0;
@@ -155,8 +143,8 @@ header h1{
   background:#fff;
   width:90%;
   max-width:320px;
-  border-radius:22px;
-  padding:20px;
+  border-radius:24px;
+  padding:22px;
 }
 #auth h3{margin:0 0 12px}
 #auth input{
@@ -181,18 +169,17 @@ header h1{
 <body>
 
 <header>
-  <h1>Escolha uma loja</h1>
+  <h1>Agenda Clena</h1>
 </header>
 
 <section class="hero">
-  <h2>Agende com os melhores perto de você</h2>
-  <p>Um único cadastro funciona em todas as lojas.</p>
-</section>
+  <h2>Agende com quem você confia</h2>
+  <p>Busque por loja, serviço ou produto</p>
 
-<section class="filters">
-  <input id="fNome" placeholder="Buscar loja">
-  <input id="fCidade" placeholder="Cidade">
-  <button onclick="pertoDeMim()">📍</button>
+  <div class="search-box">
+    <i class="ri-search-line"></i>
+    <input id="busca" placeholder="Ex: corte de cabelo, barba, esmaltação">
+  </div>
 </section>
 
 <section class="list" id="lista"></section>
@@ -203,148 +190,113 @@ header h1{
     <h3>Entrar ou criar conta</h3>
     <input id="email" placeholder="Email">
     <input id="senha" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
+    <button onclick="login()">Continuar</button>
   </div>
 </div>
 
 <script>
 const sb = supabase.createClient(
- "https://egxjgmzukjyyxmkukwub.supabase.co",
- "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-let userLogado = null;
 
+let lojas = [];
+let servicos = [];
+let produtos = [];
+let lojaSelecionada = null;
+let usuario = null;
+
+/* USUÁRIO */
 (async()=>{
   const { data:{ user } } = await sb.auth.getUser();
-  userLogado = user || null;
+  usuario = user || null;
 })();
 
-let lojas=[];
-let lojaSelecionada = null;
-
-/* LOGIN / CADASTRO AUTOMÁTICO */
-async function login(){
-  const emailVal = email.value.trim();
-  const senhaVal = senha.value.trim();
-  if(!emailVal || !senhaVal) return;
-
-  let { error } = await sb.auth.signInWithPassword({
-    email: emailVal,
-    password: senhaVal
-  });
-
-  if(error){
-    await sb.auth.signUp({
-      email: emailVal,
-      password: senhaVal
-    });
-  }
-
-  auth.style.display="none";
-
-  if(lojaSelecionada){
-    location.href = `app.html?l=${lojaSelecionada}`;
-  }
-}
-
-/* STATUS AGENDA */
-async function statusAgenda(id){
-  const hoje=new Date().toISOString().slice(0,10);
-  const { data } = await sb.from("agenda_loja")
-    .select("*")
-    .eq("user_id",id)
-    .gte("data",hoje)
-    .order("data",{ascending:true});
-
-  for(const d of data||[]){
-    if(d.fechado) continue;
-    for(const h of d.horarios||[]){
-      return {t:`Abre ${h.inicio}`,c:"open"};
-    }
-  }
-  return {t:"Fechada",c:"closed"};
-}
-
-/* ESTRELAS */
-async function estrelas(loja){
-  const { data } = await sb.from("avaliacoes_loja")
-    .select("nota")
-    .eq("loja_id",loja);
-  if(!data?.length) return 0;
-  return Math.round(data.reduce((s,a)=>s+a.nota,0)/data.length);
-}
-
+/* CARREGAR DADOS */
 (async()=>{
-  // carrega todas as lojas ativas
-  const { data } = await sb.from("user_profile")
+  const { data: lojasDB } = await sb
+    .from("user_profile")
     .select("*")
     .eq("status","active");
 
-  lojas = data || [];
+  const { data: servDB } = await sb
+    .from("servicos_loja")
+    .select("loja_id,nome");
 
-  // se usuário estiver logado, carrega "minhas lojas"
-  if(userLogado){
-    const { data: minhas } = await sb
-      .from("clientes_loja")
-      .select("loja_id")
-      .eq("cliente_id", userLogado.id);
+  const { data: prodDB } = await sb
+    .from("produtos_loja")
+    .select("loja_id,nome");
 
-    const idsMinhas = (minhas||[]).map(l => l.loja_id);
-
-    // marca as lojas do usuário
-    lojas = lojas.map(l => ({
-      ...l,
-      minha: idsMinhas.includes(l.user_id)
-    }));
-  }
+  lojas = lojasDB || [];
+  servicos = servDB || [];
+  produtos = prodDB || [];
 
   render();
 })();
 
+/* RENDER */
+function render(){
+  const termo = busca.value.toLowerCase();
+  lista.innerHTML = "";
 
-async function render(){
-  lista.innerHTML="";
-  for(const l of lojas){
-    if(fNome.value && !l.negocio.toLowerCase().includes(fNome.value.toLowerCase())) continue;
-    if(fCidade.value && l.cidade?.toLowerCase()!==fCidade.value.toLowerCase()) continue;
+  const filtradas = lojas.filter(l=>{
+    if(!termo) return true;
 
-    const st=await statusAgenda(l.user_id);
-    const star=await estrelas(l.user_id);
+    if(l.negocio?.toLowerCase().includes(termo)) return true;
 
-lista.innerHTML+=`
-    <div class="card" style="${l.minha ? 'border:2px solid var(--primary)' : ''}">
-      <div class="logo" style="background-image:url('${l.avatar_url||""}')"></div>
-      <h3>${l.negocio}</h3>
-      <small>${l.tipo} • ${l.cidade}/${l.uf}</small>
-      <div class="stars">${'<i class="ri-star-fill"></i>'.repeat(star)}</div>
-      <span class="badge ${st.c}">${st.t}</span>
-      <button onclick="entrar('${l.user_id}')">Entrar</button>
-    </div>`;
+    if(servicos.some(s=>s.loja_id===l.user_id && s.nome.toLowerCase().includes(termo))) return true;
+
+    if(produtos.some(p=>p.loja_id===l.user_id && p.nome.toLowerCase().includes(termo))) return true;
+
+    return false;
+  });
+
+  for(const l of filtradas){
+    const tags = servicos
+      .filter(s=>s.loja_id===l.user_id && s.nome.toLowerCase().includes(termo))
+      .slice(0,3)
+      .map(s=>`<span class="tag">${s.nome}</span>`)
+      .join("");
+
+    lista.innerHTML += `
+      <div class="card">
+        <div class="logo" style="background-image:url('${l.avatar_url||""}')"></div>
+        <h3>${l.negocio}</h3>
+        <small>${l.cidade}/${l.uf}</small>
+        <div class="tags">${tags}</div>
+        <button onclick="entrar('${l.user_id}')">Entrar</button>
+      </div>
+    `;
   }
 }
 
-/* ENTRAR NA LOJA */
+/* ENTRAR */
 async function entrar(id){
-  const { data:{user} } = await sb.auth.getUser();
-  if(!user){
+  if(!usuario){
     lojaSelecionada = id;
     auth.style.display="flex";
     return;
   }
-  location.href=`app.html?l=${id}`;
+  location.href = `app.html?l=${id}`;
 }
 
-/* GEO */
-function pertoDeMim(){
-  navigator.geolocation.getCurrentPosition(async p=>{
-    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
-    const j=await r.json();
-    fCidade.value=j.address.city||j.address.town||"";
-    render();
-  });
+/* LOGIN */
+async function login(){
+  const e = email.value.trim();
+  const s = senha.value.trim();
+  if(!e || !s) return;
+
+  let { error } = await sb.auth.signInWithPassword({ email:e, password:s });
+
+  if(error){
+    await sb.auth.signUp({ email:e, password:s });
+  }
+
+  auth.style.display="none";
+  if(lojaSelecionada) location.href = `app.html?l=${lojaSelecionada}`;
 }
 
-[fNome,fCidade].forEach(i=>i.addEventListener("input",render));
+busca.addEventListener("input", render);
 </script>
 
 </body>
