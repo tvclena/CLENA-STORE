@@ -199,13 +199,27 @@ body{margin:0;background:var(--bg);color:var(--text)}
   display:none;
   z-index:200;
 }
+.header{
+  padding:14px 16px 6px;
+  font-size:18px;
+  font-weight:800;
+  color: var(--primary); /* <-- AQUI */
+}
+.highlight{
+  background: linear-gradient(90deg,#ff6a00,#ff9a57);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="top">
-  <div class="header">Todas as lojas, UM lugar</div>
+<div class="header">
+  Todas as lojas, <span class="highlight">UM lugar</span>
+</div>
 
   <div class="hero">
     <div class="banner">
