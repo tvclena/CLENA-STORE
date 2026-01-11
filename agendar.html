@@ -228,11 +228,8 @@ sb.auth.onAuthStateChange((_event, session) => {
 const lojaId = new URLSearchParams(location.search).get("l");
 const servicoPreSelecionado =
   new URLSearchParams(location.search).get("servico");
-const alterarIdRaw = new URLSearchParams(location.search).get("alterar");
 const alterarId =
-  alterarIdRaw && alterarIdRaw !== "null" && alterarIdRaw !== "undefined"
-    ? alterarIdRaw
-    : null;
+  new URLSearchParams(location.search).get("alterar");
 
 ;
 
@@ -505,18 +502,11 @@ async function selecionarDia(index){
     : dia.horarios;
 
   /* ===== AGENDAMENTOS JÁ OCUPADOS ===== */
- let query = sb
-  .from("agendamentos")
-  .select("id,hora_inicio,hora_fim")
-  .eq("user_id", lojaId)
-  .eq("data", dia.data);
-
-if (alterarId) {
-  query = query.neq("id", alterarId);
-}
-
-const { data: ag } = await query;
-
+  const { data: ag } = await sb
+    .from("agendamentos")
+    .select("hora_inicio,hora_fim")
+    .eq("user_id", lojaId)
+    .eq("data", dia.data);
 
   const ocupados = ag.map(a => [
     toMin(a.hora_inicio),
@@ -680,69 +670,72 @@ async function salvarCliente(){
   fecharModal();
 }
 
-
-
-
 async function confirmar(h){
 
-  if (!dados?.data || !dados?.servico) {
-    alert("Selecione o serviço e a data antes de continuar.");
-    return;
-  }
-
   const cliente = getCliente();
-  if (!cliente) {
+  if(!cliente){
     abrirModal();
     return;
   }
 
   const fim = toHour(toMin(h) + duracao);
 
-  // ✅ SEMPRE O MESMO ENDPOINT
-  const endpoint = "/api/agendamento";
-
   const payload = {
-    agendamento_id: alterarId || null, // 🔥 define update ou create
-    loja_id: lojaId,
     servico_id: dados.servico,
-    servico_nome: dados.servico_nome,
     valor_servico: dados.valor_servico,
     data: dados.data,
     hora_inicio: h,
     hora_fim: fim,
     cliente_nome: cliente.nome,
-    cliente_whatsapp: cliente.whatsapp,
-    cliente_email: cliente.email || null,
-    cliente_id: usuarioLogado?.id || null
+    cliente_whatsapp: cliente.whatsapp
   };
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  let query = sb.from("agendamentos");
 
-  if (!response.ok) {
-    const erro = await response.text();
-    console.error("❌ ERRO API:", erro);
-    alert("Erro ao salvar agendamento.");
+  // ✏️ ALTERAR AGENDAMENTO EXISTENTE
+  if(alterarId){
+    query = query
+      .update(payload)
+      .eq("id", alterarId)
+      .eq("loja_id", lojaId);
+  }
+  // ➕ NOVO AGENDAMENTO
+  else{
+query = query.insert({
+  ...payload,
+
+  user_id: lojaId,          // 🔥 OBRIGATÓRIO (dono da agenda)
+  loja_id: lojaId,          // loja
+  cliente_id: usuarioLogado?.id || null // cliente (se logado)
+});
+
+  }
+
+  const { error } = await query;
+
+  if(error){
+    alert("❌ Erro ao salvar o agendamento.\n" + error.message);
+    console.error(error);
     return;
   }
 
   document.body.insertAdjacentHTML("beforeend", `
     <div class="overlay" id="overlayConfirm">
       <div class="msg-final">
-        ✅ <strong>
-          ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
-        </strong><br><br>
+        ✅ <strong>${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}</strong><br><br>
 
         Serviço: <b>${dados.servico_nome}</b><br>
         Data: <b>${dados.data}</b><br>
         Horário: <b>${h}</b><br><br>
 
-        <button onclick="irParaAgendamentos()" style="width:100%">
-          📋 Meus Agendamentos
-        </button>
+        <div style="display:flex;gap:10px">
+          <button onclick="irParaAgendamentos()" style="flex:1">
+            📋 Meus Agendamentos
+          </button>
+          <button onclick="fecharOverlay()" style="flex:1">
+            ✖ Fechar
+          </button>
+        </div>
       </div>
     </div>
   `);
