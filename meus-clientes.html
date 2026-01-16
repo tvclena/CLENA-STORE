@@ -111,6 +111,13 @@ body{
   font-weight:900;
   font-size:18px;
   flex-shrink:0;
+  overflow:hidden;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 /* INFO */
@@ -219,7 +226,7 @@ async function carregarClientes(){
 
   const lojaId = session.user.id;
 
-  /* 🔥 BASE CORRETA: AGENDAMENTOS */
+  /* AGENDAMENTOS */
   const { data: agData, error } = await sb
     .from("agendamentos")
     .select("cliente_id, cliente_nome, cliente_whatsapp, data, status")
@@ -232,7 +239,7 @@ async function carregarClientes(){
     return;
   }
 
-  /* 🔥 AGRUPAMENTO */
+  /* AGRUPA CLIENTES */
   const mapa = {};
 
   agData.forEach(a=>{
@@ -242,7 +249,8 @@ async function carregarClientes(){
         nome: a.cliente_nome,
         whatsapp: a.cliente_whatsapp,
         total: 0,
-        ultima: null
+        ultima: null,
+        avatar_url: null
       };
     }
 
@@ -253,12 +261,32 @@ async function carregarClientes(){
     }
   });
 
-  clientes = Object.values(mapa)
-    .sort((a,b)=>{
-      if(!a.ultima) return 1;
-      if(!b.ultima) return -1;
-      return a.ultima < b.ultima ? 1 : -1;
-    });
+  clientes = Object.values(mapa);
+
+  /* BUSCA AVATAR */
+  const ids = clientes.map(c => c.id).filter(Boolean);
+
+  if(ids.length){
+    const { data: perfis } = await sb
+      .from("clientes_profile")
+      .select("id, avatar_url")
+      .in("id", ids);
+
+    if(perfis){
+      const mapaAvatar = {};
+      perfis.forEach(p => mapaAvatar[p.id] = p.avatar_url);
+
+      clientes.forEach(c => {
+        c.avatar_url = mapaAvatar[c.id] || null;
+      });
+    }
+  }
+
+  clientes.sort((a,b)=>{
+    if(!a.ultima) return 1;
+    if(!b.ultima) return -1;
+    return a.ultima < b.ultima ? 1 : -1;
+  });
 
   clientesFiltrados = clientes;
   render();
@@ -275,10 +303,13 @@ function render(){
 
   clientesFiltrados.forEach(c=>{
     const letra = c.nome?.[0]?.toUpperCase() || "?";
+    const avatar = c.avatar_url
+      ? `<img src="${c.avatar_url}" onerror="this.parentNode.innerText='${letra}'">`
+      : letra;
 
     lista.innerHTML += `
       <div class="card">
-        <div class="avatar">${letra}</div>
+        <div class="avatar">${avatar}</div>
 
         <div class="info">
           <strong>${c.nome}</strong>
