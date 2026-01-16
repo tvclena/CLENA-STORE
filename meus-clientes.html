@@ -4,12 +4,7 @@
 <meta charset="UTF-8">
 <title>Meus Clientes • Agenda Fácil</title>
 
-<meta name="viewport"
-  content="width=device-width,
-  initial-scale=1,
-  maximum-scale=1,
-  user-scalable=no,
-  viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -30,7 +25,7 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
-  font-family:Inter;
+  font-family:Inter, sans-serif;
 }
 
 body{
@@ -52,13 +47,14 @@ body{
 
 .header strong{
   font-size:16px;
+  font-weight:800;
 }
 
 .header button{
   border:none;
   background:#f3f4f6;
   border-radius:10px;
-  padding:8px 12px;
+  padding:8px 14px;
   font-weight:700;
   cursor:pointer;
 }
@@ -76,6 +72,12 @@ body{
   border-radius:14px;
   border:1px solid var(--border);
   font-size:14px;
+  outline:none;
+}
+
+.search input:focus{
+  border-color:#ffd6b8;
+  box-shadow:0 0 0 4px rgba(255,106,0,.12);
 }
 
 /* LIST */
@@ -92,8 +94,8 @@ body{
   box-shadow:0 10px 28px rgba(0,0,0,.08);
   margin-bottom:12px;
   display:flex;
-  gap:12px;
   align-items:center;
+  gap:12px;
 }
 
 /* AVATAR */
@@ -114,6 +116,9 @@ body{
 /* INFO */
 .info{
   flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
 }
 
 .info strong{
@@ -138,29 +143,30 @@ body{
   color:var(--muted);
 }
 
-/* WHATS ICON */
-.whats{
-  font-size:20px;
-  color:var(--gold);
-  margin-left:8px;
+/* WHATS */
+.whats-link{
+  text-decoration:none !important;
+  margin-left:6px;
 }
 
+.whats{
+  font-size:22px;
+  color:var(--gold);
+  transition:.2s;
+}
+
+.whats-link:hover .whats{
+  color:#25D366;
+  transform:scale(1.15);
+}
+
+/* STATES */
 .empty{
   text-align:center;
   color:var(--muted);
   padding:40px 10px;
+  font-size:14px;
 }
-.whats{
-  font-size:20px;
-  color:#d4af37;
-  transition:.2s;
-}
-
-a:hover .whats{
-  transform:scale(1.15);
-  color:#25D366;
-}
-
 </style>
 </head>
 
@@ -187,16 +193,28 @@ const sb = supabase.createClient(
 
 let clientes = [];
 let clientesFiltrados = [];
-let agendamentos = [];
+
+function formatarDataBR(data){
+  if(!data) return "—";
+  const [y,m,d] = data.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function mensagemWhats(nome){
+  return encodeURIComponent(
+    `Olá ${nome}! 😊\n\nAqui é da *Agenda Fácil*.\nEstou entrando em contato sobre seus atendimentos.`
+  );
+}
 
 async function carregarClientes(){
-
   const { data:{ session } } = await sb.auth.getSession();
-  if(!session) return;
+  if(!session){
+    lista.innerHTML = `<div class="empty">Sessão expirada</div>`;
+    return;
+  }
 
   const lojaId = session.user.id;
 
-  // 1️⃣ BUSCA CLIENTES
   const { data: clientesData, error: errClientes } = await sb
     .from("clientes_profile")
     .select("id, nome, whatsapp")
@@ -209,20 +227,16 @@ async function carregarClientes(){
     return;
   }
 
-  // 2️⃣ BUSCA AGENDAMENTOS DA LOJA
   const { data: agData } = await sb
     .from("agendamentos")
     .select("cliente_id, data")
     .eq("loja_id", lojaId)
-    .neq("status", "CANCELADO");
+    .neq("status","CANCELADO");
 
-  agendamentos = agData || [];
-
-  // 3️⃣ MONTA RESUMO
-  clientes = clientesData.map(c => {
-    const ags = agendamentos.filter(a => a.cliente_id === c.id);
+  clientes = clientesData.map(c=>{
+    const ags = agData.filter(a=>a.cliente_id === c.id);
     const ultima = ags.length
-      ? ags.map(a => a.data).sort().reverse()[0]
+      ? ags.map(a=>a.data).sort().at(-1)
       : null;
 
     return {
@@ -231,6 +245,10 @@ async function carregarClientes(){
       total: ags.length,
       ultima
     };
+  }).sort((a,b)=>{
+    if(!a.ultima) return 1;
+    if(!b.ultima) return -1;
+    return a.ultima < b.ultima ? 1 : -1;
   });
 
   clientesFiltrados = clientes;
@@ -245,11 +263,8 @@ function render(){
     return;
   }
 
-  clientesFiltrados.forEach(c => {
+  clientesFiltrados.forEach(c=>{
     const letra = c.nome?.[0]?.toUpperCase() || "?";
-    const ultima = c.ultima
-      ? new Date(c.ultima).toLocaleDateString("pt-BR")
-      : "—";
 
     lista.innerHTML += `
       <div class="card">
@@ -257,23 +272,21 @@ function render(){
 
         <div class="info">
           <strong>${c.nome}</strong>
-          <small>${formatWhats(c.whatsapp)}</small>
+          <small>${c.whatsapp || ""}</small>
         </div>
 
         <div class="meta">
           ${c.total} serviços
-          <span>Último: ${ultima}</span>
+          <span>Último: ${formatarDataBR(c.ultima)}</span>
         </div>
 
-${c.whatsapp ? `
-  <a
-    href="https://wa.me/55${c.whatsapp.replace(/\D/g,'')}"
-    target="_blank"
-    title="Abrir WhatsApp"
-  >
-    <i class="ri-whatsapp-line whats"></i>
-  </a>
-` : ``}
+        ${c.whatsapp ? `
+          <a class="whats-link"
+             href="https://wa.me/55${c.whatsapp.replace(/\D/g,'')}?text=${mensagemWhats(c.nome)}"
+             target="_blank">
+            <i class="ri-whatsapp-line whats"></i>
+          </a>
+        ` : ``}
       </div>
     `;
   });
@@ -286,12 +299,6 @@ function filtrarClientes(){
     (c.whatsapp || "").includes(q)
   );
   render();
-}
-
-function formatWhats(w){
-  if(!w) return "";
-  return w.replace(/^(\d{2})(\d)/,"($1) $2")
-          .replace(/(\d{5})(\d)/,"$1-$2");
 }
 
 carregarClientes();
