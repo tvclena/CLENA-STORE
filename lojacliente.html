@@ -7,16 +7,20 @@
 <meta name="viewport"
 content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 
+<meta name="theme-color" content="#ff6a00">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
+  --primary:#ff6a00;
   --yellow:#ffe600;
-  --primary:#3483fa;
+  --blue:#3483fa;
   --success:#00a650;
   --bg:#f4f4f4;
   --card:#fff;
+  --border:#e5e7eb;
   --text:#111;
   --muted:#6b7280;
 }
@@ -36,6 +40,7 @@ body{margin:0;background:var(--bg);color:var(--text)}
 }
 .logo{
   font-weight:900;
+  font-size:16px;
 }
 .search{
   flex:1;
@@ -43,30 +48,49 @@ body{margin:0;background:var(--bg);color:var(--text)}
   border-radius:8px;
   padding:10px 12px;
   font-size:14px;
-  color:#888;
+  color:#999;
+}
+
+/* LOCALIZAÇÃO */
+.location{
+  background:#fff;
+  padding:10px 14px;
+  font-size:13px;
+  display:flex;
+  gap:6px;
+  align-items:center;
+  border-bottom:1px solid var(--border);
 }
 
 /* BANNER */
 .banner{
   padding:12px;
 }
+.banner-scroll{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.banner-scroll::-webkit-scrollbar{display:none}
 .banner img{
-  width:100%;
+  width:90%;
+  max-width:360px;
   border-radius:12px;
 }
 
-/* AVISO CLIENTE */
+/* ALERT */
 .alert{
-  margin:12px;
   background:#fff7ed;
   border-left:4px solid #f97316;
   padding:12px;
-  font-size:13px;
+  margin:12px;
   border-radius:8px;
+  font-size:13px;
   display:none;
 }
 
-/* GRID PRODUTOS */
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -83,7 +107,6 @@ body{margin:0;background:var(--bg);color:var(--text)}
   width:100%;
   height:140px;
   object-fit:contain;
-  background:#fff;
 }
 .card-body{
   padding:10px;
@@ -110,17 +133,17 @@ body{margin:0;background:var(--bg);color:var(--text)}
   padding:10px;
   border:none;
   border-radius:6px;
-  background:var(--primary);
+  background:var(--blue);
   color:#fff;
   font-weight:700;
 }
 
-/* CARRINHO */
+/* CART */
 .cart{
   position:fixed;
   bottom:16px;
   right:16px;
-  background:var(--primary);
+  background:var(--blue);
   color:#fff;
   width:56px;
   height:56px;
@@ -155,7 +178,6 @@ body{margin:0;background:var(--bg);color:var(--text)}
   z-index:999;
 }
 .modal.show{display:flex}
-
 .sheet{
   width:100%;
   height:85vh;
@@ -165,20 +187,18 @@ body{margin:0;background:var(--bg);color:var(--text)}
   display:flex;
   flex-direction:column;
 }
-
 .cart-item{
   display:flex;
   justify-content:space-between;
   margin-bottom:10px;
   font-size:14px;
 }
-
 .btn-finalizar{
   width:100%;
   padding:14px;
   border:none;
   border-radius:999px;
-  background:var(--primary);
+  background:var(--blue);
   color:#fff;
   font-weight:800;
 }
@@ -190,19 +210,27 @@ body{margin:0;background:var(--bg);color:var(--text)}
 <!-- HEADER -->
 <div class="header">
   <div class="topbar">
-    <div class="logo">🛒 Loja</div>
+    <div class="logo">CLENA</div>
     <div class="search">Estou buscando...</div>
   </div>
 </div>
 
-<!-- BANNER (DINÂMICO VIA PAINEL FUTURO) -->
-<div class="banner">
-  <img src="https://via.placeholder.com/900x300?text=Banner+Promocional">
+<!-- LOCALIZAÇÃO -->
+<div class="location" id="location">
+  📍 Entregar em <span id="cidade"></span>
 </div>
 
-<!-- AVISO CLIENTE -->
-<div class="alert" id="alertCliente">
-  Para continuar, acesse seu perfil e complete seus dados.
+<!-- BANNERS -->
+<div class="banner">
+  <div class="banner-scroll" id="banners">
+    <img src="https://via.placeholder.com/900x300?text=Banner+1">
+    <img src="https://via.placeholder.com/900x300?text=Banner+2">
+  </div>
+</div>
+
+<!-- ALERTA PERFIL -->
+<div class="alert" id="alertPerfil">
+  Complete seus dados no perfil para continuar comprando.
 </div>
 
 <!-- PRODUTOS -->
@@ -234,21 +262,28 @@ const sb = supabase.createClient(
 const lojaId = new URLSearchParams(location.search).get("l");
 const produtosEl = document.getElementById("produtos");
 
+/* CLIENTE */
 function getCliente(){
-  return JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
+  return JSON.parse(localStorage.getItem("CLIENTE_LOJA")) || {};
 }
 function clienteValido(){
   const c = getCliente();
-  return c?.nome && c?.whatsapp;
+  return c.nome && c.whatsapp && c.cep;
 }
 
-if(!clienteValido()){
-  document.getElementById("alertCliente").style.display="block";
+/* LOCALIZAÇÃO */
+const cliente = getCliente();
+if(cliente.cidade){
+  document.getElementById("cidade").innerText =
+    `${cliente.cidade} • ${cliente.cep}`;
+}else{
+  document.getElementById("alertPerfil").style.display="block";
 }
 
+/* CARRINHO */
 let carrinho = JSON.parse(localStorage.getItem("CARRINHO_LOJA")) || {
   lojaId,
-  cliente:getCliente(),
+  cliente,
   itens:[]
 };
 
@@ -257,6 +292,7 @@ function salvarCarrinho(){
   cartCount.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
 }
 
+/* PRODUTOS */
 async function carregarProdutos(){
  const { data } = await sb
   .from("produtos_servicos")
@@ -280,9 +316,10 @@ async function carregarProdutos(){
  `).join("");
 }
 
+/* ADD */
 function addCarrinho(id,nome,preco){
  if(!clienteValido()){
-  alert("Complete seu cadastro para continuar");
+  alert("Complete seu cadastro no perfil");
   return;
  }
  const item = carrinho.itens.find(i=>i.id===id);
@@ -290,11 +327,11 @@ function addCarrinho(id,nome,preco){
  salvarCarrinho();
 }
 
+/* MODAL */
 function abrirCarrinho(){
  modal.classList.add("show");
  renderCarrinho();
 }
-
 function renderCarrinho(){
  let total=0;
  cartItens.innerHTML = carrinho.itens.map(i=>{
@@ -308,6 +345,7 @@ function renderCarrinho(){
  cartTotal.innerText="Total: R$ "+total.toFixed(2).replace('.',',');
 }
 
+/* PAGAMENTO */
 async function finalizarCompra(){
  if(!clienteValido()){
   alert("Complete seu cadastro");
