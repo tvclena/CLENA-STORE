@@ -143,7 +143,7 @@ whats.addEventListener("input",()=>{
 (async()=>{
   const { data } = await sb
     .from("user_profile")
-    .select("negocio, avatar_url, capa_url")
+.select("negocio, avatar_url")
     .eq("user_id", lojaId)
     .single();
 
