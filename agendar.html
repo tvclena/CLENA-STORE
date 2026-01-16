@@ -655,6 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 async function salvarCliente(){
+
   const nome = cliNome.value.trim().toUpperCase();
   const whats = cliWhats.value.replace(/\D/g,"");
   const email = cliEmail.value.trim() || null;
@@ -664,19 +665,37 @@ async function salvarCliente(){
     return;
   }
 
-  // 🔥 SALVA NO PERFIL DO CLIENTE
-  await sb.from("clientes_profile").upsert({
-    id: usuarioLogado.id,
-    nome,
-    whatsapp: whats,
-    email
-  });
+  // 🔥 SE VEIO DO BOTÃO +, NÃO SALVA NO PROFILE
+  if (veioDoBotaoMais) {
 
-  // Atualiza memória
-  clienteDB = { nome, whatsapp: whats, email };
+    // salva só em memória/localStorage
+    const clienteTemp = { nome, whatsapp: whats, email };
+
+    localStorage.setItem(
+      "CLIENTE_LOJA",
+      JSON.stringify(clienteTemp)
+    );
+
+    clienteDB = clienteTemp;
+    fecharModal();
+    return;
+  }
+
+  // 🔐 CLIENTE LOGADO → SALVA NO PROFILE
+  if (usuarioLogado) {
+    await sb.from("clientes_profile").upsert({
+      id: usuarioLogado.id,
+      nome,
+      whatsapp: whats,
+      email
+    });
+
+    clienteDB = { nome, whatsapp: whats, email };
+  }
 
   fecharModal();
 }
+
 
 async function confirmar(h){
 
