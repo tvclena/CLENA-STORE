@@ -570,6 +570,18 @@ foto.addEventListener("change", async () => {
 });
 
 </script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    .then(reg => {
+      console.log("Service Worker registrado:", reg.scope);
+    })
+    .catch(err => {
+      console.error("Erro ao registrar Service Worker", err);
+    });
+}
+</script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
@@ -586,8 +598,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// 🔔 pedir permissão
-Notification.requestPermission().then(async permission => {
+// 🔔 pedir permissão corretamente
+(async () => {
+  let permission = Notification.permission;
+
+  if (permission !== "granted") {
+    permission = await Notification.requestPermission();
+  }
+
   if (permission === "granted") {
 
     const token = await getToken(messaging, {
@@ -596,11 +614,18 @@ Notification.requestPermission().then(async permission => {
 
     console.log("FCM TOKEN:", token);
 
-    // 🔹 SALVE esse token no Supabase
-    // tabela: notificacoes_tokens
-    // campos: user_id, token, plataforma
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (session && token) {
+      await sb.from("notificacoes_tokens").upsert({
+        user_id: session.user.id,
+        token: token,
+        plataforma: "apk"
+      });
+    }
   }
-});
+})();
+
 
 // 🔔 quando o app estiver aberto
 onMessage(messaging, payload => {
