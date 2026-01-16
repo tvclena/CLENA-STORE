@@ -230,10 +230,6 @@ const servicoPreSelecionado =
   new URLSearchParams(location.search).get("servico");
 const alterarId =
   new URLSearchParams(location.search).get("alterar");
-const veioDoBotaoMais =
-  new URLSearchParams(location.search).get("novo") === "1";
-
-  
 
 ;
 
@@ -561,12 +557,10 @@ async function selecionarDia(index){
   await carregarCliente(); // 🔥 ESSENCIAL
   carregarServicos();
 
-  // ⚠️ SÓ ABRE MODAL SE VEIO DO BOTÃO +
-  if (veioDoBotaoMais && !clienteValido()) {
+  if(!clienteValido()){
     abrirModal();
   }
 })();
-
 
   
 function fecharOverlay(){
@@ -655,7 +649,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 async function salvarCliente(){
-
   const nome = cliNome.value.trim().toUpperCase();
   const whats = cliWhats.value.replace(/\D/g,"");
   const email = cliEmail.value.trim() || null;
@@ -665,48 +658,27 @@ async function salvarCliente(){
     return;
   }
 
-  // 🔥 SE VEIO DO BOTÃO +, NÃO SALVA NO PROFILE
-  if (veioDoBotaoMais) {
+  // 🔥 SALVA NO PERFIL DO CLIENTE
+  await sb.from("clientes_profile").upsert({
+    id: usuarioLogado.id,
+    nome,
+    whatsapp: whats,
+    email
+  });
 
-    // salva só em memória/localStorage
-    const clienteTemp = { nome, whatsapp: whats, email };
-
-    localStorage.setItem(
-      "CLIENTE_LOJA",
-      JSON.stringify(clienteTemp)
-    );
-
-    clienteDB = clienteTemp;
-    fecharModal();
-    return;
-  }
-
-  // 🔐 CLIENTE LOGADO → SALVA NO PROFILE
-  if (usuarioLogado) {
-    await sb.from("clientes_profile").upsert({
-      id: usuarioLogado.id,
-      nome,
-      whatsapp: whats,
-      email
-    });
-
-    clienteDB = { nome, whatsapp: whats, email };
-  }
+  // Atualiza memória
+  clienteDB = { nome, whatsapp: whats, email };
 
   fecharModal();
 }
 
-
 async function confirmar(h){
 
-const cliente = getCliente();
-
-// ⚠️ Só exige cliente se veio do botão +
-if (veioDoBotaoMais && !cliente) {
-  abrirModal();
-  return;
-}
-
+  const cliente = getCliente();
+  if(!cliente){
+    abrirModal();
+    return;
+  }
 
   const fim = toHour(toMin(h) + duracao);
 
