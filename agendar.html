@@ -230,6 +230,10 @@ const servicoPreSelecionado =
   new URLSearchParams(location.search).get("servico");
 const alterarId =
   new URLSearchParams(location.search).get("alterar");
+const veioDoBotaoMais =
+  new URLSearchParams(location.search).get("novo") === "1";
+
+  
 
 ;
 
@@ -557,10 +561,12 @@ async function selecionarDia(index){
   await carregarCliente(); // 🔥 ESSENCIAL
   carregarServicos();
 
-  if(!clienteValido()){
+  // ⚠️ SÓ ABRE MODAL SE VEIO DO BOTÃO +
+  if (veioDoBotaoMais && !clienteValido()) {
     abrirModal();
   }
 })();
+
 
   
 function fecharOverlay(){
@@ -649,6 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 async function salvarCliente(){
+
   const nome = cliNome.value.trim().toUpperCase();
   const whats = cliWhats.value.replace(/\D/g,"");
   const email = cliEmail.value.trim() || null;
@@ -658,27 +665,48 @@ async function salvarCliente(){
     return;
   }
 
-  // 🔥 SALVA NO PERFIL DO CLIENTE
-  await sb.from("clientes_profile").upsert({
-    id: usuarioLogado.id,
-    nome,
-    whatsapp: whats,
-    email
-  });
+  // 🔥 SE VEIO DO BOTÃO +, NÃO SALVA NO PROFILE
+  if (veioDoBotaoMais) {
 
-  // Atualiza memória
-  clienteDB = { nome, whatsapp: whats, email };
+    // salva só em memória/localStorage
+    const clienteTemp = { nome, whatsapp: whats, email };
+
+    localStorage.setItem(
+      "CLIENTE_LOJA",
+      JSON.stringify(clienteTemp)
+    );
+
+    clienteDB = clienteTemp;
+    fecharModal();
+    return;
+  }
+
+  // 🔐 CLIENTE LOGADO → SALVA NO PROFILE
+  if (usuarioLogado) {
+    await sb.from("clientes_profile").upsert({
+      id: usuarioLogado.id,
+      nome,
+      whatsapp: whats,
+      email
+    });
+
+    clienteDB = { nome, whatsapp: whats, email };
+  }
 
   fecharModal();
 }
 
+
 async function confirmar(h){
 
-  const cliente = getCliente();
-  if(!cliente){
-    abrirModal();
-    return;
-  }
+const cliente = getCliente();
+
+// ⚠️ Só exige cliente se veio do botão +
+if (veioDoBotaoMais && !cliente) {
+  abrirModal();
+  return;
+}
+
 
   const fim = toHour(toMin(h) + duracao);
 
@@ -731,20 +759,27 @@ async function confirmar(h){
     return;
   }
 
-  if(!response.ok){
-    const erro = await response.text();
-    console.error("❌ ERRO API:", erro);
-    alert("❌ Erro ao salvar agendamento");
-    return;
-  }
+if(!response.ok){
+  const erro = await response.text();
+  console.error("❌ ERRO API:", erro);
+  alert("❌ Erro ao salvar agendamento");
+  return;
+}
 
-  // ✅ SUCESSO
-  document.body.insertAdjacentHTML("beforeend", `
-    <div class="overlay" id="overlayConfirm">
-      <div class="msg-final">
-        ✅ <strong>
-          ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
-        </strong><br><br>
+// ✅ SUCESSO
+
+// 🧹 limpa cliente temporário após agendar
+if (veioDoBotaoMais) {
+  localStorage.removeItem("CLIENTE_LOJA");
+}
+
+document.body.insertAdjacentHTML("beforeend", `
+  <div class="overlay" id="overlayConfirm">
+    <div class="msg-final">
+      ✅ <strong>
+        ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
+      </strong><br><br>
+
 
         Serviço: <b>${dados.servico_nome}</b><br>
         Data: <b>${dados.data}</b><br>
