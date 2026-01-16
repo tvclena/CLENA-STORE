@@ -180,6 +180,9 @@ html,body{margin:0;background:var(--bg)}
 .days-scroll .item{
   min-width:70px;
 }
+body.modal-open {
+  overflow: hidden;
+}
 
 
 </style>
@@ -445,13 +448,16 @@ function renderizarDia(d, index){
 
 
 
-
-  
 async function selecionarServico(id, dur, nome, preco){
+
+  // 🔒 BLOQUEIA FLUXO SEM CLIENTE
+  if (veioDoBotaoMais && !clienteValido()) {
+    abrirModal();
+    return;
+  }
 
   document.querySelectorAll(".service")
     .forEach(el => el.classList.remove("selected"));
-
   const card = document.querySelector(`[data-id="${id}"]`);
   card?.classList.add("selected");
 
@@ -637,6 +643,8 @@ function abrirModal(){
   const modal = document.getElementById("clienteModal");
   if(!modal.classList.contains("hidden")) return;
 
+  document.body.classList.add("modal-open");
+
   const cliente = getCliente();
   if(cliente){
     cliNome.value = cliente.nome || "";
@@ -647,11 +655,13 @@ function abrirModal(){
   modal.classList.remove("hidden");
 }
 
-
 function fecharModal(){
   if(!clienteValido()) return;
+
+  document.body.classList.remove("modal-open");
   document.getElementById("clienteModal").classList.add("hidden");
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
 
