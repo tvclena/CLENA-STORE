@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.clena.store",
+      "sha256_cert_fingerprints": [
+        "46:1A:D4:D5:92:5C:80:44:F1:6E:E2:EA:0B:72:F4:F4:92:9F:C7:93:7D:DB:0F:EA:E6:F3:F9:9B:0A:7B:1F:B1"
+      ]
+    }
+  }
+]
