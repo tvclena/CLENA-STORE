@@ -2,93 +2,120 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-T97MS35TJ6');
-</script>
-<title>Loja - Clientes</title>
+<title>Loja</title>
 
-  
 <meta name="viewport"
-  content="width=device-width,
-  initial-scale=1,
-  maximum-scale=1,
-  user-scalable=no,
-  viewport-fit=cover">
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --primary:#ff6a00;
-  --bg:#f4f6fb;
+  --yellow:#ffe600;
+  --primary:#3483fa;
+  --success:#00a650;
+  --bg:#f4f4f4;
   --card:#fff;
-  --border:#e5e7eb;
-  --text:#111827;
+  --text:#111;
   --muted:#6b7280;
 }
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg)}
 
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+/* HEADER */
 .header{
-  padding:16px;
-  font-weight:800;
-  font-size:18px;
+  background:var(--yellow);
+  padding:12px;
+}
+.topbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.logo{
+  font-weight:900;
+}
+.search{
+  flex:1;
+  background:#fff;
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:14px;
+  color:#888;
 }
 
+/* BANNER */
+.banner{
+  padding:12px;
+}
+.banner img{
+  width:100%;
+  border-radius:12px;
+}
+
+/* AVISO CLIENTE */
+.alert{
+  margin:12px;
+  background:#fff7ed;
+  border-left:4px solid #f97316;
+  padding:12px;
+  font-size:13px;
+  border-radius:8px;
+  display:none;
+}
+
+/* GRID PRODUTOS */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:14px;
-  padding:16px 16px 140px;
+  gap:10px;
+  padding:12px 12px 120px;
 }
 
 .card{
   background:#fff;
-  border-radius:18px;
-  box-shadow:0 8px 22px rgba(0,0,0,.08);
+  border-radius:8px;
   overflow:hidden;
 }
 .card img{
   width:100%;
-  height:120px;
-  object-fit:cover;
+  height:140px;
+  object-fit:contain;
+  background:#fff;
 }
 .card-body{
   padding:10px;
 }
 .card-title{
+  font-size:13px;
+  font-weight:600;
+  height:32px;
+  overflow:hidden;
+}
+.price{
+  font-size:18px;
   font-weight:800;
-  font-size:14px;
+  margin:6px 0;
 }
 .badge{
-  font-size:10px;
-  font-weight:800;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#fff7ed;
-  color:#c2410c;
-}
-.card-price{
-  color:var(--primary);
-  font-weight:800;
-  margin-top:6px;
+  color:var(--success);
+  font-size:12px;
+  font-weight:700;
 }
 .card-btn{
   margin-top:8px;
-  background:var(--primary);
-  color:#fff;
-  border:none;
   width:100%;
   padding:10px;
-  border-radius:12px;
-  font-weight:800;
+  border:none;
+  border-radius:6px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
 }
 
+/* CARRINHO */
 .cart{
   position:fixed;
   bottom:16px;
@@ -102,12 +129,13 @@ body{margin:0;background:var(--bg)}
   align-items:center;
   justify-content:center;
   font-size:22px;
+  z-index:10;
 }
 .cart span{
   position:absolute;
   top:-6px;
   right:-6px;
-  background:#111;
+  background:#000;
   width:22px;
   height:22px;
   border-radius:50%;
@@ -117,10 +145,11 @@ body{margin:0;background:var(--bg)}
   justify-content:center;
 }
 
+/* MODAL */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.55);
+  background:rgba(0,0,0,.5);
   display:none;
   align-items:flex-end;
   z-index:999;
@@ -131,7 +160,7 @@ body{margin:0;background:var(--bg)}
   width:100%;
   height:85vh;
   background:#fff;
-  border-radius:24px 24px 0 0;
+  border-radius:20px 20px 0 0;
   padding:16px;
   display:flex;
   flex-direction:column;
@@ -141,6 +170,7 @@ body{margin:0;background:var(--bg)}
   display:flex;
   justify-content:space-between;
   margin-bottom:10px;
+  font-size:14px;
 }
 
 .btn-finalizar{
@@ -157,14 +187,33 @@ body{margin:0;background:var(--bg)}
 
 <body>
 
-<div class="header">Loja</div>
+<!-- HEADER -->
+<div class="header">
+  <div class="topbar">
+    <div class="logo">🛒 Loja</div>
+    <div class="search">Estou buscando...</div>
+  </div>
+</div>
+
+<!-- BANNER (DINÂMICO VIA PAINEL FUTURO) -->
+<div class="banner">
+  <img src="https://via.placeholder.com/900x300?text=Banner+Promocional">
+</div>
+
+<!-- AVISO CLIENTE -->
+<div class="alert" id="alertCliente">
+  Para continuar, acesse seu perfil e complete seus dados.
+</div>
+
+<!-- PRODUTOS -->
 <div class="grid" id="produtos"></div>
 
+<!-- CARRINHO -->
 <div class="cart" onclick="abrirCarrinho()">
   🛒 <span id="cartCount">0</span>
 </div>
 
-<!-- MODAL CARRINHO -->
+<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="sheet">
     <h3>Carrinho</h3>
@@ -193,49 +242,48 @@ function clienteValido(){
   return c?.nome && c?.whatsapp;
 }
 
+if(!clienteValido()){
+  document.getElementById("alertCliente").style.display="block";
+}
+
 let carrinho = JSON.parse(localStorage.getItem("CARRINHO_LOJA")) || {
   lojaId,
-  cliente: getCliente(),
+  cliente:getCliente(),
   itens:[]
 };
 
 function salvarCarrinho(){
-  localStorage.setItem("CARRINHO_LOJA", JSON.stringify(carrinho));
+  localStorage.setItem("CARRINHO_LOJA",JSON.stringify(carrinho));
   cartCount.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
 }
 
-/* PRODUTOS — SOMENTE PRODUTOS */
 async function carregarProdutos(){
  const { data } = await sb
   .from("produtos_servicos")
   .select("id,nome,preco,imagem_url,pg_online")
-  .eq("user_id", lojaId)
+  .eq("user_id",lojaId)
   .eq("tipo","PRODUTO")
-  .eq("ativo", true);
-
- if(!data || !data.length){
-   document.body.innerHTML = "<p style='padding:20px'>Nenhum produto disponível</p>";
-   return;
- }
+  .eq("ativo",true);
 
  produtosEl.innerHTML = data.map(p=>`
   <div class="card">
-    <img src="${p.imagem_url || 'https://via.placeholder.com/400'}">
+    <img src="${p.imagem_url || 'https://via.placeholder.com/300'}">
     <div class="card-body">
       <div class="card-title">${p.nome}</div>
-      ${p.pg_online ? `<span class="badge">💳 Online</span>` : ``}
-      <div class="card-price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
-      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">Adicionar</button>
+      <div class="price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
+      ${p.pg_online ? `<div class="badge">Frete grátis</div>` : ``}
+      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">
+        Adicionar
+      </button>
     </div>
   </div>
  `).join("");
 }
 
-/* CARRINHO */
 function addCarrinho(id,nome,preco){
  if(!clienteValido()){
-   alert("Informe seus dados antes de comprar");
-   return;
+  alert("Complete seu cadastro para continuar");
+  return;
  }
  const item = carrinho.itens.find(i=>i.id===id);
  item ? item.quantidade++ : carrinho.itens.push({id,nome,preco,quantidade:1});
@@ -260,48 +308,29 @@ function renderCarrinho(){
  cartTotal.innerText="Total: R$ "+total.toFixed(2).replace('.',',');
 }
 
-/* FINALIZAR */
 async function finalizarCompra(){
-  if(!clienteValido()){
-    alert("Identifique-se antes de pagar");
-    return;
-  }
-
-  if(!carrinho.itens.length){
-    alert("Carrinho vazio");
-    return;
-  }
-
-  try{
-    const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        loja_id: lojaId,          // ✅ CORRETO
-        cliente: getCliente(),    // { nome, whatsapp, email }
-        itens: carrinho.itens     // [{ id, nome, preco, quantidade }]
-      })
-    });
-
-    const data = await res.json();
-
-    if(!res.ok){
-      alert(data.error || "Erro ao iniciar pagamento");
-      return;
-    }
-
-    // 🔥 REDIRECIONA PARA O MERCADO PAGO
-    window.location.href = data.init_point;
-
-  }catch(err){
-    console.error(err);
-    alert("Erro ao conectar com pagamento");
-  }
+ if(!clienteValido()){
+  alert("Complete seu cadastro");
+  return;
+ }
+ if(!carrinho.itens.length){
+  alert("Carrinho vazio");
+  return;
+ }
+ const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+   loja_id:lojaId,
+   cliente:getCliente(),
+   itens:carrinho.itens
+  })
+ });
+ const data = await res.json();
+ if(res.ok) window.location.href=data.init_point;
+ else alert(data.error || "Erro no pagamento");
 }
 
-/* INIT */
 salvarCarrinho();
 carregarProdutos();
 </script>
