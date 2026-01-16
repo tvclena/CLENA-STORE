@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import { enviarEmail } from "../lib/email.js";
-import { firebaseAdmin } from "../lib/firebaseAdmin.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -97,7 +96,7 @@ export default async function handler(req, res) {
 
     console.log("✅ Agendamento salvo com sucesso");
 
-    /* ================= BUSCA DADOS DA LOJA ================= */
+    /* ================= EMAIL DA LOJA ================= */
     const { data: loja, error: lojaError } = await supabase
       .from("user_profile")
       .select("email_contato, negocio")
@@ -127,43 +126,10 @@ export default async function handler(req, res) {
         });
 
         console.log("📧 Email enviado com sucesso");
+
       } catch (emailError) {
         console.warn("⚠️ Falha ao enviar email:", emailError.message);
       }
-    }
-
-    /* ================= PUSH NOTIFICATION ================= */
-    const { data: tokens } = await supabase
-      .from("notificacoes_tokens")
-      .select("token")
-      .eq("user_id", loja_id);
-
-    if (tokens && tokens.length > 0) {
-      const mensagens = tokens.map(t => ({
-        token: t.token,
-        notification: {
-          title: "📅 Novo agendamento",
-          body: `${cliente_nome} agendou ${servico_nome} às ${hora_inicio}`
-        },
-        data: {
-          tipo: "AGENDAMENTO",
-          loja_id,
-          data,
-          hora_inicio
-        }
-      }));
-
-      try {
-        const response = await firebaseAdmin
-          .messaging()
-          .sendEach(mensagens);
-
-        console.log("🔔 Push enviado:", response.successCount);
-      } catch (pushError) {
-        console.error("❌ Erro ao enviar push:", pushError);
-      }
-    } else {
-      console.log("⚠️ Nenhum token encontrado para push");
     }
 
     /* ================= RESPOSTA ================= */
