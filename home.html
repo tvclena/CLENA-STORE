@@ -272,12 +272,11 @@ body::-webkit-scrollbar{
 </div>
 
 
-<div class="card" onclick="abrirFaturamentoMes()">
-  <small>Faturamento mês</small>
-  <h2 id="kpiFaturamento">R$ 0</h2>
-  <i class="ri-currency-line"></i>
-</div>
-
+    <div class="card">
+      <small>Faturamento mês</small>
+      <h2 id="kpiFaturamento">R$ 0</h2>
+      <i class="ri-currency-line"></i>
+    </div>
 
     <div class="card">
       <small>Serviços ativos</small>
@@ -508,9 +507,8 @@ async function alterarStatus(id, status) {
   const { error } = await sbHome
     .from("agendamentos")
     .update({ status })
-.eq("id", id)
-.eq("user_id", session.user.id);
-
+    .eq("id", id)
+    .eq("loja_id", session.user.id);
 
   if (error) {
     alert("Erro ao alterar status");
@@ -519,79 +517,6 @@ async function alterarStatus(id, status) {
   }
 
   carregarAgendaDia(session.user.id);
-}
-async function carregarCalendarioFaturamento(){
-
-  const { data:{ session } } = await sbHome.auth.getSession();
-  if(!session) return;
-
-  const lojaId = session.user.id;
-
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth();
-
-  const inicioMes = new Date(ano, mes, 1).toLocaleDateString("en-CA");
-  const fimMes = new Date(ano, mes + 1, 0).toLocaleDateString("en-CA");
-
-  // 🔹 BUSCA AGENDAMENTOS CONFIRMADOS E CONCLUÍDOS
-  const { data: agendamentos } = await sbHome
-    .from("agendamentos")
-    .select("data, valor_servico")
-    .eq("user_id", lojaId)
-    .gte("data", inicioMes)
-    .lte("data", fimMes)
-    .in("status", ["CONFIRMADO","CONCLUIDO"]);
-
-  // 🔹 AGRUPA POR DIA
-  const resumo = {};
-  agendamentos?.forEach(a=>{
-    if(!resumo[a.data]){
-      resumo[a.data] = { qtd:0, total:0 };
-    }
-    resumo[a.data].qtd++;
-    resumo[a.data].total += Number(a.valor_servico||0);
-  });
-
-  const calendario = document.getElementById("calendarioFaturamento");
-  calendario.innerHTML = "";
-
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
-  for(let dia=1; dia<=diasNoMes; dia++){
-    const data = new Date(ano, mes, dia).toLocaleDateString("en-CA");
-    const info = resumo[data];
-
-    calendario.innerHTML += `
-      <div style="
-        background:#fff;
-        border-radius:14px;
-        padding:8px;
-        box-shadow:0 4px 10px rgba(0,0,0,.05);
-        min-height:74px;
-        display:flex;
-        flex-direction:column;
-        justify-content:space-between;
-      ">
-        <strong style="font-size:12px">${dia}</strong>
-
-        ${
-          info ? `
-            <small style="font-size:11px;color:#2563eb">
-              ${info.qtd} atend.
-            </small>
-            <small style="font-size:11px;font-weight:700;color:#16a34a">
-              ${info.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
-            </small>
-          ` : `
-            <small style="font-size:11px;color:#9ca3af">
-              —
-            </small>
-          `
-        }
-      </div>
-    `;
-  }
 }
 
 
@@ -605,14 +530,7 @@ function fecharClientes(){
   document.getElementById("clientesModal").style.display = "none";
 }
 
-function abrirFaturamentoMes(){
-  document.getElementById("faturamentoModal").style.display = "flex";
-  carregarCalendarioFaturamento();
-}
 
-function fecharFaturamentoMes(){
-  document.getElementById("faturamentoModal").style.display = "none";
-}
   
 </script>
 <!-- MODAL CLIENTES -->
@@ -638,42 +556,6 @@ function fecharFaturamentoMes(){
     </iframe>
   </div>
 
-</div>
-<!-- MODAL FATURAMENTO MÊS -->
-<div id="faturamentoModal" style="
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  align-items:flex-end;
-  z-index:99999;
-">
-
-  <div style="
-    width:100%;
-    height:92%;
-    background:#f6f7fb;
-    border-radius:22px 22px 0 0;
-    overflow:hidden;
-    padding:16px;
-  ">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <strong style="font-size:16px">Faturamento do mês</strong>
-      <button onclick="fecharFaturamentoMes()" style="
-        border:none;
-        background:#e5e7eb;
-        border-radius:999px;
-        padding:6px 12px;
-        font-weight:700;
-      ">Fechar</button>
-    </div>
-
-    <div id="calendarioFaturamento"
-         style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
-    </div>
-
-  </div>
 </div>
 
 </body>
