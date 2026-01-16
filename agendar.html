@@ -320,7 +320,12 @@ const { data } = await sb
   if(servicoPreSelecionado){
     const s = data.find(x => x.id === servicoPreSelecionado);
     if(s){
-      selecionarServico(s.id, s.duracao_minutos, s.nome);
+selecionarServico(
+  s.id,
+  s.duracao_minutos,
+  s.nome,
+  Number(s.preco)
+);
     }
   }
 }
