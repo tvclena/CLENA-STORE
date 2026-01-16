@@ -180,9 +180,6 @@ html,body{margin:0;background:var(--bg)}
 .days-scroll .item{
   min-width:70px;
 }
-body.modal-open {
-  overflow: hidden;
-}
 
 
 </style>
@@ -229,20 +226,10 @@ sb.auth.onAuthStateChange((_event, session) => {
 });
 
 const lojaId = new URLSearchParams(location.search).get("l");
-  if (!lojaId) {
-  console.error("❌ lojaId não informado na URL");
-  alert("Erro: loja não identificada");
-  throw new Error("lojaId ausente");
-}
-
 const servicoPreSelecionado =
   new URLSearchParams(location.search).get("servico");
 const alterarId =
   new URLSearchParams(location.search).get("alterar");
-const veioDoBotaoMais =
-  new URLSearchParams(location.search).get("novo") === "1";
-
-  
 
 ;
 
@@ -279,17 +266,6 @@ async function carregarCliente(){
   clienteDB = data || null;
 }
 
-let clientesCache = [];
-let clienteSelecionado = null;
-
-async function carregarClientesLoja(){
-  const { data } = await sb
-    .from("clientes_loja")
-    .select("id, nome, whatsapp, email")
-    .eq("loja_id", lojaId);
-
-  clientesCache = data || [];
-}
 
 
 
@@ -454,16 +430,13 @@ function renderizarDia(d, index){
 
 
 
-async function selecionarServico(id, dur, nome, preco){
 
-  // 🔒 BLOQUEIA FLUXO SEM CLIENTE
-  if (veioDoBotaoMais && !clienteValido()) {
-    abrirModal();
-    return;
-  }
+  
+async function selecionarServico(id, dur, nome, preco){
 
   document.querySelectorAll(".service")
     .forEach(el => el.classList.remove("selected"));
+
   const card = document.querySelector(`[data-id="${id}"]`);
   card?.classList.add("selected");
 
@@ -578,21 +551,16 @@ async function selecionarDia(index){
 }
 
 
+
 (async ()=>{
   await verificarLogin();
-  await carregarCliente();
-  await carregarClientesLoja();
+  await carregarCliente(); // 🔥 ESSENCIAL
   carregarServicos();
 
-  // 🔒 SE VEIO DO BOTÃO + E NÃO TEM CLIENTE, BLOQUEIA FLUXO
-  if (veioDoBotaoMais && !clienteValido()) {
-    setTimeout(() => {
-      abrirModal();
-    }, 300);
+  if(!clienteValido()){
+    abrirModal();
   }
 })();
-
-
 
   
 function fecharOverlay(){
@@ -649,8 +617,6 @@ function abrirModal(){
   const modal = document.getElementById("clienteModal");
   if(!modal.classList.contains("hidden")) return;
 
-  document.body.classList.add("modal-open");
-
   const cliente = getCliente();
   if(cliente){
     cliNome.value = cliente.nome || "";
@@ -661,167 +627,58 @@ function abrirModal(){
   modal.classList.remove("hidden");
 }
 
+
 function fecharModal(){
   if(!clienteValido()) return;
-
-  document.body.classList.remove("modal-open");
   document.getElementById("clienteModal").classList.add("hidden");
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
+  const whatsInput = document.getElementById("cliWhats");
+  if(!whatsInput) return;
 
-  const cliNome  = document.getElementById("cliNome");
-  const cliWhats = document.getElementById("cliWhats");
-  const cliEmail = document.getElementById("cliEmail");
-
-  // =========================
-  // MÁSCARA WHATSAPP
-  // =========================
-  cliWhats.addEventListener("input", () => {
-    let v = cliWhats.value.replace(/\D/g,"").slice(0,11);
+  whatsInput.addEventListener("input", () => {
+    let v = whatsInput.value.replace(/\D/g,"").slice(0,11);
     if(v.length > 6)
       v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
     else if(v.length > 2)
       v = `(${v.slice(0,2)}) ${v.slice(2)}`;
-    cliWhats.value = v;
+    whatsInput.value = v;
   });
-
-  // =========================
-  // AUTOCOMPLETE CLIENTES
-  // =========================
-  const listaSugestoes = document.createElement("div");
-  listaSugestoes.style.position = "absolute";
-  listaSugestoes.style.background = "#fff";
-  listaSugestoes.style.borderRadius = "12px";
-  listaSugestoes.style.boxShadow = "0 10px 30px rgba(0,0,0,.2)";
-  listaSugestoes.style.zIndex = "99999";
-  listaSugestoes.style.display = "none";
-
-  cliNome.parentNode.style.position = "relative";
-  cliNome.parentNode.appendChild(listaSugestoes);
-
-  cliNome.addEventListener("input", () => {
-    const termo = cliNome.value.toLowerCase();
-    listaSugestoes.innerHTML = "";
-
-    if (termo.length < 2) {
-      listaSugestoes.style.display = "none";
-      return;
-    }
-
-    const encontrados = clientesCache.filter(c =>
-      c.nome.toLowerCase().includes(termo)
-    );
-
-    encontrados.forEach(c => {
-      const item = document.createElement("div");
-      item.innerText = `${c.nome} • ${c.whatsapp}`;
-      item.style.padding = "10px";
-      item.style.cursor = "pointer";
-
-      item.onclick = () => {
-        cliNome.value = c.nome;
-        cliWhats.value = c.whatsapp;
-        cliEmail.value = c.email || "";
-        clienteSelecionado = c;
-        listaSugestoes.style.display = "none";
-      };
-
-      listaSugestoes.appendChild(item);
-    });
-
-    listaSugestoes.style.display =
-      encontrados.length ? "block" : "none";
-  });
-
-  // =========================
-  // DETECTAR WHATS EXISTENTE
-  // =========================
-  cliWhats.addEventListener("blur", () => {
-    const whats = cliWhats.value.replace(/\D/g,"");
-
-    const existente = clientesCache.find(
-      c => c.whatsapp === whats
-    );
-
-    if (existente) {
-      const usar = confirm(
-        `WhatsApp já cadastrado:\n${existente.nome}\n\nDeseja usar este cliente?`
-      );
-
-      if (usar) {
-        cliNome.value = existente.nome;
-        cliEmail.value = existente.email || "";
-        clienteSelecionado = existente;
-      }
-    }
-  });
-
 });
-;
 
 
-
-
-  
 async function salvarCliente(){
-
   const nome = cliNome.value.trim().toUpperCase();
   const whats = cliWhats.value.replace(/\D/g,"");
   const email = cliEmail.value.trim() || null;
 
   if(nome.length < 3 || whats.length < 10){
-    alert("Informe nome e WhatsApp válidos");
+    alert("Informe nome completo e WhatsApp válido");
     return;
   }
 
-  // 1️⃣ Cliente já escolhido
-  if (clienteSelecionado) {
-    clienteDB = clienteSelecionado;
-    fecharModal();
-    return;
-  }
+  // 🔥 SALVA NO PERFIL DO CLIENTE
+  await sb.from("clientes_profile").upsert({
+    id: usuarioLogado.id,
+    nome,
+    whatsapp: whats,
+    email
+  });
 
-  // 2️⃣ Verifica duplicidade
-  const existente = clientesCache.find(
-    c => c.whatsapp === whats
-  );
+  // Atualiza memória
+  clienteDB = { nome, whatsapp: whats, email };
 
-  if (existente) {
-    clienteDB = existente;
-    fecharModal();
-    return;
-  }
-
-  // 3️⃣ Criar novo cliente
-  const { data: novo } = await sb
-    .from("clientes_loja")
-    .insert({
-      loja_id: lojaId,
-      nome,
-      whatsapp: whats,
-      email
-    })
-    .select()
-    .single();
-
-  clienteDB = novo;
-  clientesCache.push(novo);
   fecharModal();
 }
 
-
 async function confirmar(h){
 
-const cliente = getCliente();
-
-// ⚠️ Só exige cliente se veio do botão +
-if (veioDoBotaoMais && !cliente) {
-  abrirModal();
-  return;
-}
-
+  const cliente = getCliente();
+  if(!cliente){
+    abrirModal();
+    return;
+  }
 
   const fim = toHour(toMin(h) + duracao);
 
@@ -874,36 +731,20 @@ if (veioDoBotaoMais && !cliente) {
     return;
   }
 
-if(!response.ok){
-  const erro = await response.text();
-  console.error("❌ ERRO API:", erro);
-  alert("❌ Erro ao salvar agendamento");
-  return;
-}
+  if(!response.ok){
+    const erro = await response.text();
+    console.error("❌ ERRO API:", erro);
+    alert("❌ Erro ao salvar agendamento");
+    return;
+  }
 
-// ✅ SUCESSO
-
-// 🧹 limpa cliente temporário após agendar
-if (veioDoBotaoMais) {
-  localStorage.removeItem("CLIENTE_LOJA");
-}
-
-// 📢 avisa o iframe pai que o agendamento foi concluído
-if (window.parent !== window) {
-  window.parent.postMessage("AGENDAMENTO_OK", "*");
-}
-
-document.body.insertAdjacentHTML("beforeend", `
-  <div class="overlay" id="overlayConfirm">
-    <div class="msg-final">
-      ✅ <strong>
-        ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
-      </strong><br><br>
-
-
-
-
-
+  // ✅ SUCESSO
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="overlay" id="overlayConfirm">
+      <div class="msg-final">
+        ✅ <strong>
+          ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
+        </strong><br><br>
 
         Serviço: <b>${dados.servico_nome}</b><br>
         Data: <b>${dados.data}</b><br>
