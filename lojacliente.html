@@ -15,14 +15,12 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 <style>
 :root{
   --primary:#ff6a00;
-  --yellow:#ffe600;
-  --blue:#3483fa;
-  --success:#00a650;
   --bg:#f4f4f4;
   --card:#fff;
   --border:#e5e7eb;
   --text:#111;
   --muted:#6b7280;
+  --success:#16a34a;
 }
 
 *{box-sizing:border-box;font-family:Inter}
@@ -30,7 +28,7 @@ body{margin:0;background:var(--bg);color:var(--text)}
 
 /* HEADER */
 .header{
-  background:var(--yellow);
+  background:var(--primary);
   padding:12px;
 }
 .topbar{
@@ -39,13 +37,14 @@ body{margin:0;background:var(--bg);color:var(--text)}
   align-items:center;
 }
 .logo{
+  color:#fff;
   font-weight:900;
   font-size:16px;
 }
 .search{
   flex:1;
   background:#fff;
-  border-radius:8px;
+  border-radius:10px;
   padding:10px 12px;
   font-size:14px;
   color:#999;
@@ -74,20 +73,9 @@ body{margin:0;background:var(--bg);color:var(--text)}
 }
 .banner-scroll::-webkit-scrollbar{display:none}
 .banner img{
-  width:90%;
+  width:92%;
   max-width:360px;
-  border-radius:12px;
-}
-
-/* ALERT */
-.alert{
-  background:#fff7ed;
-  border-left:4px solid #f97316;
-  padding:12px;
-  margin:12px;
-  border-radius:8px;
-  font-size:13px;
-  display:none;
+  border-radius:14px;
 }
 
 /* GRID */
@@ -100,7 +88,7 @@ body{margin:0;background:var(--bg);color:var(--text)}
 
 .card{
   background:#fff;
-  border-radius:8px;
+  border-radius:12px;
   overflow:hidden;
 }
 .card img{
@@ -132,8 +120,8 @@ body{margin:0;background:var(--bg);color:var(--text)}
   width:100%;
   padding:10px;
   border:none;
-  border-radius:6px;
-  background:var(--blue);
+  border-radius:10px;
+  background:var(--primary);
   color:#fff;
   font-weight:700;
 }
@@ -141,12 +129,12 @@ body{margin:0;background:var(--bg);color:var(--text)}
 /* CART */
 .cart{
   position:fixed;
-  bottom:16px;
-  right:16px;
-  background:var(--blue);
+  bottom:18px;
+  right:18px;
+  background:var(--primary);
   color:#fff;
-  width:56px;
-  height:56px;
+  width:58px;
+  height:58px;
   border-radius:50%;
   display:flex;
   align-items:center;
@@ -158,7 +146,7 @@ body{margin:0;background:var(--bg);color:var(--text)}
   position:absolute;
   top:-6px;
   right:-6px;
-  background:#000;
+  background:#111;
   width:22px;
   height:22px;
   border-radius:50%;
@@ -168,11 +156,11 @@ body{margin:0;background:var(--bg);color:var(--text)}
   justify-content:center;
 }
 
-/* MODAL */
+/* MODAL CARRINHO */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,.45);
   display:none;
   align-items:flex-end;
   z-index:999;
@@ -182,23 +170,45 @@ body{margin:0;background:var(--bg);color:var(--text)}
   width:100%;
   height:85vh;
   background:#fff;
-  border-radius:20px 20px 0 0;
+  border-radius:24px 24px 0 0;
   padding:16px;
   display:flex;
   flex-direction:column;
 }
-.cart-item{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:10px;
-  font-size:14px;
+
+/* POPUP PERFIL */
+.profile-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
 }
-.btn-finalizar{
+.profile-box{
+  background:#fff;
+  width:90%;
+  max-width:380px;
+  border-radius:24px;
+  padding:20px;
+}
+.profile-box h3{
+  margin-bottom:12px;
+}
+.profile-box input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  margin-bottom:10px;
+}
+.profile-box button{
   width:100%;
   padding:14px;
   border:none;
   border-radius:999px;
-  background:var(--blue);
+  background:var(--primary);
   color:#fff;
   font-weight:800;
 }
@@ -216,8 +226,8 @@ body{margin:0;background:var(--bg);color:var(--text)}
 </div>
 
 <!-- LOCALIZAÇÃO -->
-<div class="location" id="location">
-  📍 Entregar em <span id="cidade"></span>
+<div class="location" id="locationText">
+  📍 Informar endereço
 </div>
 
 <!-- BANNERS -->
@@ -228,11 +238,6 @@ body{margin:0;background:var(--bg);color:var(--text)}
   </div>
 </div>
 
-<!-- ALERTA PERFIL -->
-<div class="alert" id="alertPerfil">
-  Complete seus dados no perfil para continuar comprando.
-</div>
-
 <!-- PRODUTOS -->
 <div class="grid" id="produtos"></div>
 
@@ -241,15 +246,28 @@ body{margin:0;background:var(--bg);color:var(--text)}
   🛒 <span id="cartCount">0</span>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL CARRINHO -->
 <div class="modal" id="modal">
   <div class="sheet">
     <h3>Carrinho</h3>
     <div id="cartItens"></div>
     <div style="margin-top:auto">
       <div id="cartTotal" style="font-weight:800;margin-bottom:12px"></div>
-      <button class="btn-finalizar" onclick="finalizarCompra()">Finalizar compra</button>
+      <button class="card-btn" onclick="finalizarCompra()">Finalizar compra</button>
     </div>
+  </div>
+</div>
+
+<!-- POPUP PERFIL -->
+<div class="profile-overlay" id="profilePopup">
+  <div class="profile-box">
+    <h3>Complete seus dados</h3>
+    <input id="cNome" placeholder="Nome">
+    <input id="cWhats" placeholder="WhatsApp">
+    <input id="cCep" placeholder="CEP">
+    <input id="cCidade" placeholder="Cidade">
+    <input id="cUf" placeholder="UF">
+    <button onclick="salvarPerfil()">Salvar</button>
   </div>
 </div>
 
@@ -271,19 +289,26 @@ function clienteValido(){
   return c.nome && c.whatsapp && c.cep;
 }
 
-/* LOCALIZAÇÃO */
-const cliente = getCliente();
-if(cliente.cidade){
-  document.getElementById("cidade").innerText =
-    `${cliente.cidade} • ${cliente.cep}`;
-}else{
-  document.getElementById("alertPerfil").style.display="block";
+function syncLocalizacao(){
+  const c = getCliente();
+  if(c.cidade){
+    locationText.innerText = `📍 Entregar em ${c.cidade} • ${c.cep}`;
+  }else{
+    locationText.innerText = "📍 Informar endereço";
+  }
 }
+
+/* ABRE POPUP SE FALTAR */
+if(!clienteValido()){
+  document.getElementById("profilePopup").style.display="flex";
+}
+
+syncLocalizacao();
 
 /* CARRINHO */
 let carrinho = JSON.parse(localStorage.getItem("CARRINHO_LOJA")) || {
   lojaId,
-  cliente,
+  cliente:getCliente(),
   itens:[]
 };
 
@@ -307,7 +332,7 @@ async function carregarProdutos(){
     <div class="card-body">
       <div class="card-title">${p.nome}</div>
       <div class="price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
-      ${p.pg_online ? `<div class="badge">Frete grátis</div>` : ``}
+      ${p.pg_online ? `<div class="badge">Pagamento online</div>` : ``}
       <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">
         Adicionar
       </button>
@@ -319,7 +344,7 @@ async function carregarProdutos(){
 /* ADD */
 function addCarrinho(id,nome,preco){
  if(!clienteValido()){
-  alert("Complete seu cadastro no perfil");
+  document.getElementById("profilePopup").style.display="flex";
   return;
  }
  const item = carrinho.itens.find(i=>i.id===id);
@@ -345,10 +370,30 @@ function renderCarrinho(){
  cartTotal.innerText="Total: R$ "+total.toFixed(2).replace('.',',');
 }
 
+/* SALVAR PERFIL POPUP */
+function salvarPerfil(){
+ const dados={
+  nome:cNome.value.trim(),
+  whatsapp:cWhats.value.trim(),
+  cep:cCep.value.trim(),
+  cidade:cCidade.value.trim(),
+  uf:cUf.value.trim()
+ };
+ if(!dados.nome || !dados.whatsapp || !dados.cep){
+  alert("Preencha os campos obrigatórios");
+  return;
+ }
+ localStorage.setItem("CLIENTE_LOJA",JSON.stringify(dados));
+ carrinho.cliente=dados;
+ salvarCarrinho();
+ profilePopup.style.display="none";
+ syncLocalizacao();
+}
+
 /* PAGAMENTO */
 async function finalizarCompra(){
  if(!clienteValido()){
-  alert("Complete seu cadastro");
+  document.getElementById("profilePopup").style.display="flex";
   return;
  }
  if(!carrinho.itens.length){
