@@ -497,9 +497,15 @@ function go(el,p){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
 
+  // 🔥 SE FOR A LOJA, SINCRONIZA O PERFIL
+  if (p === "lojacliente.html") {
+    sincronizarClienteLoja();
+  }
+
   const lojaId = new URLSearchParams(location.search).get("l");
   frame.src = `${p}?l=${lojaId}&t=${Date.now()}`;
 }
+
 
 function openProfile(){ profileOverlay.style.display="flex"; }
 function closeProfile(e){ if(!e || e.target.id==="profileOverlay") profileOverlay.style.display="none"; }
@@ -673,6 +679,24 @@ const messaging = getMessaging(app);
 onMessage(messaging, payload => {
   alert(payload.notification.title + "\n" + payload.notification.body);
 });
+
+function sincronizarClienteLoja() {
+  if (!perfil) return;
+
+  const clienteLoja = {
+    id: user.id,
+    nome: perfil.nome || "",
+    whatsapp: perfil.whatsapp || "",
+    cep: perfil.cep || "",
+    rua: perfil.rua || "",
+    numero: perfil.numero || "",
+    cidade: perfil.cidade || "",
+    uf: perfil.uf || ""
+  };
+
+  localStorage.setItem("CLIENTE_LOJA", JSON.stringify(clienteLoja));
+}
+
 </script>
 
 
