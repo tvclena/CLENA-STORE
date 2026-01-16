@@ -265,11 +265,12 @@ body::-webkit-scrollbar{
       <i class="ri-calendar-check-line"></i>
     </div>
 
-    <div class="card">
-      <small>Clientes</small>
-      <h2 id="kpiClientes">0</h2>
-      <i class="ri-user-3-line"></i>
-    </div>
+<div class="card" onclick="abrirClientes()">
+  <small>Clientes</small>
+  <h2 id="kpiClientes">0</h2>
+  <i class="ri-user-3-line"></i>
+</div>
+
 
     <div class="card">
       <small>Faturamento mês</small>
@@ -519,8 +520,15 @@ async function alterarStatus(id, status) {
 }
 
 
-
-
+</script>
+<script>
+function abrirClientes(){
+  // envia mensagem para o app pai (minha-loja.html)
+  window.parent.postMessage(
+    { action: "abrirClientes" },
+    "*"
+  );
+}
 </script>
 
 </body>
