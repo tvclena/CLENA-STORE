@@ -15,8 +15,6 @@
   --primary:#ff6a00;
   --bg:#0b0b0b;
   --card:rgba(255,255,255,.92);
-  --border:rgba(255,255,255,.18);
-  --text:#111827;
   --muted:#6b7280;
 }
 
@@ -133,7 +131,7 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 
-/* máscara whatsapp */
+/* MÁSCARA WHATSAPP */
 whats.addEventListener("input",()=>{
   let v = whats.value.replace(/\D/g,"").slice(0,11);
   if(v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
@@ -141,17 +139,17 @@ whats.addEventListener("input",()=>{
   whats.value = v;
 });
 
-/* carregar loja */
+/* CARREGAR DADOS DA LOJA */
 (async()=>{
   const { data } = await sb
     .from("user_profile")
-    .select("negocio,logo_url,capa_url")
-    .eq("user_id",lojaId)
+    .select("negocio, avatar_url, capa_url")
+    .eq("user_id", lojaId)
     .single();
 
   if(data){
     nomeLoja.innerText = data.negocio;
-    if(data.logo_url) logoLoja.src = data.logo_url;
+    if(data.avatar_url) logoLoja.src = data.avatar_url;
     if(data.capa_url) bg.style.backgroundImage = `url('${data.capa_url}')`;
   }
 
@@ -161,9 +159,9 @@ whats.addEventListener("input",()=>{
   }
 })();
 
-/* entrada automática */
+/* ENTRADA AUTOMÁTICA */
 async function entrar(){
-  const nomeVal = nome.value.trim().toUpperCase();
+  const nomeVal  = nome.value.trim().toUpperCase();
   const whatsVal = whats.value.replace(/\D/g,"");
 
   if(nomeVal.length < 3 || whatsVal.length < 10){
@@ -174,13 +172,11 @@ async function entrar(){
   const emailFake = `${whatsVal}@cliente.agendafacil`;
   const senhaFake = `AF@${whatsVal}`;
 
-  // tenta login
   let { error } = await sb.auth.signInWithPassword({
     email: emailFake,
     password: senhaFake
   });
 
-  // se não existir, cria
   if(error){
     await sb.auth.signUp({
       email: emailFake,
@@ -194,13 +190,11 @@ async function entrar(){
     return;
   }
 
-  // vínculo loja
   await sb.from("clientes_loja").upsert({
     cliente_id: user.id,
     loja_id: lojaId
   });
 
-  // perfil
   const { data: perfil } = await sb
     .from("clientes_profile")
     .select("id")
