@@ -270,6 +270,17 @@ async function carregarCliente(){
   clienteDB = data || null;
 }
 
+let clientesCache = [];
+let clienteSelecionado = null;
+
+async function carregarClientesLoja(){
+  const { data } = await sb
+    .from("clientes_loja")
+    .select("id, nome, whatsapp, email")
+    .eq("loja_id", lojaId);
+
+  clientesCache = data || [];
+}
 
 
 
@@ -558,14 +569,15 @@ async function selecionarDia(index){
 
 (async ()=>{
   await verificarLogin();
-  await carregarCliente(); // 🔥 ESSENCIAL
+  await carregarCliente();
+  await carregarClientesLoja(); // 👈 ADICIONE ESTA LINHA
   carregarServicos();
 
-  // ⚠️ SÓ ABRE MODAL SE VEIO DO BOTÃO +
   if (veioDoBotaoMais && !clienteValido()) {
     abrirModal();
   }
 })();
+
 
 
   
@@ -640,20 +652,101 @@ function fecharModal(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const whatsInput = document.getElementById("cliWhats");
-  if(!whatsInput) return;
 
-  whatsInput.addEventListener("input", () => {
-    let v = whatsInput.value.replace(/\D/g,"").slice(0,11);
+  const cliNome  = document.getElementById("cliNome");
+  const cliWhats = document.getElementById("cliWhats");
+  const cliEmail = document.getElementById("cliEmail");
+
+  // =========================
+  // MÁSCARA WHATSAPP
+  // =========================
+  cliWhats.addEventListener("input", () => {
+    let v = cliWhats.value.replace(/\D/g,"").slice(0,11);
     if(v.length > 6)
       v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
     else if(v.length > 2)
       v = `(${v.slice(0,2)}) ${v.slice(2)}`;
-    whatsInput.value = v;
+    cliWhats.value = v;
   });
+
+  // =========================
+  // AUTOCOMPLETE CLIENTES
+  // =========================
+  const listaSugestoes = document.createElement("div");
+  listaSugestoes.style.position = "absolute";
+  listaSugestoes.style.background = "#fff";
+  listaSugestoes.style.borderRadius = "12px";
+  listaSugestoes.style.boxShadow = "0 10px 30px rgba(0,0,0,.2)";
+  listaSugestoes.style.zIndex = "99999";
+  listaSugestoes.style.display = "none";
+
+  cliNome.parentNode.style.position = "relative";
+  cliNome.parentNode.appendChild(listaSugestoes);
+
+  cliNome.addEventListener("input", () => {
+    const termo = cliNome.value.toLowerCase();
+    listaSugestoes.innerHTML = "";
+
+    if (termo.length < 2) {
+      listaSugestoes.style.display = "none";
+      return;
+    }
+
+    const encontrados = clientesCache.filter(c =>
+      c.nome.toLowerCase().includes(termo)
+    );
+
+    encontrados.forEach(c => {
+      const item = document.createElement("div");
+      item.innerText = `${c.nome} • ${c.whatsapp}`;
+      item.style.padding = "10px";
+      item.style.cursor = "pointer";
+
+      item.onclick = () => {
+        cliNome.value = c.nome;
+        cliWhats.value = c.whatsapp;
+        cliEmail.value = c.email || "";
+        clienteSelecionado = c;
+        listaSugestoes.style.display = "none";
+      };
+
+      listaSugestoes.appendChild(item);
+    });
+
+    listaSugestoes.style.display =
+      encontrados.length ? "block" : "none";
+  });
+
+  // =========================
+  // DETECTAR WHATS EXISTENTE
+  // =========================
+  cliWhats.addEventListener("blur", () => {
+    const whats = cliWhats.value.replace(/\D/g,"");
+
+    const existente = clientesCache.find(
+      c => c.whatsapp === whats
+    );
+
+    if (existente) {
+      const usar = confirm(
+        `WhatsApp já cadastrado:\n${existente.nome}\n\nDeseja usar este cliente?`
+      );
+
+      if (usar) {
+        cliNome.value = existente.nome;
+        cliEmail.value = existente.email || "";
+        clienteSelecionado = existente;
+      }
+    }
+  });
+
 });
+;
 
 
+
+
+  
 async function salvarCliente(){
 
   const nome = cliNome.value.trim().toUpperCase();
@@ -661,38 +754,42 @@ async function salvarCliente(){
   const email = cliEmail.value.trim() || null;
 
   if(nome.length < 3 || whats.length < 10){
-    alert("Informe nome completo e WhatsApp válido");
+    alert("Informe nome e WhatsApp válidos");
     return;
   }
 
-  // 🔥 SE VEIO DO BOTÃO +, NÃO SALVA NO PROFILE
-  if (veioDoBotaoMais) {
-
-    // salva só em memória/localStorage
-    const clienteTemp = { nome, whatsapp: whats, email };
-
-    localStorage.setItem(
-      "CLIENTE_LOJA",
-      JSON.stringify(clienteTemp)
-    );
-
-    clienteDB = clienteTemp;
+  // 1️⃣ Cliente já escolhido
+  if (clienteSelecionado) {
+    clienteDB = clienteSelecionado;
     fecharModal();
     return;
   }
 
-  // 🔐 CLIENTE LOGADO → SALVA NO PROFILE
-  if (usuarioLogado) {
-    await sb.from("clientes_profile").upsert({
-      id: usuarioLogado.id,
+  // 2️⃣ Verifica duplicidade
+  const existente = clientesCache.find(
+    c => c.whatsapp === whats
+  );
+
+  if (existente) {
+    clienteDB = existente;
+    fecharModal();
+    return;
+  }
+
+  // 3️⃣ Criar novo cliente
+  const { data: novo } = await sb
+    .from("clientes_loja")
+    .insert({
+      loja_id: lojaId,
       nome,
       whatsapp: whats,
       email
-    });
+    })
+    .select()
+    .single();
 
-    clienteDB = { nome, whatsapp: whats, email };
-  }
-
+  clienteDB = novo;
+  clientesCache.push(novo);
   fecharModal();
 }
 
