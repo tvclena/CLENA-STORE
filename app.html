@@ -259,10 +259,19 @@ iframe{width:100%;height:100%;border:none}
 </div>
 
 <nav class="navbar">
-  <div class="nav-item active" onclick="go(this,'homeclientes.html')"><i class="ri-home-5-line"></i>Início</div>
-  <div class="nav-item" onclick="go(this,'agendar.html')"><i class="ri-calendar-line"></i>Agendar</div>
-  <div class="nav-item" onclick="go(this,'agendamentosclientes.html')"><i class="ri-user-line"></i>Meu espaço</div>
+  <div class="nav-item active" onclick="go(this,'homeclientes.html')">
+    <i class="ri-home-5-line"></i>Início
+  </div>
+
+  <div class="nav-item" onclick="go(this,'agendar.html')">
+    <i class="ri-calendar-line"></i>Agendar
+  </div>
+
+  <div class="nav-item" onclick="go(this,'agendamentosclientes.html')">
+    <i class="ri-user-line"></i>Meu espaço
+  </div>
 </nav>
+
 
 <!-- PROFILE -->
 <div id="profileOverlay" onclick="closeProfile(event)">
@@ -316,6 +325,27 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+async function verificarProdutosLoja(lojaId) {
+
+  if (!lojaId) return;
+
+  const { count, error } = await sb
+    .from("produtos_servicos")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", lojaId)
+    .eq("ativo", true);
+
+  if (error) {
+    console.error("Erro ao verificar produtos", error);
+    return;
+  }
+
+  // 👉 SE EXISTIR PRODUTO, MOSTRA NA NAVBAR
+  if (count > 0) {
+    const nav = document.getElementById("navProdutos");
+    if (nav) nav.style.display = "flex";
+  }
+}
 
 const frame = document.getElementById("frame");
 let user, perfil;
@@ -377,10 +407,14 @@ let user, perfil;
     perfil.loja_ativa = lojaId;
   }
 
-  // 🖼️ carrega iframe
-  frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
+// 🖼️ carrega iframe
+frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
 
-  carregarPerfil();
+// 🔥 VERIFICA SE TEM PRODUTOS
+verificarProdutosLoja(perfil.loja_ativa);
+
+carregarPerfil();
+
 })();
 
 function carregarPerfil(){
