@@ -245,6 +245,12 @@ body::-webkit-scrollbar{
   background:#dcfce7;
   color:#15803d;
 }
+.card{
+  cursor:pointer;
+}
+.card:active{
+  transform:scale(0.97);
+}
 
 </style>
 </head>
@@ -272,18 +278,19 @@ body::-webkit-scrollbar{
 </div>
 
 
-    <div class="card">
-      <small>Faturamento mês</small>
-      <h2 id="kpiFaturamento">R$ 0</h2>
-      <i class="ri-currency-line"></i>
-    </div>
+<div class="card" onclick="abrirFaturamentoMes()">
+  <small>Faturamento mês</small>
+  <h2 id="kpiFaturamento">R$ 0</h2>
+  <i class="ri-currency-line"></i>
+</div>
 
-    <div class="card">
-      <small>Serviços ativos</small>
-      <h2 id="kpiServicos">0</h2>
-      <i class="ri-scissors-line"></i>
-    </div>
-  </div>
+
+<div class="card" onclick="abrirServicos()">
+  <small>Serviços ativos</small>
+  <h2 id="kpiServicos">0</h2>
+  <i class="ri-scissors-line"></i>
+</div>
+
 
   <!-- AGENDA -->
   <div class="list">
@@ -507,8 +514,9 @@ async function alterarStatus(id, status) {
   const { error } = await sbHome
     .from("agendamentos")
     .update({ status })
-    .eq("id", id)
-    .eq("loja_id", session.user.id);
+.eq("id", id)
+.eq("user_id", session.user.id);
+
 
   if (error) {
     alert("Erro ao alterar status");
@@ -518,7 +526,137 @@ async function alterarStatus(id, status) {
 
   carregarAgendaDia(session.user.id);
 }
+async function carregarCalendarioFaturamento(){
 
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
+
+  const lojaId = session.user.id;
+
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+
+  const inicioMes = new Date(ano, mes, 1).toLocaleDateString("en-CA");
+  const fimMes = new Date(ano, mes + 1, 0).toLocaleDateString("en-CA");
+
+  // 🔹 BUSCA AGENDAMENTOS CONFIRMADOS E CONCLUÍDOS
+  const { data: agendamentos } = await sbHome
+    .from("agendamentos")
+    .select("data, valor_servico")
+    .eq("user_id", lojaId)
+    .gte("data", inicioMes)
+    .lte("data", fimMes)
+    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+
+  // 🔹 AGRUPA POR DIA
+  const resumo = {};
+  agendamentos?.forEach(a=>{
+    if(!resumo[a.data]){
+      resumo[a.data] = { qtd:0, total:0 };
+    }
+    resumo[a.data].qtd++;
+    resumo[a.data].total += Number(a.valor_servico||0);
+  });
+
+  const calendario = document.getElementById("calendarioFaturamento");
+  calendario.innerHTML = "";
+
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+  for(let dia=1; dia<=diasNoMes; dia++){
+    const data = new Date(ano, mes, dia).toLocaleDateString("en-CA");
+    const info = resumo[data];
+
+    calendario.innerHTML += `
+      <div style="
+        background:#fff;
+        border-radius:14px;
+        padding:8px;
+        box-shadow:0 4px 10px rgba(0,0,0,.05);
+        min-height:74px;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+      ">
+        <strong style="font-size:12px">${dia}</strong>
+
+        ${
+          info ? `
+            <small style="font-size:11px;color:#2563eb">
+              ${info.qtd} atend.
+            </small>
+            <small style="font-size:11px;font-weight:700;color:#16a34a">
+              ${info.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+            </small>
+          ` : `
+            <small style="font-size:11px;color:#9ca3af">
+              —
+            </small>
+          `
+        }
+      </div>
+    `;
+  }
+}
+
+async function carregarServicos(){
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
+
+  const lojaId = session.user.id;
+
+  const { data: servicos, error } = await sbHome
+    .from("produtos_servicos")
+    .select("id, nome, preco, imagem_url")
+    .eq("user_id", lojaId)
+    .eq("ativo", true)
+    .eq("tipo", "SERVICO")
+    .order("nome");
+
+  const box = document.getElementById("listaServicos");
+  box.innerHTML = "";
+
+  if(error || !servicos || servicos.length === 0){
+    box.innerHTML = `<div class="empty">Nenhum serviço ativo</div>`;
+    return;
+  }
+
+  servicos.forEach(s => {
+
+    const valor = Number(s.preco||0).toLocaleString("pt-BR",{
+      style:"currency",
+      currency:"BRL"
+    });
+
+    box.innerHTML += `
+      <div style="
+        display:grid;
+        grid-template-columns:56px 1fr auto;
+        gap:12px;
+        align-items:center;
+        background:#f9fafb;
+        border-radius:14px;
+        padding:10px;
+        margin-bottom:10px;
+      ">
+
+        <img
+          src="${s.imagem_url || 'https://via.placeholder.com/56'}"
+          style="width:56px;height:56px;border-radius:12px;object-fit:cover"
+        />
+
+        <div style="display:flex;flex-direction:column">
+          <strong style="font-size:13px">${s.nome}</strong>
+          <small style="color:#16a34a;font-weight:700">${valor}</small>
+        </div>
+
+        <i class="ri-check-line" style="color:#22c55e;font-size:18px"></i>
+      </div>
+    `;
+  });
+}
 
 </script>
 <script>
@@ -530,9 +668,25 @@ function fecharClientes(){
   document.getElementById("clientesModal").style.display = "none";
 }
 
+function abrirFaturamentoMes(){
+  document.getElementById("faturamentoModal").style.display = "flex";
+  carregarCalendarioFaturamento();
+}
 
-  
+function fecharFaturamentoMes(){
+  document.getElementById("faturamentoModal").style.display = "none";
+}
+function abrirServicos(){
+  document.getElementById("servicosModal").style.display = "flex";
+  carregarServicos();
+}
+
+function fecharServicos(){
+  document.getElementById("servicosModal").style.display = "none";
+}
+
 </script>
+
 <!-- MODAL CLIENTES -->
 <div id="clientesModal" style="
   position:fixed;
@@ -542,22 +696,119 @@ function fecharClientes(){
   align-items:flex-end;
   z-index:99999;
 ">
-
   <div style="
     width:100%;
     height:92%;
-    background:#f6f7fb;
+    background:#ffffff;
     border-radius:22px 22px 0 0;
     overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
   ">
     <iframe
       src="meus-clientes.html"
       style="width:100%;height:100%;border:none">
     </iframe>
   </div>
+</div>
 
+<!-- MODAL FATURAMENTO MÊS -->
+<div id="faturamentoModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="padding:16px;display:flex;justify-content:space-between;align-items:center">
+      <strong style="font-size:16px">Faturamento do mês</strong>
+      <button onclick="fecharFaturamentoMes()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- calendário -->
+    <div id="calendarioFaturamento"
+         style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:0 16px 24px;overflow-y:auto">
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL SERVIÇOS -->
+<div id="servicosModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- topo -->
+    <div style="padding:16px">
+
+      <!-- handle -->
+      <div style="
+        width:40px;
+        height:4px;
+        background:#d1d5db;
+        border-radius:999px;
+        margin:0 auto 12px;
+      "></div>
+
+      <!-- header -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong style="font-size:16px">Serviços ativos</strong>
+        <button onclick="fecharServicos()" style="
+          border:none;
+          background:#e5e7eb;
+          border-radius:999px;
+          padding:6px 12px;
+          font-weight:700;
+        ">Fechar</button>
+      </div>
+
+    </div>
+
+    <!-- lista -->
+    <div id="listaServicos" style="
+      flex:1;
+      overflow-y:auto;
+      padding:0 16px 24px;
+      -webkit-overflow-scrolling:touch;
+    "></div>
+
+  </div>
 </div>
 
 </body>
-
 </html>
