@@ -16,20 +16,14 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-dark:#e85c00;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --radius:22px;
-  --shadow:0 14px 32px rgba(0,0,0,.08);
 }
 
-*{
-  box-sizing:border-box;
-  font-family:'Inter', sans-serif;
-}
+*{box-sizing:border-box;font-family:Inter}
 
 body{
   margin:0;
@@ -37,125 +31,117 @@ body{
   color:var(--text);
 }
 
-/* ================= HEADER ================= */
+/* HEADER */
 .header{
   position:sticky;
   top:0;
-  z-index:10;
   background:#fff;
-  padding:18px 16px;
+  padding:12px 14px;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
   font-weight:800;
-  font-size:18px;
   border-bottom:1px solid var(--border);
 }
 
-.back{
-  font-size:22px;
-  cursor:pointer;
-}
+.back{font-size:20px;cursor:pointer}
 
-/* ================= LISTA ================= */
+/* CONTAINER */
 .container{
-  padding:16px;
-  padding-bottom:160px;
+  padding:12px;
+  padding-bottom:190px;
 }
 
-.empty{
-  text-align:center;
-  color:var(--muted);
-  margin-top:40px;
-  font-weight:600;
-}
-
-/* ================= ITEM ================= */
-.item{
+/* CARD BASE */
+.card{
   background:var(--card);
-  border-radius:var(--radius);
-  padding:14px;
-  margin-bottom:14px;
-  box-shadow:var(--shadow);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
 }
 
-.item-body{
-  display:flex;
-  gap:14px;
-}
-
-.item-img{
-  width:84px;
-  height:84px;
-  border-radius:16px;
-  object-fit:cover;
-  background:#f3f4f6;
-}
-
-.item-info{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.item-nome{
-  font-weight:800;
-  font-size:15px;
-}
-
-.item-desc{
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.3;
-}
-
-.item-preco{
+/* ENDEREÇO */
+.endereco-title{
   font-weight:800;
   font-size:14px;
-  margin-top:auto;
+  margin-bottom:6px;
 }
 
-/* ================= FOOT ITEM ================= */
-.item-footer{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-top:14px;
-}
-
-.remove{
-  color:#ef4444;
+.endereco-text{
   font-size:13px;
-  font-weight:700;
-  cursor:pointer;
+  color:var(--muted);
+  line-height:1.4;
 }
 
-/* ================= QTD ================= */
-.qty{
+/* ITEM */
+.item{
   display:flex;
   align-items:center;
   gap:10px;
 }
 
+/* IMAGEM */
+.item-img{
+  width:54px;
+  height:54px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#eee;
+  flex-shrink:0;
+}
+
+/* INFO */
+.item-info{flex:1}
+
+.item-nome{
+  font-weight:700;
+  font-size:14px;
+}
+
+.item-preco{
+  font-size:13px;
+  font-weight:700;
+  margin-top:2px;
+}
+
+/* AÇÕES */
+.item-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+
+.remove{
+  color:#ef4444;
+  font-size:12px;
+  cursor:pointer;
+}
+
+/* QTD */
+.qty{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
 .qty button{
-  width:34px;
-  height:34px;
-  border-radius:50%;
+  width:26px;
+  height:26px;
   border:none;
+  border-radius:50%;
   background:#f3f4f6;
-  font-size:18px;
   font-weight:800;
   cursor:pointer;
 }
 
 .qty span{
-  min-width:24px;
+  font-weight:700;
+  min-width:18px;
   text-align:center;
-  font-weight:800;
 }
 
-/* ================= FOOTER ================= */
+/* FOOTER */
 .footer{
   position:fixed;
   bottom:0;
@@ -163,29 +149,22 @@ body{
   right:0;
   background:#fff;
   border-top:1px solid var(--border);
-  padding:18px 16px;
+  padding:12px;
 }
 
 .total{
   font-weight:800;
-  font-size:17px;
-  margin-bottom:14px;
+  margin-bottom:8px;
 }
 
 .btn{
   width:100%;
-  padding:16px;
+  padding:14px;
   border:none;
   border-radius:999px;
   background:var(--primary);
   color:#fff;
   font-weight:800;
-  font-size:15px;
-  cursor:pointer;
-}
-
-.btn:active{
-  background:var(--primary-dark);
 }
 </style>
 </head>
@@ -193,11 +172,11 @@ body{
 <body>
 
 <div class="header">
-  <span class="back" onclick="voltar()">←</span>
+  <span class="back" onclick="history.back()">←</span>
   Carrinho
 </div>
 
-<div class="container" id="lista"></div>
+<div class="container" id="conteudo"></div>
 
 <div class="footer">
   <div class="total" id="total">Total: R$ 0,00</div>
@@ -205,138 +184,128 @@ body{
 </div>
 
 <script>
-/* ===============================
-   CARRINHO POR LOJA
-================================ */
 const lojaId = new URLSearchParams(location.search).get("l");
 const CARRINHO_KEY = "CARRINHO_LOJA_" + lojaId;
 
-let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY));
+let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY)) || { itens: [] };
 
-const lista = document.getElementById("lista");
+const conteudo = document.getElementById("conteudo");
 const totalEl = document.getElementById("total");
 
-/* ===============================
-   RENDER
-================================ */
-function render(){
-  if(!carrinho || !carrinho.itens || !carrinho.itens.length){
-    lista.innerHTML = `<div class="empty">Seu carrinho está vazio</div>`;
-    totalEl.innerText = "Total: R$ 0,00";
-    return;
+/* IMG */
+function imgProduto(url){
+  if(!url) return "https://via.placeholder.com/100";
+  if(url.startsWith("http")) return url;
+  return "https://www.clena.com.br/" + url.replace(/^\/+/,'');
+}
+
+/* ENDEREÇO */
+function renderEndereco(){
+  const e = carrinho.cliente?.endereco;
+  if(!e) return "";
+
+  return `
+    <div class="card">
+      <div class="endereco-title">Endereço de entrega</div>
+      <div class="endereco-text">
+        ${e.rua || ""} ${e.numero || ""}<br>
+        ${e.bairro || ""} – ${e.cidade || ""}/${e.uf || ""}<br>
+        ${e.complemento || ""}
+      </div>
+    </div>
+  `;
+}
+
+/* ITENS */
+function renderItens(){
+  if(!carrinho.itens.length){
+    return "<p style='text-align:center;color:#666'>Carrinho vazio</p>";
   }
 
   let total = 0;
 
-  lista.innerHTML = carrinho.itens.map((i,idx)=>{
+  const html = carrinho.itens.map((i,idx)=>{
     total += i.preco * i.quantidade;
 
     return `
-      <div class="item">
-
-        <div class="item-body">
-          <img 
-            src="${i.foto || 'https://via.placeholder.com/300'}" 
-            class="item-img"
-          />
+      <div class="card">
+        <div class="item">
+          <img class="item-img" src="${imgProduto(i.foto)}">
 
           <div class="item-info">
             <div class="item-nome">${i.nome}</div>
-            ${i.descricao ? `<div class="item-desc">${i.descricao}</div>` : ``}
-            <div class="item-preco">
-              R$ ${i.preco.toFixed(2).replace('.',',')}
+            <div class="item-preco">R$ ${i.preco.toFixed(2).replace('.',',')}</div>
+          </div>
+
+          <div class="item-actions">
+            <span class="remove" onclick="remover(${idx})">Excluir</span>
+
+            <div class="qty">
+              <button onclick="menos(${idx})">−</button>
+              <span>${i.quantidade}</span>
+              <button onclick="mais(${idx})">+</button>
             </div>
+
+            <strong>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</strong>
           </div>
         </div>
-
-        <div class="item-footer">
-          <span class="remove" onclick="remover(${idx})">Excluir</span>
-
-          <div class="qty">
-            <button onclick="menos(${idx})">−</button>
-            <span>${i.quantidade}</span>
-            <button onclick="mais(${idx})">+</button>
-          </div>
-
-          <strong>
-            R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}
-          </strong>
-        </div>
-
       </div>
     `;
   }).join("");
 
   totalEl.innerText = "Total: R$ " + total.toFixed(2).replace('.',',');
+
+  return html;
 }
 
-/* ===============================
-   AÇÕES
-================================ */
+/* RENDER */
+function render(){
+  conteudo.innerHTML = `
+    ${renderEndereco()}
+    ${renderItens()}
+  `;
+}
+
+/* AÇÕES */
 function salvar(){
   localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
   render();
 }
 
-function mais(i){
-  carrinho.itens[i].quantidade++;
-  salvar();
-}
-
+function mais(i){ carrinho.itens[i].quantidade++; salvar(); }
 function menos(i){
   carrinho.itens[i].quantidade--;
-  if(carrinho.itens[i].quantidade <= 0){
-    carrinho.itens.splice(i,1);
-  }
+  if(carrinho.itens[i].quantidade <= 0) carrinho.itens.splice(i,1);
   salvar();
 }
+function remover(i){ carrinho.itens.splice(i,1); salvar(); }
 
-function remover(i){
-  carrinho.itens.splice(i,1);
-  salvar();
-}
-
-function voltar(){
-  history.back();
-}
-
-/* ===============================
-   CHECKOUT
-================================ */
+/* CHECKOUT */
 async function finalizarCompra(){
-  if(!carrinho || !carrinho.itens.length){
+  if(!carrinho.itens.length){
     alert("Carrinho vazio");
     return;
   }
 
-  try{
-    const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        loja_id: lojaId,
-        cliente: carrinho.cliente,
-        itens: carrinho.itens
-      })
-    });
+  const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      loja_id: lojaId,
+      cliente: carrinho.cliente,
+      itens: carrinho.itens
+    })
+  });
 
-    const data = await res.json();
-
-    if(!data.init_point){
-      alert("Erro ao gerar pagamento");
-      return;
-    }
-
+  const data = await res.json();
+  if(data.init_point){
     localStorage.removeItem(CARRINHO_KEY);
     location.href = data.init_point;
-
-  }catch(err){
-    console.error(err);
-    alert("Falha ao finalizar compra");
+  }else{
+    alert("Erro ao gerar pagamento");
   }
 }
 
-/* INIT */
 render();
 </script>
 
