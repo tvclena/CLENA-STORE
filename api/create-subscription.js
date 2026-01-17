@@ -1,7 +1,6 @@
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { createClient } from "@supabase/supabase-js";
 
-// 🔐 Supabase com SERVICE ROLE (backend)
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
@@ -23,14 +22,12 @@ export default async function handler(req, res) {
 
     const { user_id, email } = req.body;
 
-    // ✅ Validação básica
     if (!user_id || !email) {
       return res.status(400).json({
         error: "user_id e email obrigatórios",
       });
     }
 
-    // 🔎 Confere se o usuário existe
     const { data: profile, error: profileError } = await supabase
       .from("user_profile")
       .select("user_id")
@@ -43,10 +40,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // 💰 VALOR DA ASSINATURA (MUDA AQUI QUANDO QUISER)
     const valor = 14.9;
 
-    // 🧾 Cria pagamento PIX
     const payment = await paymentClient.create({
       body: {
         transaction_amount: valor,
@@ -62,7 +57,6 @@ export default async function handler(req, res) {
       },
     });
 
-    // 🗄️ Salva pagamento no banco
     await supabase.from("pagamentos_assinatura").insert({
       user_id,
       mp_payment_id: payment.id,
@@ -70,7 +64,6 @@ export default async function handler(req, res) {
       valor,
     });
 
-    // 🔁 Retorna PIX para o front
     return res.status(200).json({
       mp_payment_id: payment.id,
       status: payment.status,
