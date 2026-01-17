@@ -477,19 +477,34 @@ async function renderLojas(){
 }
 
 async function trocarLoja(lojaId){
-  // salva como loja recente
+  /* 1️⃣ FECHA O MODAL */
+  profileOverlay.style.display = "none";
+
+  /* 2️⃣ LIMPA O IFRAME (feedback visual imediato) */
+  frame.src = "";
+
+  /* 3️⃣ SALVA LOJA RECENTE */
   await sb.from("clientes_loja").upsert({
     cliente_id: user.id,
     loja_id: lojaId
   });
 
-  // atualiza loja ativa
+  /* 4️⃣ ATUALIZA LOJA ATIVA NO PERFIL */
   await sb.from("clientes_profile")
     .update({ loja_ativa: lojaId })
     .eq("id", user.id);
 
-  // 🔥 RECARREGA O APP NA NOVA LOJA
-  location.href = `app.html?l=${lojaId}`;
+  /* 5️⃣ ATUALIZA URL SEM RECARREGAR O APP */
+  history.replaceState(null, "", `app.html?l=${lojaId}`);
+
+  /* 6️⃣ RECARREGA CONTEÚDO DA NOVA LOJA */
+  frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
+
+  /* 7️⃣ ATUALIZA NAVBAR (PRODUTOS) */
+  verificarProdutosLoja(lojaId);
+
+  /* 8️⃣ ATUALIZA BORDA ATIVA NAS LOJAS */
+  renderLojas();
 }
 
 
