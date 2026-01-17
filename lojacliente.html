@@ -252,32 +252,48 @@ function renderCarrinho(){
  cartTotal.innerText="Total: R$ "+total.toFixed(2).replace('.',',');
 }
 
-/* FINALIZAR */
-async function finalizarCompra(){
- if(!clienteValido()){
-   alert("Identifique-se antes de pagar");
-   return;
- }
- if(!carrinho.itens.length){
-   alert("Carrinho vazio");
-   return;
- }
+async function finalizarCompra() {
+  try {
+    const res = await fetch("https://www.clena.com.br/api/create-pagamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        loja_id: lojaId,
+        cliente: getCliente(),
+        itens: carrinho.itens
+      })
+    });
 
- const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
-   method:"POST",
-   headers:{ "Content-Type":"application/json" },
-   body:JSON.stringify({
-     loja_id: lojaId,
-     cliente: getCliente(),
-     itens: carrinho.itens
-   })
- });
+    const text = await res.text(); // 🔥 NÃO assume JSON
 
- const data = await res.json();
- if(!res.ok) return alert(data.error||"Erro no pagamento");
+    if (!res.ok) {
+      console.error("Erro da API:", text);
+      alert("Erro ao gerar pagamento");
+      return;
+    }
 
- window.location.href = data.init_point;
+    let data;
+    try {
+      data = JSON.parse(text); // tenta converter
+    } catch (e) {
+      console.error("Resposta não é JSON:", text);
+      alert("Resposta inválida do servidor");
+      return;
+    }
+
+    if (!data.init_point) {
+      alert("Pagamento não retornou link");
+      return;
+    }
+
+    window.location.href = data.init_point;
+
+  } catch (err) {
+    console.error("Erro geral:", err);
+    alert("Falha ao finalizar compra");
+  }
 }
+
 
 /* INIT */
 salvarCarrinho();
