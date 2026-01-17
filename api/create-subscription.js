@@ -9,7 +9,6 @@ const supabase = createClient(
 const mp = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN_DONO,
 });
-
 const paymentClient = new Payment(mp);
 
 export default async function handler(req, res) {
