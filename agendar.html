@@ -216,6 +216,30 @@ border:5px solid var(--primary);
   <div class="services" id="services"></div>
 </div>
 
+<div class="section hidden" id="secSelecionados">
+  <div class="title">Serviços selecionados</div>
+
+  <div id="servicosSelecionados"
+       style="display:flex;gap:10px;flex-wrap:wrap">
+  </div>
+
+  <button onclick="confirmarServicos()" style="
+    margin-top:14px;
+    width:100%;
+    padding:14px;
+    border-radius:16px;
+    border:none;
+    background:var(--primary);
+    color:#fff;
+    font-weight:800;
+    cursor:pointer;
+  ">
+    Ver datas disponíveis
+  </button>
+</div>
+
+
+  
 <div class="section hidden" id="secDays">
   <div class="title">Escolha a data</div>
   <div class="days-scroll" id="days"></div>
@@ -255,8 +279,12 @@ const alterarId =
 
 ;
 
-let duracao = 0;
-let dados = {};
+let dados = {
+  servicos: []
+};
+
+let duracaoTotal = 0;
+
 let DIAS_VALIDOS = [];
 
 let cursorData = null;
@@ -415,13 +443,19 @@ async function carregarDiasLazy(){
       let s = toMin(b.inicio);
       let e = toMin(b.fim);
 
-      while(s + duracao <= e){
-        if(!ocupados.some(o => !(s + duracao <= o[0] || s >= o[1]))){
-          livre = true;
-          break;
-        }
-        s += duracao;
-      }
+while(s + duracaoTotal <= e){
+  const conflito = ocupados.some(o =>
+    !(s + duracaoTotal <= o[0] || s >= o[1])
+  );
+
+  if(!conflito){
+    livre = true;
+    break;
+  }
+
+  s += duracaoTotal;
+}
+
     });
 
     if(livre){
@@ -453,39 +487,28 @@ function renderizarDia(d, index){
 
 
 
-  
-async function selecionarServico(id, dur, nome, preco){
+function selecionarServico(id, duracao, nome, preco){
 
-  document.querySelectorAll(".service")
-    .forEach(el => el.classList.remove("selected"));
+  const existe = dados.servicos.find(s => s.id === id);
 
-  const card = document.querySelector(`[data-id="${id}"]`);
-  card?.classList.add("selected");
+  if(existe){
+    // REMOVE
+    dados.servicos = dados.servicos.filter(s => s.id !== id);
+    document.querySelector(`[data-id="${id}"]`)
+      ?.classList.remove("selected");
+  }else{
+    // ADICIONA
+    dados.servicos.push({
+      id,
+      nome,
+      preco,
+      duracao
+    });
+    document.querySelector(`[data-id="${id}"]`)
+      ?.classList.add("selected");
+  }
 
-  card?.scrollIntoView({
-    behavior: "smooth",
-    inline: "center",
-    block: "nearest"
-  });
-
-  dados.servico = id;
-  dados.servico_nome = nome;
-  dados.valor_servico = Number(preco) || 0; // ✅ FIX FINAL
-  duracao = dur;
-
-  document.getElementById("secDays").classList.remove("hidden");
-  document.getElementById("secTimes").classList.add("hidden");
-
-  document.getElementById("times").innerHTML = "";
-  document.getElementById("final").innerHTML = "";
-
-  DIAS_VALIDOS = [];
-  cursorData = null;
-  carregandoDias = false;
-
-  document.getElementById("days").innerHTML = "";
-
-  carregarDiasLazy();
+  renderizarSelecionados();
 }
 
 
@@ -544,17 +567,16 @@ async function selecionarDia(index){
     let inicio = toMin(b.inicio);
     let fim = toMin(b.fim);
 
-    while(inicio + duracao <= fim){
+while(inicio + duracaoTotal <= fim){
       const conflito = ocupados.some(o =>
-        !(inicio + duracao <= o[0] || inicio >= o[1])
+!(inicio + duracaoTotal <= o[0] || inicio >= o[1])
       );
 
       if(!conflito){
         slots.push(toHour(inicio));
       }
 
-      inicio += duracao;
-    }
+inicio += duracaoTotal;    }
   });
 
   /* ===== RENDERIZA HORÁRIOS ===== */
@@ -702,43 +724,52 @@ async function confirmar(h){
     return;
   }
 
-  const fim = toHour(toMin(h) + duracao);
+const fim = toHour(toMin(h) + duracaoTotal);
 
   // 🔁 DEFINE ENDPOINT CORRETO
   const endpoint = alterarId
     ? "/api/update-agendamento"
     : "/api/create-agendamento";
 
-  // 🔁 DEFINE PAYLOAD CORRETO
-const payload = alterarId
-  ? {
-      agendamento_id: alterarId,
-      loja_id: lojaId,
-      novo_status: "ALTERADO", // ✅ ESSENCIAL
-      servico_id: dados.servico,
-      servico_nome: dados.servico_nome,
-      valor_servico: dados.valor_servico,
-      data: dados.data,
-      hora_inicio: h,
-      hora_fim: fim,
-      cliente_nome: cliente.nome,
-      cliente_whatsapp: cliente.whatsapp,
-      cliente_email: cliente.email || null,
-      motivo: "ALTERACAO_CLIENTE"
-    }
-    : {
-        loja_id: lojaId,
-        servico_id: dados.servico,
-        servico_nome: dados.servico_nome,
-        valor_servico: dados.valor_servico,
-        data: dados.data,
-        hora_inicio: h,
-        hora_fim: fim,
-        cliente_nome: cliente.nome,
-        cliente_whatsapp: cliente.whatsapp,
-        cliente_email: cliente.email || null,
-        cliente_id: usuarioLogado?.id || null
-      };
+let payload;
+
+if(alterarId){
+  payload = {
+    agendamento_id: alterarId,
+    loja_id: lojaId,
+    novo_status: "ALTERADO",
+
+    servicos: dados.servicos,
+    valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
+    duracao_total: duracaoTotal,
+
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    motivo: "ALTERACAO_CLIENTE"
+  };
+}else{
+  payload = {
+    loja_id: lojaId,
+
+    servicos: dados.servicos,
+    valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
+    duracao_total: duracaoTotal,
+
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    cliente_id: usuarioLogado?.id || null
+  };
+}
 
   let response;
 
@@ -769,7 +800,8 @@ const payload = alterarId
           ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
         </strong><br><br>
 
-        Serviço: <b>${dados.servico_nome}</b><br>
+Serviços:
+<b>${dados.servicos.map(s => s.nome).join(", ")}</b><br>
         Data: <b>${dados.data}</b><br>
         Horário: <b>${h}</b><br><br>
 
@@ -799,6 +831,77 @@ function selecionarHorario(el, h){
 setTimeout(() => confirmar(h), 350);
 }
 
+function renderizarSelecionados(){
+
+  const sec = document.getElementById("secSelecionados");
+  const container = document.getElementById("servicosSelecionados");
+
+if(dados.servicos.length === 0){
+  sec.classList.add("hidden");
+
+  // 🔄 reset do fluxo
+  document.getElementById("secDays").classList.add("hidden");
+  document.getElementById("secTimes").classList.add("hidden");
+  document.getElementById("days").innerHTML = "";
+  document.getElementById("times").innerHTML = "";
+
+  DIAS_VALIDOS = [];
+  duracaoTotal = 0;
+
+  return;
+}
+
+
+  sec.classList.remove("hidden");
+
+  duracaoTotal = dados.servicos
+    .reduce((s, x) => s + x.duracao, 0);
+
+  container.innerHTML = dados.servicos.map(s => `
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#fff;
+      padding:8px 12px;
+      border-radius:14px;
+      font-weight:700;
+      box-shadow:0 6px 18px rgba(0,0,0,.15);
+    ">
+      ${s.nome}
+      <span onclick="removerServico('${s.id}')" style="
+        cursor:pointer;
+        color:#ef4444;
+        font-weight:900;
+      ">✖</span>
+    </div>
+  `).join("");
+}
+
+function removerServico(id){
+  dados.servicos = dados.servicos.filter(s => s.id !== id);
+  document.querySelector(`[data-id="${id}"]`)
+    ?.classList.remove("selected");
+  renderizarSelecionados();
+}
+function confirmarServicos(){
+
+  if(dados.servicos.length === 0){
+    alert("Selecione ao menos um serviço");
+    return;
+  }
+
+  document.getElementById("secDays").classList.remove("hidden");
+  document.getElementById("secTimes").classList.add("hidden");
+  document.getElementById("days").innerHTML = "";
+  document.getElementById("times").innerHTML = "";
+
+  DIAS_VALIDOS = [];
+  cursorData = null;
+  carregandoDias = false;
+
+  carregarDiasLazy();
+}
 
 
 </script>
