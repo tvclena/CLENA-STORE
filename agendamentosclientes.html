@@ -135,16 +135,16 @@ async function carregar(){
   }
 
 
-// ================= MAPA DE SERVIÇOS =================
 const servicosIds = [
   ...new Set(
     ags.flatMap(a =>
       Array.isArray(a.servicos)
-        ? a.servicos.map(s => s.servico_id)
+        ? a.servicos.map(s => s.id) // ✅ CORRETO
         : []
     )
   )
 ];
+;
 
 let mapaServicos = {};
 
@@ -173,7 +173,7 @@ if (servicosIds.length) {
     
 const servicosHtml = Array.isArray(a.servicos)
   ? a.servicos.map(s => {
-      const srv = mapaServicos[s.servico_id] || {};
+      const srv = mapaServicos[s.id] || {}; // ✅ CORRETO
       return `
         <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
           ${
@@ -184,7 +184,9 @@ const servicosHtml = Array.isArray(a.servicos)
               : `<div style="width:36px;height:36px;
                             border-radius:8px;background:#e5e7eb"></div>`
           }
-          <div class="servico">${srv.nome || "Serviço"}</div>
+<div class="servico">
+  ${srv.nome || s.nome || "Serviço"}
+</div>
         </div>
       `;
     }).join("")
