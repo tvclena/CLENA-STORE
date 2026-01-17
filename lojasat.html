@@ -335,7 +335,7 @@ function render(){
         <div class="tags">
           ${servicos.filter(s=>s.loja_id===l.user_id).slice(0,2).map(s=>`<span class="tag">${s.nome}</span>`).join("")}
         </div>
-        <button onclick="location.href='app.html?l=${l.user_id}'">Entrar</button>
+        <button onclick="location.href='loja.html?l=${l.user_id}'">Entrar</button>
       </div>
     `;
   }
