@@ -18,8 +18,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+/* =========================================================
+   DESIGN SYSTEM
+========================================================= */
 :root{
   --primary:#ff6a00;
+  --primary-soft:rgba(255,106,0,.12);
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
@@ -27,85 +31,133 @@
   --muted:#6b7280;
   --success:#16a34a;
   --blue:#2563eb;
+  --radius:22px;
+  --shadow:0 16px 40px rgba(0,0,0,.08);
 }
 
-*{box-sizing:border-box;font-family:Inter}
+*{
+  box-sizing:border-box;
+  font-family:'Inter', sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* =========================================================
+   BASE
+========================================================= */
+html,body{
+  margin:0;
+  padding:0;
+}
 
 body{
-  background:linear-gradient(180deg,#fff,#f4f6fb);
+  background:linear-gradient(180deg,#ffffff 0%, var(--bg) 100%);
+  color:var(--text);
   padding:18px;
-  opacity:0;
-  animation:fade .6s ease forwards;
+  animation:fadeIn .4s ease forwards;
 }
 
-@keyframes fade{to{opacity:1}}
+@keyframes fadeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
 
+/* =========================================================
+   CARD
+========================================================= */
 .card{
   background:var(--card);
-  border-radius:28px;
+  border-radius:var(--radius);
   padding:22px;
-  box-shadow:0 20px 50px rgba(0,0,0,.1);
-  margin-bottom:20px;
-  opacity:0;
-  transform:translateY(24px);
-  animation:cardIn .7s cubic-bezier(.16,.84,.44,1) forwards;
-}
-.card:nth-child(1){animation-delay:.1s}
-.card:nth-child(2){animation-delay:.25s}
-
-@keyframes cardIn{
-  to{opacity:1;transform:translateY(0)}
+  box-shadow:var(--shadow);
+  margin-bottom:22px;
+  animation:cardUp .45s cubic-bezier(.16,.84,.44,1) both;
 }
 
+@keyframes cardUp{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:none}
+}
+
+/* =========================================================
+   TEXT
+========================================================= */
 h1{
   font-size:22px;
   font-weight:800;
-  margin-bottom:4px;
+  margin-bottom:6px;
 }
+
 h2{
   font-size:16px;
   font-weight:800;
   margin-bottom:6px;
 }
+
 p{
   font-size:14px;
   color:var(--muted);
   margin-bottom:14px;
-  line-height:1.4;
+  line-height:1.45;
 }
 
-/* ================= LINK ================= */
+/* =========================================================
+   LINK DA LOJA
+========================================================= */
+.link-row{
+  display:flex;
+  gap:10px;
+  align-items:stretch;
+  margin-bottom:12px;
+}
+
 .link-box{
-  border:2px dashed var(--border);
-  border-radius:16px;
+  flex:1;
   padding:14px;
-  font-size:13px;
+  border-radius:16px;
+  border:1.5px dashed var(--border);
   background:#fafafa;
+  font-size:13px;
   word-break:break-all;
-  margin-bottom:10px;
+  color:#374151;
 }
 
-/* ================= BUTTONS ================= */
+/* =========================================================
+   BUTTONS
+========================================================= */
 button{
   width:100%;
   height:48px;
   border:none;
   border-radius:999px;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  background:linear-gradient(135deg,var(--primary),#ff9a57);
   color:#fff;
   font-weight:800;
   font-size:14px;
   cursor:pointer;
   transition:.25s;
 }
-button:active{transform:scale(.97)}
+
+button:hover{
+  filter:brightness(1.05);
+}
+
+button:active{
+  transform:scale(.97);
+}
 
 .whats{
   background:#dcfce7;
   color:#15803d;
 }
 
-/* ================= MP HEADER ================= */
+.btn-close{
+  background:#e5e7eb;
+  color:#111827;
+}
+
+/* =========================================================
+   MERCADO PAGO HEADER
+========================================================= */
 .mp-header{
   display:flex;
   flex-direction:column;
@@ -113,22 +165,26 @@ button:active{transform:scale(.97)}
   text-align:center;
   gap:12px;
 }
+
 .mp-header img{
-  width:180px;
-  animation:pulse 2.8s infinite;
-}
-@keyframes pulse{
-  50%{transform:scale(1.05)}
+  width:170px;
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.15));
 }
 
-/* ================= STEPS ================= */
+/* =========================================================
+   STEPS
+========================================================= */
 .steps{
-  margin-top:10px;
+  padding-left:18px;
+  margin-bottom:14px;
 }
+
 .steps li{
   font-size:14px;
   margin-bottom:10px;
+  color:#374151;
 }
+
 .steps a{
   color:var(--blue);
   font-weight:800;
@@ -136,7 +192,9 @@ button:active{transform:scale(.97)}
   text-decoration:underline;
 }
 
-/* ================= INPUT ================= */
+/* =========================================================
+   INPUT
+========================================================= */
 input{
   width:100%;
   padding:14px;
@@ -144,9 +202,17 @@ input{
   border:1px solid var(--border);
   font-size:14px;
   margin-bottom:12px;
+  outline:none;
 }
 
-/* ================= STATUS ================= */
+input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px var(--primary-soft);
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
 .status{
   padding:14px;
   border-radius:16px;
@@ -157,25 +223,31 @@ input{
   text-align:center;
 }
 
-/* ================= MODAL ================= */
+/* =========================================================
+   MODAL
+========================================================= */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.65);
+  background:rgba(0,0,0,.6);
   display:none;
   align-items:center;
   justify-content:center;
   z-index:9999;
 }
-.modal.show{display:flex}
+
+.modal.show{
+  display:flex;
+}
 
 .modal-box{
   background:#fff;
   width:94%;
   max-width:420px;
   border-radius:26px;
-  padding:16px;
-  animation:cardIn .4s ease forwards;
+  padding:18px;
+  box-shadow:0 28px 80px rgba(0,0,0,.35);
+  animation:cardUp .35s ease both;
 }
 
 .modal-box video{
@@ -189,35 +261,21 @@ input{
   gap:10px;
 }
 
-.btn-close{
-  background:#e5e7eb;
-  color:#111;
-}
-
-/* LINK + BOTÃO */
-.link-row{
-  display:flex;
-  gap:10px;
-  align-items:stretch;
-}
-
-.btn-palette{
-  min-width:52px;
-  border:none;
-  border-radius:14px;
-  background:linear-gradient(135deg,#111827,#374151);
-  color:#fff;
-  font-size:20px;
+/* =========================================================
+   PALETA DE CORES
+========================================================= */
+.paleta{
+  height:44px;
+  border-radius:12px;
   cursor:pointer;
-  transition:.25s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+  transition:.2s;
 }
 
-.btn-palette:active{
-  transform:scale(.95);
+.paleta:hover{
+  transform:scale(1.05);
 }
+
 
 </style>
 </head>
