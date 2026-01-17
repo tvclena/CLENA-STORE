@@ -230,6 +230,30 @@ button:disabled{
     padding-bottom:calc(28px + env(safe-area-inset-bottom));
   }
 }
+/* =========================================================
+   LOJA NO CARD
+========================================================= */
+.loja{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.loja img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+  border:1px solid var(--border);
+}
+
+.loja-nome{
+  font-size:13px;
+  font-weight:800;
+  color:var(--muted);
+}
+
 </style>
 </head>
 
@@ -251,7 +275,6 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const lojaId = new URLSearchParams(location.search).get("l");
 const lista = document.getElementById("lista");
 
 /* =========================================================
@@ -284,13 +307,22 @@ async function carregar(){
     return;
   }
 
-  const { data: ags } = await sb
-    .from("agendamentos")
-    .select("id,data,hora_inicio,hora_fim,servico_id,status")
-    .eq("loja_id", lojaId)
-    .eq("cliente_id", auth.user.id)
-    .eq("status","CONFIRMADO")
-    .order("data");
+const { data: ags } = await sb
+  .from("agendamentos")
+  .select("id,data,hora_inicio,hora_fim,servico_id,status,loja_id")
+  .eq("cliente_id", auth.user.id)
+  .eq("status","CONFIRMADO")
+  .order("data");
+const lojasIds = [...new Set(ags.map(a => a.loja_id))];
+
+const { data: lojas } = await sb
+  .from("lojas")
+  .select("id,nome,logo_url")
+  .in("id", lojasIds);
+
+const mapaLojas = {};
+lojas.forEach(l => mapaLojas[l.id] = l);
+
 
   if(!ags || !ags.length){
     lista.innerHTML = `
@@ -314,6 +346,13 @@ async function carregar(){
 
     return `
       <div class="card">
+      <div class="loja">
+  <img src="${mapaLojas[a.loja_id]?.logo_url || ''}">
+  <div class="loja-nome">
+    ${mapaLojas[a.loja_id]?.nome || "Loja"}
+  </div>
+</div>
+
         <div class="card-top">
           <div class="title">${mapa[a.servico_id] || "Serviço"}</div>
           <div class="badge">${dateLocal(a.data).toLocaleDateString()}</div>
@@ -325,13 +364,13 @@ async function carregar(){
         <div class="actions">
           <button class="btn-outline"
             ${bloqueado ? "disabled" : ""}
-            onclick="alterar('${a.id}','${a.servico_id}')">
+             onclick="alterar('${a.id}','${a.servico_id}','${a.loja_id}')"
             Alterar
           </button>
 
           <button class="btn-danger"
             ${bloqueado ? "disabled" : ""}
-            onclick="cancelar('${a.id}')">
+            onclick="cancelar('${a.id}','${a.loja_id}')"
             Cancelar
           </button>
         </div>
@@ -349,12 +388,12 @@ async function carregar(){
 /* =========================================================
    ACTIONS
 ========================================================= */
-function alterar(id, servico){
+function alterar(id, servico, loja){
   location.href =
-    `agendar.html?l=${lojaId}&servico=${servico}&alterar=${id}`;
+    `agendar.html?l=${loja}&servico=${servico}&alterar=${id}`;
 }
 
-async function cancelar(id){
+async function cancelar(id, loja){
   if(!confirm("Deseja cancelar este agendamento?")) return;
 
   try{
@@ -363,7 +402,7 @@ async function cancelar(id){
       headers:{ "Content-Type":"application/json" },
       body:JSON.stringify({
         agendamento_id:id,
-        loja_id:lojaId,
+        loja_id:loja,
         novo_status:"CANCELADO",
         motivo:"CANCELAMENTO_CLIENTE"
       })
