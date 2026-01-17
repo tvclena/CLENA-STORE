@@ -839,17 +839,21 @@ function renderizarSelecionados(){
 if(dados.servicos.length === 0){
   sec.classList.add("hidden");
 
-  // 🔄 reset do fluxo
+  // 🔄 fecha datas e horários
   document.getElementById("secDays").classList.add("hidden");
   document.getElementById("secTimes").classList.add("hidden");
   document.getElementById("days").innerHTML = "";
   document.getElementById("times").innerHTML = "";
 
+  // 🔒 bloqueia qualquer estado anterior
   DIAS_VALIDOS = [];
+  cursorData = null;
+  carregandoDias = false;
   duracaoTotal = 0;
 
   return;
 }
+
 
 
   sec.classList.remove("hidden");
