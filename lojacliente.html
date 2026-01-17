@@ -157,68 +157,7 @@ body{
   justify-content:center;
 }
 
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:flex-end;
-  z-index:999;
-}
-.modal.show{display:flex}
 
-/* BOTTOM SHEET */
-.sheet{
-  width:100%;
-  height:85vh;
-  background:#fff;
-  border-radius:28px 28px 0 0;
-  padding:18px;
-  display:flex;
-  flex-direction:column;
-  animation:up .25s ease;
-}
-@keyframes up{
-  from{transform:translateY(100%)}
-  to{transform:translateY(0)}
-}
-
-.sheet h3{
-  margin:0 0 12px;
-  font-size:18px;
-}
-
-/* CART ITEM */
-.cart-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-  font-size:14px;
-}
-
-/* FOOTER */
-.cart-footer{
-  margin-top:auto;
-}
-.cart-total{
-  font-weight:800;
-  font-size:16px;
-  margin-bottom:12px;
-}
-
-/* FINALIZAR */
-.btn-finalizar{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-  font-size:15px;
-}
 </style>
 
 </head>
@@ -228,24 +167,11 @@ body{
 <div class="header">Loja</div>
 <div class="grid" id="produtos"></div>
 
-<div class="cart" onclick="abrirCarrinho()">
+<div class="cart" onclick="irParaCarrinho()">
   🛒 <span id="cartCount">0</span>
 </div>
 
-<div class="modal" id="modal" onclick="modal.classList.remove('show')">
-  <div class="sheet" onclick="event.stopPropagation()">
-    <h3>Carrinho</h3>
 
-    <div id="cartItens"></div>
-
-    <div class="cart-footer">
-      <div class="cart-total" id="cartTotal"></div>
-      <button class="btn-finalizar" onclick="finalizarCompra()">
-        Finalizar compra
-      </button>
-    </div>
-  </div>
-</div>
 
 
 <script>
@@ -265,16 +191,20 @@ function clienteValido(){
   return c?.nome && c?.whatsapp;
 }
 
-let carrinho = JSON.parse(localStorage.getItem("CARRINHO_LOJA")) || {
+const CARRINHO_KEY = "CARRINHO_LOJA_" + lojaId;
+
+let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY)) || {
   lojaId,
   cliente: getCliente(),
   itens:[]
 };
 
+
 function salvarCarrinho(){
-  localStorage.setItem("CARRINHO_LOJA", JSON.stringify(carrinho));
+  localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
   cartCount.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
 }
+
 
 /* PRODUTOS — SOMENTE PRODUTOS */
 async function carregarProdutos(){
@@ -314,23 +244,11 @@ function addCarrinho(id,nome,preco){
  salvarCarrinho();
 }
 
-function abrirCarrinho(){
- modal.classList.add("show");
- renderCarrinho();
+function irParaCarrinho(){
+  window.location.href = `carrinho.html?l=${lojaId}`;
 }
 
-function renderCarrinho(){
- let total=0;
- cartItens.innerHTML = carrinho.itens.map(i=>{
-  total+=i.preco*i.quantidade;
-  return `
-   <div class="cart-item">
-     <div>${i.nome}<br><small>${i.quantidade}x</small></div>
-     <div>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</div>
-   </div>`;
- }).join("");
- cartTotal.innerText="Total: R$ "+total.toFixed(2).replace('.',',');
-}
+
 
 async function finalizarCompra() {
   try {
