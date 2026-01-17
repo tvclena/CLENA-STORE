@@ -402,19 +402,30 @@ let user, perfil;
     history.replaceState(null, "", `app.html?l=${lojaId}`);
   }
 
-  // 🔄 sincroniza loja ativa
-  if (lojaId && lojaId !== perfil.loja_ativa) {
-    await sb.from("clientes_loja").upsert({
-      cliente_id: user.id,
-      loja_id: lojaId
-    });
+// 🔄 sincroniza loja ativa
+if (lojaId && lojaId !== perfil.loja_ativa) {
+  await sb.from("clientes_loja").upsert({
+    cliente_id: user.id,
+    loja_id: lojaId
+  });
 
-    await sb.from("clientes_profile")
-      .update({ loja_ativa: lojaId })
-      .eq("id", user.id);
+  await sb.from("clientes_profile")
+    .update({ loja_ativa: lojaId })
+    .eq("id", user.id);
 
-    perfil.loja_ativa = lojaId;
-  }
+  perfil.loja_ativa = lojaId;
+}
+
+// 🔥 ATUALIZA NOME DA LOJA NO TOPO (LOAD INICIAL)
+const { data: lojaTopo } = await sb
+  .from("user_profile")
+  .select("negocio")
+  .eq("user_id", perfil.loja_ativa)
+  .maybeSingle();
+
+if(lojaTopo?.negocio){
+  nomeLoja.innerText = lojaTopo.negocio;
+}
 
 // 🖼️ carrega iframe
 frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
@@ -478,33 +489,36 @@ async function renderLojas(){
 }
 
 async function trocarLoja(lojaId){
-  /* 1️⃣ FECHA O MODAL */
   profileOverlay.style.display = "none";
-
-  /* 2️⃣ LIMPA O IFRAME (feedback visual imediato) */
   frame.src = "";
 
-  /* 3️⃣ SALVA LOJA RECENTE */
+  // 🔥 LIMPA CARRINHO DA LOJA ANTERIOR
+  localStorage.removeItem("CARRINHO_LOJA");
+
   await sb.from("clientes_loja").upsert({
     cliente_id: user.id,
     loja_id: lojaId
   });
 
-  /* 4️⃣ ATUALIZA LOJA ATIVA NO PERFIL */
   await sb.from("clientes_profile")
     .update({ loja_ativa: lojaId })
     .eq("id", user.id);
 
-  /* 5️⃣ ATUALIZA URL SEM RECARREGAR O APP */
   history.replaceState(null, "", `app.html?l=${lojaId}`);
 
-  /* 6️⃣ RECARREGA CONTEÚDO DA NOVA LOJA */
+  // 🔥 ATUALIZA NOME DA LOJA NO TOPO
+  const { data: novaLoja } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", lojaId)
+    .maybeSingle();
+
+  if(novaLoja?.negocio){
+    nomeLoja.innerText = novaLoja.negocio;
+  }
+
   frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
-
-  /* 7️⃣ ATUALIZA NAVBAR (PRODUTOS) */
   verificarProdutosLoja(lojaId);
-
-  /* 8️⃣ ATUALIZA BORDA ATIVA NAS LOJAS */
   renderLojas();
 }
 
