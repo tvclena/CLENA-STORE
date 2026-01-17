@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Loja</title>
+<title>Nome da Loja</title>
 
 <meta name="viewport"
   content="width=device-width,
@@ -11,54 +11,87 @@
   user-scalable=no,
   viewport-fit=cover">
 
+<meta name="theme-color" content="#020617">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --primary:#ff6a00;
-  --primary-dark:#e85c00;
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --text:#111827;
-  --muted:#6b7280;
+  --neon:#38bdf8;
+  --neon2:#22d3ee;
+  --bg1:#020617;
+  --bg2:#020617;
+  --glass:rgba(255,255,255,.08);
+  --border:rgba(255,255,255,.12);
+  --text:#fff;
+  --muted:#94a3b8;
   --radius:22px;
-  --shadow:0 12px 30px rgba(0,0,0,.08);
 }
 
 *{box-sizing:border-box;font-family:Inter}
 body{
   margin:0;
-  background:var(--bg);
   color:var(--text);
+  background:
+    radial-gradient(circle at top, #1e293b, var(--bg1));
+  min-height:100vh;
 }
 
 /* HEADER */
 .header{
   position:sticky;
   top:0;
-  z-index:10;
-  background:#fff;
-  padding:16px;
-  font-weight:800;
-  font-size:18px;
+  z-index:20;
+  backdrop-filter:blur(18px);
+  background:rgba(2,6,23,.65);
   border-bottom:1px solid var(--border);
+  padding:16px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:800;
+}
+
+.header span{
+  color:var(--neon);
+}
+
+/* HERO */
+.hero{
+  padding:36px 20px 28px;
+  text-align:center;
+}
+
+.hero h1{
+  font-size:30px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.hero p{
+  color:var(--muted);
+  font-size:14px;
 }
 
 /* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:14px;
-  padding:16px 16px 120px;
+  gap:16px;
+  padding:16px 16px 140px;
 }
 
 /* CARD */
 .card{
-  background:var(--card);
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,.12),
+    rgba(255,255,255,.03)
+  );
+  backdrop-filter:blur(20px);
   border-radius:var(--radius);
-  box-shadow:var(--shadow);
+  border:1px solid var(--border);
   overflow:hidden;
   display:flex;
   flex-direction:column;
@@ -66,13 +99,12 @@ body{
 
 .card img{
   width:100%;
-  height:140px;
+  height:150px;
   object-fit:cover;
-  background:#eee;
 }
 
 .card-body{
-  padding:12px;
+  padding:14px;
   display:flex;
   flex-direction:column;
   flex:1;
@@ -89,57 +121,56 @@ body{
   font-weight:800;
   padding:4px 10px;
   border-radius:999px;
-  background:#fff7ed;
-  color:#c2410c;
+  background:rgba(56,189,248,.15);
+  color:var(--neon);
   width:max-content;
 }
 
 .card-price{
   margin-top:auto;
-  font-size:15px;
+  font-size:16px;
   font-weight:800;
-  color:var(--primary);
+  color:var(--neon2);
 }
 
 .card-btn{
-  margin-top:8px;
-  background:var(--primary);
-  color:#fff;
+  margin-top:10px;
+  background:linear-gradient(90deg,var(--neon),var(--neon2));
+  color:#020617;
   border:none;
-  padding:12px;
-  border-radius:14px;
+  padding:14px;
+  border-radius:999px;
   font-weight:800;
   cursor:pointer;
   transition:.2s;
 }
-.card-btn:active{
-  transform:scale(.97);
-  background:var(--primary-dark);
-}
+.card-btn:active{transform:scale(.96)}
 
-/* CART BUTTON */
+/* CART */
 .cart{
   position:fixed;
-  bottom:20px;
-  right:20px;
-  background:var(--primary);
-  color:#fff;
-  width:58px;
-  height:58px;
+  bottom:22px;
+  right:22px;
+  background:linear-gradient(135deg,var(--neon),var(--neon2));
+  color:#020617;
+  width:64px;
+  height:64px;
   border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
   font-size:22px;
-  box-shadow:0 10px 25px rgba(0,0,0,.25);
+  box-shadow:0 0 30px rgba(56,189,248,.6);
   cursor:pointer;
-  z-index:20;
+  z-index:30;
 }
+
 .cart span{
   position:absolute;
   top:-6px;
   right:-6px;
-  background:#111;
+  background:#020617;
+  color:#fff;
   width:22px;
   height:22px;
   border-radius:50%;
@@ -153,23 +184,24 @@ body{
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.55);
+  background:rgba(2,6,23,.8);
   display:none;
   align-items:flex-end;
   z-index:999;
 }
 .modal.show{display:flex}
 
-/* BOTTOM SHEET */
+/* SHEET */
 .sheet{
   width:100%;
   height:85vh;
-  background:#fff;
+  background:rgba(2,6,23,.95);
+  backdrop-filter:blur(22px);
   border-radius:28px 28px 0 0;
-  padding:18px;
+  padding:20px;
   display:flex;
   flex-direction:column;
-  animation:up .25s ease;
+  animation:up .3s ease;
 }
 @keyframes up{
   from{transform:translateY(100%)}
@@ -177,8 +209,8 @@ body{
 }
 
 .sheet h3{
-  margin:0 0 12px;
-  font-size:18px;
+  margin:0 0 14px;
+  font-size:20px;
 }
 
 /* CART ITEM */
@@ -186,7 +218,7 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:12px;
+  margin-bottom:14px;
   font-size:14px;
 }
 
@@ -196,8 +228,8 @@ body{
 }
 .cart-total{
   font-weight:800;
-  font-size:16px;
-  margin-bottom:12px;
+  font-size:18px;
+  margin-bottom:14px;
 }
 
 /* FINALIZAR */
@@ -206,18 +238,25 @@ body{
   padding:16px;
   border:none;
   border-radius:999px;
-  background:var(--primary);
-  color:#fff;
+  background:linear-gradient(90deg,var(--neon),var(--neon2));
+  color:#020617;
   font-weight:800;
   font-size:15px;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="header">Loja</div>
+<div class="header">
+  <div><span>◈</span> Nome da Loja</div>
+</div>
+
+<div class="hero">
+  <h1>Bem-vindo à sua loja</h1>
+  <p>Tudo o que você precisa em um só lugar</p>
+</div>
+
 <div class="grid" id="produtos"></div>
 
 <div class="cart" onclick="abrirCarrinho()">
@@ -227,7 +266,6 @@ body{
 <div class="modal" id="modal" onclick="modal.classList.remove('show')">
   <div class="sheet" onclick="event.stopPropagation()">
     <h3>Carrinho</h3>
-
     <div id="cartItens"></div>
 
     <div class="cart-footer">
@@ -238,7 +276,6 @@ body{
     </div>
   </div>
 </div>
-
 
 <script>
 const sb = supabase.createClient(
@@ -268,7 +305,6 @@ function salvarCarrinho(){
   cartCount.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
 }
 
-/* PRODUTOS — SOMENTE PRODUTOS */
 async function carregarProdutos(){
  const { data } = await sb
   .from("produtos_servicos")
@@ -277,11 +313,6 @@ async function carregarProdutos(){
   .eq("tipo","PRODUTO")
   .eq("ativo", true);
 
- if(!data || !data.length){
-   document.body.innerHTML = "<p style='padding:20px'>Nenhum produto disponível</p>";
-   return;
- }
-
  produtosEl.innerHTML = data.map(p=>`
   <div class="card">
     <img src="${p.imagem_url || 'https://via.placeholder.com/400'}">
@@ -289,13 +320,14 @@ async function carregarProdutos(){
       <div class="card-title">${p.nome}</div>
       ${p.pg_online ? `<span class="badge">💳 Online</span>` : ``}
       <div class="card-price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
-      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">Adicionar</button>
+      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">
+        Comprar
+      </button>
     </div>
   </div>
  `).join("");
 }
 
-/* CARRINHO */
 function addCarrinho(id,nome,preco){
  if(!clienteValido()){
    alert("Informe seus dados antes de comprar");
@@ -325,49 +357,19 @@ function renderCarrinho(){
 }
 
 async function finalizarCompra() {
-  try {
-    const res = await fetch("https://www.clena.com.br/api/create-pagamento", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        loja_id: lojaId,
-        cliente: getCliente(),
-        itens: carrinho.itens
-      })
-    });
-
-    const text = await res.text(); // 🔥 NÃO assume JSON
-
-    if (!res.ok) {
-      console.error("Erro da API:", text);
-      alert("Erro ao gerar pagamento");
-      return;
-    }
-
-    let data;
-    try {
-      data = JSON.parse(text); // tenta converter
-    } catch (e) {
-      console.error("Resposta não é JSON:", text);
-      alert("Resposta inválida do servidor");
-      return;
-    }
-
-    if (!data.init_point) {
-      alert("Pagamento não retornou link");
-      return;
-    }
-
-    window.location.href = data.init_point;
-
-  } catch (err) {
-    console.error("Erro geral:", err);
-    alert("Falha ao finalizar compra");
-  }
+  const res = await fetch("https://www.clena.com.br/api/create-pagamento", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      loja_id: lojaId,
+      cliente: getCliente(),
+      itens: carrinho.itens
+    })
+  });
+  const data = await res.json();
+  if(data.init_point) window.location.href = data.init_point;
 }
 
-
-/* INIT */
 salvarCarrinho();
 carregarProdutos();
 </script>
