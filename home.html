@@ -395,16 +395,17 @@ async function carregarHome(){
 
   document.getElementById("kpiServicos").innerText = qtdServicos || 0;
 
-  const { data: faturamento } = await sbHome
-    .from("agendamentos")
-    .select("valor_servico")
-    .eq("user_id", lojaId)
-    .gte("data", inicio)
-    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+const { data: faturamento } = await sbHome
+  .from("agendamentos")
+  .select("valor_total")
+  .eq("user_id", lojaId)
+  .gte("data", inicio)
+  .in("status", ["CONFIRMADO","CONCLUIDO"]);
 
-  const total = faturamento?.reduce(
-    (s,v)=>s+Number(v.valor_servico||0),0
-  ) || 0;
+const total = faturamento?.reduce(
+  (s,v)=>s+Number(v.valor_total||0),0
+) || 0;
+
 
   document.getElementById("kpiFaturamento").innerText =
     total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -439,15 +440,16 @@ async function carregarAgendaDia(lojaId){
   // 1️⃣ BUSCA AGENDAMENTOS
   const { data: agenda, error } = await sbHome
     .from("agendamentos")
-    .select(`
-      id,
-      hora_inicio,
-      cliente_nome,
-      cliente_whatsapp,
-      status,
-      servico_id,
-      valor_servico
-    `)
+.select(`
+  id,
+  hora_inicio,
+  cliente_nome,
+  cliente_whatsapp,
+  status,
+  servicos,
+  valor_total
+`)
+
     .eq("user_id", lojaId)
     .eq("data", data)
     .neq("status", "CANCELADO")
@@ -462,36 +464,67 @@ async function carregarAgendaDia(lojaId){
     return;
   }
 
-  // 2️⃣ BUSCA SERVIÇOS REAIS
-  const servicoIds = [...new Set(
-    agenda.map(a => a.servico_id).filter(Boolean)
-  )];
+ 
 
-  let servicosMap = {};
+agenda.forEach(a => {
 
-  if(servicoIds.length){
-    const { data: servicos } = await sbHome
-      .from("produtos_servicos")
-      .select("id, nome, preco, imagem_url")
-      .in("id", servicoIds);
+  const hora = a.hora_inicio?.slice(0,5);
 
-    servicos?.forEach(s => {
-      servicosMap[s.id] = s;
-    });
-  }
+  const nomesServicos = Array.isArray(a.servicos)
+    ? a.servicos.map(s => s.nome).join(", ")
+    : "Serviço";
 
-  // 3️⃣ RENDERIZA CARDS
-  agenda.forEach(a => {
+  const valor = Number(a.valor_total || 0).toLocaleString("pt-BR",{
+    style:"currency",
+    currency:"BRL"
+  });
 
-    const servico = servicosMap[a.servico_id] || {};
-    const hora = a.hora_inicio?.slice(0,5);
+  const whatsapp = a.cliente_whatsapp
+    ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
+    : "#";
 
-    const valor = Number(
-      servico.preco || a.valor_servico || 0
-    ).toLocaleString("pt-BR", {
-      style:"currency",
-      currency:"BRL"
-    });
+  box.innerHTML += `
+    <div class="agenda-item" style="display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center">
+
+      <div style="
+        width:56px;
+        height:56px;
+        border-radius:12px;
+        background:#f1f5f9;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:800;
+        color:#ff6a00
+      ">
+        ${hora}
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <strong>${hora} • ${nomesServicos}</strong>
+        <small style="color:#16a34a;font-weight:700">${valor}</small>
+        <small>${a.cliente_nome}</small>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <a href="${whatsapp}" target="_blank"
+           style="font-size:11px;padding:6px 10px;border-radius:999px;
+                  background:#dcfce7;color:#166534;text-align:center">
+          Whats
+        </a>
+
+        <select
+          onchange="alterarStatus('${a.id}', this.value)">
+          <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
+          <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
+          <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
+        </select>
+      </div>
+
+    </div>
+  `;
+});
+
 
     const whatsapp = a.cliente_whatsapp
       ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
@@ -572,7 +605,7 @@ async function carregarCalendarioFaturamento(){
   // 🔹 BUSCA AGENDAMENTOS CONFIRMADOS E CONCLUÍDOS
   const { data: agendamentos } = await sbHome
     .from("agendamentos")
-    .select("data, valor_servico")
+.select("data, valor_total")
     .eq("user_id", lojaId)
     .gte("data", inicioMes)
     .lte("data", fimMes)
@@ -585,7 +618,7 @@ async function carregarCalendarioFaturamento(){
       resumo[a.data] = { qtd:0, total:0 };
     }
     resumo[a.data].qtd++;
-    resumo[a.data].total += Number(a.valor_servico||0);
+resumo[a.data].total += Number(a.valor_total||0);
   });
 
   const calendario = document.getElementById("calendarioFaturamento");
