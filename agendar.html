@@ -875,10 +875,22 @@ if(dados.servicos.length === 0){
 
 
 
-  sec.classList.remove("hidden");
+sec.classList.remove("hidden");
 
-  duracaoTotal = dados.servicos
-    .reduce((s, x) => s + x.duracao, 0);
+/* 🔥 RESETA DATAS E HORÁRIOS SEMPRE QUE MUDA SERVIÇO */
+document.getElementById("secDays").classList.add("hidden");
+document.getElementById("secTimes").classList.add("hidden");
+document.getElementById("days").innerHTML = "";
+document.getElementById("times").innerHTML = "";
+
+DIAS_VALIDOS = [];
+cursorData = null;
+carregandoDias = false;
+
+/* 🔢 RECALCULA DURAÇÃO */
+duracaoTotal = dados.servicos
+  .reduce((s, x) => s + x.duracao, 0);
+
 
   container.innerHTML = dados.servicos.map(s => `
     <div style="
