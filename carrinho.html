@@ -29,25 +29,18 @@ body{margin:0;background:var(--bg);color:var(--text)}
 
 /* HEADER */
 .header{
-  position:sticky;
-  top:0;
-  z-index:5;
+  position:sticky;top:0;z-index:5;
   background:#fff;
   padding:14px;
-  display:flex;
-  align-items:center;
-  gap:10px;
+  display:flex;align-items:center;gap:10px;
   font-weight:800;
   border-bottom:1px solid var(--border);
 }
 
 /* CONTAINER */
-.container{
-  padding:14px;
-  padding-bottom:160px;
-}
+.container{padding:14px;padding-bottom:160px}
 
-/* CARD BASE */
+/* CARD */
 .card{
   background:var(--card);
   border-radius:16px;
@@ -57,86 +50,36 @@ body{margin:0;background:var(--bg);color:var(--text)}
 }
 
 /* ENDEREÇO */
-.endereco-title{
-  font-weight:800;
-  font-size:14px;
-  margin-bottom:6px;
-}
-.endereco-text{
-  font-size:13px;
-  color:var(--muted);
-  line-height:1.4;
-}
+.endereco-title{font-weight:800;font-size:14px;margin-bottom:6px}
+.endereco-text{font-size:13px;color:var(--muted);line-height:1.4}
 
 /* ITEM */
-.item{
-  display:flex;
-  gap:12px;
-}
-
-/* IMAGEM */
+.item{display:flex;gap:12px}
 .item-img{
-  width:64px;
-  height:64px;
-  border-radius:12px;
-  object-fit:cover;
-  background:#eee;
-  flex-shrink:0;
+  width:64px;height:64px;border-radius:12px;
+  object-fit:cover;background:#eee;flex-shrink:0
 }
+.item-info{flex:1}
+.item-nome{font-weight:800;font-size:14px;margin-bottom:2px}
+.item-preco{font-weight:700;font-size:13px;color:var(--muted)}
 
-/* INFO */
-.item-info{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-.item-nome{
-  font-weight:800;
-  font-size:14px;
-  margin-bottom:4px;
-}
-
-.item-preco{
-  font-weight:700;
-  font-size:13px;
-  color:var(--muted);
-}
-
-/* CONTROLES */
 .item-controls{
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
   margin-top:10px;
 }
 
 .qty{
-  display:flex;
-  align-items:center;
-  gap:10px;
+  display:flex;align-items:center;gap:10px
 }
-
 .qty button{
-  width:30px;
-  height:30px;
-  border:none;
-  border-radius:50%;
-  background:#f3f4f6;
-  font-weight:800;
-  cursor:pointer;
+  width:30px;height:30px;border:none;
+  border-radius:50%;background:#f3f4f6;font-weight:800
 }
+.qty span{font-weight:800;min-width:20px;text-align:center}
 
-.qty span{
-  min-width:20px;
-  text-align:center;
-  font-weight:800;
-}
-
-.item-total{
-  font-weight:800;
-  font-size:14px;
-}
+.item-total{font-weight:800;font-size:14px}
 
 /* EXCLUIR */
 .remove-row{
@@ -144,7 +87,6 @@ body{margin:0;background:var(--bg);color:var(--text)}
   justify-content:flex-end;
   margin-top:8px;
 }
-
 .remove{
   font-size:12px;
   color:#ef4444;
@@ -154,31 +96,49 @@ body{margin:0;background:var(--bg);color:var(--text)}
 
 /* FOOTER */
 .footer{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  border-top:1px solid var(--border);
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--border);
   padding:14px;
 }
-
-.total{
-  font-weight:800;
-  font-size:16px;
-  margin-bottom:12px;
+.total{font-weight:800;font-size:16px;margin-bottom:12px}
+.btn{
+  width:100%;padding:16px;border:none;
+  border-radius:999px;background:var(--primary);
+  color:#fff;font-weight:800;font-size:15px;
 }
 
-.btn{
-  width:100%;
+/* MODAL */
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;align-items:center;justify-content:center;
+  z-index:99;
+}
+.modal-box{
+  background:#fff;border-radius:18px;
+  width:90%;max-width:360px;
   padding:16px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
-  font-size:15px;
-  cursor:pointer;
+}
+.modal-title{
+  font-weight:800;font-size:16px;margin-bottom:10px;
+}
+.modal-item{display:flex;gap:10px;margin-bottom:14px}
+.modal-item img{
+  width:60px;height:60px;border-radius:12px;
+  object-fit:cover;background:#eee
+}
+.modal-actions{
+  display:flex;gap:10px
+}
+.btn-sec{
+  flex:1;padding:12px;border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;font-weight:700
+}
+.btn-danger{
+  flex:1;padding:12px;border-radius:999px;
+  border:none;background:#ef4444;
+  color:#fff;font-weight:800
 }
 </style>
 </head>
@@ -197,12 +157,34 @@ body{margin:0;background:var(--bg);color:var(--text)}
   <button class="btn" onclick="finalizarCompra()">Finalizar compra</button>
 </div>
 
+<!-- MODAL EXCLUIR -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-title">Excluir item?</div>
+    <div class="modal-item">
+      <img id="mFoto">
+      <div>
+        <strong id="mNome"></strong><br>
+        <span id="mPreco"></span><br>
+        <span id="mQtd"></span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmarExclusao()">Excluir</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* SUPABASE */
 const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+
+/* HELPERS */
+const moeda = v => v.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
 /* PARAMS */
 const lojaId = new URLSearchParams(location.search).get("l");
@@ -212,6 +194,7 @@ const KEY = "CARRINHO_LOJA_" + lojaId;
 let carrinho = JSON.parse(localStorage.getItem(KEY)) || { itens: [] };
 let cliente = JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
 let produtosMap = {};
+let idxExcluir = null;
 
 /* ELEMENTOS */
 const conteudo = document.getElementById("conteudo");
@@ -221,13 +204,30 @@ const totalEl = document.getElementById("total");
 async function carregarProdutos(){
   const ids = carrinho.itens.map(i=>i.id);
   if(!ids.length) return;
-
   const { data } = await sb
     .from("produtos_servicos")
     .select("id,imagem_url")
     .in("id", ids);
-
   data?.forEach(p => produtosMap[p.id] = p.imagem_url);
+}
+
+/* MODAL */
+function abrirModal(idx){
+  idxExcluir = idx;
+  const i = carrinho.itens[idx];
+  mFoto.src = produtosMap[i.id] || "https://via.placeholder.com/200";
+  mNome.innerText = i.nome;
+  mPreco.innerText = "Preço: R$ " + moeda(i.preco);
+  mQtd.innerText = "Quantidade: " + i.quantidade;
+  modal.style.display = "flex";
+}
+function fecharModal(){
+  modal.style.display = "none";
+}
+function confirmarExclusao(){
+  carrinho.itens.splice(idxExcluir,1);
+  salvar();
+  fecharModal();
 }
 
 /* RENDER */
@@ -244,23 +244,20 @@ function render(){
     <div class="card">
       <div class="endereco-title">Entrega</div>
       <div class="endereco-text">
-        ${cliente?.nome || ""}<br>
         ${cliente?.rua || ""}, ${cliente?.numero || ""}<br>
         ${cliente?.bairro || ""} – ${cliente?.cidade || ""}/${cliente?.uf || ""}
       </div>
     </div>
 
     ${carrinho.itens.map((i,idx)=>{
-      const img = produtosMap[i.id] || "https://via.placeholder.com/200";
       total += i.preco * i.quantidade;
-
       return `
         <div class="card">
           <div class="item">
-            <img class="item-img" src="${img}">
+            <img class="item-img" src="${produtosMap[i.id] || 'https://via.placeholder.com/200'}">
             <div class="item-info">
               <div class="item-nome">${i.nome}</div>
-              <div class="item-preco">R$ ${i.preco.toFixed(2).replace('.',',')}</div>
+              <div class="item-preco">R$ ${moeda(i.preco)}</div>
 
               <div class="item-controls">
                 <div class="qty">
@@ -268,13 +265,11 @@ function render(){
                   <span>${i.quantidade}</span>
                   <button onclick="mais(${idx})">+</button>
                 </div>
-                <div class="item-total">
-                  R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}
-                </div>
+                <div class="item-total">R$ ${moeda(i.preco*i.quantidade)}</div>
               </div>
 
               <div class="remove-row">
-                <span class="remove" onclick="remover(${idx})">Excluir item</span>
+                <span class="remove" onclick="abrirModal(${idx})">Excluir item</span>
               </div>
             </div>
           </div>
@@ -283,7 +278,7 @@ function render(){
     }).join("")}
   `;
 
-  totalEl.innerText = "Total: R$ " + total.toFixed(2).replace('.',',');
+  totalEl.innerText = "Total: R$ " + moeda(total);
 }
 
 /* AÇÕES */
@@ -293,10 +288,9 @@ function salvar(){
 }
 function mais(i){ carrinho.itens[i].quantidade++; salvar(); }
 function menos(i){
-  if(--carrinho.itens[i].quantidade <= 0) carrinho.itens.splice(i,1);
-  salvar();
+  if(--carrinho.itens[i].quantidade <= 0) abrirModal(i);
+  else salvar();
 }
-function remover(i){ carrinho.itens.splice(i,1); salvar(); }
 
 /* CHECKOUT */
 async function finalizarCompra(){
@@ -309,7 +303,6 @@ async function finalizarCompra(){
       itens: carrinho.itens
     })
   });
-
   const data = await res.json();
   if(data.init_point){
     localStorage.removeItem(KEY);
