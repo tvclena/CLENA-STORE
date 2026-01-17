@@ -253,6 +253,12 @@ button:disabled{
   font-weight:800;
   color:var(--muted);
 }
+.loja-placeholder{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:var(--border);
+}
 
 </style>
 </head>
@@ -313,15 +319,24 @@ const { data: ags } = await sb
   .eq("cliente_id", auth.user.id)
   .eq("status","CONFIRMADO")
   .order("data");
-const lojasIds = [...new Set(ags.map(a => a.loja_id))];
 
-const { data: lojas } = await sb
-  .from("lojas")
-  .select("id,nome,logo_url")
-  .in("id", lojasIds);
 
-const mapaLojas = {};
-lojas.forEach(l => mapaLojas[l.id] = l);
+  
+const lojasIds = [...new Set(ags.map(a => a.loja_id).filter(Boolean))];
+
+let mapaLojas = {};
+
+if (lojasIds.length) {
+  const { data: lojas, error } = await sb
+    .from("lojas")
+    .select("id,nome,logo_url")
+    .in("id", lojasIds);
+
+  if (!error && Array.isArray(lojas)) {
+    lojas.forEach(l => mapaLojas[l.id] = l);
+  }
+}
+
 
 
   if(!ags || !ags.length){
@@ -347,7 +362,10 @@ lojas.forEach(l => mapaLojas[l.id] = l);
     return `
       <div class="card">
       <div class="loja">
-  <img src="${mapaLojas[a.loja_id]?.logo_url || ''}">
+${mapaLojas[a.loja_id]?.logo_url
+  ? `<img src="${mapaLojas[a.loja_id].logo_url}">`
+  : `<div class="loja-placeholder"></div>`
+}
   <div class="loja-nome">
     ${mapaLojas[a.loja_id]?.nome || "Loja"}
   </div>
@@ -362,17 +380,19 @@ lojas.forEach(l => mapaLojas[l.id] = l);
         <div class="time">${a.hora_inicio} – ${a.hora_fim}</div>
 
         <div class="actions">
-          <button class="btn-outline"
-            ${bloqueado ? "disabled" : ""}
-             onclick="alterar('${a.id}','${a.servico_id}','${a.loja_id}')"
-            Alterar
-          </button>
+<button class="btn-outline"
+  ${bloqueado ? "disabled" : ""}
+  onclick="alterar('${a.id}','${a.servico_id}','${a.loja_id}')">
+  Alterar
+</button>
 
-          <button class="btn-danger"
-            ${bloqueado ? "disabled" : ""}
-            onclick="cancelar('${a.id}','${a.loja_id}')"
-            Cancelar
-          </button>
+
+<button class="btn-danger"
+  ${bloqueado ? "disabled" : ""}
+  onclick="cancelar('${a.id}','${a.loja_id}')">
+  Cancelar
+</button>
+
         </div>
 
         ${bloqueado ? `
