@@ -12,6 +12,7 @@
   viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
@@ -24,35 +25,17 @@
 }
 
 *{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);color:var(--text)}
 
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* HEADER */
 .header{
-  position:sticky;
-  top:0;
-  background:#fff;
-  padding:12px 14px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight:800;
-  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:5;
+  background:#fff;padding:14px;
+  display:flex;align-items:center;gap:10px;
+  font-weight:800;border-bottom:1px solid var(--border);
 }
 
-.back{font-size:20px;cursor:pointer}
+.container{padding:14px;padding-bottom:160px}
 
-/* CONTAINER */
-.container{
-  padding:12px;
-  padding-bottom:190px;
-}
-
-/* CARD BASE */
 .card{
   background:var(--card);
   border-radius:14px;
@@ -60,111 +43,48 @@ body{
   margin-bottom:12px;
 }
 
-/* ENDEREÇO */
-.endereco-title{
-  font-weight:800;
-  font-size:14px;
-  margin-bottom:6px;
-}
-
-.endereco-text{
-  font-size:13px;
-  color:var(--muted);
-  line-height:1.4;
-}
+.title{font-weight:800;font-size:14px;margin-bottom:6px}
+.text{font-size:13px;color:var(--muted);line-height:1.4}
 
 /* ITEM */
-.item{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-/* IMAGEM */
+.item{display:flex;gap:10px}
 .item-img{
-  width:54px;
-  height:54px;
-  border-radius:10px;
-  object-fit:cover;
-  background:#eee;
-  flex-shrink:0;
+  width:56px;height:56px;border-radius:10px;
+  object-fit:cover;background:#eee;flex-shrink:0
 }
-
-/* INFO */
 .item-info{flex:1}
+.item-nome{font-weight:700;font-size:14px}
+.item-preco{font-weight:700;font-size:13px}
 
-.item-nome{
-  font-weight:700;
-  font-size:14px;
+.actions{
+  display:flex;flex-direction:column;
+  align-items:flex-end;gap:6px
 }
 
-.item-preco{
-  font-size:13px;
-  font-weight:700;
-  margin-top:2px;
-}
+.remove{font-size:12px;color:#ef4444;cursor:pointer}
 
-/* AÇÕES */
-.item-actions{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:6px;
-}
-
-.remove{
-  color:#ef4444;
-  font-size:12px;
-  cursor:pointer;
-}
-
-/* QTD */
 .qty{
-  display:flex;
-  align-items:center;
-  gap:6px;
+  display:flex;align-items:center;gap:6px
 }
-
 .qty button{
-  width:26px;
-  height:26px;
-  border:none;
-  border-radius:50%;
-  background:#f3f4f6;
-  font-weight:800;
-  cursor:pointer;
+  width:26px;height:26px;border:none;
+  border-radius:50%;background:#f3f4f6;font-weight:800
 }
-
-.qty span{
-  font-weight:700;
-  min-width:18px;
-  text-align:center;
-}
+.qty span{font-weight:700;min-width:18px;text-align:center}
 
 /* FOOTER */
 .footer{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#fff;
-  border-top:1px solid var(--border);
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--border);
   padding:12px;
 }
 
-.total{
-  font-weight:800;
-  margin-bottom:8px;
-}
+.total{font-weight:800;font-size:16px;margin-bottom:10px}
 
 .btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:800;
+  width:100%;padding:14px;border:none;
+  border-radius:999px;background:var(--primary);
+  color:#fff;font-weight:800
 }
 </style>
 </head>
@@ -172,7 +92,7 @@ body{
 <body>
 
 <div class="header">
-  <span class="back" onclick="history.back()">←</span>
+  <span onclick="history.back()">←</span>
   Carrinho
 </div>
 
@@ -184,129 +104,125 @@ body{
 </div>
 
 <script>
+/* SUPABASE */
+const sb = supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+/* PARAMS */
 const lojaId = new URLSearchParams(location.search).get("l");
-const CARRINHO_KEY = "CARRINHO_LOJA_" + lojaId;
+const KEY = "CARRINHO_LOJA_" + lojaId;
 
-let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY)) || { itens: [] };
+/* DADOS */
+let carrinho = JSON.parse(localStorage.getItem(KEY)) || { itens: [] };
+let cliente = JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
+let produtosMap = {};
 
+/* ELEMENTOS */
 const conteudo = document.getElementById("conteudo");
 const totalEl = document.getElementById("total");
 
-/* IMG */
-function imgProduto(url){
-  if(!url) return "https://via.placeholder.com/100";
-  if(url.startsWith("http")) return url;
-  return "https://www.clena.com.br/" + url.replace(/^\/+/,'');
-}
+/* BUSCA PRODUTOS PARA PEGAR IMAGEM */
+async function carregarProdutos(){
+  const ids = carrinho.itens.map(i=>i.id);
+  if(!ids.length) return;
 
-/* ENDEREÇO */
-function renderEndereco(){
-  const e = carrinho.cliente?.endereco;
-  if(!e) return "";
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("id,imagem_url")
+    .in("id", ids);
 
-  return `
-    <div class="card">
-      <div class="endereco-title">Endereço de entrega</div>
-      <div class="endereco-text">
-        ${e.rua || ""} ${e.numero || ""}<br>
-        ${e.bairro || ""} – ${e.cidade || ""}/${e.uf || ""}<br>
-        ${e.complemento || ""}
-      </div>
-    </div>
-  `;
-}
-
-/* ITENS */
-function renderItens(){
-  if(!carrinho.itens.length){
-    return "<p style='text-align:center;color:#666'>Carrinho vazio</p>";
-  }
-
-  let total = 0;
-
-  const html = carrinho.itens.map((i,idx)=>{
-    total += i.preco * i.quantidade;
-
-    return `
-      <div class="card">
-        <div class="item">
-          <img class="item-img" src="${imgProduto(i.foto)}">
-
-          <div class="item-info">
-            <div class="item-nome">${i.nome}</div>
-            <div class="item-preco">R$ ${i.preco.toFixed(2).replace('.',',')}</div>
-          </div>
-
-          <div class="item-actions">
-            <span class="remove" onclick="remover(${idx})">Excluir</span>
-
-            <div class="qty">
-              <button onclick="menos(${idx})">−</button>
-              <span>${i.quantidade}</span>
-              <button onclick="mais(${idx})">+</button>
-            </div>
-
-            <strong>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</strong>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  totalEl.innerText = "Total: R$ " + total.toFixed(2).replace('.',',');
-
-  return html;
+  data?.forEach(p => produtosMap[p.id] = p.imagem_url);
 }
 
 /* RENDER */
 function render(){
+  if(!carrinho.itens.length){
+    conteudo.innerHTML = "<p style='text-align:center;color:#666'>Carrinho vazio</p>";
+    totalEl.innerText = "Total: R$ 0,00";
+    return;
+  }
+
+  let total = 0;
+
   conteudo.innerHTML = `
-    ${renderEndereco()}
-    ${renderItens()}
+    <div class="card">
+      <div class="title">Entrega</div>
+      <div class="text">
+        ${cliente?.nome || ""}<br>
+        ${cliente?.rua || ""}, ${cliente?.numero || ""}<br>
+        ${cliente?.bairro || ""} – ${cliente?.cidade || ""}/${cliente?.uf || ""}
+      </div>
+    </div>
+
+    ${carrinho.itens.map((i,idx)=>{
+      const img = produtosMap[i.id] || "https://via.placeholder.com/200";
+      total += i.preco * i.quantidade;
+
+      return `
+        <div class="card">
+          <div class="item">
+            <img class="item-img" src="${img}">
+            <div class="item-info">
+              <div class="item-nome">${i.nome}</div>
+              <div class="item-preco">R$ ${i.preco.toFixed(2).replace('.',',')}</div>
+            </div>
+            <div class="actions">
+              <span class="remove" onclick="remover(${idx})">Excluir</span>
+              <div class="qty">
+                <button onclick="menos(${idx})">−</button>
+                <span>${i.quantidade}</span>
+                <button onclick="mais(${idx})">+</button>
+              </div>
+              <strong>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("")}
   `;
+
+  totalEl.innerText = "Total: R$ " + total.toFixed(2).replace('.',',');
 }
 
 /* AÇÕES */
 function salvar(){
-  localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
+  localStorage.setItem(KEY, JSON.stringify(carrinho));
   render();
 }
-
 function mais(i){ carrinho.itens[i].quantidade++; salvar(); }
 function menos(i){
-  carrinho.itens[i].quantidade--;
-  if(carrinho.itens[i].quantidade <= 0) carrinho.itens.splice(i,1);
+  if(--carrinho.itens[i].quantidade <= 0) carrinho.itens.splice(i,1);
   salvar();
 }
 function remover(i){ carrinho.itens.splice(i,1); salvar(); }
 
 /* CHECKOUT */
 async function finalizarCompra(){
-  if(!carrinho.itens.length){
-    alert("Carrinho vazio");
-    return;
-  }
-
   const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body:JSON.stringify({
       loja_id: lojaId,
-      cliente: carrinho.cliente,
+      cliente,
       itens: carrinho.itens
     })
   });
-
   const data = await res.json();
   if(data.init_point){
-    localStorage.removeItem(CARRINHO_KEY);
+    localStorage.removeItem(KEY);
     location.href = data.init_point;
   }else{
     alert("Erro ao gerar pagamento");
   }
 }
 
-render();
+/* INIT */
+(async()=>{
+  await carregarProdutos();
+  render();
+})();
 </script>
 
 </body>
