@@ -27,64 +27,158 @@
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:var(--bg);color:var(--text)}
 
+/* HEADER */
 .header{
-  position:sticky;top:0;z-index:5;
-  background:#fff;padding:14px;
-  display:flex;align-items:center;gap:10px;
-  font-weight:800;border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:#fff;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  border-bottom:1px solid var(--border);
 }
 
-.container{padding:14px;padding-bottom:160px}
+/* CONTAINER */
+.container{
+  padding:14px;
+  padding-bottom:160px;
+}
 
+/* CARD BASE */
 .card{
   background:var(--card);
-  border-radius:14px;
-  padding:12px;
-  margin-bottom:12px;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
 }
 
-.title{font-weight:800;font-size:14px;margin-bottom:6px}
-.text{font-size:13px;color:var(--muted);line-height:1.4}
+/* ENDEREÇO */
+.endereco-title{
+  font-weight:800;
+  font-size:14px;
+  margin-bottom:6px;
+}
+.endereco-text{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.4;
+}
 
 /* ITEM */
-.item{display:flex;gap:10px}
+.item{
+  display:flex;
+  gap:12px;
+}
+
+/* IMAGEM */
 .item-img{
-  width:56px;height:56px;border-radius:10px;
-  object-fit:cover;background:#eee;flex-shrink:0
-}
-.item-info{flex:1}
-.item-nome{font-weight:700;font-size:14px}
-.item-preco{font-weight:700;font-size:13px}
-
-.actions{
-  display:flex;flex-direction:column;
-  align-items:flex-end;gap:6px
+  width:64px;
+  height:64px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eee;
+  flex-shrink:0;
 }
 
-.remove{font-size:12px;color:#ef4444;cursor:pointer}
+/* INFO */
+.item-info{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+.item-nome{
+  font-weight:800;
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+.item-preco{
+  font-weight:700;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* CONTROLES */
+.item-controls{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:10px;
+}
 
 .qty{
-  display:flex;align-items:center;gap:6px
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
+
 .qty button{
-  width:26px;height:26px;border:none;
-  border-radius:50%;background:#f3f4f6;font-weight:800
+  width:30px;
+  height:30px;
+  border:none;
+  border-radius:50%;
+  background:#f3f4f6;
+  font-weight:800;
+  cursor:pointer;
 }
-.qty span{font-weight:700;min-width:18px;text-align:center}
+
+.qty span{
+  min-width:20px;
+  text-align:center;
+  font-weight:800;
+}
+
+.item-total{
+  font-weight:800;
+  font-size:14px;
+}
+
+/* EXCLUIR */
+.remove-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:8px;
+}
+
+.remove{
+  font-size:12px;
+  color:#ef4444;
+  font-weight:700;
+  cursor:pointer;
+}
 
 /* FOOTER */
 .footer{
-  position:fixed;bottom:0;left:0;right:0;
-  background:#fff;border-top:1px solid var(--border);
-  padding:12px;
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid var(--border);
+  padding:14px;
 }
 
-.total{font-weight:800;font-size:16px;margin-bottom:10px}
+.total{
+  font-weight:800;
+  font-size:16px;
+  margin-bottom:12px;
+}
 
 .btn{
-  width:100%;padding:14px;border:none;
-  border-radius:999px;background:var(--primary);
-  color:#fff;font-weight:800
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -123,7 +217,7 @@ let produtosMap = {};
 const conteudo = document.getElementById("conteudo");
 const totalEl = document.getElementById("total");
 
-/* BUSCA PRODUTOS PARA PEGAR IMAGEM */
+/* BUSCAR IMAGENS */
 async function carregarProdutos(){
   const ids = carrinho.itens.map(i=>i.id);
   if(!ids.length) return;
@@ -148,8 +242,8 @@ function render(){
 
   conteudo.innerHTML = `
     <div class="card">
-      <div class="title">Entrega</div>
-      <div class="text">
+      <div class="endereco-title">Entrega</div>
+      <div class="endereco-text">
         ${cliente?.nome || ""}<br>
         ${cliente?.rua || ""}, ${cliente?.numero || ""}<br>
         ${cliente?.bairro || ""} – ${cliente?.cidade || ""}/${cliente?.uf || ""}
@@ -167,15 +261,21 @@ function render(){
             <div class="item-info">
               <div class="item-nome">${i.nome}</div>
               <div class="item-preco">R$ ${i.preco.toFixed(2).replace('.',',')}</div>
-            </div>
-            <div class="actions">
-              <span class="remove" onclick="remover(${idx})">Excluir</span>
-              <div class="qty">
-                <button onclick="menos(${idx})">−</button>
-                <span>${i.quantidade}</span>
-                <button onclick="mais(${idx})">+</button>
+
+              <div class="item-controls">
+                <div class="qty">
+                  <button onclick="menos(${idx})">−</button>
+                  <span>${i.quantidade}</span>
+                  <button onclick="mais(${idx})">+</button>
+                </div>
+                <div class="item-total">
+                  R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}
+                </div>
               </div>
-              <strong>R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}</strong>
+
+              <div class="remove-row">
+                <span class="remove" onclick="remover(${idx})">Excluir item</span>
+              </div>
             </div>
           </div>
         </div>
@@ -209,6 +309,7 @@ async function finalizarCompra(){
       itens: carrinho.itens
     })
   });
+
   const data = await res.json();
   if(data.init_point){
     localStorage.removeItem(KEY);
