@@ -198,6 +198,29 @@ body{margin:0;background:var(--bg);padding:16px}
   font-weight:900;
   cursor:pointer;
 }
+.loja-titulo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.loja-titulo a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+}
+
+.loja-titulo i{
+  font-size:22px;
+  color:#25D366;
+  transition:.2s;
+}
+
+.loja-titulo a:hover i{
+  transform:scale(1.15);
+}
+
 </style>
 </head>
 
@@ -209,10 +232,21 @@ body{margin:0;background:var(--bg);padding:16px}
       <img id="logo">
     </div>
     <div>
-      <h1 id="nomeLoja">Carregando…</h1>
-      <p id="cidadeLoja"></p>
-      <p id="enderecoLoja"></p>
-      <p id="whatsLoja"></p>
+      
+<div class="loja-titulo">
+  <h1 id="nomeLoja">Carregando…</h1>
+
+  <!-- BOTÃO WHATSAPP -->
+  <a id="btnWhatsLoja"
+     target="_blank"
+     style="display:none">
+    <i class="ri-whatsapp-line"></i>
+  </a>
+</div>
+
+<p id="cidadeLoja"></p>
+<p id="enderecoLoja"></p>
+
     </div>
   </div>
 
@@ -278,12 +312,28 @@ if(!loja){
   document.body.innerHTML = "<p style='text-align:center'>Loja não encontrada</p>";
   return;
 }
+const btnWhatsLoja = document.getElementById("btnWhatsLoja");
 
 
   nomeLoja.innerText = loja.negocio;
   cidadeLoja.innerText = `${loja.cidade} • ${loja.uf}`;
+
+  
   enderecoLoja.innerText = `${loja.rua || ""}, ${loja.numero || ""}`;
-  whatsLoja.innerText = loja.whatsapp ? `📲 ${loja.whatsapp}` : "";
+  // 🔥 BOTÃO WHATSAPP AO LADO DO NOME
+if (loja.whatsapp) {
+
+let numero = loja.whatsapp.replace(/\D/g, "");
+if (numero.startsWith("55")) numero = numero.slice(2);
+
+  const mensagem = encodeURIComponent(
+    `Olá! Vim pelo app e gostaria de falar com a ${loja.negocio}.`
+  );
+
+  btnWhatsLoja.href = `https://wa.me/55${numero}?text=${mensagem}`;
+  btnWhatsLoja.style.display = "inline-flex";
+}
+
   if(loja.avatar_url) logo.src = loja.avatar_url;
 
   /* PRODUTOS */
