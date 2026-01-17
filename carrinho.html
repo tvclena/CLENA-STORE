@@ -22,24 +22,28 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --radius:20px;
-  --shadow:0 12px 30px rgba(0,0,0,.08);
+  --radius:22px;
+  --shadow:0 14px 32px rgba(0,0,0,.08);
 }
 
-*{box-sizing:border-box;font-family:Inter}
+*{
+  box-sizing:border-box;
+  font-family:'Inter', sans-serif;
+}
+
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
 }
 
-/* HEADER */
+/* ================= HEADER ================= */
 .header{
   position:sticky;
   top:0;
   z-index:10;
   background:#fff;
-  padding:16px;
+  padding:18px 16px;
   display:flex;
   align-items:center;
   gap:12px;
@@ -47,39 +51,87 @@ body{
   font-size:18px;
   border-bottom:1px solid var(--border);
 }
+
 .back{
-  font-size:20px;
+  font-size:22px;
   cursor:pointer;
 }
 
-/* LISTA */
+/* ================= LISTA ================= */
 .container{
   padding:16px;
-  padding-bottom:140px;
+  padding-bottom:160px;
 }
 
+.empty{
+  text-align:center;
+  color:var(--muted);
+  margin-top:40px;
+  font-weight:600;
+}
+
+/* ================= ITEM ================= */
 .item{
   background:var(--card);
   border-radius:var(--radius);
   padding:14px;
-  margin-bottom:12px;
+  margin-bottom:14px;
   box-shadow:var(--shadow);
 }
 
-.item-top{
+.item-body{
   display:flex;
+  gap:14px;
+}
+
+.item-img{
+  width:84px;
+  height:84px;
+  border-radius:16px;
+  object-fit:cover;
+  background:#f3f4f6;
+}
+
+.item-info{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.item-nome{
+  font-weight:800;
+  font-size:15px;
+}
+
+.item-desc{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.3;
+}
+
+.item-preco{
+  font-weight:800;
+  font-size:14px;
+  margin-top:auto;
+}
+
+/* ================= FOOT ITEM ================= */
+.item-footer{
+  display:flex;
+  align-items:center;
   justify-content:space-between;
-  font-weight:700;
-  margin-bottom:10px;
+  margin-top:14px;
 }
 
 .remove{
   color:#ef4444;
   font-size:13px;
+  font-weight:700;
   cursor:pointer;
 }
 
-/* QTD */
+/* ================= QTD ================= */
 .qty{
   display:flex;
   align-items:center;
@@ -87,8 +139,8 @@ body{
 }
 
 .qty button{
-  width:32px;
-  height:32px;
+  width:34px;
+  height:34px;
   border-radius:50%;
   border:none;
   background:#f3f4f6;
@@ -100,10 +152,10 @@ body{
 .qty span{
   min-width:24px;
   text-align:center;
-  font-weight:700;
+  font-weight:800;
 }
 
-/* FOOTER */
+/* ================= FOOTER ================= */
 .footer{
   position:fixed;
   bottom:0;
@@ -111,13 +163,13 @@ body{
   right:0;
   background:#fff;
   border-top:1px solid var(--border);
-  padding:16px;
+  padding:18px 16px;
 }
 
 .total{
   font-weight:800;
-  font-size:16px;
-  margin-bottom:12px;
+  font-size:17px;
+  margin-bottom:14px;
 }
 
 .btn{
@@ -131,6 +183,7 @@ body{
   font-size:15px;
   cursor:pointer;
 }
+
 .btn:active{
   background:var(--primary-dark);
 }
@@ -147,7 +200,7 @@ body{
 <div class="container" id="lista"></div>
 
 <div class="footer">
-  <div class="total" id="total"></div>
+  <div class="total" id="total">Total: R$ 0,00</div>
   <button class="btn" onclick="finalizarCompra()">Finalizar compra</button>
 </div>
 
@@ -160,20 +213,19 @@ const CARRINHO_KEY = "CARRINHO_LOJA_" + lojaId;
 
 let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY));
 
-if(!carrinho || !carrinho.itens || !carrinho.itens.length){
-  document.getElementById("lista").innerHTML =
-    "<p>Carrinho vazio</p>";
-}
+const lista = document.getElementById("lista");
+const totalEl = document.getElementById("total");
 
 /* ===============================
-   FUNÇÕES
+   RENDER
 ================================ */
-function salvar(){
-  localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
-  render();
-}
-
 function render(){
+  if(!carrinho || !carrinho.itens || !carrinho.itens.length){
+    lista.innerHTML = `<div class="empty">Seu carrinho está vazio</div>`;
+    totalEl.innerText = "Total: R$ 0,00";
+    return;
+  }
+
   let total = 0;
 
   lista.innerHTML = carrinho.itens.map((i,idx)=>{
@@ -181,24 +233,49 @@ function render(){
 
     return `
       <div class="item">
-        <div class="item-top">
-          <div>${i.nome}</div>
-          <span class="remove" onclick="remover(${idx})">Excluir</span>
+
+        <div class="item-body">
+          <img 
+            src="${i.foto || 'https://via.placeholder.com/300'}" 
+            class="item-img"
+          />
+
+          <div class="item-info">
+            <div class="item-nome">${i.nome}</div>
+            ${i.descricao ? `<div class="item-desc">${i.descricao}</div>` : ``}
+            <div class="item-preco">
+              R$ ${i.preco.toFixed(2).replace('.',',')}
+            </div>
+          </div>
         </div>
 
-        <div class="qty">
-          <button onclick="menos(${idx})">−</button>
-          <span>${i.quantidade}</span>
-          <button onclick="mais(${idx})">+</button>
-          <strong style="margin-left:auto">
+        <div class="item-footer">
+          <span class="remove" onclick="remover(${idx})">Excluir</span>
+
+          <div class="qty">
+            <button onclick="menos(${idx})">−</button>
+            <span>${i.quantidade}</span>
+            <button onclick="mais(${idx})">+</button>
+          </div>
+
+          <strong>
             R$ ${(i.preco*i.quantidade).toFixed(2).replace('.',',')}
           </strong>
         </div>
+
       </div>
     `;
   }).join("");
 
   totalEl.innerText = "Total: R$ " + total.toFixed(2).replace('.',',');
+}
+
+/* ===============================
+   AÇÕES
+================================ */
+function salvar(){
+  localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
+  render();
 }
 
 function mais(i){
@@ -227,7 +304,7 @@ function voltar(){
    CHECKOUT
 ================================ */
 async function finalizarCompra(){
-  if(!carrinho.itens.length){
+  if(!carrinho || !carrinho.itens.length){
     alert("Carrinho vazio");
     return;
   }
@@ -235,7 +312,7 @@ async function finalizarCompra(){
   try{
     const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{ "Content-Type":"application/json" },
       body:JSON.stringify({
         loja_id: lojaId,
         cliente: carrinho.cliente,
@@ -260,12 +337,7 @@ async function finalizarCompra(){
 }
 
 /* INIT */
-const lista = document.getElementById("lista");
-const totalEl = document.getElementById("total");
-
-if(carrinho && carrinho.itens?.length){
-  render();
-}
+render();
 </script>
 
 </body>
