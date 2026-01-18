@@ -856,7 +856,12 @@ function selecionarHorario(el, h){
 
   // ✅ mostra botão de confirmação
   mostrarBotaoConfirmar();
+
+  // 🔽 rola suavemente até o botão Confirmar
+  document.getElementById("secConfirmar")
+    .scrollIntoView({ behavior: "smooth", block: "center" });
 }
+
 function mostrarBotaoConfirmar(){
   document.getElementById("secConfirmar").classList.remove("hidden");
 }
