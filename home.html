@@ -588,9 +588,37 @@ resumo[a.data].total += Number(a.valor_total||0);
 
   const diasNoMes = new Date(ano, mes + 1, 0).getDate();
 
-  for(let dia=1; dia<=diasNoMes; dia++){
-    const data = new Date(ano, mes, dia).toLocaleDateString("en-CA");
-    const info = resumo[data];
+calendario.innerHTML += `
+  <div
+    ${info ? `onclick="abrirResumoDia('${data}')"` : ""}
+    style="
+      background:#fff;
+      border-radius:14px;
+      padding:8px;
+      box-shadow:0 4px 10px rgba(0,0,0,.05);
+      min-height:74px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      ${info ? "cursor:pointer" : ""}
+    "
+  >
+    <strong style="font-size:12px">${dia}</strong>
+
+    ${
+      info ? `
+        <small style="font-size:11px;color:#2563eb">
+          ${info.qtd} atend.
+        </small>
+        <small style="font-size:11px;font-weight:700;color:#16a34a">
+          ${info.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+        </small>
+      ` : `
+        <small style="font-size:11px;color:#9ca3af">—</small>
+      `
+    }
+  </div>
+`;
 
     calendario.innerHTML += `
       <div style="
@@ -736,6 +764,27 @@ function fecharNovoAgendamento(){
     if(session) carregarAgendaDia(session.user.id);
   });
 }
+function abrirResumoDia(data){
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(!session) return;
+
+    const lojaId = session.user.id;
+    const iframe = document.getElementById("iframeResumoDia");
+
+    iframe.src = `resumodia.html?data=${data}&loja=${lojaId}`;
+    document.getElementById("resumoDiaModal").style.display = "flex";
+  });
+}
+
+function fecharResumoDia(){
+  const modal = document.getElementById("resumoDiaModal");
+  const iframe = document.getElementById("iframeResumoDia");
+
+  iframe.src = "";
+  modal.style.display = "none";
+}
+
+  
 </script>
 
 <!-- MODAL CLIENTES -->
@@ -803,6 +852,55 @@ function fecharNovoAgendamento(){
 
   </div>
 </div>
+
+<!-- MODAL RESUMO DO DIA -->
+<div id="resumoDiaModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:100000;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="
+      padding:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #e5e7eb
+    ">
+      <strong style="font-size:16px">Resumo do dia</strong>
+      <button onclick="fecharResumoDia()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- iframe -->
+    <iframe
+      id="iframeResumoDia"
+      src=""
+      style="flex:1;border:none;width:100%"
+    ></iframe>
+
+  </div>
+</div>
+
 
 <!-- MODAL SERVIÇOS -->
 <div id="servicosModal" style="
