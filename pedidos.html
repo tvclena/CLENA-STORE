@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Pedidos • Painel da Loja</title>
+<title>Pedidos • CLENA</title>
 
 <meta name="viewport"
   content="width=device-width,
@@ -26,95 +26,93 @@
   --text:#111827;
   --muted:#6b7280;
   --success:#16a34a;
-  --warning:#f59e0b;
   --danger:#ef4444;
   --radius:22px;
   --shadow:0 18px 45px rgba(0,0,0,.08);
 }
-*{box-sizing:border-box;font-family:Inter;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--text);padding:16px}
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
 
-/* HEADER */
 .header{
+  background:#fff;
+  border-radius:18px;
+  padding:20px;
+  box-shadow:var(--shadow);
   display:flex;
+  justify-content:space-between;
   align-items:center;
-  gap:12px;
-  font-size:20px;
-  font-weight:900;
-  margin-bottom:18px
+  margin-bottom:20px
 }
-.header i{font-size:26px;color:var(--primary)}
+.brand strong{font-size:20px;font-weight:900}
+.brand span{font-size:12px;color:var(--muted)}
 
-/* CARD */
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:18px;
+  padding:22px;
   box-shadow:var(--shadow);
-  margin-bottom:18px
+  margin-bottom:24px
 }
 
-/* BADGES */
-.badge{
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:800
+.section-title{
+  font-size:13px;
+  font-weight:900;
+  margin:18px 0 8px
 }
-.PENDENTE_PAGAMENTO{background:#fff7ed;color:#9a3412}
-.PAGO{background:#dcfce7;color:#166534}
-.CANCELADO{background:#fee2e2;color:#991b1b}
-.ERRO_PAGAMENTO{background:#fef2f2;color:#b91c1c}
-.CRIADO{background:#e0f2fe;color:#0369a1}
-.APROVED{background:#dcfce7;color:#166534}
-.PENDING{background:#fef3c7;color:#92400e}
-.REJEITADO{background:#fee2e2;color:#991b1b}
 
-/* TEXT */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px
+}
+
 .small{font-size:12px;color:var(--muted)}
 .bold{font-weight:800}
 .value{font-size:15px;font-weight:900}
 
-/* FLEX */
-.row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.col{display:flex;flex-direction:column;gap:4px}
-
-/* AVATAR */
-.avatar{
-  width:38px;height:38px;
-  border-radius:50%;
-  object-fit:cover;
-  border:1px solid var(--border)
+.badge{
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900
 }
-.avatar-ph{
-  width:38px;height:38px;
-  border-radius:50%;
-  background:var(--border)
-}
+.PAGO{background:#dcfce7;color:#166534}
+.PENDENTE_PAGAMENTO{background:#fff7ed;color:#9a3412}
+.CANCELADO{background:#fee2e2;color:#991b1b}
 
-/* ITEM */
 .item{
   display:flex;
-  gap:12px;
+  gap:14px;
   align-items:center;
-  margin-top:10px
+  margin-top:12px
 }
 .item img{
-  width:44px;height:44px;
-  border-radius:12px;
+  width:64px;height:64px;
+  border-radius:14px;
   object-fit:cover;
   border:1px solid var(--border)
 }
-.item-nome{font-size:13px;font-weight:800}
-.item-qtd{font-size:12px;color:var(--muted)}
 
-.empty{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:32px;
-  text-align:center;
-  color:var(--muted);
-  box-shadow:var(--shadow)
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:22px
+}
+button{
+  flex:1;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  font-weight:900;
+  cursor:pointer
+}
+.print{background:#111;color:#fff}
+.close{background:#f3f4f6}
+
+@media print{
+  body{background:#fff;padding:0}
+  .actions{display:none}
+  .card,.header{box-shadow:none;border-radius:0}
 }
 </style>
 </head>
@@ -122,8 +120,11 @@ body{margin:0;background:var(--bg);color:var(--text);padding:16px}
 <body>
 
 <div class="header">
-  <i class="ri-shopping-cart-2-fill"></i>
-  Pedidos da Loja
+  <div class="brand">
+    <strong>CLENA</strong>
+    <span>clena.com.br</span>
+  </div>
+  <i class="ri-store-3-fill" style="font-size:26px;color:#ff6a00"></i>
 </div>
 
 <div id="lista"></div>
@@ -135,31 +136,34 @@ const sb = supabase.createClient(
 );
 
 const lista = document.getElementById("lista");
-
-function money(v){
-  return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-}
+const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 async function carregar(){
   const { data: auth } = await sb.auth.getUser();
   if(!auth?.user){
-    lista.innerHTML = `<div class="empty">Faça login para acessar os pedidos</div>`;
+    lista.innerHTML = "<div class='card'>Faça login</div>";
     return;
   }
 
-  /* ================= PEDIDOS ================= */
+  /* ===== LOJA ===== */
+  const { data: loja } = await sb
+    .from("user_profile")
+    .select("*")
+    .eq("user_id", auth.user.id)
+    .single();
+
+  /* ===== PEDIDOS ===== */
   const { data: pedidos } = await sb
     .from("pedidos")
     .select("*")
     .eq("loja_id", auth.user.id)
-    .order("created_at", { ascending:false });
+    .order("created_at",{ascending:false});
 
   if(!pedidos?.length){
-    lista.innerHTML = `<div class="empty">Nenhum pedido encontrado</div>`;
+    lista.innerHTML = "<div class='card'>Nenhum pedido encontrado</div>";
     return;
   }
 
-  /* ================= ITENS ================= */
   const pedidosIds = pedidos.map(p=>p.id);
 
   const { data: itens } = await sb
@@ -167,94 +171,73 @@ async function carregar(){
     .select("*")
     .in("pedido_id", pedidosIds);
 
-  /* ================= PAGAMENTOS ================= */
-  const { data: movimentos } = await sb
+  const { data: pagamentos } = await sb
     .from("movimentacoes_pagamento")
     .select("*")
     .in("pedido_id", pedidosIds);
 
-  /* ================= CLIENTES ================= */
-  const clientesIds = [...new Set(pedidos.map(p=>p.cliente_id).filter(Boolean))];
-
-  const { data: clientes } = clientesIds.length
-    ? await sb.from("clientes_profile").select("*").in("id", clientesIds)
-    : { data: [] };
-
-  let mapaClientes = {};
-  clientes?.forEach(c=> mapaClientes[c.id]=c);
-
-  /* ================= PRODUTOS ================= */
-  const produtosIds = [...new Set(itens.map(i=>i.produto_id))];
-
-  const { data: produtos } = await sb
-    .from("produtos_servicos")
-    .select("id,nome,imagem_url")
-    .in("id", produtosIds);
-
-  let mapaProdutos = {};
-  produtos?.forEach(p=> mapaProdutos[p.id]=p);
-
-  /* ================= RENDER ================= */
   lista.innerHTML = pedidos.map(p=>{
     const its = itens.filter(i=>i.pedido_id===p.id);
-    const mov = movimentos.find(m=>m.pedido_id===p.id);
-    const cli = mapaClientes[p.cliente_id] || {};
+    const pg = pagamentos.find(m=>m.pedido_id===p.id);
 
     return `
       <div class="card">
 
-        <div class="row">
-          <div class="col">
+        <div class="grid">
+          <div>
             <div class="small">Pedido</div>
             <div class="bold">#${p.id.slice(0,8)}</div>
           </div>
-          <span class="badge ${p.status}">${p.status}</span>
-        </div>
-
-        <div class="row" style="margin-top:12px">
-          <div class="col">
-            <div class="small">Cliente</div>
-            <div class="bold">${p.cliente_nome}</div>
-            <div class="small">${p.cliente_whatsapp}</div>
+          <div>
+            <div class="small">Status</div>
+            <span class="badge ${p.status}">${p.status}</span>
           </div>
-          <div class="col">
-            <div class="small">Valor</div>
-            <div class="value">${money(p.valor_total)}</div>
+          <div>
+            <div class="small">Data</div>
+            <div class="bold">${new Date(p.created_at).toLocaleString("pt-BR")}</div>
           </div>
         </div>
 
-        <div class="small" style="margin-top:14px">Itens</div>
-
-        ${its.map(i=>{
-          const prod = mapaProdutos[i.produto_id] || {};
-          return `
-            <div class="item">
-              ${prod.imagem_url
-                ? `<img src="${prod.imagem_url}">`
-                : `<div class="avatar-ph"></div>`}
-              <div>
-                <div class="item-nome">${i.nome}</div>
-                <div class="item-qtd">
-                  ${i.quantidade} × ${money(i.preco_unitario)}
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("")}
-
-        <div class="row" style="margin-top:16px">
-          <div class="col">
-            <div class="small">Pagamento</div>
-            <span class="badge ${mov?.status || 'CRIADO'}">
-              ${mov?.status || 'CRIADO'}
-            </span>
-          </div>
-          <div class="col">
-            <div class="small">Criado em</div>
+        <div class="section-title">DADOS DA LOJA</div>
+        <div class="grid">
+          <div><div class="small">Nome</div><div class="bold">${loja.negocio}</div></div>
+          <div><div class="small">Telefone</div><div class="bold">${loja.whatsapp}</div></div>
+          <div><div class="small">Endereço</div>
             <div class="bold">
-              ${new Date(p.created_at).toLocaleString("pt-BR")}
+              ${loja.rua}, ${loja.numero}<br>
+              ${loja.bairro} – ${loja.cidade}/${loja.uf}<br>
+              CEP ${loja.cep}
             </div>
           </div>
+        </div>
+
+        <div class="section-title">DADOS DO CLIENTE</div>
+        <div class="grid">
+          <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
+          <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
+        </div>
+
+        <div class="section-title">ITENS DO PEDIDO</div>
+
+        ${its.map(i=>`
+          <div class="item">
+            <img src="${i.imagem_url || ''}">
+            <div>
+              <div class="bold">${i.nome}</div>
+              <div class="small">${i.quantidade} × ${money(i.preco_unitario)}</div>
+            </div>
+          </div>
+        `).join("")}
+
+        <div class="section-title">PAGAMENTO</div>
+        <div class="grid">
+          <div><div class="small">Status</div><div class="bold">${pg?.status || 'CRIADO'}</div></div>
+          <div><div class="small">Valor</div><div class="value">${money(p.valor_total)}</div></div>
+        </div>
+
+        <div class="actions">
+          <button class="print" onclick="window.print()">Imprimir pedido</button>
+          <button class="close" onclick="this.closest('.card').remove()">Fechar</button>
         </div>
 
       </div>
