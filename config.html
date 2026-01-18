@@ -18,169 +18,218 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+/* =========================================================
+   SISTEMA DE CONFIGURAÇÕES • VISUAL PREMIUM
+   Padrão SaaS / F360 / Stripe
+========================================================= */
+
 :root{
   --primary:#ff6a00;
-  --bg:#f4f6fb;
+  --bg:#f6f7fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
   --success:#16a34a;
   --blue:#2563eb;
+  --radius:14px;
+  --shadow:0 10px 30px rgba(0,0,0,.06);
 }
 
-*{box-sizing:border-box;font-family:Inter}
+*{
+  box-sizing:border-box;
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+}
 
+/* ================= BASE ================= */
 body{
-  background:linear-gradient(180deg,#fff,#f4f6fb);
-  padding:18px;
+  margin:0;
+  background:var(--bg);
+  padding:28px 18px 40px;
+  color:var(--text);
   opacity:0;
-  animation:fade .6s ease forwards;
+  animation:fade .4s ease forwards;
 }
 
 @keyframes fade{to{opacity:1}}
 
+/* ================= CARDS ================= */
 .card{
+  max-width:760px;
+  margin:0 auto 22px;
   background:var(--card);
-  border-radius:28px;
-  padding:22px;
-  box-shadow:0 20px 50px rgba(0,0,0,.1);
-  margin-bottom:20px;
-  opacity:0;
-  transform:translateY(24px);
-  animation:cardIn .7s cubic-bezier(.16,.84,.44,1) forwards;
-}
-.card:nth-child(1){animation-delay:.1s}
-.card:nth-child(2){animation-delay:.25s}
-
-@keyframes cardIn{
-  to{opacity:1;transform:translateY(0)}
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:26px;
+  box-shadow:var(--shadow);
 }
 
+/* ================= TIPOGRAFIA ================= */
 h1{
-  font-size:22px;
+  font-size:20px;
   font-weight:800;
-  margin-bottom:4px;
-}
-h2{
-  font-size:16px;
-  font-weight:800;
-  margin-bottom:6px;
-}
-p{
-  font-size:14px;
-  color:var(--muted);
-  margin-bottom:14px;
-  line-height:1.4;
+  margin:0 0 6px;
 }
 
-/* ================= LINK ================= */
+h2{
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  color:#374151;
+}
+
+p{
+  font-size:13px;
+  line-height:1.45;
+  color:var(--muted);
+  margin-bottom:16px;
+}
+
+/* ================= LINK LOJA ================= */
+.link-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  margin-bottom:12px;
+}
+
 .link-box{
-  border:2px dashed var(--border);
-  border-radius:16px;
+  background:#f9fafb;
+  border:1px dashed var(--border);
+  border-radius:12px;
   padding:14px;
   font-size:13px;
-  background:#fafafa;
   word-break:break-all;
-  margin-bottom:10px;
 }
 
-/* ================= BUTTONS ================= */
+/* ================= BOTÕES ================= */
 button{
-  width:100%;
-  height:48px;
+  height:44px;
   border:none;
-  border-radius:999px;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  border-radius:12px;
+  background:var(--primary);
   color:#fff;
-  font-weight:800;
   font-size:14px;
+  font-weight:700;
   cursor:pointer;
-  transition:.25s;
+  transition:.2s;
 }
-button:active{transform:scale(.97)}
+
+button:hover{filter:brightness(.95)}
+button:active{transform:scale(.98)}
 
 .whats{
-  background:#dcfce7;
-  color:#15803d;
+  background:#ecfdf5;
+  color:#166534;
+  border:1px solid #bbf7d0;
 }
 
-/* ================= MP HEADER ================= */
+.btn-close{
+  background:#f3f4f6;
+  color:#111827;
+  border:1px solid var(--border);
+}
+
+.btn-palette{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  background:#111827;
+  color:#fff;
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ================= MERCADO PAGO ================= */
 .mp-header{
   display:flex;
-  flex-direction:column;
   align-items:center;
-  text-align:center;
-  gap:12px;
-}
-.mp-header img{
-  width:180px;
-  animation:pulse 2.8s infinite;
-}
-@keyframes pulse{
-  50%{transform:scale(1.05)}
-}
-
-/* ================= STEPS ================= */
-.steps{
-  margin-top:10px;
-}
-.steps li{
-  font-size:14px;
+  gap:14px;
   margin-bottom:10px;
 }
+
+.mp-header img{
+  width:120px;
+}
+
+.steps{
+  background:#f9fafb;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:16px;
+}
+
+.steps li{
+  font-size:13px;
+  margin-bottom:8px;
+}
+
 .steps a{
   color:var(--blue);
-  font-weight:800;
-  cursor:pointer;
+  font-weight:700;
   text-decoration:underline;
+  cursor:pointer;
 }
 
 /* ================= INPUT ================= */
 input{
   width:100%;
   padding:14px;
-  border-radius:16px;
+  border-radius:12px;
   border:1px solid var(--border);
+  background:#fff;
   font-size:14px;
   margin-bottom:12px;
 }
 
+input:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(255,106,0,.15);
+}
+
 /* ================= STATUS ================= */
 .status{
-  padding:14px;
-  border-radius:16px;
-  font-size:14px;
-  font-weight:800;
   background:#ecfdf5;
-  color:var(--success);
+  border:1px solid #bbf7d0;
+  color:#166534;
+  border-radius:12px;
+  padding:14px;
+  font-size:14px;
+  font-weight:700;
   text-align:center;
 }
 
-/* ================= MODAL ================= */
+/* ================= MODAL VIDEO ================= */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.65);
+  background:rgba(0,0,0,.6);
   display:none;
   align-items:center;
   justify-content:center;
   z-index:9999;
 }
+
 .modal.show{display:flex}
 
 .modal-box{
-  background:#fff;
-  width:94%;
+  width:92%;
   max-width:420px;
-  border-radius:26px;
-  padding:16px;
-  animation:cardIn .4s ease forwards;
+  background:#fff;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);
 }
 
 .modal-box video{
   width:100%;
-  border-radius:18px;
+  border-radius:14px;
   margin-bottom:12px;
 }
 
@@ -189,34 +238,56 @@ input{
   gap:10px;
 }
 
-.btn-close{
-  background:#e5e7eb;
-  color:#111;
-}
-
-/* LINK + BOTÃO */
-.link-row{
-  display:flex;
-  gap:10px;
-  align-items:stretch;
-}
-
-.btn-palette{
-  min-width:52px;
-  border:none;
-  border-radius:14px;
-  background:linear-gradient(135deg,#111827,#374151);
-  color:#fff;
-  font-size:20px;
-  cursor:pointer;
-  transition:.25s;
-  display:flex;
+/* ================= CONFIG LOJA ================= */
+#configLojaOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:none;
   align-items:center;
   justify-content:center;
+  z-index:10000;
 }
 
-.btn-palette:active{
-  transform:scale(.95);
+#configLojaOverlay > div{
+  width:94%;
+  max-width:420px;
+  background:#fff;
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);
+}
+
+#configLojaOverlay h2{
+  font-size:16px;
+  font-weight:800;
+}
+
+#configLojaOverlay p{
+  font-size:13px;
+}
+
+/* PALETAS */
+.paleta{
+  height:40px;
+  border-radius:10px;
+  cursor:pointer;
+  border:2px solid transparent;
+  box-shadow:0 4px 12px rgba(0,0,0,.18);
+}
+
+.paleta:hover{
+  border-color:#111827;
+}
+
+/* PREVIEW */
+#previewCard{
+  margin:16px 0;
+  border-radius:14px;
+  padding:16px;
+  font-size:14px;
+  text-align:center;
+  font-weight:800;
 }
 
 </style>
