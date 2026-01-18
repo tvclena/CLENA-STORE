@@ -245,6 +245,37 @@ iframe{width:100%;height:100%;border:none}
   text-align:center;
 }
 .confirm-box button{margin-top:10px}
+  /* 🛒 CART BUTTON */
+.cart-btn{
+  position:relative;
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.cart-btn i{
+  font-size:22px;
+  color:var(--text);
+}
+
+.cart-badge{
+  position:absolute;
+  top:-4px;
+  right:-6px;
+  background:var(--primary);
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  padding:2px 6px;
+  border-radius:999px;
+  min-width:18px;
+  text-align:center;
+  display:none;
+}
+
 </style>
 </head>
 
@@ -252,8 +283,21 @@ iframe{width:100%;height:100%;border:none}
 
 <div class="topbar">
   <h1 id="nomeLoja">CLENA.COM.BR</h1>
-  <div class="avatar" id="avatar" onclick="openProfile()">A</div>
+
+  <div style="display:flex;align-items:center;gap:14px">
+
+    <!-- 🛒 CARRINHO -->
+    <div class="cart-btn" onclick="abrirCarrinho()">
+      <i class="ri-shopping-cart-line"></i>
+      <span id="cartCount" class="cart-badge">0</span>
+    </div>
+
+    <!-- 👤 AVATAR -->
+    <div class="avatar" id="avatar" onclick="openProfile()">A</div>
+
+  </div>
 </div>
+
 
 <div class="content">
   <iframe id="frame"></iframe>
@@ -357,7 +401,11 @@ async function verificarProdutosLoja(lojaId) {
 }
 
 const frame = document.getElementById("frame");
+  
 let user, perfil;
+frame.addEventListener("load", () => {
+  atualizarBadgeCarrinho();
+});
 
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -402,38 +450,42 @@ let user, perfil;
     history.replaceState(null, "", `app.html?l=${lojaId}`);
   }
 
-// 🔄 sincroniza loja ativa
-if (lojaId && lojaId !== perfil.loja_ativa) {
-  await sb.from("clientes_loja").upsert({
-    cliente_id: user.id,
-    loja_id: lojaId
-  });
+  // 🔄 sincroniza loja ativa
+  if (lojaId && lojaId !== perfil.loja_ativa) {
+    await sb.from("clientes_loja").upsert({
+      cliente_id: user.id,
+      loja_id: lojaId
+    });
 
-  await sb.from("clientes_profile")
-    .update({ loja_ativa: lojaId })
-    .eq("id", user.id);
+    await sb.from("clientes_profile")
+      .update({ loja_ativa: lojaId })
+      .eq("id", user.id);
 
-  perfil.loja_ativa = lojaId;
-}
+    perfil.loja_ativa = lojaId;
+  }
 
-// 🔥 ATUALIZA NOME DA LOJA NO TOPO (LOAD INICIAL)
-const { data: lojaTopo } = await sb
-  .from("user_profile")
-  .select("negocio")
-  .eq("user_id", perfil.loja_ativa)
-  .maybeSingle();
+  // 🔥 ATUALIZA NOME DA LOJA NO TOPO
+  const { data: lojaTopo } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", perfil.loja_ativa)
+    .maybeSingle();
 
-if(lojaTopo?.negocio){
-  nomeLoja.innerText = lojaTopo.negocio;
-}
+  if (lojaTopo?.negocio) {
+    nomeLoja.innerText = lojaTopo.negocio;
+  }
 
-// 🖼️ carrega iframe
-frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
+  // 🖼️ carrega iframe inicial
+  frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
 
-// 🔥 VERIFICA SE TEM PRODUTOS
-verificarProdutosLoja(perfil.loja_ativa);
+  // 🔥 verifica se tem produtos
+  verificarProdutosLoja(perfil.loja_ativa);
 
-carregarPerfil();
+  // 👤 carrega perfil
+  carregarPerfil();
+
+  // 🛒 ATUALIZA BADGE DO CARRINHO (LINHA QUE FALTAVA)
+  atualizarBadgeCarrinho();
 
 })();
 
@@ -493,7 +545,10 @@ async function trocarLoja(lojaId){
   frame.src = "";
 
   // 🔥 LIMPA CARRINHO DA LOJA ANTERIOR
-  localStorage.removeItem("CARRINHO_LOJA");
+const lojaAtual = new URLSearchParams(location.search).get("l");
+if (lojaAtual) {
+  localStorage.removeItem("carrinho_" + lojaAtual);
+}
 
   await sb.from("clientes_loja").upsert({
     cliente_id: user.id,
@@ -738,6 +793,54 @@ onMessage(messaging, payload => {
   alert(payload.notification.title + "\n" + payload.notification.body);
 });
 
+
+
+
+ function getCarrinhoQuantidade(){
+  const lojaId = new URLSearchParams(location.search).get("l");
+  if(!lojaId) return 0;
+
+  const carrinho = JSON.parse(
+    localStorage.getItem("carrinho_" + lojaId) || "[]"
+  );
+
+  return carrinho.reduce((s,i)=>s + (i.quantidade || 1), 0);
+}
+
+function atualizarBadgeCarrinho(){
+  const qtd = getCarrinhoQuantidade();
+  const badge = document.getElementById("cartCount");
+
+  if(!badge) return;
+
+  if(qtd > 0){
+    badge.innerText = qtd > 99 ? "99+" : qtd;
+    badge.style.display = "inline-block";
+  }else{
+    badge.style.display = "none";
+  }
+}
+
+function abrirCarrinho(){
+  const lojaId = new URLSearchParams(location.search).get("l");
+  if(!lojaId) return;
+
+  frame.src = `carrinho.html?l=${lojaId}&t=${Date.now()}`;
+}
+
+/* 🔥 AQUI — FORA DE FUNÇÕES */
+setInterval(atualizarBadgeCarrinho, 1000);
+
+
+
+
+
+
+
+
+
+
+  
 
 </script>
 
