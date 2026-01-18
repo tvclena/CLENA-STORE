@@ -139,6 +139,13 @@ const sb = supabase.createClient(
 );
 
 let clientes=[], clientesFiltrados=[], historico={};
+function formatarDataBR(data){
+  if(!data) return "";
+  const [y, m, d] = data.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+  
 
 function msgWhats(nome){
   return encodeURIComponent(
@@ -249,11 +256,12 @@ function abrir(id){
             <div class="hist-img">
               ${h.foto ? `<img src="${h.foto}" onerror="this.remove()">` : 'IMG'}
             </div>
-            <div class="hist-info">
-              <b>${h.nome}</b>
-              ${h.data} ${h.hora}<br>
-              R$ ${Number(h.preco).toFixed(2)}
-            </div>
+<div class="hist-info">
+  <b>${h.nome}</b>
+  ${formatarDataBR(h.data)} ${h.hora}<br>
+  R$ ${Number(h.preco).toFixed(2)}
+</div>
+
           </div>
         `).join("")}
         <button class="close" onclick="this.closest('.overlay').remove()">Fechar</button>
