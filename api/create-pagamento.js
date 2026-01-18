@@ -19,12 +19,12 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
   try {
+    /* ===== BODY ===== */
     const body =
       typeof req.body === "string"
         ? JSON.parse(req.body)
@@ -32,11 +32,19 @@ export default async function handler(req, res) {
 
     const { loja_id, cliente, itens } = body;
 
-    if (!loja_id || !cliente?.nome || !cliente?.whatsapp || !itens?.length) {
+    if (
+      !loja_id ||
+      !cliente?.nome ||
+      !cliente?.whatsapp ||
+      !Array.isArray(itens) ||
+      !itens.length
+    ) {
       return res.status(400).json({ error: "Payload inválido" });
     }
 
-    /* ===== LOJA ===== */
+    /* =====================================================
+       LOJA
+    ===================================================== */
     const { data: loja } = await supabase
       .from("user_profile")
       .select("user_id")
@@ -47,7 +55,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Loja inválida" });
     }
 
-    /* ===== CREDENCIAL MP ===== */
+    /* =====================================================
+       CREDENCIAL MERCADO PAGO
+    ===================================================== */
     const { data: cred } = await supabase
       .from("lojas_pagamento_credenciais")
       .select("mp_access_token")
@@ -61,7 +71,9 @@ export default async function handler(req, res) {
       });
     }
 
-    /* ===== PRODUTOS ===== */
+    /* =====================================================
+       PRODUTOS (VALIDAÇÃO + SNAPSHOT)
+    ===================================================== */
     const ids = itens.map(i => i.id);
 
     const { data: produtos } = await supabase
@@ -76,6 +88,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Itens inválidos" });
     }
 
+    /* =====================================================
+       ITENS MP + TOTAL
+    ===================================================== */
     const mpItems = produtos.map(p => {
       const c = itens.find(i => i.id === p.id);
       return {
@@ -91,10 +106,48 @@ export default async function handler(req, res) {
       0
     );
 
-    /* ===== CRIA PEDIDO ===== */
+    /* =====================================================
+       CRIA PEDIDO
+    ===================================================== */
     const { data: pedido } = await supabase
+      .from("pedidos")
+      .insert({
+        loja_id: loja.user_id,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp,
+        status: "PENDENTE_PAGAMENTO",
+        valor_total: total,
+        origem: "ONLINE"
+      })
+      .select()
+      .single();
+
+    /* =====================================================
+       ITENS DO PEDIDO (SNAPSHOT)
+    ===================================================== */
+    const itensPedido = produtos.map(p => {
+      const c = itens.find(i => i.id === p.id);
+      return {
+        pedido_id: pedido.id,
+        produto_id: p.id,
+        nome: p.nome,
+        quantidade: Number(c.quantidade),
+        preco_unitario: Number(p.preco),
+        subtotal: Number(p.preco) * Number(c.quantidade)
+      };
+    });
+
+    await supabase
+      .from("pedidos_itens")
+      .insert(itensPedido);
+
+    /* =====================================================
+       MOVIMENTO DE PAGAMENTO
+    ===================================================== */
+    const { data: movimento } = await supabase
       .from("movimentacoes_pagamento")
       .insert({
+        pedido_id: pedido.id,
         user_id: loja.user_id,
         status: "CRIADO",
         valor: total,
@@ -104,42 +157,62 @@ export default async function handler(req, res) {
       .select()
       .single();
 
-
-
-
-
-    
-
-
-
-    
-    /* ===== MERCADO PAGO (CORRETO) ===== */
+    /* =====================================================
+       MERCADO PAGO
+    ===================================================== */
     const client = new MercadoPagoConfig({
       accessToken: cred.mp_access_token
     });
 
     const preference = new Preference(client);
 
-    const response = await preference.create({
-      body: {
-        items: mpItems,
-        external_reference: pedido.id,
-        back_urls: {
-          success: `${process.env.APP_URL}/sucesso.html`,
-          failure: `${process.env.APP_URL}/erro.html`,
-          pending: `${process.env.APP_URL}/pendente.html`
-        },
-        auto_return: "approved",
-        notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
-      }
-    });
+    let response;
 
+    try {
+      response = await preference.create({
+        body: {
+          items: mpItems,
+          external_reference: pedido.id,
+          back_urls: {
+            success: `${process.env.APP_URL}/sucesso.html`,
+            failure: `${process.env.APP_URL}/erro.html`,
+            pending: `${process.env.APP_URL}/pendente.html`
+          },
+          auto_return: "approved",
+          notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
+        }
+      });
+    } catch (mpErr) {
+
+      await supabase
+        .from("pedidos")
+        .update({ status: "ERRO_PAGAMENTO" })
+        .eq("id", pedido.id);
+
+      await supabase
+        .from("movimentacoes_pagamento")
+        .update({ status: "ERRO" })
+        .eq("id", movimento.id);
+
+      throw mpErr;
+    }
+
+    /* =====================================================
+       SALVA PREFERENCE ID
+    ===================================================== */
     await supabase
       .from("movimentacoes_pagamento")
-      .update({ mp_preference_id: response.id })
-      .eq("id", pedido.id);
+      .update({
+        mp_preference_id: response.id
+      })
+      .eq("id", movimento.id);
 
+    /* =====================================================
+       RESPONSE
+    ===================================================== */
     return res.status(200).json({
+      pedido_id: pedido.id,
+      pagamento_id: movimento.id,
       init_point: response.init_point
     });
 
