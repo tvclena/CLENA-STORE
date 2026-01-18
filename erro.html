@@ -46,8 +46,8 @@ body{
 }
 
 .icon{
-  width:70px;
-  height:70px;
+  width:72px;
+  height:72px;
   border-radius:18px;
   background:linear-gradient(135deg,#ff6a00,#ff8c2b);
   display:flex;
@@ -107,11 +107,11 @@ footer{
   <p>
     Não foi possível finalizar seu pagamento.<br>
     Nenhuma cobrança foi confirmada.<br><br>
-    Você pode voltar para a loja e tentar novamente com tranquilidade.
+    Você pode tentar novamente com segurança.
   </p>
 
-  <button onclick="voltarParaLoja()">
-    Voltar para a loja
+  <button onclick="tentarNovamente()">
+    Tentar novamente
   </button>
 
   <footer>
@@ -120,24 +120,16 @@ footer{
 </div>
 
 <script>
-function voltarParaLoja(){
+function tentarNovamente(){
   const params = new URLSearchParams(window.location.search);
   const accountId = params.get('account_id');
 
-  // 1️⃣ Se veio com account_id
+  // ✅ Sempre voltar para a loja
   if(accountId){
     window.location.href = `/app.html?account_id=${accountId}`;
-    return;
+  }else{
+    window.location.href = '/app.html';
   }
-
-  // 2️⃣ Se o navegador tiver referrer (mais comum em pagamento)
-  if(document.referrer){
-    window.location.href = document.referrer;
-    return;
-  }
-
-  // 3️⃣ Fallback seguro
-  window.location.href = '/app.html';
 }
 </script>
 
