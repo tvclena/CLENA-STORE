@@ -137,132 +137,111 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-
-let clientes = [];
-let clientesFiltrados = [];
-let historico = {};
 let NOME_LOJA = "Minha loja";
-
-/* =========================
-   UTILITÁRIOS
-========================= */
 function saudacao(){
-  const h = new Date().getHours();
-  return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+  const hora = new Date().getHours();
+  if (hora >= 5 && hora < 12) return "Bom dia";
+  if (hora >= 12 && hora < 18) return "Boa tarde";
+  return "Boa noite";
 }
 
 function msgWhats(nome){
-  return encodeURIComponent(
-    `${saudacao()} ${nome}! Tudo bem?\n\nAqui é *${NOME_LOJA}*.`
-  );
+  const texto =
+    `${saudacao()} ${nome}! Tudo bem?\n\n` +
+    `Aqui é *${NOME_LOJA}*.`;
+
+  return encodeURIComponent(texto);
 }
 
-function formatarDataBR(d){
-  if(!d) return "";
-  const [y,m,day] = d.split("-");
-  return `${day}/${m}/${y}`;
+let clientes=[], clientesFiltrados=[], historico={};
+function formatarDataBR(data){
+  if(!data) return "";
+  const [y, m, d] = data.split("-");
+  return `${d}/${m}/${y}`;
 }
 
-/* =========================
-   CARREGAR CLIENTES (CORRETO)
-========================= */
+  
+
+
 async function carregarClientes(){
-
   const { data:{ session } } = await sb.auth.getSession();
-  if(!session) return;
-
   const lojaId = session.user.id;
+// 🔹 BUSCA NOME DA LOJA
+const { data: perfil, error: erroPerfil } = await sb
+  .from("user_profile")
+  .select("negocio")
+  .eq("user_id", lojaId)
+  .single();
 
-  /* 🔹 Nome da loja */
-  const { data: perfil } = await sb
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id", lojaId)
-    .single();
+if (!erroPerfil && perfil?.negocio) {
+  NOME_LOJA = perfil.negocio;
+}
 
-  if(perfil?.negocio) NOME_LOJA = perfil.negocio;
 
-  /* 🔹 1. CLIENTES (BASE) */
-  const { data: clientesBase } = await sb
-    .from("clientes_profile")
-    .select("id, nome, whatsapp")
-    .eq("loja_ativa", lojaId);
 
-  /* 🔹 2. AGENDAMENTOS */
   const { data: ags } = await sb
     .from("agendamentos")
-    .select("cliente_id, data, hora_inicio, servicos, valor_total")
+    .select("cliente_id, cliente_nome, cliente_whatsapp, data, hora_inicio, servicos, valor_total")
     .eq("loja_id", lojaId)
     .neq("status","CANCELADO");
 
-  const mapa = {};
-  historico = {};
+  const mapa={};
 
-  ags?.forEach(a=>{
+  ags.forEach(a=>{
     if(!mapa[a.cliente_id]){
-      mapa[a.cliente_id] = { total:0, valor:0 };
-      historico[a.cliente_id] = [];
+      mapa[a.cliente_id]={
+        id:a.cliente_id,
+        nome:a.cliente_nome,
+        whatsapp:a.cliente_whatsapp,
+        total:0,
+        valor:0,
+        ultima:null
+      };
+      historico[a.cliente_id]=[];
     }
 
     const qtd = Array.isArray(a.servicos) ? a.servicos.length : 1;
     mapa[a.cliente_id].total += qtd;
     mapa[a.cliente_id].valor += Number(a.valor_total||0);
 
+    if(!mapa[a.cliente_id].ultima || a.data > mapa[a.cliente_id].ultima){
+      mapa[a.cliente_id].ultima = a.data;
+    }
+
     (a.servicos||[]).forEach(s=>{
       historico[a.cliente_id].push({
         nome:s.nome,
         preco:s.preco,
+        foto: s.foto || s.imagem || s.imagem_url || null,
         data:a.data,
         hora:a.hora_inicio
       });
     });
   });
 
-  /* 🔹 3. JUNÇÃO FINAL */
-  clientes = (clientesBase || []).map(c=>{
-    const info = mapa[c.id] || { total:0, valor:0 };
-    return {
-      id:c.id,
-      nome:c.nome,
-      whatsapp:c.whatsapp,
-      total:info.total,
-      valor:info.valor
-    };
-  });
-
+  clientes = Object.values(mapa);
   clientesFiltrados = clientes;
   render();
 }
 
-/* =========================
-   RENDER
-========================= */
 function render(){
-  lista.innerHTML = "";
+  lista.innerHTML="";
 
-  const ranking = [...clientes]
-    .filter(c=>c.valor>0)
-    .sort((a,b)=>b.valor-a.valor)
-    .slice(0,3);
-
-  lista.innerHTML += `
+  const ranking=[...clientes].sort((a,b)=>b.valor-a.valor).slice(0,3);
+  lista.innerHTML+=`
     <div class="ranking">
       <h3>🏆 Clientes mais lucrativos</h3>
-      ${
-        ranking.length === 0
-        ? `<small style="color:#6b7280">Nenhum faturamento registrado</small>`
-        : ranking.map((c,i)=>`
-            <div class="rank-item">
-              ${i+1}º ${c.nome}
-              <span>R$ ${c.valor.toFixed(2)}</span>
-            </div>
-          `).join("")
-      }
+      ${ranking.map((c,i)=>`
+        <div class="rank-item">
+          ${i+1}º ${c.nome}
+          <span>R$ ${c.valor.toFixed(2)}</span>
+        </div>
+      `).join("")}
     </div>
   `;
 
   clientesFiltrados.forEach(c=>{
-    lista.innerHTML += `
+    lista.innerHTML+=`
       <div class="card" onclick="abrir('${c.id}')">
         <div class="avatar">${c.nome[0]}</div>
 
@@ -273,13 +252,13 @@ function render(){
 
         <div class="meta">
           ${c.total} serviços
-          <span>Ticket: R$ ${c.total ? (c.valor/c.total).toFixed(2) : "0.00"}</span>
+          <span>Ticket: R$ ${(c.valor/c.total).toFixed(2)}</span>
         </div>
 
         ${c.whatsapp ? `
           <a class="whats-link"
             onclick="event.stopPropagation()"
-            href="https://wa.me/55${c.whatsapp.replace(/\D/g,"")}?text=${msgWhats(c.nome)}"
+            href="https://wa.me/55${c.whatsapp.replace(/\D/g,'')}?text=${msgWhats(c.nome)}"
             target="_blank">
             <i class="ri-whatsapp-line whats"></i>
           </a>
@@ -294,16 +273,20 @@ function abrir(id){
     <div class="overlay" onclick="this.remove()">
       <div class="modal" onclick="event.stopPropagation()">
         <h3>Histórico</h3>
-        ${(historico[id]||[]).map(h=>`
+        ${historico[id].map(h=>`
           <div class="hist-item">
-            <div class="hist-info">
-              <b>${h.nome}</b>
-              ${formatarDataBR(h.data)} ${h.hora}<br>
-              R$ ${Number(h.preco).toFixed(2)}
+            <div class="hist-img">
+              ${h.foto ? `<img src="${h.foto}" onerror="this.remove()">` : 'IMG'}
             </div>
+<div class="hist-info">
+  <b>${h.nome}</b>
+  ${formatarDataBR(h.data)} ${h.hora}<br>
+  R$ ${Number(h.preco).toFixed(2)}
+</div>
+
           </div>
         `).join("")}
-        <button class="close">Fechar</button>
+        <button class="close" onclick="this.closest('.overlay').remove()">Fechar</button>
       </div>
     </div>
   `);
@@ -311,7 +294,9 @@ function abrir(id){
 
 function filtrarClientes(){
   const q = busca.value.toLowerCase();
-  clientesFiltrados = clientes.filter(c=>c.nome.toLowerCase().includes(q));
+  clientesFiltrados = clientes.filter(c =>
+    c.nome.toLowerCase().includes(q)
+  );
   render();
 }
 
