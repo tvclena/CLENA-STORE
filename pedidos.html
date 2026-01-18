@@ -4,13 +4,7 @@
 <meta charset="UTF-8">
 <title>Pedidos • CLENA</title>
 
-<meta name="viewport"
-  content="width=device-width,
-  initial-scale=1,
-  maximum-scale=1,
-  user-scalable=no,
-  viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -26,49 +20,53 @@
   --text:#111827;
   --muted:#6b7280;
   --success:#16a34a;
+  --warning:#f59e0b;
   --danger:#ef4444;
-  --radius:22px;
+  --radius:20px;
   --shadow:0 18px 45px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
+body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
 
 .header{
   background:#fff;
-  border-radius:18px;
-  padding:20px;
+  padding:22px;
+  border-radius:22px;
   box-shadow:var(--shadow);
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:20px
+  margin-bottom:22px
 }
-.brand strong{font-size:20px;font-weight:900}
+.brand strong{font-size:22px;font-weight:900}
 .brand span{font-size:12px;color:var(--muted)}
 
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:22px;
+  padding:24px;
   box-shadow:var(--shadow);
-  margin-bottom:24px
+  margin-bottom:28px
 }
 
 .section-title{
-  font-size:13px;
+  font-size:14px;
   font-weight:900;
-  margin:18px 0 8px
+  margin:22px 0 10px;
+  display:flex;
+  align-items:center;
+  gap:8px
 }
 
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px
+  gap:16px
 }
 
 .small{font-size:12px;color:var(--muted)}
 .bold{font-weight:800}
-.value{font-size:15px;font-weight:900}
+.value{font-size:16px;font-weight:900}
 
 .badge{
   padding:6px 14px;
@@ -79,29 +77,34 @@ body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
 .PAGO{background:#dcfce7;color:#166534}
 .PENDENTE_PAGAMENTO{background:#fff7ed;color:#9a3412}
 .CANCELADO{background:#fee2e2;color:#991b1b}
+.ERRO_PAGAMENTO{background:#fef2f2;color:#b91c1c}
+.CRIADO{background:#e0f2fe;color:#0369a1}
+.APROVED{background:#dcfce7;color:#166534}
+.PENDING{background:#fef3c7;color:#92400e}
+.REJEITADO{background:#fee2e2;color:#991b1b}
 
 .item{
   display:flex;
-  gap:14px;
+  gap:16px;
   align-items:center;
-  margin-top:12px
+  margin-top:14px
 }
 .item img{
-  width:64px;height:64px;
-  border-radius:14px;
+  width:70px;height:70px;
+  border-radius:16px;
   object-fit:cover;
   border:1px solid var(--border)
 }
 
 .actions{
   display:flex;
-  gap:12px;
-  margin-top:22px
+  gap:14px;
+  margin-top:24px
 }
 button{
   flex:1;
-  padding:14px;
-  border-radius:14px;
+  padding:16px;
+  border-radius:16px;
   border:none;
   font-weight:900;
   cursor:pointer
@@ -124,7 +127,7 @@ button{
     <strong>CLENA</strong>
     <span>clena.com.br</span>
   </div>
-  <i class="ri-store-3-fill" style="font-size:26px;color:#ff6a00"></i>
+  <i class="ri-file-list-3-fill" style="font-size:28px;color:#ff6a00"></i>
 </div>
 
 <div id="lista"></div>
@@ -141,18 +144,18 @@ const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currenc
 async function carregar(){
   const { data: auth } = await sb.auth.getUser();
   if(!auth?.user){
-    lista.innerHTML = "<div class='card'>Faça login</div>";
+    lista.innerHTML = "<div class='card'>Faça login para acessar os pedidos</div>";
     return;
   }
 
-  /* ===== LOJA ===== */
+  /* ================= LOJA ================= */
   const { data: loja } = await sb
     .from("user_profile")
     .select("*")
     .eq("user_id", auth.user.id)
     .single();
 
-  /* ===== PEDIDOS ===== */
+  /* ================= PEDIDOS ================= */
   const { data: pedidos } = await sb
     .from("pedidos")
     .select("*")
@@ -186,7 +189,7 @@ async function carregar(){
         <div class="grid">
           <div>
             <div class="small">Pedido</div>
-            <div class="bold">#${p.id.slice(0,8)}</div>
+            <div class="bold">#${p.id}</div>
           </div>
           <div>
             <div class="small">Status</div>
@@ -198,41 +201,40 @@ async function carregar(){
           </div>
         </div>
 
-        <div class="section-title">DADOS DA LOJA</div>
+        <div class="section-title"><i class="ri-store-3-line"></i> Dados da Loja</div>
         <div class="grid">
-          <div><div class="small">Nome</div><div class="bold">${loja.negocio}</div></div>
-          <div><div class="small">Telefone</div><div class="bold">${loja.whatsapp}</div></div>
+          <div><div class="small">Negócio</div><div class="bold">${loja.negocio}</div></div>
+          <div><div class="small">Responsável</div><div class="bold">${loja.responsavel}</div></div>
+          <div><div class="small">WhatsApp</div><div class="bold">${loja.whatsapp}</div></div>
           <div><div class="small">Endereço</div>
-            <div class="bold">
-              ${loja.rua}, ${loja.numero}<br>
-              ${loja.bairro} – ${loja.cidade}/${loja.uf}<br>
-              CEP ${loja.cep}
-            </div>
+            <div class="bold">${loja.rua}, ${loja.numero} – ${loja.bairro}<br>${loja.cidade}/${loja.uf} • CEP ${loja.cep}</div>
           </div>
         </div>
 
-        <div class="section-title">DADOS DO CLIENTE</div>
+        <div class="section-title"><i class="ri-user-3-line"></i> Cliente</div>
         <div class="grid">
           <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
           <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
         </div>
 
-        <div class="section-title">ITENS DO PEDIDO</div>
-
+        <div class="section-title"><i class="ri-shopping-cart-line"></i> Itens do Pedido</div>
         ${its.map(i=>`
           <div class="item">
             <img src="${i.imagem_url || ''}">
             <div>
               <div class="bold">${i.nome}</div>
               <div class="small">${i.quantidade} × ${money(i.preco_unitario)}</div>
+              <div class="value">${money(i.subtotal)}</div>
             </div>
           </div>
         `).join("")}
 
-        <div class="section-title">PAGAMENTO</div>
+        <div class="section-title"><i class="ri-bank-card-line"></i> Pagamento</div>
         <div class="grid">
           <div><div class="small">Status</div><div class="bold">${pg?.status || 'CRIADO'}</div></div>
           <div><div class="small">Valor</div><div class="value">${money(p.valor_total)}</div></div>
+          <div><div class="small">Preference</div><div class="small">${pg?.mp_preference_id || '-'}</div></div>
+          <div><div class="small">Payment</div><div class="small">${pg?.mp_payment_id || '-'}</div></div>
         </div>
 
         <div class="actions">
