@@ -26,17 +26,12 @@
   --radius:18px;
   --green:#16a34a;
   --red:#dc2626;
+  --blue:#2563eb;
 }
 
-*{
-  box-sizing:border-box;
-  font-family:Inter;
-}
+*{box-sizing:border-box;font-family:Inter}
 
-body{
-  margin:0;
-  background:var(--bg);
-}
+body{margin:0;background:var(--bg)}
 
 .container{
   padding:16px;
@@ -46,18 +41,8 @@ body{
 }
 
 /* HEADER */
-.header{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.header h1{
-  font-size:18px;
-  font-weight:800;
-}
-.header small{
-  color:var(--muted);
-}
+.header h1{font-size:18px;font-weight:800}
+.header small{color:var(--muted)}
 
 /* CARD */
 .card{
@@ -78,22 +63,23 @@ body{
   font-size:22px;
   font-weight:800;
 }
-.kpi small{
-  color:var(--muted);
-  font-weight:600;
+.kpi small{color:var(--muted);font-weight:600}
+
+.percentual{
+  margin-top:4px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--blue);
 }
 
 /* VARIACAO */
 .variacao{
-  display:flex;
-  align-items:center;
-  gap:6px;
   font-size:13px;
   font-weight:700;
 }
-.variacao.up{color:var(--green);}
-.variacao.down{color:var(--red);}
-.variacao.neutral{color:var(--muted);}
+.up{color:var(--green)}
+.down{color:var(--red)}
+.neutral{color:var(--muted)}
 
 /* LISTA */
 .lista{
@@ -126,22 +112,25 @@ body{
   flex-direction:column;
   gap:4px;
 }
-.info strong{
-  font-size:13px;
-}
-.info small{
-  font-size:12px;
-  color:var(--muted);
-}
+.info strong{font-size:13px}
+.info small{font-size:12px;color:var(--muted)}
 .valor{
   font-weight:800;
   color:var(--green);
   font-size:13px;
+  text-align:right;
 }
 
-/* GRAFICO */
-canvas{
-  max-width:100%;
+.whats{
+  margin-top:4px;
+  background:#dcfce7;
+  color:#166534;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+  text-decoration:none;
+  display:inline-block;
 }
 
 .empty{
@@ -162,11 +151,12 @@ canvas{
     <small>Faturamento e desempenho</small>
   </div>
 
-  <!-- KPIs DIA -->
+  <!-- KPIs -->
   <div class="card kpis">
     <div class="kpi">
       <small>Total do dia</small>
       <h2 id="totalDia">R$ 0,00</h2>
+      <div id="percentualDia" class="percentual">—</div>
     </div>
     <div class="kpi">
       <small>Agendamentos</small>
@@ -217,133 +207,96 @@ const lojaId = params.get("loja");
 document.getElementById("tituloData").innerText =
   "Resumo • " + new Date(dataDia).toLocaleDateString("pt-BR");
 
-function moeda(v){
-  return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-}
-
-function calcVariacao(atual, anterior){
-  if(!anterior || anterior === 0) return null;
-  return ((atual - anterior) / anterior * 100);
-}
+const moeda = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 async function carregarResumo(){
 
-  // 🔹 DADOS DO DIA
+  /* ===== DIA ===== */
   const { data: dia } = await sb
     .from("agendamentos")
-    .select("hora_inicio, cliente_nome, valor_total")
+    .select("hora_inicio, cliente_nome, cliente_whatsapp, servicos, valor_total")
     .eq("user_id", lojaId)
     .eq("data", dataDia)
     .in("status", ["CONFIRMADO","CONCLUIDO"])
     .order("hora_inicio");
 
   const totalDia = dia?.reduce((s,a)=>s+Number(a.valor_total||0),0) || 0;
-
   document.getElementById("totalDia").innerText = moeda(totalDia);
   document.getElementById("qtdDia").innerText = dia?.length || 0;
 
   const lista = document.getElementById("listaAgendamentos");
   lista.innerHTML = "";
 
-  if(!dia || dia.length === 0){
+  if(!dia || dia.length===0){
     lista.innerHTML = `<div class="empty">Nenhum agendamento</div>`;
   }else{
     dia.forEach(a=>{
+      const servicos = Array.isArray(a.servicos)
+        ? a.servicos.map(s=>s.nome).join(", ")
+        : "Agendamento";
+
+      const whatsapp = a.cliente_whatsapp
+        ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
+        : "";
+
       lista.innerHTML += `
         <div class="item">
           <div class="hora">${a.hora_inicio.slice(0,5)}</div>
           <div class="info">
             <strong>${a.cliente_nome}</strong>
-            <small>Agendamento</small>
+            <small>${servicos}</small>
           </div>
-          <div class="valor">${moeda(a.valor_total)}</div>
+          <div>
+            <div class="valor">${moeda(a.valor_total)}</div>
+            ${whatsapp ? `<a class="whats" target="_blank" href="${whatsapp}">Whats</a>` : ``}
+          </div>
         </div>
       `;
     });
   }
 
-  // 🔹 FATURAMENTO DO MÊS
-  const dataObj = new Date(dataDia);
-  const inicioMes = new Date(dataObj.getFullYear(), dataObj.getMonth(), 1)
-    .toLocaleDateString("en-CA");
-  const fimMes = new Date(dataObj.getFullYear(), dataObj.getMonth()+1, 0)
-    .toLocaleDateString("en-CA");
+  /* ===== MES ===== */
+  const d = new Date(dataDia);
+  const iniMes = new Date(d.getFullYear(), d.getMonth(), 1).toLocaleDateString("en-CA");
+  const fimMes = new Date(d.getFullYear(), d.getMonth()+1, 0).toLocaleDateString("en-CA");
 
   const { data: mes } = await sb
     .from("agendamentos")
     .select("valor_total")
     .eq("user_id", lojaId)
-    .gte("data", inicioMes)
+    .gte("data", iniMes)
     .lte("data", fimMes)
     .in("status", ["CONFIRMADO","CONCLUIDO"]);
 
   const totalMes = mes?.reduce((s,a)=>s+Number(a.valor_total||0),0) || 0;
 
-  // 🔹 GRAFICO
+  if(totalMes){
+    const pct = (totalDia/totalMes*100).toFixed(1);
+    document.getElementById("percentualDia").innerText =
+      `${pct}% do faturamento do mês`;
+  }
+
   new Chart(document.getElementById("graficoDia"),{
     type:"doughnut",
     data:{
-      labels:["Dia","Restante do mês"],
+      labels:["Dia selecionado","Restante do mês"],
       datasets:[{
         data:[totalDia, Math.max(totalMes-totalDia,0)],
         backgroundColor:["#ff6a00","#e5e7eb"]
       }]
     },
     options:{
-      plugins:{legend:{display:false}},
-      cutout:"70%"
+      cutout:"70%",
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=> moeda(ctx.raw)
+          }
+        }
+      }
     }
   });
-
-  // 🔹 COMPARATIVOS
-  const mesAnteriorInicio = new Date(dataObj.getFullYear(), dataObj.getMonth()-1, 1)
-    .toLocaleDateString("en-CA");
-  const mesAnteriorFim = new Date(dataObj.getFullYear(), dataObj.getMonth(), 0)
-    .toLocaleDateString("en-CA");
-
-  const { data: mesAnt } = await sb
-    .from("agendamentos")
-    .select("valor_total")
-    .eq("user_id", lojaId)
-    .gte("data", mesAnteriorInicio)
-    .lte("data", mesAnteriorFim)
-    .in("status", ["CONFIRMADO","CONCLUIDO"]);
-
-  const totalMesAnterior = mesAnt?.reduce((s,a)=>s+Number(a.valor_total||0),0) || 0;
-
-  const anoAntInicio = new Date(dataObj.getFullYear()-1, dataObj.getMonth(), 1)
-    .toLocaleDateString("en-CA");
-  const anoAntFim = new Date(dataObj.getFullYear()-1, dataObj.getMonth()+1, 0)
-    .toLocaleDateString("en-CA");
-
-  const { data: anoAnt } = await sb
-    .from("agendamentos")
-    .select("valor_total")
-    .eq("user_id", lojaId)
-    .gte("data", anoAntInicio)
-    .lte("data", anoAntFim)
-    .in("status", ["CONFIRMADO","CONCLUIDO"]);
-
-  const totalAnoAnterior = anoAnt?.reduce((s,a)=>s+Number(a.valor_total||0),0) || 0;
-
-  // Atualiza cards
-  if(totalMesAnterior){
-    document.getElementById("valorMesAnterior").innerText = moeda(totalMesAnterior);
-    const v = calcVariacao(totalMes, totalMesAnterior);
-    document.getElementById("varMesAnterior").innerText =
-      (v>0?"+":"") + v.toFixed(1) + "%";
-    document.getElementById("varMesAnterior").className =
-      "variacao " + (v>0?"up":"down");
-  }
-
-  if(totalAnoAnterior){
-    document.getElementById("valorAnoAnterior").innerText = moeda(totalAnoAnterior);
-    const v2 = calcVariacao(totalMes, totalAnoAnterior);
-    document.getElementById("varAnoAnterior").innerText =
-      (v2>0?"+":"") + v2.toFixed(1) + "%";
-    document.getElementById("varAnoAnterior").className =
-      "variacao " + (v2>0?"up":"down");
-  }
 }
 
 carregarResumo();
