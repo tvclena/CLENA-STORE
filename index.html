@@ -215,22 +215,21 @@ nav a:hover::after{
 .hero-box{
   background:linear-gradient(135deg,#f3f4f6,#e5e7eb);
   border-radius:44px;
+  padding:40px;
+  box-shadow:var(--shadow);
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:26px;
-  box-shadow:var(--shadow);
 }
 
-/* MOCKUP */
+
 .hero-image{
   width:100%;
-  max-width:420px;
+  max-width:760px;   /* MAIS LARGO = visual SaaS */
   height:auto;
   object-fit:contain;
-  border-radius:26px;
-  box-shadow:0 28px 60px rgba(0,0,0,.22);
 }
+
 
 /* ================= NUMBERS ================= */
 .numbers{
@@ -407,16 +406,6 @@ footer{
   .hero-box{
     border-radius:32px;
   }
-/* MOCKUP STACK (NOTEBOOK + CELULAR) */
-.mockup-stack{
-  position:relative;
-  width:100%;
-  max-width:520px;
-  height:360px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
 
 .mockup{
   position:absolute;
@@ -515,9 +504,12 @@ footer{
       <a href="planos.html"><button class="btn btn-outline">Ver planos</button></a>
     </div>
   </div>
-<div class="hero-box mockup-stack">
-  <img src="mockup-notebook.png" class="mockup notebook" alt="Sistema no computador">
-  <img src="mockup-celular.png" class="mockup celular" alt="Sistema no celular">
+<div class="hero-box">
+  <img 
+    src="mockup-hero.png"
+    alt="Sistema Clena Store no computador e celular"
+    class="hero-image"
+  >
 </div>
 
 </section>
