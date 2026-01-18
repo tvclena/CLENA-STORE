@@ -221,7 +221,7 @@ async function carregarClientes(){
   });
 
   // 🔹 3. MONTA LISTA FINAL (CLIENTES COM OU SEM AGENDAMENTO)
-  clientes = clientesBase.map(c=>{
+clientes = (clientesBase || []).map(c=>{
     const info = mapaAgendamentos[c.id] || { total:0, valor:0 };
     return {
       id: c.id,
@@ -240,16 +240,24 @@ async function carregarClientes(){
 function render(){
   lista.innerHTML="";
 
-  const ranking=[...clientes].sort((a,b)=>b.valor-a.valor).slice(0,3);
+const ranking = [...clientes]
+  .filter(c => c.valor > 0)
+  .sort((a,b)=>b.valor-a.valor)
+  .slice(0,3);
   lista.innerHTML+=`
     <div class="ranking">
       <h3>🏆 Clientes mais lucrativos</h3>
-      ${ranking.map((c,i)=>`
-        <div class="rank-item">
-          ${i+1}º ${c.nome}
-          <span>R$ ${c.valor.toFixed(2)}</span>
-        </div>
-      `).join("")}
+
+      
+    ${ranking.length === 0
+  ? `<small style="color:#6b7280">Nenhum faturamento registrado</small>`
+  : ranking.map((c,i)=>`
+      <div class="rank-item">
+        ${i+1}º ${c.nome}
+        <span>R$ ${c.valor.toFixed(2)}</span>
+      </div>
+    `).join("")
+}
     </div>
   `;
 
