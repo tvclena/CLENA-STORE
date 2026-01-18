@@ -279,7 +279,9 @@ function render(){
 
         <div class="meta">
           ${c.total} serviços
-          <span>Ticket: R$ ${(c.valor/c.total).toFixed(2)}</span>
+<span>
+  Ticket: R$ ${c.total > 0 ? (c.valor/c.total).toFixed(2) : "0.00"}
+</span>
         </div>
 
         ${c.whatsapp ? `
