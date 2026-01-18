@@ -30,7 +30,6 @@ export default async function handler(req, res) {
       loja_id,
       novo_status,
 
-      // ⬇️ campos opcionais (alteração completa)
       data,
       hora_inicio,
       hora_fim,
