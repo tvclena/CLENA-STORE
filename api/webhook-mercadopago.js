@@ -15,9 +15,6 @@ export default async function handler(req, res) {
 
   
   try {
-    /* =====================================================
-       PAYLOAD
-    ===================================================== */
     const body =
       typeof req.body === "string"
         ? JSON.parse(req.body)
