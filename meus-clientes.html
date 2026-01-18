@@ -163,20 +163,6 @@ function formatarDataBR(data){
   
 
 
-async function carregarClientes(){
-  const { data:{ session } } = await sb.auth.getSession();
-  const lojaId = session.user.id;
-// 🔹 BUSCA NOME DA LOJA
-const { data: perfil, error: erroPerfil } = await sb
-  .from("user_profile")
-  .select("negocio")
-  .eq("user_id", lojaId)
-  .single();
-
-if (!erroPerfil && perfil?.negocio) {
-  NOME_LOJA = perfil.negocio;
-}
-
 
 async function carregarClientes(){
   const { data:{ session } } = await sb.auth.getSession();
