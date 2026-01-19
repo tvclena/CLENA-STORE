@@ -988,7 +988,36 @@ body.modal-open{
   border-radius:10px;
   white-space:nowrap;
 }
+.modal-img{
+  position:relative;
+}
 
+.modal-img .nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  background:rgba(0,0,0,.45);
+  color:#fff;
+  border:none;
+  font-size:28px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+.modal-img .prev{ left:12px }
+.modal-img .next{ right:12px }
+
+#imgPopup{
+  background:#000;
+}
+
+#imgPopup img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
 
 
 
@@ -1088,6 +1117,8 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+let galeria = [];
+let imgIndex = 0;
 
 const lojaId = new URLSearchParams(location.search).get("l");
 if(!lojaId){
@@ -1447,15 +1478,31 @@ function abrirProduto(id){
 
 const imagens = extrairImagens(produtoAtual.imagem_url);
 
-// 🔥 SEMPRE a segunda imagem
-const imagemPadrao = imagens[1] || "";
+galeria = extrairImagens(produtoAtual.imagem_url);
+if(!galeria.length) galeria = [""]; // segurança
+imgIndex = 0;
 
-// aplica nos dois
-mpImagemMobile.src  = imagemPadrao;
-mpImagemDesktop.src = imagemPadrao;
 
+// DESKTOP → começa na primeira imagem (carrossel)
+mpImagemDesktop.src = galeria[imgIndex] || "";
+
+// MOBILE → miniatura SEMPRE a primeira
+mpImagemMobile.src = galeria[0] || "";
+
+
+  
   mpNome.innerText = produtoAtual.nome;
   mpDescricao.innerText = produtoAtual.descricao || "";
+mpImagemMobile.onclick = () => {
+  if(!galeria.length) return;
+
+  imgIndex = 0;
+  const popup = document.getElementById("imgPopup");
+  const view  = document.getElementById("imgPopupView");
+
+  view.src = galeria[imgIndex];
+  popup.style.display = "flex";
+};
 
   // preço
   if (produtoAtual.promocao_ativa && produtoAtual.preco_promocional) {
@@ -1974,6 +2021,17 @@ function extrairImagens(imagem_url){
     .filter(Boolean);
 }
 
+function imgNext(){
+  if(!galeria.length) return;
+  imgIndex = (imgIndex + 1) % galeria.length;
+  mpImagemDesktop.src = galeria[imgIndex];
+}
+
+function imgPrev(){
+  if(!galeria.length) return;
+  imgIndex = (imgIndex - 1 + galeria.length) % galeria.length;
+  mpImagemDesktop.src = galeria[imgIndex];
+}
 
 
   
@@ -2000,9 +2058,10 @@ function extrairImagens(imagem_url){
 <div class="modal" id="modalProduto" onclick="fecharProduto()">
   <div class="modal-box" onclick="event.stopPropagation()">
 
-    <!-- IMAGEM -->
 <div class="modal-img">
+  <button class="nav prev" onclick="imgPrev()">‹</button>
   <img id="mpImagemDesktop">
+  <button class="nav next" onclick="imgNext()">›</button>
 </div>
 
 
@@ -2100,6 +2159,10 @@ function extrairImagens(imagem_url){
     </div>
 
   </div>
+</div>
+<!-- POPUP IMAGEM FULLSCREEN (MOBILE) -->
+<div class="modal" id="imgPopup" onclick="this.style.display='none'">
+  <img id="imgPopupView">
 </div>
 
 </body>
