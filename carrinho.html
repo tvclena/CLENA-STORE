@@ -188,10 +188,10 @@ const moeda = v => v.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
 /* PARAMS */
 const lojaId = new URLSearchParams(location.search).get("l");
-const KEY = "CARRINHO_LOJA_" + lojaId;
+const KEY = "carrinho_" + lojaId;
 
-/* DADOS */
-let carrinho = JSON.parse(localStorage.getItem(KEY)) || { itens: [] };
+let carrinho = JSON.parse(localStorage.getItem(KEY)) || [];
+
 let cliente = JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
 let produtosMap = {};
 let idxExcluir = null;
@@ -202,7 +202,7 @@ const totalEl = document.getElementById("total");
 
 /* BUSCAR IMAGENS */
 async function carregarProdutos(){
-  const ids = carrinho.itens.map(i=>i.id);
+const ids = carrinho.map(i => i.produto_id);
   if(!ids.length) return;
   const { data } = await sb
     .from("produtos_servicos")
@@ -214,8 +214,8 @@ async function carregarProdutos(){
 /* MODAL */
 function abrirModal(idx){
   idxExcluir = idx;
-  const i = carrinho.itens[idx];
-  mFoto.src = produtosMap[i.id] || "https://via.placeholder.com/200";
+const i = carrinho[idx];
+mFoto.src = i.imagem || produtosMap[i.produto_id] || "https://via.placeholder.com/200";
   mNome.innerText = i.nome;
   mPreco.innerText = "Preço: R$ " + moeda(i.preco);
   mQtd.innerText = "Quantidade: " + i.quantidade;
@@ -225,14 +225,14 @@ function fecharModal(){
   modal.style.display = "none";
 }
 function confirmarExclusao(){
-  carrinho.itens.splice(idxExcluir,1);
+carrinho.splice(idxExcluir, 1);
   salvar();
   fecharModal();
 }
 
 /* RENDER */
 function render(){
-  if(!carrinho.itens.length){
+if(!carrinho.length){
     conteudo.innerHTML = "<p style='text-align:center;color:#666'>Carrinho vazio</p>";
     totalEl.innerText = "Total: R$ 0,00";
     return;
@@ -249,12 +249,12 @@ function render(){
       </div>
     </div>
 
-    ${carrinho.itens.map((i,idx)=>{
+${carrinho.map((i,idx)=>{
       total += i.preco * i.quantidade;
       return `
         <div class="card">
           <div class="item">
-            <img class="item-img" src="${produtosMap[i.id] || 'https://via.placeholder.com/200'}">
+<img class="item-img" src="${i.imagem || produtosMap[i.produto_id] || 'https://via.placeholder.com/200'}">
             <div class="item-info">
               <div class="item-nome">${i.nome}</div>
               <div class="item-preco">R$ ${moeda(i.preco)}</div>
@@ -286,10 +286,16 @@ function salvar(){
   localStorage.setItem(KEY, JSON.stringify(carrinho));
   render();
 }
-function mais(i){ carrinho.itens[i].quantidade++; salvar(); }
+function mais(i){
+  carrinho[i].quantidade++;
+  salvar();
+}
 function menos(i){
-  if(--carrinho.itens[i].quantidade <= 0) abrirModal(i);
-  else salvar();
+  if(--carrinho[i].quantidade <= 0){
+    abrirModal(i);
+  } else {
+    salvar();
+  }
 }
 
 async function finalizarCompra(){
@@ -300,7 +306,7 @@ async function finalizarCompra(){
       body:JSON.stringify({
         loja_id: lojaId,
         cliente,
-        itens: carrinho.itens
+itens: carrinho
       })
     });
 
