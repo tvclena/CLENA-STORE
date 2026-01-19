@@ -927,6 +927,40 @@ if(!lojaId){
 const bannerStars = document.getElementById("bannerStars");
 const bannerVerificada = document.getElementById("bannerVerificada");
 
+// ===== MODAL PRODUTO (REFERÊNCIAS ÚNICAS) =====
+let produtoAtual = null;
+
+let modalProduto,
+    mpImagem,
+    mpNome,
+    mpDescricao,
+    mpPreco,
+    mpStars,
+    mpVendidos,
+    mpAvaliacao,
+    mpMedia,
+    mpComentario,      // 🔥 FALTAVA
+    mpComentarios,
+    mpRelacionados,
+    mpObsCarrinho;
+
+
+function mapearModal(){
+  modalProduto   = document.getElementById("modalProduto");
+  mpImagem       = document.getElementById("mpImagem");
+  mpNome         = document.getElementById("mpNome");
+  mpDescricao    = document.getElementById("mpDescricao");
+  mpPreco        = document.getElementById("mpPreco");
+  mpStars        = document.getElementById("mpStars");
+  mpVendidos     = document.getElementById("mpVendidos");
+  mpAvaliacao    = document.getElementById("mpAvaliacao");
+  mpMedia        = document.getElementById("mpMedia");
+  mpComentario   = document.getElementById("mpComentario"); // 🔥 ESSENCIAL
+  mpComentarios  = document.getElementById("mpComentarios");
+  mpRelacionados = document.getElementById("mpRelacionados");
+  mpObsCarrinho  = document.getElementById("mpObsCarrinho");
+}
+
 
   
 let todos = [];
@@ -1071,14 +1105,12 @@ if (servicosAtivos.length) {
       padding:40px 0;
       font-weight:600
     ">
-      Nenhum serviço ou produto disponível no momento
+ Nenhum serviço ou produto disponível no momento
     </p>
   `;
 }
 
-
 }
-
 async function carregarVendasProdutos(){
   const { data, error } = await sb
     .from("pedidos_itens")
@@ -1226,8 +1258,11 @@ function acao(id,tipo){
     adicionarAoCarrinho();
   }
 }
-busca.addEventListener("input", render);
-load();
+document.addEventListener("DOMContentLoaded", () => {
+  mapearModal();   // 🔥 PRIMEIRO
+  load();          // 🔥 DEPOIS
+});
+
 
 
 
@@ -1250,11 +1285,13 @@ function abrirProduto(id){
         R$ ${Number(produtoAtual.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
       </span>
     `;
-  } else {
-    mpPreco.innerText =
-      Number(produtoAtual.preco || 0)
-        .toLocaleString("pt-BR",{minimumFractionDigits:2});
-  }
+} else {
+  mpPreco.innerHTML = `
+    R$ ${Number(produtoAtual.preco || 0)
+      .toLocaleString("pt-BR",{minimumFractionDigits:2})}
+  `;
+}
+
 
   /* ===== 👇 COLE EXATAMENTE AQUI ===== */
 
@@ -1786,9 +1823,7 @@ requestAnimationFrame(()=>{
     <span class="card-vendidos" id="mpVendidos"></span>
   </div>
 
-  <div class="modal-preco">
-    R$ <span id="mpPreco"></span>
-  </div>
+<div class="modal-preco" id="mpPreco"></div>
 
 </div>
 
@@ -1834,22 +1869,6 @@ requestAnimationFrame(()=>{
   </div>
 </div>
 
-<script>
-let produtoAtual = null;
-
-const modalProduto = document.getElementById("modalProduto");
-const mpImagem = document.getElementById("mpImagem");
-const mpNome = document.getElementById("mpNome");
-const mpDescricao = document.getElementById("mpDescricao");
-const mpPreco = document.getElementById("mpPreco");
-const mpStars = document.getElementById("mpStars");
-const mpVendidos = document.getElementById("mpVendidos");
-const mpAvaliacao = document.getElementById("mpAvaliacao");
-const mpMedia = document.getElementById("mpMedia");
-const mpComentarios = document.getElementById("mpComentarios");
-const mpRelacionados = document.getElementById("mpRelacionados");
-const mpObsCarrinho = document.getElementById("mpObsCarrinho");
-</script>
 
 <!-- POPUP MAPA PREMIUM -->
 <div class="modal" id="mapaPopup" onclick="fecharMapaPopup()">
