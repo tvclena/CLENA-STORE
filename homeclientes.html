@@ -275,11 +275,11 @@ body{margin:0;background:var(--bg);padding:16px}
 
 @media (max-width: 768px){
   .modal-img{
-    background:#000; /* opcional: destaque premium */
+    display:none; /* remove imagem gigante antiga */
   }
 
-  .modal-img img{
-    object-fit:cover;
+  .modal-box{
+    flex-direction:column;
   }
 }
 
@@ -918,7 +918,80 @@ body.modal-open{
 #enderecoLoja span{
   color: #ffffff !important;
 }
+/* ===== TOPO SIMPLES (IGUAL AO PRINT) ===== */
+.modal-topo-simples{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+}
 
+.modal-img-mini{
+  width:110px;
+  height:110px;
+  border-radius:12px;
+  overflow:hidden;
+  background:#f3f4f6;
+  flex-shrink:0;
+}
+
+.modal-img-mini img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.modal-info-simples{
+  flex:1;
+}
+
+.modal-info-simples h2{
+  font-size:16px;
+  font-weight:800;
+  margin:0 0 4px;
+  line-height:1.25;
+}
+
+.linha-avaliacao{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  font-size:13px;
+  color:#6b7280;
+}
+
+.modal-preco{
+  font-size:16px;
+  font-weight:900;
+  color:var(--primary);
+  margin:6px 0;
+}
+
+.acoes-simples{
+  display:flex;
+  gap:10px;
+  margin-top:6px;
+}
+
+.acoes-simples .btn,
+.acoes-simples .btn-sec{
+  padding:8px 14px;
+  font-size:13px;
+  border-radius:10px;
+  white-space:nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 
 
@@ -1903,35 +1976,40 @@ requestAnimationFrame(()=>{
     <!-- CONTEÚDO -->
     <div class="modal-content">
 
-<!-- 🔝 TOPO FIXO (IGUAL AO PRINT) -->
-<div class="modal-topo">
+<div class="modal-topo-simples">
 
-  <div class="modal-info">
+  <div class="modal-img-mini">
+    <img id="mpImagem">
+  </div>
+
+  <div class="modal-info-simples">
+
     <h2 id="mpNome" class="item-nome"></h2>
 
-    <div class="card-info-extra">
-      <div class="card-stars" id="mpStars"></div>
+    <div class="linha-avaliacao">
+      <span class="card-stars" id="mpStars"></span>
       <span class="card-vendidos" id="mpVendidos"></span>
     </div>
 
     <div class="modal-preco" id="mpPreco"></div>
 
+    <div id="obsCarrinhoBox" style="margin:6px 0;display:none">
+      <textarea
+        id="mpObsCarrinho"
+        placeholder="Observações (opcional)"
+        style="width:100%;border-radius:8px;border:1px solid var(--border)">
+      </textarea>
+    </div>
 
-    <div id="obsCarrinhoBox" style="margin-top:8px;display:none">
-  <textarea
-    id="mpObsCarrinho"
-    placeholder="Observações para o pedido (opcional)"
-    style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border)">
-  </textarea>
-</div>
-
-    <div class="modal-actions topo">
+    <div class="acoes-simples">
       <button class="btn" id="btnAcaoModal"></button>
       <button class="btn-sec" onclick="fecharProduto()">Fechar</button>
     </div>
+
   </div>
 
 </div>
+
 
 <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
 
