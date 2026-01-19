@@ -335,7 +335,7 @@ iframe{width:100%;height:100%;border:none}
 
 
 <!-- PROFILE -->
-<div id="profileOverlay" onclick="closeProfile(event)">
+<div id="profileOverlay">
   <div class="profile-modal" onclick="event.stopPropagation()">
 
     <div class="profile-img" id="profileImg">
@@ -898,6 +898,11 @@ window.addEventListener("popstate", () => {
   renderLojas();
 });
 
+profileOverlay.addEventListener("click", (e) => {
+  if (e.target === profileOverlay) {
+    profileOverlay.style.display = "none";
+  }
+});
 
 
 
