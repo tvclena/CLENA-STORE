@@ -894,6 +894,7 @@ if(alterarId){
     </div>
   </div>
 `);
+} // ✅ FECHAMENTO CORRETO DA FUNÇÃO confirmar
 
 
 function selecionarHorario(el, h){
@@ -1040,7 +1041,14 @@ async function confirmarAgendamento(){
   }
 }
 
+function formatarDataBR(dataISO){
+  if(!dataISO) return "";
+  const [ano, mes, dia] = dataISO.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
 
+
+  
 </script>
 <!-- MODAL CLIENTE -->
 <div id="clienteModal" class="hidden">
