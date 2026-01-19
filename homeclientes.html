@@ -1418,14 +1418,24 @@ function adicionarAoCarrinho(){
     existente.quantidade += 1;
     existente.comentario = comentario;
   }else{
-    carrinho.push({
-      produto_id: produtoAtual.id,
-      nome: produtoAtual.nome,
-      preco: produtoAtual.preco,
-      imagem: produtoAtual.imagem_url,
-      quantidade: 1,
-      comentario
-    });
+const precoFinal =
+  produtoAtual.promocao_ativa && produtoAtual.preco_promocional
+    ? Number(produtoAtual.preco_promocional)
+    : Number(produtoAtual.preco);
+
+carrinho.push({
+  produto_id: produtoAtual.id,
+  nome: produtoAtual.nome,
+
+  preco: precoFinal,                  // 👈 preço que será usado no carrinho
+  preco_original: produtoAtual.preco, // 👈 opcional (pra mostrar riscado)
+  promocao_ativa: produtoAtual.promocao_ativa,
+
+  imagem: produtoAtual.imagem_url,
+  quantidade: 1,
+  comentario
+});
+
   }
 
   salvarCarrinho(carrinho);
