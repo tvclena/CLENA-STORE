@@ -872,6 +872,19 @@ window.animarCarrinhoTopo = function(){
     easing: "cubic-bezier(.22,.61,.36,1)"
   });
 };
+window.addEventListener("popstate", () => {
+  const lojaId = new URLSearchParams(location.search).get("l");
+  if(!lojaId) return;
+
+  frame.src = "about:blank";
+  setTimeout(() => {
+    frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
+  }, 50);
+
+  verificarProdutosLoja(lojaId);
+  atualizarBadgeCarrinho();
+  renderLojas();
+});
 
 
 
