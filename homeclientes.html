@@ -334,6 +334,17 @@ body{margin:0;background:var(--bg);padding:16px}
   .modal-actions{
     flex-direction:column;
   }
+    /* 🔽 AJUSTE DO TOPO NO MOBILE (IGUAL AO PRINT) */
+  .modal-topo{
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .modal-actions.topo{
+    flex-direction:column;
+    gap:8px;
+  }
+
 }
 
 .btn-sec{
@@ -828,7 +839,38 @@ body.modal-open{
   flex-direction:column;
   gap:6px;
 }
+/* 🔝 TOPO DO MODAL (LAYOUT DO PRINT) */
+.modal-topo{
+  display:flex;
+  gap:24px;
+  align-items:flex-start;
+}
 
+/* infos à direita */
+.modal-info{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+/* botões alinhados lado a lado */
+.modal-actions.topo{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
+
+/* garante proporção bonita */
+.modal-actions.topo .btn,
+.modal-actions.topo .btn-sec{
+  padding:12px 18px;
+  white-space:nowrap;
+}
+
+
+
+
+  
   
 
 
@@ -1813,37 +1855,31 @@ requestAnimationFrame(()=>{
     <!-- CONTEÚDO -->
     <div class="modal-content">
 
-<div class="modal-header-info">
+<!-- 🔝 TOPO FIXO (IGUAL AO PRINT) -->
+<div class="modal-topo">
 
-  <h2 id="mpNome" class="item-nome"></h2>
+  <div class="modal-info">
+    <h2 id="mpNome" class="item-nome"></h2>
 
-  <div class="card-info-extra">
-    <div class="card-stars" id="mpStars"></div>
-    <span class="card-vendidos" id="mpVendidos"></span>
+    <div class="card-info-extra">
+      <div class="card-stars" id="mpStars"></div>
+      <span class="card-vendidos" id="mpVendidos"></span>
+    </div>
+
+    <div class="modal-preco" id="mpPreco"></div>
+
+    <div class="modal-actions topo">
+      <button class="btn" id="btnAcaoModal"></button>
+      <button class="btn-sec" onclick="fecharProduto()">Fechar</button>
+    </div>
   </div>
-
-<div class="modal-preco" id="mpPreco"></div>
 
 </div>
 
-<p id="mpDescricao" style="margin-top:12px"></p>
+<hr style="margin:16px 0;border:none;border-top:1px solid #eee">
 
+<p id="mpDescricao"></p>
 
-      <!-- OBS PRODUTO -->
-      <div id="obsCarrinhoBox">
-        <label style="font-size:12px;font-weight:700;color:#555">
-          Observação (opcional)
-        </label>
-        <textarea id="mpObsCarrinho"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border)">
-        </textarea>
-      </div>
-
-      <!-- BOTÃO PRINCIPAL -->
-      <div class="modal-actions">
-        <button class="btn" id="btnAcaoModal"></button>
-        <button class="btn-sec" onclick="fecharProduto()">Fechar</button>
-      </div>
 
       <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
 
