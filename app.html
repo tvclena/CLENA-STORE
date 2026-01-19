@@ -379,26 +379,29 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 async function verificarProdutosLoja(lojaId) {
-
   if (!lojaId) return;
 
   const { count, error } = await sb
     .from("produtos_servicos")
     .select("*", { count: "exact", head: true })
     .eq("user_id", lojaId)
-    .eq("ativo", true);
+    .eq("ativo", true)
+    .eq("tipo", "PRODUTO");
 
   if (error) {
-    console.error("Erro ao verificar produtos", error);
+    console.error(error);
     return;
   }
 
-  // 👉 SE EXISTIR PRODUTO, MOSTRA NA NAVBAR
+  const nav = document.getElementById("navProdutos");
+
   if (count > 0) {
-    const nav = document.getElementById("navProdutos");
-    if (nav) nav.style.display = "flex";
+    nav.style.display = "flex";
+  } else {
+    nav.style.display = "none";
   }
 }
+
 
 const frame = document.getElementById("frame");
   
