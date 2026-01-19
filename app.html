@@ -495,11 +495,14 @@ frame.addEventListener("load", () => {
   // 🔥 verifica se tem produtos
   verificarProdutosLoja(perfil.loja_ativa);
 
-  // 👤 carrega perfil
-  carregarPerfil();
+// 👤 carrega perfil
+carregarPerfil();
 
-  // 🛒 ATUALIZA BADGE DO CARRINHO (LINHA QUE FALTAVA)
-  atualizarBadgeCarrinho();
+// 🔥 GARANTE CLIENTE_LOJA SEMPRE DISPONÍVEL
+sincronizarClienteLoja();
+
+// 🛒 ATUALIZA BADGE DO CARRINHO
+atualizarBadgeCarrinho();
 
 })();
 
