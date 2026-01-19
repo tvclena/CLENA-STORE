@@ -715,6 +715,96 @@ body{margin:0;background:var(--bg);padding:16px}
     opacity .7s ease;
 }
 
+/* ===== MODAL MOBILE PREMIUM ===== */
+@media (max-width: 768px){
+
+  .modal{
+    align-items:flex-end;
+    padding:0;
+  }
+
+  .modal-box{
+    border-radius:24px 24px 0 0;
+    max-width:100%;
+    max-height:92vh;
+    animation:slideUp .25s ease;
+  }
+
+  @keyframes slideUp{
+    from{transform:translateY(40px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+  }
+
+  .modal-img{
+    height:180px;
+  }
+
+  .modal-content{
+    padding:14px;
+  }
+
+  .modal-content h2{
+    font-size:16px;
+    font-weight:800;
+  }
+
+  .modal-content p{
+    font-size:13px;
+    line-height:1.35;
+  }
+
+  .modal-preco{
+    font-size:15px;
+    margin:6px 0 10px;
+  }
+
+  /* 🔥 BOTÕES MAIS BONITOS */
+  .modal-actions{
+    flex-direction:row;
+    gap:8px;
+    margin-top:10px;
+  }
+
+  .modal-actions .btn,
+  .modal-actions .btn-sec{
+    padding:10px;
+    font-size:13px;
+    border-radius:14px;
+    font-weight:800;
+  }
+
+  .btn{
+    box-shadow:0 6px 18px rgba(0,0,0,.15);
+  }
+
+  /* textarea mais elegante */
+  textarea{
+    font-size:13px;
+    padding:8px;
+  }
+
+  /* avaliações mais compactas */
+  .avaliacao-item{
+    padding:8px 0;
+    gap:10px;
+  }
+
+  .avaliacao-avatar{
+    width:36px;
+    height:36px;
+    font-size:14px;
+  }
+
+  .avaliacao-texto{
+    font-size:12px;
+  }
+
+  /* relacionados menores */
+  .grid-relacionados img{
+    height:80px;
+  }
+
+}
 
 
 
