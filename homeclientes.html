@@ -707,6 +707,22 @@ body{margin:0;background:var(--bg);padding:16px}
   cursor:pointer;
 }
 
+.loja-nome{
+  color: var(--text);
+}
+.loja-info{
+  color: var(--text);
+  opacity: .9;
+}
+
+.item-nome{
+  color: var(--text);
+}
+
+  
+
+
+
   
 
 
@@ -728,7 +744,7 @@ body{margin:0;background:var(--bg);padding:16px}
     <div>
       
 <div class="loja-titulo">
-  <h1 id="nomeLoja">Carregando…</h1>
+<h1 id="nomeLoja" class="loja-nome">Carregando…</h1>
 
   <!-- BOTÃO WHATSAPP -->
   <a id="btnWhatsLoja"
@@ -738,10 +754,12 @@ body{margin:0;background:var(--bg);padding:16px}
   </a>
 </div>
 
-<p id="cidadeLoja"></p>
-<p id="enderecoLoja" class="endereco-click" onclick="abrirMapaPopup()">
+<p id="cidadeLoja" class="loja-info"></p>
+
+<p id="enderecoLoja" class="endereco-click loja-info">
   📍 <span id="enderecoTexto"></span>
 </p>
+
 
     </div>
   </div>
@@ -805,11 +823,24 @@ let avaliacoesPorItem = {}; // { produto_id: { total, soma } }
 async function load(){
 
   /* CONFIG DE CORES */
-  const { data:config } = await sb
-    .from("loja_config")
-    .select("primary_color,secondary_color")
-    .eq("user_id",lojaId)
-    .maybeSingle();
+const { data:config } = await sb
+  .from("loja_config")
+  .select("primary_color,secondary_color,text_color")
+  .eq("user_id",lojaId)
+  .maybeSingle();
+
+if(config?.primary_color){
+  document.documentElement.style.setProperty("--primary", config.primary_color);
+}
+
+if(config?.secondary_color){
+  document.documentElement.style.setProperty("--primary-2", config.secondary_color);
+}
+
+if(config?.text_color){
+  document.documentElement.style.setProperty("--text", config.text_color);
+}
+
 
 if(config?.primary_color && !localStorage.getItem("loja_tema_" + lojaId)){
   document.documentElement.style.setProperty("--primary",config.primary_color);
@@ -974,7 +1005,7 @@ function render(){
         <img src="${i.imagem_url||""}">
       </div>
       <div class="card-body">
-  <strong>${i.nome}</strong>
+<strong class="item-nome">${i.nome}</strong>
 
   ${
     avaliacoesPorItem[i.id]
@@ -1435,7 +1466,7 @@ function abrirNoMapa(){
     <!-- CONTEÚDO -->
     <div class="modal-content">
 
-      <h2 id="mpNome"></h2>
+<h2 id="mpNome" class="item-nome"></h2>
 
       <p id="mpDescricao"></p>
 
