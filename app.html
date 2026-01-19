@@ -545,17 +545,22 @@ async function renderLojas(){
     <div class="add-loja" onclick="location.href='lojasat.html?from=app'">+</div>
   `;
 }
-
 async function trocarLoja(lojaId){
+  // fecha modal
   profileOverlay.style.display = "none";
-  frame.src = "";
 
-  // 🔥 LIMPA CARRINHO DA LOJA ANTERIOR
-const lojaAtual = new URLSearchParams(location.search).get("l");
-if (lojaAtual) {
-  localStorage.removeItem("carrinho_" + lojaAtual);
-}
+  // loja atual
+  const lojaAtual = new URLSearchParams(location.search).get("l");
 
+  // evita reload desnecessário
+  if(lojaAtual === lojaId) return;
+
+  // 🔥 limpa carrinho da loja anterior
+  if (lojaAtual) {
+    localStorage.removeItem("carrinho_" + lojaAtual);
+  }
+
+  // 🔄 salva loja ativa
   await sb.from("clientes_loja").upsert({
     cliente_id: user.id,
     loja_id: lojaId
@@ -565,9 +570,12 @@ if (lojaAtual) {
     .update({ loja_ativa: lojaId })
     .eq("id", user.id);
 
+  perfil.loja_ativa = lojaId;
+
+  // 🔥 atualiza URL (fonte da verdade)
   history.replaceState(null, "", `app.html?l=${lojaId}`);
 
-  // 🔥 ATUALIZA NOME DA LOJA NO TOPO
+  // 🔥 atualiza nome da loja no topo
   const { data: novaLoja } = await sb
     .from("user_profile")
     .select("negocio")
@@ -578,11 +586,17 @@ if (lojaAtual) {
     nomeLoja.innerText = novaLoja.negocio;
   }
 
-  frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
+  // 🔥 força reload REAL do iframe
+  frame.src = "about:blank";
+  setTimeout(() => {
+    frame.src = `homeclientes.html?l=${lojaId}&t=${Date.now()}`;
+  }, 50);
+
+  // 🔥 recalcula menus e estado
   verificarProdutosLoja(lojaId);
+  atualizarBadgeCarrinho();
   renderLojas();
 }
-
 
 
 
