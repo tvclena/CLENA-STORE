@@ -986,8 +986,8 @@ async function salvarPerfil(){
 let avatarPath = profile?.avatar_url || null;
 
 if (pFoto.files.length) {
-  const file = pFoto.files[0];
-  const path = `perfil/${user.id}.jpg`; // ✅ AGORA DEFINIDO
+  const file = fotoBlob || pFoto.files[0];
+  const path = `perfil/${user.id}.jpg`;
 
   const { error: uploadError } = await sb.storage
     .from("avatars")
@@ -999,7 +999,7 @@ if (pFoto.files.length) {
     .from("avatars")
     .getPublicUrl(path);
 
-  avatarPath = data.publicUrl;
+  avatarPath = `${data.publicUrl}?v=${Date.now()}`;
 }
 
 
