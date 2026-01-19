@@ -254,11 +254,16 @@ body{margin:0;background:var(--bg);padding:16px}
 
 
 
-.modal-img img{
-  max-width:100%;
-  max-height:100%;
-  object-fit:contain; /* 👈 NÃO CORTA */
+@media (max-width: 768px){
+  .modal-img{
+    background:#000; /* opcional: destaque premium */
+  }
+
+  .modal-img img{
+    object-fit:cover;
+  }
 }
+
 
 
 .modal-content{
@@ -757,95 +762,86 @@ body{margin:0;background:var(--bg);padding:16px}
     opacity .7s ease;
 }
 
-
-  /* 🔥 BOTÕES MAIS BONITOS */
-  .modal-actions{
-    flex-direction:row;
-    gap:8px;
-    margin-top:10px;
-  }
-
-  .modal-actions .btn,
-  .modal-actions .btn-sec{
-    padding:10px;
-    font-size:13px;
-    border-radius:14px;
-    font-weight:800;
-  }
-
-  .btn{
-    box-shadow:0 6px 18px rgba(0,0,0,.15);
-  }
-
-  /* textarea mais elegante */
-  textarea{
-    font-size:13px;
-    padding:8px;
-  }
-
-  /* avaliações mais compactas */
-  .avaliacao-item{
-    padding:8px 0;
-    gap:10px;
-  }
-
-  .avaliacao-avatar{
-    width:36px;
-    height:36px;
-    font-size:14px;
-  }
-
-  .avaliacao-texto{
-    font-size:12px;
-  }
-
-  /* relacionados menores */
-  .grid-relacionados img{
-    height:80px;
-  }
-
+/* ===== BOTÕES DO MODAL ===== */
+.modal-actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
 }
 
+.modal-actions .btn,
+.modal-actions .btn-sec{
+  flex:1;
+  padding:12px;
+  font-size:14px;
+  border-radius:14px;
+  font-weight:800;
+}
+
+.btn{
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+}
+
+/* ===== TEXTAREA ===== */
+textarea{
+  font-size:13px;
+  padding:10px;
+}
+
+/* ===== AVALIAÇÕES ===== */
+.avaliacao-item{
+  padding:8px 0;
+  gap:10px;
+}
+
+.avaliacao-avatar{
+  width:36px;
+  height:36px;
+  font-size:14px;
+}
+
+.avaliacao-texto{
+  font-size:12px;
+}
+
+/* ===== RELACIONADOS ===== */
+.grid-relacionados img{
+  height:80px;
+}
+
+/* ===== CONTROLE SCROLL FUNDO ===== */
 body.modal-open{
   overflow:hidden;
   width:100%;
 }
 
-
-.modal-header-info{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-/* 🔝 TOPO DO MODAL (LAYOUT DO PRINT) */
+/* ===== TOPO DO MODAL ===== */
 .modal-topo{
   display:flex;
   gap:24px;
   align-items:flex-start;
 }
 
-/* infos à direita */
 .modal-info{
   display:flex;
   flex-direction:column;
   gap:6px;
 }
 
-/* botões alinhados lado a lado */
+/* botões do topo (Adicionar / Fechar) */
 .modal-actions.topo{
   display:flex;
   gap:10px;
   margin-top:12px;
 }
 
-/* garante proporção bonita */
 .modal-actions.topo .btn,
 .modal-actions.topo .btn-sec{
   padding:12px 18px;
   white-space:nowrap;
 }
 
-/* TÍTULO DO PRODUTO – DESKTOP / PADRÃO */
+/* ===== TÍTULO ===== */
 .modal-info h2{
   font-size:20px;
   line-height:1.3;
@@ -853,66 +849,52 @@ body.modal-open{
   margin:0;
 }
 
-/* TÍTULO DO PRODUTO – DESKTOP / PADRÃO */
-.modal-info h2{
-  font-size:20px;
-  line-height:1.3;
-  font-weight:800;
-  margin:0;
-}
-/* ===== MOBILE MODAL AJUSTADO ===== */
+/* ===================================================== */
+/* ===================== MOBILE ======================== */
+/* ===================================================== */
 @media (max-width: 768px){
 
+  /* modal ocupa tela inteira */
   .modal-box{
     flex-direction:column;
+    height:100vh;
     max-height:100vh;
   }
 
+  /* IMAGEM EM CIMA */
   .modal-img{
     width:100%;
     height:260px;
+    background:#000;
+    flex-shrink:0;
   }
 
   .modal-img img{
     width:100%;
     height:100%;
-    object-fit:contain;
+    object-fit:cover;
   }
 
- .modal-content{
-  width:100%;
-  padding:16px;
-  flex:1;
-  overflow-y:auto;
-}
+  /* CONTEÚDO COM SCROLL */
+  .modal-content{
+    width:100%;
+    flex:1;
+    padding:16px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
 
-
+  /* título menor no mobile */
   .modal-info h2{
     font-size:16px;
     line-height:1.35;
   }
 
+  /* espaçamento mais compacto */
   .modal-topo{
     gap:12px;
   }
 }
-
-
-
-
-
-  
-
-
-  
-
-  
-  
-
-
-
-
-
 
   
 </style>
