@@ -549,19 +549,28 @@ function fecharProduto(){
 
 
 async function carregarAvaliacoes(){
-  const { data } = await sb
-    .from("avaliacoes_loja")
-    .select("*")
-    .eq("produto_id", produtoAtual.id);
 
-  if(!data?.length){
+  const { data, error } = await sb
+    .from("avaliacoes_loja")
+    .select("nota, comentario")
+    .eq("produto_id", produtoAtual.id)
+    .eq("loja_id", lojaId)
+    .order("created_at", { ascending: false });
+
+  if(error){
+    console.error("❌ ERRO GET AVALIAÇÕES:", error);
+    mpMedia.innerText = "Erro ao carregar avaliações";
+    return;
+  }
+
+  if(!data || data.length === 0){
     mpMedia.innerText = "Sem avaliações";
     mpComentarios.innerHTML = "";
     return;
   }
 
   const media = (
-    data.reduce((s,a)=>s+a.nota,0) / data.length
+    data.reduce((s,a)=>s + a.nota,0) / data.length
   ).toFixed(1);
 
   mpMedia.innerText = `⭐ ${media} (${data.length} avaliações)`;
@@ -569,28 +578,54 @@ async function carregarAvaliacoes(){
   mpComentarios.innerHTML = data.map(a=>`
     <div style="border-top:1px solid #eee;padding:8px 0">
       <strong>${"⭐".repeat(a.nota)}</strong>
-      <p style="font-size:13px">${a.comentario||""}</p>
+      <p style="font-size:13px">${a.comentario}</p>
     </div>
   `).join("");
 }
 
+
 async function enviarAvaliacao(){
-const nota = notaSelecionada;
-  const comentario = mpComentario.value;
 
-  if(!comentario) return alert("Escreva um comentário");
+  const nota = notaSelecionada;
+  const comentario = mpComentario.value.trim();
 
-await sb.from("avaliacoes_loja").insert({
-  loja_id: lojaId,
-  produto_id: produtoAtual.id,
-  nota,
-  comentario
-});
+  if(!comentario){
+    alert("Escreva um comentário");
+    return;
+  }
 
+  const cliente = getCliente();
+
+  if(!cliente){
+    alert("Identifique-se para avaliar");
+    return;
+  }
+
+  const { error } = await sb
+    .from("avaliacoes_loja")
+    .insert({
+      loja_id: lojaId,
+      produto_id: produtoAtual.id,
+
+      nota,
+      comentario,
+
+      cliente_nome: cliente.nome,
+      cliente_whatsapp: cliente.whatsapp,
+      cliente_email: cliente.email || null,
+      cliente_id: usuarioLogado?.id || null
+    });
+
+  if(error){
+    console.error("❌ ERRO AVALIAÇÃO:", error);
+    alert("Erro ao enviar avaliação");
+    return;
+  }
 
   mpComentario.value = "";
   carregarAvaliacoes();
 }
+
 function carregarRelacionados(){
   const relacionados = todos
     .filter(p =>
