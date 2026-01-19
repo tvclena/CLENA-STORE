@@ -2,15 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-T97MS35TJ6');
-</script>
-<title>Página das lojas - produtos</title>
-
+<title>Loja – Produtos e Serviços</title>
 
 <meta name="viewport"
   content="width=device-width,
@@ -19,125 +11,144 @@
   user-scalable=no,
   viewport-fit=cover">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-dark:#e85c00;
+  --primary-2:#ff9a57;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --radius:22px;
-  --shadow:0 12px 30px rgba(0,0,0,.08);
 }
 
 *{box-sizing:border-box;font-family:Inter}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* HEADER */
-.header{
-  position:sticky;
-  top:0;
-  z-index:10;
-  background:#fff;
-  padding:16px;
-  font-weight:800;
-  font-size:18px;
-  border-bottom:1px solid var(--border);
-}
+body{margin:0;background:var(--bg);padding:16px}
 
 /* GRID */
 .grid{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:1fr 1fr;
   gap:14px;
-  padding:16px 16px 120px;
+}
+@media (min-width:768px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (min-width:1200px){
+  .grid{grid-template-columns:repeat(6,1fr)}
 }
 
 /* CARD */
 .card{
   background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
+  border-radius:18px;
   overflow:hidden;
-  display:flex;
-  flex-direction:column;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  cursor:pointer;
 }
-
 .card img{
   width:100%;
-  height:140px;
+  height:120px;
   object-fit:cover;
-  background:#eee;
 }
-
-.card-body{
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  flex:1;
-}
-
-.card-title{
-  font-weight:800;
-  font-size:14px;
-  margin-bottom:6px;
-}
-
 .badge{
-  font-size:10px;
-  font-weight:800;
-  padding:4px 10px;
-  border-radius:999px;
-  background:#fff7ed;
-  color:#c2410c;
-  width:max-content;
-}
-
-.card-price{
-  margin-top:auto;
-  font-size:15px;
-  font-weight:800;
-  color:var(--primary);
-}
-
-.card-btn{
-  margin-top:8px;
+  position:absolute;
+  top:10px;
+  left:10px;
   background:var(--primary);
   color:#fff;
-  border:none;
-  padding:12px;
-  border-radius:14px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
   font-weight:800;
+}
+.card-body{padding:12px}
+.card-body strong{display:block;margin-bottom:6px}
+.meta{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+.price{font-weight:900}
+.card button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
   cursor:pointer;
-  transition:.2s;
-}
-.card-btn:active{
-  transform:scale(.97);
-  background:var(--primary-dark);
 }
 
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  padding:16px;
+}
+.modal-box{
+  background:#fff;
+  border-radius:22px;
+  width:100%;
+  max-width:860px;
+  max-height:90vh;
+  overflow:hidden;
+  display:flex;
+}
+.modal-img{width:45%;background:#f3f4f6}
+.modal-img img{width:100%;height:100%;object-fit:cover}
+.modal-content{width:55%;padding:20px;overflow-y:auto}
+.modal-actions{display:flex;gap:10px;margin-top:14px}
+.btn{flex:1;padding:12px;border:none;border-radius:999px;background:var(--primary);color:#fff;font-weight:900}
+.btn-sec{flex:1;padding:12px;border-radius:999px;border:1px solid var(--border);background:#fff;font-weight:700}
 
+@media(max-width:768px){
+  .modal-box{flex-direction:column}
+  .modal-img{width:100%;height:220px}
+  .modal-content{width:100%}
+}
 </style>
-
 </head>
 
 <body>
 
-<div class="header">Loja</div>
-<div class="grid" id="produtos"></div>
+<div class="grid" id="grid"></div>
 
+<!-- MODAL PRODUTO -->
+<div class="modal" id="modalProduto" onclick="fecharProduto()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-img">
+      <img id="mpImagem">
+    </div>
+    <div class="modal-content">
+      <h2 id="mpNome"></h2>
+      <p id="mpDescricao"></p>
+      <div class="price">R$ <span id="mpPreco"></span></div>
 
+      <div id="obsCarrinhoBox" style="margin-top:10px">
+        <label style="font-size:12px;font-weight:700">Observação</label>
+        <textarea id="mpObsCarrinho" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border)"></textarea>
+      </div>
 
-
+      <div class="modal-actions">
+        <button class="btn" id="btnAcaoModal"></button>
+        <button class="btn-sec" onclick="fecharProduto()">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const sb = supabase.createClient(
@@ -146,142 +157,96 @@ const sb = supabase.createClient(
 );
 
 const lojaId = new URLSearchParams(location.search).get("l");
-const produtosEl = document.getElementById("produtos");
+const grid = document.getElementById("grid");
 
-function getCliente(){
-  return JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
-}
-function clienteValido(){
-  const c = getCliente();
-  return c?.nome && c?.whatsapp;
-}
+let todos = [];
+let produtoAtual = null;
 
-const CARRINHO_KEY = "CARRINHO_LOJA_" + lojaId;
-
-let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY)) || {
-  lojaId,
-  cliente: getCliente(),
-  itens:[]
-};
-function salvarCarrinho(){
-  localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
-
-  // evita erro se não existir badge aqui
-  const badge = document.getElementById("cartCount");
-  if (badge) {
-    badge.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
-  }
-}
-
-
-
-/* PRODUTOS — SOMENTE PRODUTOS */
-async function carregarProdutos(){
+/* LOAD */
+async function load(){
  const { data } = await sb
   .from("produtos_servicos")
-.select("id,nome,preco,imagem_url,pg_online,tipo")
-.eq("user_id", lojaId)
-.eq("ativo", true);
+  .select("*")
+  .eq("user_id", lojaId)
+  .eq("ativo", true)
+  .order("ordem_exibicao");
 
-
- if(!data || !data.length){
-   document.body.innerHTML = "<p style='padding:20px'>Nenhum produto disponível</p>";
-   return;
- }
-
- produtosEl.innerHTML = data.map(p=>`
-  <div class="card">
-    <img src="${p.imagem_url || 'https://via.placeholder.com/400'}">
-    <div class="card-body">
-      <div class="card-title">${p.nome}</div>
-      ${p.pg_online ? `<span class="badge">💳 Online</span>` : ``}
-      <div class="card-price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
-${
-  p.tipo === "PRODUTO"
-  ? `<button class="card-btn"
-        onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">
-        Adicionar
-     </button>`
-  : `<button class="card-btn"
-        onclick="abrirServico('${p.id}')">
-        Agendar
-     </button>`
+ todos = data || [];
+ render();
 }
+
+function render(){
+ grid.innerHTML = todos.map(i=>`
+  <div class="card" onclick="abrirProduto('${i.id}')">
+    <div style="position:relative">
+      ${i.promocao_ativa ? `<div class="badge">Promoção</div>` : ``}
+      <img src="${i.imagem_url || ''}">
+    </div>
+    <div class="card-body">
+      <strong>${i.nome}</strong>
+      <div class="meta">
+        <span>${i.tipo === "SERVICO" ? `⏱ ${i.duracao_minutos||0} min` : `📦 Estoque livre`}</span>
+        <span class="price">R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}</span>
+      </div>
+      <button>${i.tipo==="SERVICO" ? "Agendar" : "Comprar"}</button>
     </div>
   </div>
  `).join("");
 }
 
-/* CARRINHO */
-function addCarrinho(id,nome,preco){
- if(!clienteValido()){
-   alert("Informe seus dados antes de comprar");
-   return;
+function abrirProduto(id){
+ produtoAtual = todos.find(p=>p.id===id);
+ if(!produtoAtual) return;
+
+ mpImagem.src = produtoAtual.imagem_url || "";
+ mpNome.innerText = produtoAtual.nome;
+ mpDescricao.innerText = produtoAtual.descricao || "";
+ mpPreco.innerText = Number(produtoAtual.preco||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+
+ configurarBotao();
+ modalProduto.style.display="flex";
+}
+
+function configurarBotao(){
+ const btn = btnAcaoModal;
+ obsCarrinhoBox.style.display = produtoAtual.tipo==="PRODUTO" ? "block" : "none";
+
+ if(produtoAtual.tipo==="PRODUTO"){
+   btn.innerText="🛒 Adicionar ao carrinho";
+   btn.onclick=adicionarAoCarrinho;
+ }else{
+   btn.innerText="📅 Agendar";
+   btn.onclick=()=>location.href=`agendar.html?l=${lojaId}&servico=${produtoAtual.id}`;
  }
- const item = carrinho.itens.find(i=>i.id===id);
- item ? item.quantidade++ : carrinho.itens.push({id,nome,preco,quantidade:1});
- salvarCarrinho();
-}
-function abrirServico(id){
-  // salva serviço selecionado (opcional)
-  localStorage.setItem("SERVICO_SELECIONADO", id);
-
-  // vai para a tela de agendamento
-  window.location.href = `agendar.html?l=${lojaId}&servico=${id}`;
 }
 
-function irParaCarrinho(){
-  window.location.href = `carrinho.html?l=${lojaId}`;
+function adicionarAoCarrinho(){
+ const key = "carrinho_"+lojaId;
+ const carrinho = JSON.parse(localStorage.getItem(key)||"[]");
+ const existente = carrinho.find(i=>i.produto_id===produtoAtual.id);
+
+ if(existente){
+   existente.quantidade++;
+ }else{
+   carrinho.push({
+     produto_id:produtoAtual.id,
+     nome:produtoAtual.nome,
+     preco:produtoAtual.preco,
+     quantidade:1,
+     comentario:mpObsCarrinho.value||""
+   });
+ }
+ localStorage.setItem(key,JSON.stringify(carrinho));
+ alert("Produto adicionado 🛒");
+ fecharProduto();
 }
 
-
-
-async function finalizarCompra() {
-  try {
-    const res = await fetch("https://www.clena.com.br/api/create-pagamento", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        loja_id: lojaId,
-        cliente: getCliente(),
-        itens: carrinho.itens
-      })
-    });
-
-    const text = await res.text(); // 🔥 NÃO assume JSON
-
-    if (!res.ok) {
-      console.error("Erro da API:", text);
-      alert("Erro ao gerar pagamento");
-      return;
-    }
-
-    let data;
-    try {
-      data = JSON.parse(text); // tenta converter
-    } catch (e) {
-      console.error("Resposta não é JSON:", text);
-      alert("Resposta inválida do servidor");
-      return;
-    }
-
-    if (!data.init_point) {
-      alert("Pagamento não retornou link");
-      return;
-    }
-
-    window.location.href = data.init_point;
-
-  } catch (err) {
-    console.error("Erro geral:", err);
-    alert("Falha ao finalizar compra");
-  }
+function fecharProduto(){
+ mpObsCarrinho.value="";
+ modalProduto.style.display="none";
 }
 
-
-/* INIT */
-salvarCarrinho();
-carregarProdutos();
+load();
 </script>
 
 </body>
