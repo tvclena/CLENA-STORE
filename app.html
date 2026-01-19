@@ -285,11 +285,11 @@ iframe{width:100%;height:100%;border:none}
 
   <div style="display:flex;align-items:center;gap:14px">
 
-<!-- 🛒 CARRINHO -->
-<div class="cart-btn" onclick="abrirCarrinho()">
+<div class="cart-btn" id="cartIcon" onclick="abrirCarrinho()">
   <i class="ri-shopping-cart-line"></i>
   <span id="cartCount" class="cart-badge">0</span>
 </div>
+
 
 
     <!-- 👤 AVATAR -->
@@ -845,6 +845,19 @@ setInterval(() => {
 
 
 
+window.animarCarrinhoTopo = function(){
+  const cart = document.getElementById("cartIcon");
+  if(!cart) return;
+
+  cart.animate([
+    { transform: "scale(1)" },
+    { transform: "scale(1.25)" },
+    { transform: "scale(1)" }
+  ], {
+    duration: 400,
+    easing: "cubic-bezier(.22,.61,.36,1)"
+  });
+};
 
 
 
