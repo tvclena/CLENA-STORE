@@ -626,6 +626,86 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 
 
+/* ===== POPUP MAPA PREMIUM ===== */
+.mapa-card{
+  background:#fff;
+  width:100%;
+  max-width:360px;
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
+  animation:zoomIn .25s ease;
+}
+
+@keyframes zoomIn{
+  from{transform:scale(.92);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.mapa-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.mapa-icon{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  font-size:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.mapa-header strong{
+  display:block;
+  font-size:15px;
+}
+
+.mapa-header span{
+  font-size:12px;
+  color:#6b7280;
+}
+
+.mapa-endereco{
+  font-size:14px;
+  color:#374151;
+  background:#f3f4f6;
+  border-radius:14px;
+  padding:12px;
+  line-height:1.4;
+}
+
+.mapa-actions{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
+
+.btn-mapa{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn-mapa-sec{
+  flex:1;
+  padding:12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
 
   
 
@@ -1402,25 +1482,30 @@ function abrirNoMapa(){
     </div>
   </div>
 </div>
-<!-- POPUP MAPA -->
+<!-- POPUP MAPA PREMIUM -->
 <div class="modal" id="mapaPopup" onclick="fecharMapaPopup()">
-  <div class="modal-box" onclick="event.stopPropagation()"
-       style="max-width:360px;padding:20px;text-align:center">
+  <div class="mapa-card" onclick="event.stopPropagation()">
 
-    <h3 style="margin:0 0 12px">📍 Localização da loja</h3>
+    <div class="mapa-header">
+      <div class="mapa-icon">📍</div>
+      <div>
+        <strong>Localização da loja</strong>
+        <span>Veja como chegar</span>
+      </div>
+    </div>
 
-    <p id="mapaEndereco"
-       style="font-size:14px;color:#555;margin-bottom:16px"></p>
+    <div class="mapa-endereco" id="mapaEndereco"></div>
 
-    <button class="btn"
-            style="margin-bottom:10px"
-            onclick="abrirNoMapa()">
-      🗺️ Abrir no mapa
-    </button>
+    <div class="mapa-actions">
+      <button class="btn-mapa" onclick="abrirNoMapa()">
+        🗺️ Abrir no mapa
+      </button>
 
-    <button class="btn-sec" onclick="fecharMapaPopup()">
-      Fechar
-    </button>
+      <button class="btn-mapa-sec" onclick="fecharMapaPopup()">
+        Fechar
+      </button>
+    </div>
+
   </div>
 </div>
 
