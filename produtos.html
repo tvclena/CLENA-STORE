@@ -322,6 +322,12 @@ body{
 .item.drag-over {
   outline: 2px dashed var(--primary);
 }
+.item {
+  cursor: grab;
+}
+.item.dragging {
+  cursor: grabbing;
+}
 
 
 
@@ -643,6 +649,20 @@ function render(){
 function ativarOrdenacao() {
   const cards = document.querySelectorAll(".item");
 
+  // ⬇️ DRAGOVER NO CONTAINER (UMA VEZ SÓ)
+if (!lista._dragBound) {
+  lista._dragBound = true;
+
+  lista.addEventListener("dragover", e => {
+    e.preventDefault();
+    if (!dragEl) return;
+
+    const after = getDragAfterElement(lista, e.clientY);
+    if (!after) lista.appendChild(dragEl);
+    else lista.insertBefore(dragEl, after);
+  });
+}
+
   cards.forEach(card => {
 
     /* ===== DESKTOP ===== */
@@ -657,12 +677,7 @@ function ativarOrdenacao() {
       salvarNovaOrdem();
     });
 
-    card.addEventListener("dragover", e => {
-      e.preventDefault();
-      const after = getDragAfterElement(lista, e.clientY);
-      if (!after) lista.appendChild(dragEl);
-      else lista.insertBefore(dragEl, after);
-    });
+
 
     /* ===== MOBILE (TOQUE LONGO) ===== */
     card.addEventListener("touchstart", () => {
@@ -681,9 +696,11 @@ function ativarOrdenacao() {
       }
     });
 
-    card.addEventListener("touchmove", e => {
-      if (!dragEl) return;
-      const touch = e.touches[0];
+card.addEventListener("touchmove", e => {
+  if (!dragEl) return;
+  e.preventDefault(); // ⬅️ ISSO AQUI
+  const touch = e.touches[0];
+
       const after = getDragAfterElement(lista, touch.clientY);
       if (!after) lista.appendChild(dragEl);
       else lista.insertBefore(dragEl, after);
@@ -704,6 +721,12 @@ function getDragAfterElement(container, y) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 async function salvarNovaOrdem() {
+  if (search.value || filtroTipo.value) {
+    alert("Remova os filtros para reordenar os itens.");
+    carregar();
+    return;
+  }
+
   const cards = document.querySelectorAll(".item");
 
   const updates = [...cards].map((card, index) => ({
@@ -711,22 +734,24 @@ async function salvarNovaOrdem() {
     ordem_exibicao: index + 1
   }));
 
-  // atualiza local
   updates.forEach(u => {
     const item = itens.find(i => i.id === u.id);
     if (item) item.ordem_exibicao = u.ordem_exibicao;
   });
 
-  // atualiza Supabase
-  await Promise.all(
-    updates.map(u =>
-      sb.from("produtos_servicos")
-        .update({ ordem_exibicao: u.ordem_exibicao })
-        .eq("id", u.id)
-    )
-  );
+  const { error } = await sb.rpc("atualizar_ordem", {
+    itens: updates
+  });
+
+  if (error) {
+    console.error("Erro ao salvar ordem:", error);
+    alert("Erro ao salvar a ordem dos itens");
+    carregar();
+  }
 }
 
+
+  
 
 
 
