@@ -994,14 +994,16 @@ function carregarRelacionados(){
       p.id !== produtoAtual.id
     )
     .slice(0,4);
-mpRelacionados.innerHTML = relacionados.map(p=>`
-  <div class="card" onclick="abrirProduto('${p.id}')">
-    <img src="${p.imagem_url || ''}">
-    <div class="card-body">
-      <strong>${p.nome}</strong>
+
+  mpRelacionados.innerHTML = relacionados.map(p=>`
+    <div class="card" onclick="abrirProduto('${p.id}')">
+      <img src="${p.imagem_url || ''}">
+      <div class="card-body">
+        <strong>${p.nome}</strong>
+      </div>
     </div>
-  </div>
-`).join("");
+  `).join("");
+}
 
 
 let notaSelecionada = 5;
