@@ -139,6 +139,19 @@ body{margin:0;background:var(--bg);padding:16px}
   grid-template-columns:1fr 1fr;
   gap:14px;
 }
+/* TABLET */
+@media (min-width: 768px){
+  .grid{
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* DESKTOP */
+@media (min-width: 1200px){
+  .grid{
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
 
 .card{
   background:var(--card);
