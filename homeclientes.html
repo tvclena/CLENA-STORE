@@ -1447,12 +1447,13 @@ function abrirProduto(id){
 
 const imagens = extrairImagens(produtoAtual.imagem_url);
 
-// mobile sempre primeira
-mpImagemMobile.src = imagens[0] || "";
+// 🔥 SEMPRE a segunda imagem
+const imagemPadrao = imagens[1] || "";
 
-// desktop usa a segunda, se existir
-mpImagemDesktop.src =
-  imagens[1] || imagens[0] || "";
+// aplica nos dois
+mpImagemMobile.src  = imagemPadrao;
+mpImagemDesktop.src = imagemPadrao;
+
   mpNome.innerText = produtoAtual.nome;
   mpDescricao.innerText = produtoAtual.descricao || "";
 
