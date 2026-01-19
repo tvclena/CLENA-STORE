@@ -537,7 +537,11 @@ async function renderLojas(){
       <div class="loja-logo" style="background-image:url('${l.user_profile?.avatar_url || ""}')"></div>
       <span>${l.user_profile?.negocio || "Loja"}</span>
     `;
-    div.onclick = () => trocarLoja(l.loja_id);
+div.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  trocarLoja(l.loja_id);
+});
     lojasScroll.appendChild(div);
   }
 
