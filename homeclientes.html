@@ -719,7 +719,20 @@ body{margin:0;background:var(--bg);padding:16px}
   color: var(--text);
 }
 
-  
+/* ===== ANIMAÇÃO ADD AO CARRINHO ===== */
+.fly-img{
+  position:fixed;
+  width:120px;
+  height:120px;
+  object-fit:cover;
+  border-radius:14px;
+  z-index:99999;
+  pointer-events:none;
+  transition:
+    transform .7s cubic-bezier(.22,.61,.36,1),
+    opacity .7s ease;
+}
+
 
 
 
@@ -1084,7 +1097,7 @@ const lista = todos
     </span>
   </div>
 
-  <button onclick="event.stopPropagation(); acao('${i.id}','${i.tipo}')">
+<button onclick="event.stopPropagation(); acao('${i.id}','${i.tipo}', this)">
     ${i.tipo==="SERVICO"
       ? (i.preco > 0 ? "Agendar" : "Orçamento")
       : "Comprar"}
@@ -1409,10 +1422,16 @@ function adicionarAoCarrinho(){
     });
   }
 
-  salvarCarrinho(carrinho);
-  alert("Produto adicionado ao carrinho 🛒");
-  fecharProduto();
-}
+salvarCarrinho(carrinho);
+
+// 🔥 animação visual
+animarParaCarrinho(
+  produtoAtual.imagem_url,
+  document.querySelector(".modal-img img") || event.target
+);
+
+fecharProduto();
+
 
 function formatarDataBR(dataISO){
   const d = new Date(dataISO);
@@ -1476,7 +1495,40 @@ function abrirNoMapa(){
   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoCompleto)}`;
   window.open(url, "_blank");
 }
+function animarParaCarrinho(imgUrl, origemEl){
+  const img = document.createElement("img");
+  img.src = imgUrl;
+  img.className = "fly-img";
 
+  const origem = origemEl.getBoundingClientRect();
+
+  img.style.left = origem.left + "px";
+  img.style.top  = origem.top  + "px";
+
+  document.body.appendChild(img);
+
+  // destino: ícone "Produtos" da navbar (ajuste se quiser outro)
+  const destinoEl = document.querySelector(".nav-item:nth-child(2)");
+  if(!destinoEl) return;
+
+  const destino = destinoEl.getBoundingClientRect();
+
+  requestAnimationFrame(()=>{
+    img.style.transform = `
+      translate(${destino.left - origem.left}px,
+                ${destino.top - origem.top}px)
+      scale(0.2)
+    `;
+    img.style.opacity = "0";
+  });
+
+  setTimeout(()=> img.remove(), 800);
+}
+
+
+
+
+  
 
 
   
