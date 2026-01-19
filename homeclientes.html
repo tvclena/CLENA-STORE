@@ -917,8 +917,15 @@ if (loja.bio) {
     .eq("ativo",true)
     .order("ordem_exibicao");
 
-  todos = data || [];
+todos = data || [];
 
+// 🔥 carrega dados auxiliares ANTES de renderizar
+await carregarVendasProdutos();
+await carregarAvaliacoesResumo();
+await carregarMediaLoja();
+await verificarLojaVerificada();
+
+// 🔥 separa ativos
 const servicosAtivos = todos.filter(
   i => i.tipo === "SERVICO" && i.ativo
 );
@@ -927,18 +934,19 @@ const produtosAtivos = todos.filter(
   i => i.tipo === "PRODUTO" && i.ativo
 );
 
-tabServicos.style.display = servicosAtivos.length > 0 ? "inline-block" : "none";
-tabProdutos.style.display = produtosAtivos.length > 0 ? "inline-block" : "none";
+// 🔥 controla abas
+tabServicos.style.display = servicosAtivos.length ? "inline-block" : "none";
+tabProdutos.style.display = produtosAtivos.length ? "inline-block" : "none";
 
-// define aba inicial
-if (servicosAtivos.length > 0) {
+// 🔥 define aba inicial
+if (servicosAtivos.length) {
   tipoAtual = "SERVICO";
   setTab("SERVICO");
-} else if (produtosAtivos.length > 0) {
+} else if (produtosAtivos.length) {
   tipoAtual = "PRODUTO";
   setTab("PRODUTO");
 } else {
-  // 🔥 NADA CADASTRADO
+  tipoAtual = null;
   grid.innerHTML = `
     <p style="
       grid-column:1/-1;
@@ -951,7 +959,6 @@ if (servicosAtivos.length > 0) {
     </p>
   `;
 }
-
 
 
 }
@@ -1006,10 +1013,10 @@ async function carregarAvaliacoesResumo(){
 function render(){
   const q = busca.value.toLowerCase();
   grid.innerHTML = "";
+const lista = todos
+  .filter(i => i.tipo === tipoAtual && i.ativo)
+  .filter(i => i.nome.toLowerCase().includes(q));
 
-  const lista = todos
-    .filter(i=>i.tipo===tipoAtual)
-    .filter(i=>i.nome.toLowerCase().includes(q));
 
   if(!lista.length){
     grid.innerHTML = "<p style='grid-column:1/-1;text-align:center'>Nenhum item</p>";
