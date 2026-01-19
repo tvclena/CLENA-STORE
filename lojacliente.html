@@ -163,22 +163,26 @@ let carrinho = JSON.parse(localStorage.getItem(CARRINHO_KEY)) || {
   cliente: getCliente(),
   itens:[]
 };
-
-
 function salvarCarrinho(){
   localStorage.setItem(CARRINHO_KEY, JSON.stringify(carrinho));
-  cartCount.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
+
+  // evita erro se não existir badge aqui
+  const badge = document.getElementById("cartCount");
+  if (badge) {
+    badge.innerText = carrinho.itens.reduce((s,i)=>s+i.quantidade,0);
+  }
 }
+
 
 
 /* PRODUTOS — SOMENTE PRODUTOS */
 async function carregarProdutos(){
  const { data } = await sb
   .from("produtos_servicos")
-  .select("id,nome,preco,imagem_url,pg_online")
-  .eq("user_id", lojaId)
-  .eq("tipo","PRODUTO")
-  .eq("ativo", true);
+.select("id,nome,preco,imagem_url,pg_online,tipo")
+.eq("user_id", lojaId)
+.eq("ativo", true);
+
 
  if(!data || !data.length){
    document.body.innerHTML = "<p style='padding:20px'>Nenhum produto disponível</p>";
@@ -192,7 +196,17 @@ async function carregarProdutos(){
       <div class="card-title">${p.nome}</div>
       ${p.pg_online ? `<span class="badge">💳 Online</span>` : ``}
       <div class="card-price">R$ ${p.preco.toFixed(2).replace('.',',')}</div>
-      <button class="card-btn" onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">Adicionar</button>
+${
+  p.tipo === "PRODUTO"
+  ? `<button class="card-btn"
+        onclick="addCarrinho('${p.id}','${p.nome}',${p.preco})">
+        Adicionar
+     </button>`
+  : `<button class="card-btn"
+        onclick="abrirServico('${p.id}')">
+        Agendar
+     </button>`
+}
     </div>
   </div>
  `).join("");
@@ -207,6 +221,13 @@ function addCarrinho(id,nome,preco){
  const item = carrinho.itens.find(i=>i.id===id);
  item ? item.quantidade++ : carrinho.itens.push({id,nome,preco,quantidade:1});
  salvarCarrinho();
+}
+function abrirServico(id){
+  // salva serviço selecionado (opcional)
+  localStorage.setItem("SERVICO_SELECIONADO", id);
+
+  // vai para a tela de agendamento
+  window.location.href = `agendar.html?l=${lojaId}&servico=${id}`;
 }
 
 function irParaCarrinho(){
