@@ -1731,7 +1731,7 @@ function carregarRelacionados(){
 
   mpRelacionados.innerHTML = relacionados.map(p=>`
     <div class="card" onclick="abrirProduto('${p.id}')">
-<img src="${extrairImagens(p.imagem_url)[0] || ''}">
+<img src="${extrairImagens(p.imagem_url)[1] || extrairImagens(p.imagem_url)[0] || ''}">
       <div class="card-body">
         <strong>${p.nome}</strong>
       </div>
@@ -1808,7 +1808,8 @@ carrinho.push({
 // 🔥 animação visual
 const origem = document.querySelector(".modal-img img");
 if (origem) {
-  animarParaCarrinhoIframe(produtoAtual.imagem_url, origem);
+const imagens = extrairImagens(produtoAtual.imagem_url);
+animarParaCarrinhoIframe(imagens[1] || imagens[0] || "", origem);
 }
 
 fecharProduto();
