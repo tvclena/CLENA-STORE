@@ -227,11 +227,20 @@ body{margin:0;background:var(--bg);padding:16px}
   inset:0;
   background:rgba(0,0,0,.55);
   display:none;
-  align-items:center;
+  align-items:flex-start; /* 👈 NÃO centraliza mais */
   justify-content:center;
   z-index:999;
-  padding:16px;
+  padding:24px 16px; /* 👈 cria respiro em cima */
 }
+.modal-topo-simples{
+  margin-top:40px; /* ≈ 1cm */
+}
+@media (max-width: 768px){
+  .modal-box{
+    border-radius:22px 22px 12px 12px;
+  }
+}
+
 
 /* ===== MODAL DESKTOP ===== */
 .modal-box{
