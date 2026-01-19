@@ -1497,7 +1497,7 @@ mpImagemMobile.src = galeria[0] || "";
 mpImagemMobile.onclick = () => {
   if(!galeria.length) return;
 
-  imgIndex = 0;
+imgIndex = galeria.length > 1 ? 1 : 0;
   const popup = document.getElementById("imgPopup");
   const view  = document.getElementById("imgPopupView");
 
