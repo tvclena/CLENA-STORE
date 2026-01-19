@@ -12,15 +12,14 @@
 
 <style>
 :root{
-  --primary:#ff6a00;
-  --primary-2:#ff9a57;
+  --primary:#0f172a;
+  --primary-2:#020617;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
-  --text:#111827;
-  --muted:#6b7280;
+  --text:#020617;
+  --muted:#64748b;
 }
-
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
 
@@ -31,6 +30,7 @@ body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
   padding:14px 16px;
   border-radius:14px;
   border:1px solid var(--border);
+  font-size:14px;
 }
 
 /* FILTROS */
@@ -58,118 +58,122 @@ body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
 /* GRID */
 .grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(2,1fr);
   gap:14px;
 }
 @media(min-width:768px){
-  .grid{grid-template-columns:repeat(3,1fr)}
-}
-@media(min-width:1200px){
-  .grid{grid-template-columns:repeat(6,1fr)}
+  .grid{grid-template-columns:repeat(4,1fr)}
 }
 
 /* CARD */
 .card{
-  background:var(--card);
-  border-radius:18px;
+  background:#fff;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
   overflow:hidden;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
   cursor:pointer;
 }
 .card img{
   width:100%;
-  height:120px;
+  height:140px;
   object-fit:cover;
 }
-.badge{
-  position:absolute;
-  top:10px;
-  left:10px;
-  background:var(--primary);
-  color:#fff;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
+.card-body{
+  padding:12px;
+}
+.card-body strong{
+  display:block;
+  font-size:14px;
   font-weight:800;
 }
-.card-body{padding:12px}
-.card-body strong{display:block;margin-bottom:6px}
-.card-info-extra{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:12px;
-  color:var(--muted);
-  margin:4px 0 6px;
+.card-stars{
+  color:#facc15;
+  font-size:13px;
+  margin:4px 0;
 }
-.card-stars{color:#facc15;font-size:13px}
-.meta{
-  display:flex;
-  justify-content:space-between;
-  font-size:12px;
-  color:var(--muted);
-  margin-bottom:10px;
-}
-.price{font-weight:900}
-.card button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:999px;
-  background:var(--primary);
-  color:#fff;
+.card-price{
   font-weight:900;
-  cursor:pointer;
+  font-size:15px;
 }
 
 /* MODAL */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.55);
+  background:rgba(0,0,0,.6);
   display:none;
   align-items:center;
   justify-content:center;
   z-index:999;
-  padding:16px;
 }
 .modal-box{
   background:#fff;
-  border-radius:22px;
-  width:100%;
-  max-width:860px;
-  max-height:90vh;
-  overflow:hidden;
+  border-radius:24px;
+  max-width:900px;
+  width:95%;
   display:flex;
+  overflow:hidden;
 }
-.modal-img{width:45%;background:#f3f4f6}
-.modal-img img{width:100%;height:100%;object-fit:cover}
-.modal-content{width:55%;padding:20px;overflow-y:auto}
-
+.modal-img{
+  width:45%;
+}
+.modal-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.modal-content{
+  width:55%;
+  padding:20px;
+  overflow-y:auto;
+}
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.modal-header h2{
+  font-size:20px;
+  font-weight:800;
+}
 .modal-preco{
   font-size:18px;
   font-weight:900;
-  color:var(--primary);
-  margin:10px 0;
+  margin:8px 0;
 }
-.modal-actions{
-  display:flex;
-  gap:10px;
-  margin-top:14px;
+textarea{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
 }
-.btn,.btn-sec{
-  flex:1;
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
   padding:12px;
   border-radius:999px;
-  font-weight:900;
+  border:none;
+  font-weight:800;
+  width:100%;
 }
-.btn{border:none;background:var(--primary);color:#fff}
-.btn-sec{border:1px solid var(--border);background:#fff}
+.btn-secondary{
+  background:#fff;
+  border:1px solid var(--border);
+  padding:12px;
+  border-radius:999px;
+  font-weight:800;
+  width:100%;
+  margin-top:8px;
+}
 
-@media(max-width:768px){
-  .modal-box{flex-direction:column}
-  .modal-img{width:100%;height:220px}
-  .modal-content{width:100%}
+/* RELACIONADOS */
+.relacionados{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.relacionados .card img{
+  height:90px;
 }
 </style>
 </head>
@@ -184,239 +188,116 @@ body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
 
 <div id="grid" class="grid"></div>
 
-<!-- MODAL PRODUTO -->
 <div class="modal" id="modalProduto" onclick="fecharProduto()">
   <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-img">
-      <img id="mpImagem">
-    </div>
+    <div class="modal-img"><img id="mpImagem"></div>
     <div class="modal-content">
-      <h2 id="mpNome"></h2>
-      <p id="mpDescricao"></p>
-
-      <div class="modal-preco">
-        R$ <span id="mpPreco"></span>
+      <div class="modal-header">
+        <h2 id="mpNome"></h2>
       </div>
 
-      <div id="obsCarrinhoBox">
-        <label style="font-size:12px;font-weight:700">Observação</label>
-        <textarea id="mpObsCarrinho"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border)">
-        </textarea>
-      </div>
+      <div class="modal-preco">R$ <span id="mpPreco"></span></div>
 
-      <div class="modal-actions">
-        <button class="btn" id="btnAcaoModal"></button>
-        <button class="btn-sec" onclick="fecharProduto()">Fechar</button>
-      </div>
+      <label>Observação (opcional)</label>
+      <textarea id="mpObs"></textarea>
 
-      <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+      <button class="btn-primary" onclick="adicionarAoCarrinho()">Adicionar ao carrinho</button>
+      <button class="btn-secondary" onclick="fecharProduto()">Fechar</button>
 
-      <!-- AVALIAÇÕES -->
-      <div id="mpAvaliacao"></div>
-      <p id="mpMedia" style="font-size:13px;color:#666"></p>
-
-      <textarea id="mpComentario"
-        placeholder="Escreva sua avaliação"
-        style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border)">
-      </textarea>
-
-      <button class="btn" style="margin-top:10px" onclick="enviarAvaliacao()">
-        ⭐ Enviar avaliação
-      </button>
-
-      <div id="mpComentarios" style="margin-top:14px"></div>
-
-      <h3 style="margin-top:18px;font-size:15px">Produtos relacionados</h3>
-      <div id="mpRelacionados" class="grid" style="grid-template-columns:repeat(3,1fr)"></div>
+      <h4 style="margin-top:20px">Produtos relacionados</h4>
+      <div id="mpRelacionados" class="relacionados"></div>
     </div>
   </div>
 </div>
 
 <script>
-const sb = supabase.createClient(
+const sb=supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-const lojaId = new URLSearchParams(location.search).get("l");
-const grid = document.getElementById("grid");
-const busca = document.getElementById("busca");
-const filtros = document.getElementById("filtros");
+const lojaId=new URLSearchParams(location.search).get("l");
+const grid=document.getElementById("grid");
+const filtros=document.getElementById("filtros");
+const busca=document.getElementById("busca");
 
-let produtos = [];
-let produtoAtual = null;
-let categoriaAtiva = "ALL";
-let precoMax = null;
+let produtos=[],produtoAtual=null,categoriaAtiva="ALL",precoMax=null;
 
-/* LOAD */
 async function load(){
- const { data } = await sb
-  .from("produtos_servicos")
+ const {data}=await sb.from("produtos_servicos")
   .select("*")
-  .eq("user_id", lojaId)
-  .eq("ativo", true)
-  .eq("tipo", "PRODUTO")
-  .order("ordem_exibicao");
+  .eq("ativo",true)
+  .eq("tipo","PRODUTO")
+  .eq("user_id",lojaId);
 
- produtos = data || [];
+ produtos=data||[];
  montarFiltros();
  render();
 }
 
 function montarFiltros(){
- const categorias = [...new Set(produtos.map(p=>p.categoria).filter(Boolean))];
-
- filtros.innerHTML = `
-   <div class="filter-chip active" onclick="setCategoria('ALL',this)">Todos</div>
-   ${categorias.map(c=>`
-     <div class="filter-chip" onclick="setCategoria('${c}',this)">${c}</div>
-   `).join("")}
-   <div class="filter-chip" onclick="setPreco(50)">Até R$50</div>
-   <div class="filter-chip" onclick="setPreco(100)">Até R$100</div>
-   <div class="filter-chip" onclick="setPreco(200)">Até R$200</div>
- `;
+ const cats=[...new Set(produtos.map(p=>p.categoria).filter(Boolean))];
+ filtros.innerHTML=`<div class="filter-chip active" onclick="setCategoria('ALL',this)">Todos</div>`+
+ cats.map(c=>`<div class="filter-chip" onclick="setCategoria('${c}',this)">${c}</div>`).join("");
 }
 
 function setCategoria(c,el){
- categoriaAtiva = c;
- document.querySelectorAll(".filter-chip").forEach(f=>f.classList.remove("active"));
+ categoriaAtiva=c;
+ document.querySelectorAll(".filter-chip").forEach(e=>e.classList.remove("active"));
  el.classList.add("active");
  render();
 }
 
-function setPreco(p){
- precoMax = p;
- render();
-}
-
 function render(){
- const q = busca.value.toLowerCase();
-
- const lista = produtos.filter(p=>{
-   if(categoriaAtiva!=="ALL" && p.categoria!==categoriaAtiva) return false;
-   if(precoMax && p.preco>precoMax) return false;
-   if(!p.nome.toLowerCase().includes(q)) return false;
-   return true;
- });
-
- grid.innerHTML = lista.map(p=>`
+ const q=busca.value.toLowerCase();
+ grid.innerHTML=produtos.filter(p=>{
+  if(categoriaAtiva!=="ALL"&&p.categoria!==categoriaAtiva)return false;
+  if(!p.nome.toLowerCase().includes(q))return false;
+  return true;
+ }).map(p=>`
   <div class="card" onclick="abrirProduto('${p.id}')">
-    <div style="position:relative">
-      ${p.promocao_ativa?`<div class="badge">Promoção</div>`:""}
-      <img src="${p.imagem_url||""}">
-    </div>
+    <img src="${p.imagem_url||""}">
     <div class="card-body">
       <strong>${p.nome}</strong>
-      <div class="meta">
-        <span>📦 Estoque livre</span>
-        <span class="price">R$ ${Number(p.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}</span>
-      </div>
-      <button>Comprar</button>
+      <div class="card-price">R$ ${p.preco.toFixed(2).replace(".",",")}</div>
     </div>
   </div>
- `).join("") || "<p>Nenhum produto encontrado</p>";
+ `).join("");
 }
 
-busca.addEventListener("input",render);
-
-/* MODAL */
 function abrirProduto(id){
- produtoAtual = produtos.find(p=>p.id===id);
- if(!produtoAtual) return;
-
- mpImagem.src = produtoAtual.imagem_url||"";
- mpNome.innerText = produtoAtual.nome;
- mpDescricao.innerText = produtoAtual.descricao||"";
- mpPreco.innerText = Number(produtoAtual.preco).toLocaleString("pt-BR",{minimumFractionDigits:2});
-
- btnAcaoModal.innerText="🛒 Adicionar ao carrinho";
- btnAcaoModal.onclick=adicionarAoCarrinho;
-
+ produtoAtual=produtos.find(p=>p.id===id);
+ mpImagem.src=produtoAtual.imagem_url;
+ mpNome.innerText=produtoAtual.nome;
+ mpPreco.innerText=produtoAtual.preco.toFixed(2).replace(".",",");
  modalProduto.style.display="flex";
+ carregarRelacionados();
 }
 
-function fecharProduto(){
- mpObsCarrinho.value="";
- modalProduto.style.display="none";
-}
+function fecharProduto(){modalProduto.style.display="none"}
 
-/* CARRINHO */
-function getCarrinho(){
- return JSON.parse(localStorage.getItem("carrinho_"+lojaId)||"[]");
-}
-function salvarCarrinho(c){
- localStorage.setItem("carrinho_"+lojaId,JSON.stringify(c));
-}
 function adicionarAoCarrinho(){
- const carrinho = getCarrinho();
- const existente = carrinho.find(i=>i.produto_id===produtoAtual.id);
- if(existente){
-   existente.quantidade++;
- }else{
-   carrinho.push({
-     produto_id:produtoAtual.id,
-     nome:produtoAtual.nome,
-     preco:produtoAtual.preco,
-     quantidade:1,
-     comentario:mpObsCarrinho.value||""
-   });
- }
- salvarCarrinho(carrinho);
- alert("Produto adicionado 🛒");
+ const k="carrinho_"+lojaId;
+ const c=JSON.parse(localStorage.getItem(k)||"[]");
+ const e=c.find(i=>i.id===produtoAtual.id);
+ e?e.q++:c.push({id:produtoAtual.id,nome:produtoAtual.nome,preco:produtoAtual.preco,q:1,obs:mpObs.value});
+ localStorage.setItem(k,JSON.stringify(c));
  fecharProduto();
 }
 
-/* AVALIAÇÕES */
-let notaSelecionada = 5;
-function renderEstrelas(){
- mpAvaliacao.innerHTML=[1,2,3,4,5].map(n=>`
-  <i class="ri-star-${n<=notaSelecionada?'fill':'line'}"
-     style="font-size:22px;color:#facc15;cursor:pointer"
-     onclick="notaSelecionada=${n};renderEstrelas()"></i>
- `).join("");
-}
-async function carregarAvaliacoes(){
- const { data } = await sb
-  .from("avaliacoes_loja")
-  .select("*")
-  .eq("produto_id",produtoAtual.id)
-  .eq("loja_id",lojaId)
-  .order("created_at",{ascending:false});
-
- if(!data||!data.length){
-   mpMedia.innerText="Sem avaliações";
-   mpComentarios.innerHTML="";
-   return;
- }
-
- const media=(data.reduce((s,a)=>s+a.nota,0)/data.length).toFixed(1);
- mpMedia.innerText=`⭐ ${media} • ${data.length} avaliações`;
-
- mpComentarios.innerHTML=data.map(a=>`
-  <div style="border-top:1px solid #eee;padding:10px 0">
-    <strong>${a.cliente_nome||"Cliente"}</strong>
-    <div>${"★".repeat(a.nota)}${"☆".repeat(5-a.nota)}</div>
-    <div>${a.comentario}</div>
-  </div>
- `).join("");
-}
-async function enviarAvaliacao(){
- const comentario=mpComentario.value.trim();
- if(!comentario) return alert("Escreva um comentário");
-
- await sb.from("avaliacoes_loja").insert({
-  loja_id:lojaId,
-  produto_id:produtoAtual.id,
-  nota:notaSelecionada,
-  comentario
- });
- mpComentario.value="";
- notaSelecionada=5;
- renderEstrelas();
- carregarAvaliacoes();
+function carregarRelacionados(){
+ mpRelacionados.innerHTML=produtos
+  .filter(p=>p.categoria===produtoAtual.categoria&&p.id!==produtoAtual.id)
+  .slice(0,4)
+  .map(p=>`
+    <div class="card" onclick="abrirProduto('${p.id}')">
+      <img src="${p.imagem_url}">
+      <div class="card-body"><strong>${p.nome}</strong></div>
+    </div>
+  `).join("");
 }
 
+busca.addEventListener("input",render);
 load();
 </script>
 
