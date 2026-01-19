@@ -1092,18 +1092,14 @@ function setTab(t){
   render();
 }
 
-let ultimoBotaoAcao = null;
-
-function acao(id, tipo, botao){
-  if(tipo === "SERVICO"){
+function acao(id,tipo){
+  if(tipo==="SERVICO"){
     location.href = `agendar.html?l=${lojaId}&servico=${id}`;
   } else {
     produtoAtual = todos.find(p => p.id === id);
-    ultimoBotaoAcao = botao;
     adicionarAoCarrinho();
   }
 }
-
 busca.addEventListener("input", render);
 load();
 
@@ -1405,10 +1401,10 @@ function adicionarAoCarrinho(){
 
   salvarCarrinho(carrinho);
 
-if (ultimoBotaoAcao) {
-  animarParaCarrinhoIframe(ultimoBotaoAcao);
-}
-
+// 🔥 animação visual
+const origem = document.querySelector(".modal-img img");
+if (origem) {
+  animarParaCarrinhoIframe(produtoAtual.imagem_url, origem);
 }
 
 fecharProduto();
@@ -1487,86 +1483,87 @@ function abrirNoMapa(){
   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoCompleto)}`;
   window.open(url, "_blank");
 }
-function animarParaCarrinhoIframe(origemEl){
+function animarParaCarrinho(imgUrl, origemEl){
   if(!origemEl) return;
 
-  const rect = origemEl.getBoundingClientRect();
+  const img = document.createElement("img");
+  img.src = imgUrl;
+  img.className = "fly-img";
 
-  const bolha = document.createElement("div");
-  bolha.style.position = "fixed";
-  bolha.style.left = rect.left + rect.width / 2 - 12 + "px";
-  bolha.style.top  = rect.top  + rect.height / 2 - 12 + "px";
-  bolha.style.width = "24px";
-  bolha.style.height = "24px";
-  bolha.style.borderRadius = "50%";
-  bolha.style.background = "var(--primary)";
-  bolha.style.zIndex = "99999";
-  bolha.style.pointerEvents = "none";
-  bolha.style.transition =
-    "transform .75s cubic-bezier(.22,.61,.36,1), opacity .6s ease";
+  const origem = origemEl.getBoundingClientRect();
 
-  document.body.appendChild(bolha);
+  img.style.left = origem.left + "px";
+  img.style.top  = origem.top  + "px";
 
-  const destinoY = - (rect.top + 40);
+  document.body.appendChild(img);
+
+  // destino: aba Produtos (ajuste depois se quiser um ícone de carrinho real)
+  const destinoEl = document.querySelector("#tabProdutos");
+  if(!destinoEl){
+    img.remove();
+    return;
+  }
+
+  const destino = destinoEl.getBoundingClientRect();
 
   requestAnimationFrame(()=>{
-    bolha.style.transform = `
-      translate(0, ${destinoY}px)
-      scale(0.3)
+    img.style.transform = `
+      translate(${destino.left - origem.left}px,
+                ${destino.top - origem.top}px)
+      scale(0.2)
     `;
-    bolha.style.opacity = "0";
+    img.style.opacity = "0";
   });
 
-  setTimeout(()=>{
-    bolha.remove();
+  setTimeout(()=> img.remove(), 800);
+}
 
+function animarParaCarrinhoIframe(imgUrl, origemEl){
+  if(!origemEl) return;
+
+  const img = document.createElement("img");
+  img.src = imgUrl;
+  img.className = "fly-img";
+
+  const origem = origemEl.getBoundingClientRect();
+
+  img.style.left = origem.left + "px";
+  img.style.top  = origem.top  + "px";
+
+  document.body.appendChild(img);
+
+const centerX = window.innerWidth / 2;
+const imgCenterX = origem.left + origem.width / 2;
+
+requestAnimationFrame(()=>{
+  img.style.transform = `
+    translate(
+      ${centerX - imgCenterX}px,
+      -${origem.top + 120}px
+    )
+    scale(0.2)
+  `;
+  img.style.opacity = "0";
+});
+
+  setTimeout(()=>{
+    img.remove();
+
+    // 🔔 comunica com app.html
     if(window.parent?.animarCarrinhoTopo){
       window.parent.animarCarrinhoTopo();
     }
+
     if(window.parent?.atualizarBadgeCarrinho){
       window.parent.atualizarBadgeCarrinho();
     }
-  }, 750);
+
+  }, 700);
 }
 
-function animarParaCarrinhoIframe(origemEl){
-  if(!origemEl) return;
 
-  const rect = origemEl.getBoundingClientRect();
 
-  const bolha = document.createElement("div");
-  bolha.style.position = "fixed";
-  bolha.style.left = rect.left + rect.width / 2 - 10 + "px";
-  bolha.style.top  = rect.top  + rect.height / 2 - 10 + "px";
-  bolha.style.width = "20px";
-  bolha.style.height = "20px";
-  bolha.style.borderRadius = "50%";
-  bolha.style.background = "var(--primary)";
-  bolha.style.zIndex = "99999";
-  bolha.style.pointerEvents = "none";
-  bolha.style.transition =
-    "transform .6s cubic-bezier(.22,.61,.36,1), opacity .4s ease";
-
-  document.body.appendChild(bolha);
-
-  const destinoY = - (rect.top + 60);
-
-  requestAnimationFrame(()=>{
-    bolha.style.transform = `
-      translate(0, ${destinoY}px)
-      scale(0.25)
-    `;
-    bolha.style.opacity = "0";
-  });
-
-  setTimeout(()=>{
-    bolha.remove();
-
-    window.parent?.animarCarrinhoTopo?.();
-    window.parent?.atualizarBadgeCarrinho?.();
-  }, 650);
-}
-
+  
 
 
   
