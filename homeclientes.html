@@ -1401,15 +1401,14 @@ function adicionarAoCarrinho(){
 
   salvarCarrinho(carrinho);
 
-  // 🔥 animação visual (FORMA CORRETA)
-  const origem = document.querySelector(".modal-img img");
-  if(origem){
-    animarParaCarrinho(produtoAtual.imagem_url, origem);
-  }
-
-  fecharProduto();
+// 🔥 animação visual
+const origem = document.querySelector(".modal-img img");
+if (origem) {
+  animarParaCarrinhoIframe(produtoAtual.imagem_url, origem);
 }
 
+fecharProduto();
+}
 
 
 
@@ -1519,6 +1518,43 @@ function animarParaCarrinho(imgUrl, origemEl){
   setTimeout(()=> img.remove(), 800);
 }
 
+function animarParaCarrinhoIframe(imgUrl, origemEl){
+  if(!origemEl) return;
+
+  const img = document.createElement("img");
+  img.src = imgUrl;
+  img.className = "fly-img";
+
+  const origem = origemEl.getBoundingClientRect();
+
+  img.style.left = origem.left + "px";
+  img.style.top  = origem.top  + "px";
+
+  document.body.appendChild(img);
+
+  // sobe até o topo do iframe
+  requestAnimationFrame(()=>{
+    img.style.transform = `
+      translate(0, -${origem.top + 120}px)
+      scale(0.2)
+    `;
+    img.style.opacity = "0";
+  });
+
+  setTimeout(()=>{
+    img.remove();
+
+    // 🔔 comunica com app.html
+    if(window.parent?.animarCarrinhoTopo){
+      window.parent.animarCarrinhoTopo();
+    }
+
+    if(window.parent?.atualizarBadgeCarrinho){
+      window.parent.atualizarBadgeCarrinho();
+    }
+
+  }, 700);
+}
 
 
 
