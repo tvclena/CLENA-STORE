@@ -1025,6 +1025,23 @@ body.modal-open{
   color:#ffffff !important;
 }
 
+#btnTopo{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 10px 25px rgba(0,0,0,.25);
+  display:none;
+  z-index:999;
+}
 
 
 
@@ -1120,6 +1137,10 @@ const sb = supabase.createClient(
 );
 let galeria = [];
 let imgIndex = 0;
+let itensVisiveis = [];
+let paginaAtual = 0;
+const TAMANHO_PAGINA = window.innerWidth < 768 ? 8 : 18;
+let carregandoScroll = false;
 
 
 const lojaId = new URLSearchParams(location.search).get("l");
@@ -1365,100 +1386,37 @@ async function carregarAvaliacoesResumo(){
   
 
 /* ================= RENDER ================= */
-function render(){
+function render(reset = true){
   const q = busca.value.toLowerCase();
-  grid.innerHTML = "";
-const lista = todos
-  .filter(i => i.tipo === tipoAtual && i.ativo)
-  .filter(i => i.nome.toLowerCase().includes(q));
 
+  if(reset){
+    grid.innerHTML = "";
+    paginaAtual = 0;
+  }
 
-  if(!lista.length){
-    grid.innerHTML = "<p style='grid-column:1/-1;text-align:center'>Nenhum item</p>";
+  itensVisiveis = todos
+    .filter(i => i.tipo === tipoAtual && i.ativo)
+    .filter(i => i.nome.toLowerCase().includes(q));
+
+  if(!itensVisiveis.length){
+    grid.innerHTML = `
+      <p style="grid-column:1/-1;text-align:center;color:#6b7280">
+        Nenhum item encontrado
+      </p>
+    `;
     return;
   }
 
-  grid.innerHTML = lista.map(i=>`
-<div class="card" onclick="abrirProduto('${i.id}')">
-      <div style="position:relative">
-        ${i.promocao_ativa ? `<div class="badge">Promoção</div>`:""}
-<img 
-  src="${extrairImagens(i.imagem_url)[0] || ''}" 
-  data-galeria="${extrairImagens(i.imagem_url).join('|')}"
-  class="card-img-loop">
-      </div>
-      <div class="card-body">
-<strong class="item-nome">${i.nome}</strong>
-
-  ${
-    avaliacoesPorItem[i.id]
-      ? `
-        <div class="card-info-extra">
-          <div class="card-stars">
-            ${"★".repeat(
-              Math.round(avaliacoesPorItem[i.id].soma / avaliacoesPorItem[i.id].total)
-            )}
-            ${"☆".repeat(
-              5 - Math.round(avaliacoesPorItem[i.id].soma / avaliacoesPorItem[i.id].total)
-            )}
-          </div>
-
-          ${
-            i.tipo === "PRODUTO"
-              ? `<span class="card-vendidos">• ${vendasPorProduto[i.id] || 0} vendidos</span>`
-              : `<span>• ${avaliacoesPorItem[i.id].total} avaliações</span>`
-          }
-        </div>
-      `
-      : ""
-  }
-
-  <div class="meta">
-    <span>
-      ${
-        i.tipo === "SERVICO"
-          ? `⏱ ${i.duracao_minutos || 0} min`
-          : i.controla_estoque
-            ? `Em estoque: ${i.estoque_atual}`
-            : `Estoque livre`
-      }
-    </span>
-<span class="price">
-  ${
-    i.promocao_ativa && i.preco_promocional
-      ? `
-        <span class="old">
-          R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-        </span>
-        <span style="color:var(--primary)">
-          R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-        </span>
-      `
-      : `
-        R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-      `
-  }
-</span>
-
-  </div>
-
-<button onclick="event.stopPropagation(); acao('${i.id}','${i.tipo}', this)">
-    ${i.tipo==="SERVICO"
-      ? (i.preco > 0 ? "Agendar" : "Orçamento")
-      : "Comprar"}
-  </button>
-
-      </div>
-    </div>
-  `).join("");
+  carregarProximaPagina();
 }
 
 function setTab(t){
-  tipoAtual=t;
-  tabServicos.classList.toggle("active",t==="SERVICO");
-  tabProdutos.classList.toggle("active",t==="PRODUTO");
-  render();
+  tipoAtual = t;
+  tabServicos.classList.toggle("active", t === "SERVICO");
+  tabProdutos.classList.toggle("active", t === "PRODUTO");
+  render(true); // 🔥 reseta paginação
 }
+
 
 function acao(id, tipo){
   const item = todos.find(p => p.id === id);
@@ -2070,9 +2028,12 @@ function pararAutoplayMobile(){
 }
 
 function ativarLoopCards(){
-  if (window.innerWidth >= 1200) return; // desktop NÃO faz loop
+  if (window.innerWidth >= 1200) return;
 
   document.querySelectorAll(".card-img-loop").forEach(img => {
+    if (img.dataset.loopAtivo) return; // 🔒 trava
+    img.dataset.loopAtivo = "1";
+
     const galeria = img.dataset.galeria?.split("|") || [];
     if (galeria.length <= 1) return;
 
@@ -2084,10 +2045,6 @@ function ativarLoopCards(){
     }, 3000);
   });
 }
-
-window.addEventListener("load", ativarLoopCards);
-window.addEventListener("resize", ativarLoopCards);
-
 
 
 function solicitarOrcamentoWhats(){
@@ -2118,9 +2075,94 @@ function solicitarOrcamentoWhats(){
 
 
 
+function carregarProximaPagina(){
+  if(carregandoScroll) return;
+  carregandoScroll = true;
+
+  const inicio = paginaAtual * TAMANHO_PAGINA;
+  const fim = inicio + TAMANHO_PAGINA;
+
+  const lote = itensVisiveis.slice(inicio, fim);
+
+  if(!lote.length){
+    carregandoScroll = false;
+    return;
+  }
+
+  const html = lote.map(i => `
+    <div class="card" onclick="abrirProduto('${i.id}')">
+      <div style="position:relative">
+        ${i.promocao_ativa ? `<div class="badge">Promoção</div>` : ""}
+        <img 
+          loading="lazy"
+          src="${extrairImagens(i.imagem_url)[0] || ''}"
+          data-galeria="${extrairImagens(i.imagem_url).join('|')}"
+          class="card-img-loop">
+      </div>
+
+      <div class="card-body">
+        <strong class="item-nome">${i.nome}</strong>
+
+        <div class="meta">
+          <span>
+            ${
+              i.tipo === "SERVICO"
+                ? `⏱ ${i.duracao_minutos || 0} min`
+                : i.controla_estoque
+                  ? `Em estoque: ${i.estoque_atual}`
+                  : `Estoque livre`
+            }
+          </span>
+
+          <span class="price">
+            R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+          </span>
+        </div>
+
+        <button onclick="event.stopPropagation(); acao('${i.id}','${i.tipo}')">
+          ${i.tipo==="SERVICO"
+            ? (i.preco > 0 ? "Agendar" : "Orçamento")
+            : "Comprar"}
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  grid.insertAdjacentHTML("beforeend", html);
+
+  paginaAtual++;
+  carregandoScroll = false;
+
+  ativarLoopCards(); // mantém sua animação
+}
+window.addEventListener("scroll", () => {
+  const scrollPos = window.innerHeight + window.scrollY;
+  const limite = document.body.offsetHeight - 400;
+
+  if(scrollPos >= limite){
+    carregarProximaPagina();
+  }
+
+  controlarBotaoTopo();
+});
 
 
+function controlarBotaoTopo(){
+  const btn = document.getElementById("btnTopo");
+  if(window.scrollY > 600){
+    btn.style.display = "block";
+  }else{
+    btn.style.display = "none";
+  }
+}
 
+function voltarTopo(){
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+busca.addEventListener("input", () => {
+  render(true);
+});
 
   
   
@@ -2250,6 +2292,7 @@ function solicitarOrcamentoWhats(){
 <div class="modal" id="imgPopup" onclick="pararAutoplayMobile(); this.style.display='none'">
   <img id="imgPopupView">
 </div>
+<button id="btnTopo" onclick="voltarTopo()">⬆</button>
 
 </body>
 </html>
