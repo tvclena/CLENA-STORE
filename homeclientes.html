@@ -1460,14 +1460,30 @@ function setTab(t){
   render();
 }
 
-function acao(id,tipo){
-  if(tipo==="SERVICO"){
+function acao(id, tipo){
+  const item = todos.find(p => p.id === id);
+  if(!item) return;
+
+  // 👉 SERVIÇO COM PREÇO
+  if(tipo === "SERVICO" && item.preco > 0){
     location.href = `agendar.html?l=${lojaId}&servico=${id}`;
-  } else {
-    produtoAtual = todos.find(p => p.id === id);
+    return;
+  }
+
+  // 👉 SERVIÇO SEM PREÇO = ORÇAMENTO (WhatsApp)
+  if(tipo === "SERVICO" && item.preco <= 0){
+    produtoAtual = item;
+    solicitarOrcamentoWhats();
+    return;
+  }
+
+  // 👉 PRODUTO
+  if(tipo === "PRODUTO"){
+    produtoAtual = item;
     adicionarAoCarrinho();
   }
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   mapearModal();   // 🔥 PRIMEIRO
   load();          // 🔥 DEPOIS
@@ -1603,34 +1619,6 @@ function configurarBotaoAcaoModal(){
   btn.onclick = solicitarOrcamentoWhats;
   btn.style.display = "block";
 }
-function solicitarOrcamentoWhats(){
-  return () => {
-    const cliente = JSON.parse(localStorage.getItem("CLIENTE_LOJA") || "{}");
-
-    const nomeCliente = cliente.nome || "Cliente";
-    const whatsappCliente = cliente.whatsapp || "não informado";
-
-    const mensagem = encodeURIComponent(`
-Olá! Gostaria de solicitar um orçamento.
-
-📌 Serviço: ${produtoAtual.nome}
-📝 Descrição: ${produtoAtual.descricao || "—"}
-
-👤 Cliente: ${nomeCliente}
-📱 WhatsApp: ${whatsappCliente}
-`);
-
-    const lojaLink = document.getElementById("btnWhatsLoja")?.href;
-
-    if(!lojaLink){
-      alert("WhatsApp da loja não disponível");
-      return;
-    }
-
-    window.open(lojaLink + `&text=${mensagem}`, "_blank");
-  };
-}
-
 
 
 function fecharProduto(){
