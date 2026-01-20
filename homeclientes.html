@@ -1381,7 +1381,10 @@ const lista = todos
 <div class="card" onclick="abrirProduto('${i.id}')">
       <div style="position:relative">
         ${i.promocao_ativa ? `<div class="badge">Promoção</div>`:""}
-<img src="${extrairImagens(i.imagem_url)[0] || ''}">
+<img 
+  src="${extrairImagens(i.imagem_url)[0] || ''}" 
+  data-galeria="${extrairImagens(i.imagem_url).join('|')}"
+  class="card-img-loop">
       </div>
       <div class="card-body">
 <strong class="item-nome">${i.nome}</strong>
@@ -1495,15 +1498,20 @@ mpImagemMobile.src = galeria[0] || "";
   mpNome.innerText = produtoAtual.nome;
   mpDescricao.innerText = produtoAtual.descricao || "";
 mpImagemMobile.onclick = () => {
-  if(!galeria.length) return;
+  if (!galeria.length) return;
 
-imgIndex = galeria.length > 1 ? 1 : 0;
+  imgIndex = 0;
+
   const popup = document.getElementById("imgPopup");
   const view  = document.getElementById("imgPopupView");
 
   view.src = galeria[imgIndex];
   popup.style.display = "flex";
+
+  // autoplay no fullscreen mobile
+  iniciarAutoplayMobile(view);
 };
+
 
   // preço
   if (produtoAtual.promocao_ativa && produtoAtual.preco_promocional) {
@@ -2057,7 +2065,52 @@ function pararAutoplay(){
 }
 
 
+let autoplayMobile = null;
 
+function iniciarAutoplayMobile(imgEl){
+  pararAutoplayMobile();
+
+  autoplayMobile = setInterval(() => {
+    imgIndex = (imgIndex + 1) % galeria.length;
+    imgEl.src = galeria[imgIndex];
+  }, 2500);
+}
+
+function pararAutoplayMobile(){
+  if(autoplayMobile){
+    clearInterval(autoplayMobile);
+    autoplayMobile = null;
+  }
+}
+
+function ativarLoopCards(){
+  if (window.innerWidth >= 1200) return; // desktop NÃO faz loop
+
+  document.querySelectorAll(".card-img-loop").forEach(img => {
+    const galeria = img.dataset.galeria?.split("|") || [];
+    if (galeria.length <= 1) return;
+
+    let idx = 0;
+
+    setInterval(() => {
+      idx = (idx + 1) % galeria.length;
+      img.src = galeria[idx];
+    }, 3000);
+  });
+}
+
+window.addEventListener("load", ativarLoopCards);
+window.addEventListener("resize", ativarLoopCards);
+
+
+
+
+
+
+
+
+
+  
   
 
 
@@ -2182,7 +2235,7 @@ function pararAutoplay(){
   </div>
 </div>
 <!-- POPUP IMAGEM FULLSCREEN (MOBILE) -->
-<div class="modal" id="imgPopup" onclick="this.style.display='none'">
+<div class="modal" id="imgPopup" onclick="pararAutoplayMobile(); this.style.display='none'">
   <img id="imgPopupView">
 </div>
 
