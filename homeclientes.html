@@ -171,15 +171,18 @@ body{margin:0;background:var(--bg);padding:16px}
 .card-body strong{
   display:block;
   margin-bottom:6px;
+  color: var(--text); /* 🔥 SUPABASE MANDA */
 }
+
 
 .meta{
   display:flex;
   justify-content:space-between;
   font-size:12px;
-  color:var(--muted);
+  color: color-mix(in srgb, var(--text) 60%, #9ca3af);
   margin-bottom:10px;
 }
+
 
 .price{font-weight:900}
 
@@ -1047,6 +1050,7 @@ body.modal-open{
   color:var(--text) !important;
 }
 
+/* ===== COR DO TEXTO DO CARD (SUPABASE) ===== */
 .card{
   background:linear-gradient(
     180deg,
@@ -1054,7 +1058,9 @@ body.modal-open{
     color-mix(in srgb, var(--bg) 96%, #d1d5db)
   );
   border:1px solid var(--border);
+  color: var(--text); /* 🔥 ESSENCIAL */
 }
+
 
 
 
