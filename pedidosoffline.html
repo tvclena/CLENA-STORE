@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Pedidos Offline • CLENA</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --radius:20px;
+  --shadow:0 18px 45px rgba(0,0,0,.08);
+}
+
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
+
+.header{
+  background:#fff;
+  padding:22px;
+  border-radius:22px;
+  box-shadow:var(--shadow);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px
+}
+
+.brand strong{font-size:22px;font-weight:900}
+.brand span{font-size:12px;color:var(--muted)}
+
+.filters{
+  background:#fff;
+  padding:16px;
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  display:grid;
+  grid-template-columns:1fr 220px;
+  gap:14px;
+  margin-bottom:22px
+}
+
+.filters input,
+.filters select{
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-weight:600;
+  font-size:14px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:var(--shadow);
+  margin-bottom:28px
+}
+
+.section-title{
+  font-size:14px;
+  font-weight:900;
+  margin:22px 0 10px;
+  display:flex;
+  align-items:center;
+  gap:8px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px
+}
+
+.small{font-size:12px;color:var(--muted)}
+.bold{font-weight:800}
+.value{font-size:16px;font-weight:900}
+
+.badge{
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+  display:inline-block
+}
+
+.PENDENTE{background:#fff7ed;color:#9a3412}
+.APROVADO{background:#dcfce7;color:#166534}
+.CANCELADO_LOJA{background:#fee2e2;color:#991b1b}
+.CANCELADO_CLIENTE{background:#fde68a;color:#92400e}
+
+.item{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  margin-top:14px
+}
+
+.item img{
+  width:70px;height:70px;
+  border-radius:16px;
+  object-fit:cover;
+  border:1px solid var(--border)
+}
+
+.actions{
+  display:flex;
+  gap:14px;
+  margin-top:24px
+}
+
+button{
+  flex:1;
+  padding:16px;
+  border-radius:16px;
+  border:none;
+  font-weight:900;
+  cursor:pointer
+}
+
+.save{background:#111;color:#fff}
+.print{background:#ff6a00;color:#fff}
+.close{background:#f3f4f6}
+
+select.status{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-weight:700;
+  width:100%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="brand">
+    <strong>CLENA</strong>
+    <span>Pedidos Offline</span>
+  </div>
+  <i class="ri-shopping-bag-3-fill" style="font-size:28px;color:#ff6a00"></i>
+</div>
+
+<div class="filters">
+  <input id="busca" placeholder="Buscar cliente..." />
+  <select id="filtroStatus">
+    <option value="pendente_pagamento">PENDENTES</option>
+    <option value="">TODOS</option>
+    <option value="pagamento_aprovado">APROVADOS</option>
+    <option value="cancelado_loja">CANCELADO LOJA</option>
+    <option value="cancelado_cliente">CANCELADO CLIENTE</option>
+  </select>
+</div>
+
+<div id="lista"></div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lista = document.getElementById("lista");
+const busca = document.getElementById("busca");
+const filtroStatus = document.getElementById("filtroStatus");
+
+const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+const statusMap = {
+  pendente_pagamento:{label:"PENDENTE", class:"PENDENTE"},
+  pagamento_aprovado:{label:"APROVADO", class:"APROVADO"},
+  cancelado_loja:{label:"CANCELADO PELA LOJA", class:"CANCELADO_LOJA"},
+  cancelado_cliente:{label:"CANCELADO PELO CLIENTE", class:"CANCELADO_CLIENTE"}
+};
+
+async function carregar(){
+  let q = sb.from("pedidos_offline").select("*").order("created_at",{ascending:false});
+
+  if(filtroStatus.value)
+    q = q.eq("status", filtroStatus.value);
+
+  const { data } = await q;
+
+  const termo = busca.value.toLowerCase();
+
+  const filtrados = (data||[]).filter(p =>
+    p.cliente_nome.toLowerCase().includes(termo)
+  );
+
+  lista.innerHTML = filtrados.map(p=>{
+    const itens = JSON.parse(p.itens||"[]");
+    const st = statusMap[p.status] || {};
+
+    return `
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="small">Pedido</div>
+          <div class="bold">#${p.id}</div>
+        </div>
+        <div>
+          <div class="small">Status</div>
+          <span class="badge ${st.class}">${st.label}</span>
+        </div>
+        <div>
+          <div class="small">Data</div>
+          <div class="bold">${new Date(p.created_at).toLocaleString("pt-BR")}</div>
+        </div>
+      </div>
+
+      <div class="section-title">Cliente</div>
+      <div class="grid">
+        <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
+        <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
+      </div>
+
+      <div class="section-title">Itens</div>
+      ${itens.map(i=>`
+        <div class="item">
+          <img src="https://via.placeholder.com/150?text=Produto">
+          <div>
+            <div class="bold">${i.nome}</div>
+            <div class="small">${i.quantidade} × ${money(i.preco_unitario)}</div>
+            <div class="value">${money(i.subtotal)}</div>
+          </div>
+        </div>
+      `).join("")}
+
+      <div class="section-title">Pagamento</div>
+      <div class="grid">
+        <div>
+          <div class="small">Valor Total</div>
+          <div class="value">${money(p.total)}</div>
+        </div>
+        <div>
+          <div class="small">Alterar Status</div>
+          <select class="status" onchange="atualizarStatus('${p.id}', this.value)">
+            ${Object.keys(statusMap).map(s=>`
+              <option value="${s}" ${s===p.status?'selected':''}>
+                ${statusMap[s].label}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="print" onclick="window.print()">Imprimir</button>
+        <button class="close" onclick="this.closest('.card').remove()">Fechar</button>
+      </div>
+    </div>
+    `;
+  }).join("");
+}
+
+async function atualizarStatus(id, status){
+  await sb.from("pedidos_offline")
+    .update({ status })
+    .eq("id", id);
+
+  carregar();
+}
+
+busca.oninput = carregar;
+filtroStatus.onchange = carregar;
+
+carregar();
+</script>
+
+</body>
+</html>
