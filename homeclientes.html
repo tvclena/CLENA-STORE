@@ -1419,8 +1419,8 @@ const lista = todos
         i.tipo === "SERVICO"
           ? `⏱ ${i.duracao_minutos || 0} min`
           : i.controla_estoque
-            ? `📦 Estoque: ${i.estoque_atual}`
-            : `📦 Estoque livre`
+            ? `Em estoque: ${i.estoque_atual}`
+            : `Estoque livre`
       }
     </span>
 <span class="price">
