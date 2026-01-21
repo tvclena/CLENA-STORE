@@ -182,6 +182,32 @@ body{margin:0;background:var(--bg);padding:16px}
   color: color-mix(in srgb, var(--text) 60%, #9ca3af);
   margin-bottom:10px;
 }
+.cart-fab{
+  position:absolute;
+  right:10px;
+  bottom:10px;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:.2s;
+  z-index:5;
+}
+
+.cart-fab i{
+  color:#fff;
+  font-size:18px;
+}
+
+.cart-fab:hover{
+  transform:scale(1.08);
+  background:var(--primary);
+}
 
 
 .price{font-weight:900}
@@ -2132,11 +2158,95 @@ function carregarProximaPagina(){
 
 const html = lote.map(i => {
 
-  const customizacao = detectarCustomizacao(i.nome);
+const customizacao = detectarCustomizacao(i.nome);
 
-  const onclick = customizacao
-    ? `abrirCustomizacao('${customizacao}', '${i.id}')`
-    : `abrirProduto('${i.id}')`;
+const podeCarrinho =
+  i.tipo === "PRODUTO" &&
+  !customizacao;
+
+const onclickCard = customizacao
+  ? `abrirCustomizacao('${customizacao}', '${i.id}')`
+  : `abrirProduto('${i.id}')`;
+
+return `
+<div class="card" onclick="${onclickCard}">
+  <div style="position:relative">
+
+    ${
+      i.promocao_ativa && i.preco_promocional
+        ? `<div class="badge">
+            -${calcularDescontoPercentual(i.preco, i.preco_promocional)}%
+          </div>`
+        : ""
+    }
+
+    <img 
+      loading="lazy"
+      src="${extrairImagens(i.imagem_url)[0] || ''}"
+      data-galeria="${extrairImagens(i.imagem_url).join('|')}"
+      class="card-img-loop"
+    >
+
+    ${
+      podeCarrinho
+        ? `
+        <div class="cart-fab"
+             onclick="event.stopPropagation(); adicionarDireto('${i.id}')">
+          <i class="ri-shopping-cart-2-line"></i>
+        </div>`
+        : ""
+    }
+
+  </div>
+
+  <div class="card-body">
+
+    <strong class="item-nome">
+      ${i.nome.replace(/#[^#]+#/g, "").trim()}
+    </strong>
+
+    <div class="card-info-extra">
+      <span class="card-stars">
+        ${
+          avaliacoesPorItem[i.id]
+            ? "★".repeat(Math.round(avaliacoesPorItem[i.id].soma / avaliacoesPorItem[i.id].total))
+            : "☆☆☆☆☆"
+        }
+      </span>
+      <span class="card-vendidos">
+        ${vendasPorProduto[i.id] || 0} vendidos
+      </span>
+    </div>
+
+    <div class="meta">
+      <span>
+        ${
+          i.controla_estoque
+            ? `Em estoque: ${i.estoque_atual}`
+            : `Estoque livre`
+        }
+      </span>
+
+      <span class="price">
+        ${
+          i.promocao_ativa && i.preco_promocional
+            ? `
+              <span class="old">
+                R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+              </span>
+              R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+            `
+            : `
+              R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+            `
+        }
+      </span>
+    </div>
+
+  </div>
+</div>
+`;
+
 
   return `
     <div class="card" onclick="${onclick}">
@@ -2281,6 +2391,13 @@ function calcularDescontoPercentual(precoOriginal, precoPromocional){
   return Math.round(desconto);
 }
 
+function adicionarDireto(id){
+  const item = todos.find(p => p.id === id);
+  if(!item || item.tipo !== "PRODUTO") return;
+
+  produtoAtual = item;
+  adicionarAoCarrinho();
+}
 
 
 
