@@ -314,13 +314,19 @@ let nomeLojaTxt="SUA LOJA";
 
 /* ===== ESTRELAS ===== */
 function criarEstrelas(){
-  const s=document.getElementById("stars");
-  for(let i=0;i<60;i++){
-    const e=document.createElement("div");
-    e.className="star";
-    e.style.left=Math.random()*100+"%";
-    e.style.animationDuration=(8+Math.random()*12)+"s";
-    e.style.opacity=Math.random();
+  const s = document.getElementById("stars");
+  for(let i = 0; i < 120; i++){
+    const e = document.createElement("div");
+    e.className = "star";
+
+    const size = 1 + Math.random() * 2;
+    e.style.width = size + "px";
+    e.style.height = size + "px";
+
+    e.style.left = Math.random() * 100 + "%";
+    e.style.opacity = 0.4 + Math.random() * 0.6;
+    e.style.animationDuration = (6 + Math.random() * 10) + "s";
+
     s.appendChild(e);
   }
 }
