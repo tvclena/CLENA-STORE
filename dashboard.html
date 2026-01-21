@@ -602,8 +602,6 @@ let user = null;
 let profile = null;
 let fotoBlob = null; // ✅ vamos enviar blob reduzido
 
-/* ================= AUTH ================= */
-/* ================= AUTH ================= */
 async function proteger(){
   try{
     const { data:{ session } } = await sb.auth.getSession();
@@ -615,16 +613,20 @@ async function proteger(){
 
     user = session.user;
 
+    // ✅ CONTEXTO GLOBAL DO APP (ESSENCIAL)
+    window.APP_CONTEXT = {
+      userId: user.id,
+      email: user.email
+    };
+
   }catch(err){
     console.error("Erro na sessão:", err);
   }finally{
-    // 🔐 GARANTE que o overlay SOME SEMPRE
     overlay.style.display = "none";
-
-    // carrega perfil sem travar UI
     carregarPerfil().catch(e=>console.warn(e));
   }
 }
+
 
 
 proteger();
