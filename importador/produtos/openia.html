@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Importador de Produtos • CLENA</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:Inter;
+}
+
+body{
+  margin:0;
+  background:#f4f6fb;
+  color:#111827;
+}
+
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --card:#ffffff;
+  --muted:#6b7280;
+}
+
+.container{
+  max-width:900px;
+  margin:40px auto;
+  background:var(--card);
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  padding:28px;
+}
+
+h1{
+  margin:0 0 6px;
+  font-size:22px;
+  font-weight:800;
+}
+
+.subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+}
+
+.box{
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:30px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.box:hover{
+  border-color:var(--primary);
+  background:rgba(255,106,0,.03);
+}
+
+.box input{
+  display:none;
+}
+
+.box strong{
+  color:var(--primary);
+}
+
+.preview{
+  margin-top:20px;
+  font-size:13px;
+  color:#374151;
+}
+
+button{
+  margin-top:20px;
+  width:100%;
+  height:48px;
+  border-radius:999px;
+  border:none;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.btn-primary{
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+}
+
+.btn-primary:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.output{
+  margin-top:30px;
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:20px;
+  border-radius:14px;
+  font-size:12px;
+  max-height:420px;
+  overflow:auto;
+  white-space:pre-wrap;
+}
+
+.footer{
+  margin-top:20px;
+  font-size:12px;
+  color:var(--muted);
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Importador de Produtos</h1>
+  <div class="subtitle">
+    Gera SQL automaticamente a partir de planilha Excel.<br>
+    Imagens ausentes podem ser geradas por IA (quando ativado).
+  </div>
+
+  <!-- UPLOAD -->
+  <label class="box">
+    <input type="file" id="file" accept=".xlsx">
+    <div>
+      📄 Arraste ou <strong>clique para selecionar</strong> a planilha<br>
+      <span class="subtitle">Formato .xlsx • Aba: produtos</span>
+    </div>
+  </label>
+
+  <!-- PREVIEW -->
+  <div class="preview" id="preview"></div>
+
+  <!-- BOTÃO -->
+  <button class="btn-primary" id="btnGerar" onclick="processar()">
+    🚀 Gerar SQL
+  </button>
+
+  <!-- SAÍDA -->
+  <pre class="output" id="saida" style="display:none"></pre>
+
+  <div class="footer">
+    CLENA • Importação segura e auditável
+  </div>
+</div>
+
+<script>
+async function processar(){
+  const fileInput = document.getElementById("file");
+  const preview = document.getElementById("preview");
+  const saida = document.getElementById("saida");
+  const btn = document.getElementById("btnGerar");
+
+  if(!fileInput.files.length){
+    alert("Selecione uma planilha");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerText = "⏳ Processando planilha...";
+
+  try{
+    const file = fileInput.files[0];
+    const buffer = await file.arrayBuffer();
+
+    const wb = XLSX.read(buffer);
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    preview.innerHTML = `✔ ${rows.length} itens encontrados na planilha`;
+
+    const res = await fetch("/api/importar-produtos",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ rows })
+    });
+
+    const json = await res.json();
+
+    if(!json.sql){
+      throw new Error("Falha ao gerar SQL");
+    }
+
+    saida.style.display = "block";
+    saida.textContent = json.sql;
+
+    btn.innerText = "✅ SQL gerado com sucesso";
+
+  }catch(err){
+    console.error(err);
+    alert("Erro ao processar a planilha");
+    btn.innerText = "❌ Erro";
+  }
+
+  btn.disabled = false;
+}
+</script>
+
+</body>
+</html>
