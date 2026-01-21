@@ -2,50 +2,90 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Importador SQL • CLENA</title>
+<title>Importador de Produtos • CLENA</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:#f4f6fb;color:#111827}
+*{
+  box-sizing:border-box;
+  font-family:Inter;
+}
+
+body{
+  margin:0;
+  background:#f4f6fb;
+  color:#111827;
+}
 
 :root{
   --primary:#ff6a00;
   --border:#e5e7eb;
-  --card:#fff;
+  --card:#ffffff;
   --muted:#6b7280;
-  --ok:#16a34a;
-  --warn:#f59e0b;
-  --err:#dc2626;
 }
 
 .container{
-  max-width:1200px;
+  max-width:900px;
   margin:40px auto;
   background:var(--card);
-  border-radius:18px;
-  box-shadow:0 15px 40px rgba(0,0,0,.08);
-  padding:30px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  padding:28px;
 }
 
-h1{margin:0;font-size:24px;font-weight:800}
-.subtitle{font-size:13px;color:var(--muted);margin-bottom:18px}
+h1{
+  margin:0 0 6px;
+  font-size:22px;
+  font-weight:800;
+}
 
-input,button{
-  height:44px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  padding:0 14px;
-  font-size:14px;
+.subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+}
+
+.box{
+  border:2px dashed var(--border);
+  border-radius:14px;
+  padding:30px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.box:hover{
+  border-color:var(--primary);
+  background:rgba(255,106,0,.03);
+}
+
+.box input{
+  display:none;
+}
+
+.box strong{
+  color:var(--primary);
+}
+
+.preview{
+  margin-top:20px;
+  font-size:13px;
+  color:#374151;
 }
 
 button{
-  cursor:pointer;
-  font-weight:800;
+  margin-top:20px;
+  width:100%;
+  height:48px;
+  border-radius:999px;
   border:none;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
 }
 
 .btn-primary{
@@ -53,169 +93,115 @@ button{
   color:#fff;
 }
 
-.btn-secondary{
+.btn-primary:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.output{
+  margin-top:30px;
   background:#0f172a;
-  color:#fff;
-}
-
-.btn-danger{
-  background:#dc2626;
-  color:#fff;
-}
-
-.row{display:flex;gap:12px;flex-wrap:wrap}
-
-.box{
-  border:2px dashed var(--border);
-  border-radius:16px;
-  padding:30px;
-  text-align:center;
-  cursor:pointer;
-}
-.box:hover{border-color:var(--primary)}
-
-.hidden{display:none}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
-  font-size:12px;
-}
-th,td{
-  border-bottom:1px solid var(--border);
-  padding:8px;
-  text-align:left;
-}
-th{background:#f9fafb;font-weight:800}
-
-.tag{
-  padding:3px 8px;
-  border-radius:999px;
-  font-size:10px;
-  font-weight:800;
-  color:#fff;
-}
-.ok{background:var(--ok)}
-.warn{background:var(--warn)}
-.err{background:var(--err)}
-
-pre{
-  background:#020617;
   color:#e5e7eb;
   padding:20px;
-  border-radius:16px;
-  max-height:400px;
-  overflow:auto;
+  border-radius:14px;
   font-size:12px;
+  max-height:420px;
+  overflow:auto;
   white-space:pre-wrap;
 }
 
 .footer{
-  display:flex;
-  gap:12px;
   margin-top:20px;
+  font-size:12px;
+  color:var(--muted);
+  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div class="container" id="login">
-  <h1>Acesso restrito</h1>
-  <div class="subtitle">Importador SQL protegido</div>
-  <input type="password" id="senha" placeholder="Senha de acesso">
-  <button class="btn-primary" onclick="login()">Entrar</button>
-</div>
-
-<!-- APP -->
-<div class="container hidden" id="app">
-  <div class="row" style="justify-content:space-between">
-    <div>
-      <h1>Importador SQL</h1>
-      <div class="subtitle">Planilha → SQL Supabase</div>
-    </div>
-    <button class="btn-danger" onclick="logout()">Sair</button>
+<div class="container">
+  <h1>Importador de Produtos</h1>
+  <div class="subtitle">
+    Gera SQL automaticamente a partir de planilha Excel.<br>
+    Imagens ausentes podem ser geradas por IA (quando ativado).
   </div>
 
+  <!-- UPLOAD -->
   <label class="box">
-    <input type="file" id="file" accept=".xlsx" hidden>
-    📄 Clique para selecionar a planilha
+    <input type="file" id="file" accept=".xlsx">
+    <div>
+      📄 Arraste ou <strong>clique para selecionar</strong> a planilha<br>
+      <span class="subtitle">Formato .xlsx • Aba: produtos</span>
+    </div>
   </label>
 
-  <div class="row" style="margin-top:14px">
-    <button class="btn-primary" onclick="processar()">Gerar SQL</button>
-    <button class="btn-secondary" onclick="copiar()">Copiar SQL</button>
-    <button class="btn-secondary" onclick="baixar()">Baixar .sql</button>
-  </div>
+  <!-- PREVIEW -->
+  <div class="preview" id="preview"></div>
 
-  <table id="preview" class="hidden"></table>
-  <pre id="sql" class="hidden"></pre>
+  <!-- BOTÃO -->
+  <button class="btn-primary" id="btnGerar" onclick="processar()">
+    🚀 Gerar SQL
+  </button>
+
+  <!-- SAÍDA -->
+  <pre class="output" id="saida" style="display:none"></pre>
+
+  <div class="footer">
+    CLENA • Importação segura e auditável
+  </div>
 </div>
 
 <script>
-/* ===== AUTH ===== */
-if(sessionStorage.getItem("auth")==="ok") liberar();
-
-async function login(){
-  const senha=document.getElementById("senha").value;
-  const res=await fetch("/api/auth-importador",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({password:senha})
-  });
-  if(!res.ok){alert("Senha inválida");return;}
-  sessionStorage.setItem("auth","ok");
-  liberar();
-}
-
-function liberar(){
-  login.classList.add("hidden");
-  app.classList.remove("hidden");
-}
-
-function logout(){
-  sessionStorage.clear();
-  location.reload();
-}
-
-/* ===== IMPORT ===== */
-let SQL_FINAL="";
-
 async function processar(){
-  const file=document.getElementById("file").files[0];
-  if(!file){alert("Selecione a planilha");return;}
+  const fileInput = document.getElementById("file");
+  const preview = document.getElementById("preview");
+  const saida = document.getElementById("saida");
+  const btn = document.getElementById("btnGerar");
 
-  const buf=await file.arrayBuffer();
-  const wb=XLSX.read(buf);
-  const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+  if(!fileInput.files.length){
+    alert("Selecione uma planilha");
+    return;
+  }
 
-  const res=await fetch("/api/importar-produtos",{method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({rows})
-  });
+  btn.disabled = true;
+  btn.innerText = "⏳ Processando planilha...";
 
-  const json=await res.json();
-  SQL_FINAL=json.sql;
+  try{
+    const file = fileInput.files[0];
+    const buffer = await file.arrayBuffer();
 
-  document.getElementById("preview").innerHTML=json.preview;
-  document.getElementById("preview").classList.remove("hidden");
-  document.getElementById("sql").textContent=json.sql;
-  document.getElementById("sql").classList.remove("hidden");
-}
+    const wb = XLSX.read(buffer);
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet);
 
-function copiar(){
-  navigator.clipboard.writeText(SQL_FINAL);
-  alert("SQL copiado");
-}
+    preview.innerHTML = `✔ ${rows.length} itens encontrados na planilha`;
 
-function baixar(){
-  const blob=new Blob([SQL_FINAL],{type:"text/sql"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="importacao.sql";
-  a.click();
+    const res = await fetch("/api/importar-produtos",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ rows })
+    });
+
+    const json = await res.json();
+
+    if(!json.sql){
+      throw new Error("Falha ao gerar SQL");
+    }
+
+    saida.style.display = "block";
+    saida.textContent = json.sql;
+
+    btn.innerText = "✅ SQL gerado com sucesso";
+
+  }catch(err){
+    console.error(err);
+    alert("Erro ao processar a planilha");
+    btn.innerText = "❌ Erro";
+  }
+
+  btn.disabled = false;
 }
 </script>
 
