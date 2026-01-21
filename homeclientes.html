@@ -1469,8 +1469,6 @@ if (servicosAtivos.length) {
 
 }
 async function carregarVendasProdutos(){
-  vendasPorProduto = {}; // 🔥 ZERA AQUI
-
   const { data, error } = await sb
     .from("pedidos_itens")
     .select(`
@@ -1491,10 +1489,7 @@ async function carregarVendasProdutos(){
   });
 }
 async function carregarAvaliacoesResumo(){
-  avaliacoesPorItem = {}; // 🔥 ZERA AQUI
-
   const { data, error } = await sb
-
     .from("avaliacoes_loja")
     .select("produto_id, nota");
 
@@ -2297,7 +2292,16 @@ return `
 </div>
 `;
 
- ""
+
+  return `
+    <div class="card" onclick="${onclick}">
+      <div style="position:relative">
+${
+  i.promocao_ativa && i.preco_promocional
+    ? `<div class="badge">
+         -${calcularDescontoPercentual(i.preco, i.preco_promocional)}%
+       </div>`
+    : ""
 }
         <img 
           loading="lazy"
