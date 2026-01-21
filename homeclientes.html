@@ -1483,6 +1483,27 @@ function abrirProduto(id){
   produtoAtual = todos.find(p => p.id === id);
   if(!produtoAtual) return;
 
+
+
+
+
+
+
+  
+// 🔥 REGRA POLAROID
+if (produtoAtual.nome.toLowerCase().includes("#polaroid#")) {
+  abrirPolaroidPopup(produtoAtual);
+  return;
+}
+
+
+
+
+
+
+
+  
+
 const imagens = extrairImagens(produtoAtual.imagem_url);
 
 galeria = extrairImagens(produtoAtual.imagem_url);
@@ -1498,7 +1519,7 @@ mpImagemMobile.src = galeria[0] || "";
 
 
   
-  mpNome.innerText = produtoAtual.nome;
+mpNome.innerText = limparNomePolaroid(produtoAtual.nome);
   mpDescricao.innerText = produtoAtual.descricao || "";
 mpImagemMobile.onclick = () => {
   if (!galeria.length) return;
@@ -2007,6 +2028,13 @@ function extrairImagens(imagem_url){
     .filter(Boolean);
 }
 
+
+
+
+  function limparNomePolaroid(nome){
+  return nome.replace(/#polaroid#/gi, "").trim();
+}
+
 function imgNext(){
   if(!galeria.length) return;
   imgIndex = (imgIndex + 1) % galeria.length;
@@ -2129,7 +2157,7 @@ function carregarProximaPagina(){
       </div>
 
       <div class="card-body">
-        <strong class="item-nome">${i.nome}</strong>
+<strong class="item-nome">${limparNomePolaroid(i.nome)}</strong>
 
         <div class="meta">
           <span>
@@ -2194,6 +2222,33 @@ busca.addEventListener("input", () => {
 
   
   
+function abrirPolaroidPopup(produto){
+  const modal = document.createElement("div");
+  modal.style.cssText = `
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    z-index:999999;
+    display:flex;
+  `;
+
+  const iframe = document.createElement("iframe");
+  iframe.src = `polaroid.html?produto=${produto.id}&l=${lojaId}`;
+  iframe.style.cssText = `
+    width:100%;
+    height:100%;
+    border:none;
+    background:#fff;
+  `;
+
+  modal.appendChild(iframe);
+
+  modal.onclick = () => modal.remove();
+
+  iframe.onclick = e => e.stopPropagation();
+
+  document.body.appendChild(modal);
+}
 
 
   
