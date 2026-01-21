@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monte seu Polaroid</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#111827;
+}
+
+*{box-sizing:border-box;font-family:Inter}
+body{
+  margin:0;
+  background:var(--bg);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+.header{
+  padding:14px 16px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.header strong{
+  font-size:16px;
+}
+
+.header button{
+  border:none;
+  background:none;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* ===== EDITOR ===== */
+.editor{
+  flex:1;
+  display:flex;
+  padding:16px;
+  gap:16px;
+}
+
+/* CANVAS */
+.canvas-area{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.polaroid{
+  width:280px;
+  height:360px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+  padding:12px;
+  position:relative;
+}
+
+.foto-area{
+  width:100%;
+  height:240px;
+  background:#e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
+
+.foto-area img{
+  max-width:100%;
+  max-height:100%;
+  cursor:grab;
+  touch-action:none;
+}
+
+.legenda{
+  height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+}
+
+/* EMOJI */
+.emoji{
+  position:absolute;
+  font-size:28px;
+  cursor:grab;
+  user-select:none;
+}
+
+/* ===== PAINEL ===== */
+.panel{
+  width:220px;
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.panel button,
+.panel input{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  font-weight:600;
+}
+
+.panel button.primary{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .editor{
+    flex-direction:column;
+  }
+  .panel{
+    width:100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <strong>Monte seu Polaroid</strong>
+  <button onclick="fechar()">✕ Fechar</button>
+</div>
+
+<div class="editor">
+
+  <div class="canvas-area">
+    <div class="polaroid" id="polaroid">
+      <div class="foto-area" id="fotoArea">
+        <span>📸 Adicione sua foto</span>
+      </div>
+      <div class="legenda" id="legenda"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <input type="file" accept="image/*" onchange="carregarFoto(event)">
+    <input type="text" placeholder="Digite um emoji 😀" oninput="adicionarEmoji(this.value)">
+    <button onclick="limparEmojis()">Remover emojis</button>
+    <button class="primary" onclick="enviarPedido()">Enviar pedido</button>
+  </div>
+
+</div>
+
+<script>
+let foto = null;
+let emojis = [];
+
+function fechar(){
+  window.parent?.postMessage({action:"closePolaroid"}, "*");
+  document.body.remove();
+}
+
+/* ===== FOTO ===== */
+function carregarFoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(file);
+  img.onload = () => {
+    const area = document.getElementById("fotoArea");
+    area.innerHTML = "";
+    area.appendChild(img);
+    tornarArrastavel(img);
+  };
+}
+
+/* ===== EMOJI ===== */
+function adicionarEmoji(valor){
+  if(!valor) return;
+
+  const emoji = document.createElement("div");
+  emoji.className = "emoji";
+  emoji.innerText = valor;
+  emoji.style.left = "50%";
+  emoji.style.top = "50%";
+
+  document.getElementById("polaroid").appendChild(emoji);
+  tornarArrastavel(emoji);
+
+  emojis.push(emoji);
+}
+
+function limparEmojis(){
+  emojis.forEach(e => e.remove());
+  emojis = [];
+}
+
+/* ===== DRAG ===== */
+function tornarArrastavel(el){
+  let x = 0, y = 0, dragging = false;
+
+  el.addEventListener("pointerdown", e => {
+    dragging = true;
+    x = e.clientX - el.offsetLeft;
+    y = e.clientY - el.offsetTop;
+    el.setPointerCapture(e.pointerId);
+  });
+
+  el.addEventListener("pointermove", e => {
+    if(!dragging) return;
+    el.style.left = e.clientX - x + "px";
+    el.style.top = e.clientY - y + "px";
+  });
+
+  el.addEventListener("pointerup", () => dragging = false);
+}
+
+/* ===== EXPORT ===== */
+function enviarPedido(){
+  html2canvas(document.getElementById("polaroid")).then(canvas => {
+    const img = canvas.toDataURL("image/png");
+    console.log("PREVIEW:", img);
+
+    alert("Polaroid pronto! (preview gerado)");
+  });
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+</body>
+</html>
