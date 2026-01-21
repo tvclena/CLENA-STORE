@@ -11,7 +11,6 @@
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  
 <style>
 :root{
   --primary:#ff6a00;
@@ -20,9 +19,6 @@
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
-  --success:#16a34a;
-  --warning:#f59e0b;
-  --danger:#ef4444;
   --radius:20px;
   --shadow:0 18px 45px rgba(0,0,0,.08);
 }
@@ -43,7 +39,7 @@ body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
 .brand span{font-size:12px;color:var(--muted)}
 
 .card{
-  background:var(--card);
+  background:#fff;
   border-radius:var(--radius);
   padding:24px;
   box-shadow:var(--shadow);
@@ -73,16 +69,13 @@ body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
   padding:6px 14px;
   border-radius:999px;
   font-size:12px;
-  font-weight:900
+  font-weight:900;
+  display:inline-block
 }
-.PAGO{background:#dcfce7;color:#166534}
-.PENDENTE_PAGAMENTO{background:#fff7ed;color:#9a3412}
-.CANCELADO{background:#fee2e2;color:#991b1b}
-.ERRO_PAGAMENTO{background:#fef2f2;color:#b91c1c}
-.CRIADO{background:#e0f2fe;color:#0369a1}
-.APROVED{background:#dcfce7;color:#166534}
-.PENDING{background:#fef3c7;color:#92400e}
-.REJEITADO{background:#fee2e2;color:#991b1b}
+.pago{background:#dcfce7;color:#166534}
+.pendente_pagamento{background:#fff7ed;color:#9a3412}
+.cancelado{background:#fee2e2;color:#991b1b}
+.manual{background:#fef3c7;color:#92400e}
 
 .item{
   display:flex;
@@ -111,45 +104,12 @@ button{
   cursor:pointer
 }
 .print{background:#111;color:#fff}
-.close{background:#f3f4f6}
 
 @media print{
-  body{
-    background:#fff;
-    padding:0;
-  }
-
-  /* esconde tudo */
-  body *{
-    visibility:hidden;
-  }
-
-  /* mostra apenas o pedido selecionado */
-  .print-only,
-  .print-only *{
-    visibility:visible;
-  }
-
-  .print-only{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-  }
-
-  /* remove botões e header */
-  .actions,
-  .header{
-    display:none !important;
-  }
-
-  .card{
-    box-shadow:none;
-    border-radius:0;
-    margin:0;
-  }
+  body *{visibility:hidden}
+  .print-only,.print-only *{visibility:visible}
+  .print-only{position:absolute;inset:0}
 }
-
 </style>
 </head>
 
@@ -174,151 +134,127 @@ const sb = supabase.createClient(
 const lista = document.getElementById("lista");
 const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
+function parseItensSeguro(itens){
+  if(Array.isArray(itens)) return itens;
+  if(typeof itens === "string"){
+    try { return JSON.parse(itens); } catch { return []; }
+  }
+  return [];
+}
+
 async function carregar(){
   const { data: auth } = await sb.auth.getUser();
   if(!auth?.user){
-    lista.innerHTML = "<div class='card'>Faça login para acessar os pedidos</div>";
+    lista.innerHTML = "<div class='card'>Faça login para acessar</div>";
     return;
   }
 
-  /* ================= LOJA ================= */
-  const { data: loja } = await sb
-    .from("user_profile")
-    .select("*")
-    .eq("user_id", auth.user.id)
-    .single();
-
-  /* ================= PEDIDOS ================= */
   const { data: pedidos } = await sb
     .from("pedidos")
     .select("*")
-    .eq("loja_id", auth.user.id)
-    .order("created_at",{ascending:false});
+    .eq("loja_id", auth.user.id);
 
-  if(!pedidos?.length){
-    lista.innerHTML = "<div class='card'>Nenhum pedido encontrado</div>";
-    return;
-  }
+  const ids = (pedidos||[]).map(p=>p.id);
 
-  const pedidosIds = pedidos.map(p=>p.id);
+  const { data: itens } = ids.length
+    ? await sb.from("pedidos_itens").select("*").in("pedido_id", ids)
+    : { data: [] };
 
-const { data: itens } = await sb
-  .from("pedidos_itens")
-  .select("*")
-  .in("pedido_id", pedidosIds);
+  const { data: pagamentos } = ids.length
+    ? await sb.from("movimentacoes_pagamento").select("*").in("pedido_id", ids)
+    : { data: [] };
 
-
-  const { data: pagamentos } = await sb
-    .from("movimentacoes_pagamento")
+  const { data: offline } = await sb
+    .from("pedidos_offline")
     .select("*")
-    .in("pedido_id", pedidosIds);
-if (!itens || !Array.isArray(itens)) {
-  lista.innerHTML = "<div class='card'>Erro ao carregar itens do pedido</div>";
-  return;
-}
+    .eq("loja_id", auth.user.id);
 
-const produtosIds = [...new Set(itens.map(i => i.produto_id))];
+  const pedidosUnificados = [
 
-const { data: produtos } = await sb
-  .from("produtos_servicos")
-  .select("id, imagem_url")
-  .in("id", produtosIds);
+    ...(pedidos||[]).map(p=>{
+      const its = itens.filter(i=>i.pedido_id===p.id);
+      const pg = pagamentos.find(x=>x.pedido_id===p.id);
+      return {
+        tipo:"online",
+        id:p.id,
+        data:p.created_at,
+        status: pg?.status==="APROVED" ? "pago" : "pendente_pagamento",
+        cliente_nome:p.cliente_nome,
+        cliente_whatsapp:p.cliente_whatsapp,
+        itens:its,
+        total:p.valor_total
+      };
+    }),
 
-const produtosMap = {};
-(produtos || []).forEach(p => {
-  produtosMap[p.id] = p;
-});
+    ...(offline||[]).map(p=>({
+      tipo:"offline",
+      id:p.id,
+      data:p.created_at,
+      status:p.status,
+      cliente_nome:p.cliente_nome,
+      cliente_whatsapp:p.cliente_whatsapp,
+      itens:parseItensSeguro(p.itens),
+      total:p.total
+    }))
 
-  lista.innerHTML = pedidos.map(p=>{
-    const its = itens.filter(i=>i.pedido_id===p.id);
-    const pg = pagamentos.find(m=>m.pedido_id===p.id);
+  ].sort((a,b)=>new Date(b.data)-new Date(a.data));
 
-    return `
-      <div class="card">
+  lista.innerHTML = pedidosUnificados.map(p=>`
+    <div class="card">
 
-        <div class="grid">
-          <div>
-            <div class="small">Pedido</div>
-            <div class="bold">#${p.id}</div>
-          </div>
-          <div>
-            <div class="small">Status</div>
-            <span class="badge ${p.status}">${p.status}</span>
-          </div>
-          <div>
-            <div class="small">Data</div>
-            <div class="bold">${new Date(p.created_at).toLocaleString("pt-BR")}</div>
-          </div>
+      <div class="grid">
+        <div>
+          <div class="small">Pedido</div>
+          <div class="bold">#${p.id}</div>
+          ${p.tipo==="offline" ? `<span class="badge manual">Manual</span>` : ``}
         </div>
-
-        <div class="section-title"><i class="ri-store-3-line"></i> Dados da Loja</div>
-        <div class="grid">
-          <div><div class="small">Negócio</div><div class="bold">${loja.negocio}</div></div>
-          <div><div class="small">Responsável</div><div class="bold">${loja.responsavel}</div></div>
-          <div><div class="small">WhatsApp</div><div class="bold">${loja.whatsapp}</div></div>
-          <div><div class="small">Endereço</div>
-            <div class="bold">${loja.rua}, ${loja.numero} – ${loja.bairro}<br>${loja.cidade}/${loja.uf} • CEP ${loja.cep}</div>
-          </div>
+        <div>
+          <div class="small">Status</div>
+          <span class="badge ${p.status}">${p.status}</span>
         </div>
-
-        <div class="section-title"><i class="ri-user-3-line"></i> Cliente</div>
-        <div class="grid">
-          <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
-          <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
+        <div>
+          <div class="small">Data</div>
+          <div class="bold">${new Date(p.data).toLocaleString("pt-BR")}</div>
         </div>
-
-        <div class="section-title"><i class="ri-shopping-cart-line"></i> Itens do Pedido</div>
-        ${its.map(i=>`
-          <div class="item">
-<img src="${produtosMap[i.produto_id]?.imagem_url || 'https://via.placeholder.com/150?text=Produto'}">
-            <div>
-              <div class="bold">${i.nome}</div>
-              <div class="small">${i.quantidade} × ${money(i.preco_unitario)}</div>
-              <div class="value">${money(i.subtotal)}</div>
-            </div>
-          </div>
-        `).join("")}
-
-        <div class="section-title"><i class="ri-bank-card-line"></i> Pagamento</div>
-        <div class="grid">
-          <div><div class="small">Status</div><div class="bold">${pg?.status || 'CRIADO'}</div></div>
-          <div><div class="small">Valor</div><div class="value">${money(p.valor_total)}</div></div>
-          <div><div class="small">Preference</div><div class="small">${pg?.mp_preference_id || '-'}</div></div>
-          <div><div class="small">Payment</div><div class="small">${pg?.mp_payment_id || '-'}</div></div>
-        </div>
-
-        <div class="actions">
-<button class="print" onclick="imprimirPedido(this)">Imprimir pedido</button>
-          <button class="close" onclick="this.closest('.card').remove()">Fechar</button>
-        </div>
-
       </div>
-    `;
-  }).join("");
+
+      <div class="section-title"><i class="ri-user-3-line"></i> Cliente</div>
+      <div class="grid">
+        <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
+        <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
+      </div>
+
+      <div class="section-title"><i class="ri-shopping-cart-line"></i> Itens</div>
+      ${p.itens.map(i=>`
+        <div class="item">
+          <img src="https://via.placeholder.com/150">
+          <div>
+            <div class="bold">${i.nome}</div>
+            <div class="small">${i.quantidade} × ${money(i.preco_unitario || i.subtotal/i.quantidade)}</div>
+            <div class="value">${money(i.subtotal)}</div>
+          </div>
+        </div>
+      `).join("")}
+
+      <div class="section-title"><i class="ri-bank-card-line"></i> Total</div>
+      <div class="value">${money(p.total)}</div>
+
+      <div class="actions">
+        <button class="print" onclick="imprimirPedido(this)">Imprimir</button>
+      </div>
+
+    </div>
+  `).join("");
 }
 
-carregar();
-carregar();
-
-function imprimirPedido(botao){
-  // remove marcação anterior
-  document.querySelectorAll('.card').forEach(c =>
-    c.classList.remove('print-only')
-  );
-
-  // marca somente o pedido clicado
-  const card = botao.closest('.card');
-  card.classList.add('print-only');
-
+function imprimirPedido(btn){
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('print-only'));
+  btn.closest('.card').classList.add('print-only');
   window.print();
-
-  // limpa após a impressão
-  setTimeout(() => {
-    card.classList.remove('print-only');
-  }, 500);
+  setTimeout(()=>btn.closest('.card').classList.remove('print-only'),500);
 }
-</script>
 
+carregar();
 </script>
 
 </body>
