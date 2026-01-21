@@ -20,9 +20,9 @@
 :root{
   --primary:#ff6a00;
   --secondary:#6b7280;
-  --text:#111827;
-  --card:#ffffff;
-  --border:#e5e7eb;
+  --text:#ffffff;
+  --card-bg:rgba(255,255,255,.12);
+  --border:rgba(255,255,255,.18);
 }
 
 *{
@@ -34,11 +34,31 @@
 body{
   margin:0;
   color:var(--text);
-  background:
-    radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 60%),
-    radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--primary) 25%, transparent), transparent 65%),
-    linear-gradient(180deg, color-mix(in srgb, var(--primary) 15%, #000), #000 60%);
+  background:#000;
   overflow-x:hidden;
+}
+
+/* ===== ESTRELAS ===== */
+.stars{
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  overflow:hidden;
+}
+
+.star{
+  position:absolute;
+  width:2px;
+  height:2px;
+  background:var(--primary);
+  border-radius:50%;
+  opacity:.6;
+  animation:fall linear infinite;
+}
+
+@keyframes fall{
+  from{transform:translateY(-10vh)}
+  to{transform:translateY(110vh)}
 }
 
 /* ===== HEADER ===== */
@@ -46,23 +66,17 @@ body{
   position:sticky;
   top:0;
   z-index:10;
-  backdrop-filter:blur(14px);
-  background:rgba(255,255,255,.9);
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(12px);
   padding:14px 16px;
   display:flex;
-  justify-content:space-between;
-  align-items:center;
-  box-shadow:0 6px 24px rgba(0,0,0,.18);
-}
-.header strong{
-  font-size:16px;
-  font-weight:900;
+  justify-content:flex-end;
 }
 .header button{
   border:none;
   background:none;
   font-size:14px;
-  font-weight:900;
+  font-weight:800;
   color:var(--primary);
 }
 
@@ -75,10 +89,12 @@ body{
 
 /* ===== EDITOR ===== */
 .editor{
-  background:rgba(255,255,255,.95);
+  background:var(--card-bg);
+  backdrop-filter:blur(18px);
   border-radius:28px;
   padding:18px;
-  box-shadow:0 25px 60px rgba(0,0,0,.35);
+  border:1px solid var(--border);
+  box-shadow:0 25px 60px rgba(0,0,0,.6);
 }
 
 /* ===== POLAROID ===== */
@@ -86,21 +102,19 @@ body{
   width:100%;
   max-width:300px;
   height:390px;
-  background:#fff;
-  border-radius:16px;
+  background:rgba(255,255,255,.95);
+  border-radius:18px;
   padding:14px;
   margin:0 auto 16px;
   position:relative;
   overflow:hidden;
-  box-shadow:0 25px 60px rgba(0,0,0,.35);
 }
 
-/* FOTO */
 .foto-area{
   width:100%;
   height:260px;
   background:#e5e7eb;
-  border-radius:12px;
+  border-radius:14px;
   position:relative;
   overflow:hidden;
   display:flex;
@@ -110,6 +124,7 @@ body{
   color:#6b7280;
   cursor:pointer;
 }
+
 .foto-area img{
   position:absolute;
   touch-action:none;
@@ -124,7 +139,7 @@ body{
   text-align:center;
   font-size:20px;
   font-weight:600;
-  word-break:break-word;
+  color:#111;
 }
 
 /* EMOJI */
@@ -141,20 +156,13 @@ body{
   inset:0;
   pointer-events:none;
   z-index:5;
-  opacity:.12;
-  background-image:
-    repeating-linear-gradient(
-      -30deg,
-      transparent 0 60px,
-      color-mix(in srgb, var(--secondary) 45%, transparent) 60px 90px
-    );
+  opacity:.15;
 }
 .watermark span{
   position:absolute;
   font-size:12px;
   font-weight:800;
   color:var(--secondary);
-  opacity:.35;
   transform:rotate(-30deg);
   white-space:nowrap;
 }
@@ -171,14 +179,15 @@ body{
   padding:13px;
   border-radius:16px;
   border:1px solid var(--border);
-  font-weight:800;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-weight:700;
 }
+.controls input::placeholder{color:#ddd}
 .controls button.primary{
   background:linear-gradient(135deg,var(--primary),var(--secondary));
-  color:#fff;
   border:none;
-  font-size:15px;
-  box-shadow:0 10px 25px color-mix(in srgb, var(--primary) 45%, transparent);
+  font-weight:900;
 }
 
 /* ===== GALERIA ===== */
@@ -188,7 +197,6 @@ body{
 .galeria h3{
   font-size:16px;
   font-weight:900;
-  color:#fff;
   margin-bottom:10px;
 }
 .grid{
@@ -197,10 +205,11 @@ body{
   gap:14px;
 }
 .item{
-  background:#fff;
+  background:var(--card-bg);
+  backdrop-filter:blur(12px);
   border-radius:18px;
   padding:8px;
-  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  border:1px solid var(--border);
   position:relative;
 }
 .item img{
@@ -223,8 +232,9 @@ body{
 
 <body>
 
+<div class="stars" id="stars"></div>
+
 <div class="header">
-  <strong id="nomeLoja">Monte seu Polaroid</strong>
   <button onclick="history.back()">✕ Fechar</button>
 </div>
 
@@ -240,7 +250,6 @@ body{
 
       <div class="legenda" id="legenda"></div>
 
-      <!-- MARCA D’ÁGUA -->
       <div class="watermark" id="watermark"></div>
     </div>
 
@@ -269,147 +278,147 @@ body{
 
 <script>
 /* ===== SUPABASE ===== */
-const sb = supabase.createClient(
+const sb=supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-
-const lojaId = new URLSearchParams(location.search).get("l");
-let nomeLojaTxt = "LOJA";
+const lojaId=new URLSearchParams(location.search).get("l");
+let nomeLojaTxt="SUA LOJA";
 
 (async()=>{
   if(!lojaId) return;
 
-  const { data: loja } = await sb
+  const {data:loja}=await sb
     .from("user_profile")
     .select("negocio")
-    .eq("user_id", lojaId)
+    .eq("user_id",lojaId)
     .maybeSingle();
 
   if(loja?.negocio){
-    nomeLojaTxt = loja.negocio.toUpperCase();
-    document.getElementById("nomeLoja").innerText = loja.negocio;
+    nomeLojaTxt=loja.negocio.toUpperCase();
   }
 
-  const { data: cfg } = await sb
+  const {data:cfg}=await sb
     .from("loja_config")
-    .select("primary_color, secondary_color, text_color")
-    .eq("user_id", lojaId)
+    .select("primary_color,secondary_color,text_color")
+    .eq("user_id",lojaId)
     .maybeSingle();
 
   if(cfg){
-    document.documentElement.style.setProperty("--primary", cfg.primary_color);
-    document.documentElement.style.setProperty("--secondary", cfg.secondary_color || cfg.text_color || "#6b7280");
+    document.documentElement.style.setProperty("--primary",cfg.primary_color);
+    document.documentElement.style.setProperty("--secondary",cfg.secondary_color||cfg.text_color||"#999");
+    criarEstrelas();
+    gerarMarca();
   }
-
-  gerarMarcaDagua();
 })();
 
-/* ===== MARCA D’ÁGUA ===== */
-function gerarMarcaDagua(){
-  const wm = document.getElementById("watermark");
-  wm.innerHTML = "";
+/* ===== ESTRELAS ===== */
+function criarEstrelas(){
+  const s=document.getElementById("stars");
+  for(let i=0;i<60;i++){
+    const e=document.createElement("div");
+    e.className="star";
+    e.style.left=Math.random()*100+"%";
+    e.style.animationDuration=(8+Math.random()*12)+"s";
+    e.style.opacity=Math.random();
+    s.appendChild(e);
+  }
+}
 
-  const linhas = 6;
-  const colunas = 3;
-
-  for(let i=0;i<linhas;i++){
-    for(let j=0;j<colunas;j++){
-      const s = document.createElement("span");
-      s.innerText = nomeLojaTxt;
-      s.style.top = `${i * 60}px`;
-      s.style.left = `${j * 110}px`;
+/* ===== MARCA ===== */
+function gerarMarca(){
+  const wm=document.getElementById("watermark");
+  wm.innerHTML="";
+  for(let i=0;i<6;i++){
+    for(let j=0;j<3;j++){
+      const s=document.createElement("span");
+      s.innerText=nomeLojaTxt;
+      s.style.top=`${i*65}px`;
+      s.style.left=`${j*120}px`;
       wm.appendChild(s);
     }
   }
 }
 
 /* ===== EDITOR ===== */
-let foto = null, zoom = 1;
-
+let foto=null,zoom=1;
 function carregarFoto(e){
-  const f = e.target.files[0];
+  const f=e.target.files[0];
   if(!f) return;
-
-  const img = document.createElement("img");
-  img.src = URL.createObjectURL(f);
-
-  img.onload = ()=>{
-    fotoArea.innerHTML = "";
+  const img=document.createElement("img");
+  img.src=URL.createObjectURL(f);
+  img.onload=()=>{
+    fotoArea.innerHTML="";
     fotoArea.appendChild(img);
-    foto = img;
-    foto.style.width = "100%";
-    foto.style.left = "0";
-    foto.style.top = "0";
-    drag(img, fotoArea);
-  };
+    foto=img;
+    foto.style.width="100%";
+    foto.style.left="0";
+    foto.style.top="0";
+    drag(img,fotoArea);
+  }
 }
-
 function setZoom(z){
-  zoom = z;
-  if(foto) foto.style.transform = `scale(${zoom})`;
+  zoom=z;
+  if(foto) foto.style.transform=`scale(${zoom})`;
 }
-
 function addEmoji(v){
   if(!v) return;
-  const e = document.createElement("div");
-  e.className = "emoji";
-  e.innerText = v;
-  e.style.left = "50%";
-  e.style.top = "50%";
+  const e=document.createElement("div");
+  e.className="emoji";
+  e.innerText=v;
+  e.style.left="50%";
+  e.style.top="50%";
   polaroid.appendChild(e);
-  drag(e, polaroid);
+  drag(e,polaroid);
 }
-
-function drag(el, limite){
+function drag(el,lim){
   let x,y,d=false;
-  el.onpointerdown = e=>{
+  el.onpointerdown=e=>{
     d=true;
     x=e.clientX-el.offsetLeft;
     y=e.clientY-el.offsetTop;
     el.setPointerCapture(e.pointerId);
   };
-  el.onpointermove = e=>{
+  el.onpointermove=e=>{
     if(!d) return;
     let nx=e.clientX-x, ny=e.clientY-y;
-    nx=Math.max(0,Math.min(nx,limite.clientWidth-el.offsetWidth));
-    ny=Math.max(0,Math.min(ny,limite.clientHeight-el.offsetHeight));
+    nx=Math.max(0,Math.min(nx,lim.clientWidth-el.offsetWidth));
+    ny=Math.max(0,Math.min(ny,lim.clientHeight-el.offsetHeight));
     el.style.left=nx+"px";
     el.style.top=ny+"px";
   };
-  el.onpointerup = ()=>d=false;
+  el.onpointerup=()=>d=false;
 }
 
 /* ===== SALVAR ===== */
 function salvar(){
   html2canvas(polaroid).then(c=>{
-    const img = c.toDataURL("image/png");
-    const lista = JSON.parse(localStorage.getItem("polaroids") || "[]");
+    const img=c.toDataURL("image/png");
+    const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
     lista.push(img);
-    localStorage.setItem("polaroids", JSON.stringify(lista));
-    limparEditor();
+    localStorage.setItem("polaroids",JSON.stringify(lista));
+    limpar();
     render();
     window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
   });
 }
-
-function limparEditor(){
-  fotoArea.innerHTML = "📸 Toque para adicionar foto";
-  legenda.innerText = "";
+function limpar(){
+  fotoArea.innerHTML="📸 Toque para adicionar foto";
+  legenda.innerText="";
   document.querySelectorAll(".emoji").forEach(e=>e.remove());
-  foto = null;
+  foto=null;
 }
 
 /* ===== GALERIA ===== */
 function excluir(i){
-  const lista = JSON.parse(localStorage.getItem("polaroids"));
+  const lista=JSON.parse(localStorage.getItem("polaroids"));
   lista.splice(i,1);
-  localStorage.setItem("polaroids", JSON.stringify(lista));
+  localStorage.setItem("polaroids",JSON.stringify(lista));
   render();
 }
 function render(){
-  const lista = JSON.parse(localStorage.getItem("polaroids") || "[]");
-  grid.innerHTML = lista.map((i,idx)=>`
+  const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
+  grid.innerHTML=lista.map((i,idx)=>`
     <div class="item">
       <img src="${i}">
       <button onclick="excluir(${idx})">✕</button>
