@@ -330,46 +330,42 @@ body{
 
 
 /* ================= BOTÃO IA ================= */
-.btn-ia{
-  margin-top:10px;
-  width:100%;
-  height:42px;
-  border-radius:14px;
-  border:1px solid rgba(255,106,0,.6);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255,106,0,.95),
-      rgba(255,154,87,.95)
-    );
-  color:#fff;
-  font-size:13px;
-  font-weight:800;
-  letter-spacing:.3px;
-  cursor:pointer;
-  position:relative;
-  overflow:hidden;
-  box-shadow:
-    0 0 0 rgba(255,106,0,0),
-    0 12px 30px rgba(255,106,0,.45);
-  transition:.25s ease;
+/* ================= CAMPOS DINÂMICOS ================= */
+.dynamic-field{
+  margin-bottom:12px;
+}
+.dynamic-field label{
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+}
+.dynamic-field small{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin-top:4px;
 }
 
-/* brilho animado */
-.btn-ia::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(
-      120deg,
-      transparent 30%,
-      rgba(255,255,255,.55),
-      transparent 70%
-    );
-  transform:translateX(-100%);
-  animation:shine 2.8s infinite;
+/* ================= BOTÃO IA (DISCRETO) ================= */
+.btn-ia{
+  margin-top:8px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,106,0,.45);
+  background:rgba(255,106,0,.08);
+  color:var(--primary);
+  font-size:11px;
+  font-weight:800;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
 }
+.btn-ia::before{display:none}
+.btn-ia:hover{
+  background:rgba(255,106,0,.14);
+}
+
 
 @keyframes shine{
   0%{transform:translateX(-100%)}
@@ -496,19 +492,23 @@ body{
         <input id="duracao" type="number" inputmode="numeric">
       </div>
 
-      <!-- PRODUTO -->
-      <div id="boxProduto" style="display:none">
-        <label>
-          <input type="checkbox" id="controlaEstoque">
-          Controlar estoque
-        </label>
+    <!-- PRODUTO -->
+<div id="boxProduto" style="display:none">
+  <label>
+    <input type="checkbox" id="controlaEstoque">
+    Controlar estoque
+  </label>
 
-        <label>Estoque atual</label>
-        <input id="estoqueAtual" type="number" inputmode="numeric">
+  <label>Estoque atual</label>
+  <input id="estoqueAtual" type="number" inputmode="numeric">
 
-        <label>Estoque mínimo</label>
-        <input id="estoqueMinimo" type="number" inputmode="numeric">
-      </div>
+  <label>Estoque mínimo</label>
+  <input id="estoqueMinimo" type="number" inputmode="numeric">
+</div>
+
+<!-- CAMPOS DINÂMICOS (SUPABASE) -->
+<div id="camposDinamicos"></div>
+
 
       <!-- DEMAIS CAMPOS -->
       <label>Ordem de exibição</label>
@@ -595,10 +595,11 @@ const TIPO_LABEL = {
     .select("pagamento_online_ativo")
     .eq("user_id", userId)
     .single();
+pagamentoOnlineAtivo = !!perfil?.pagamento_online_ativo;
 
-  pagamentoOnlineAtivo = !!perfil?.pagamento_online_ativo;
+await carregarCamposDinamicos();
+carregar();
 
-  carregar();
 })();
 
 
@@ -693,8 +694,70 @@ function atualizarBotaoIA(){
       : "block";
 }
 
+// ================= CAMPOS DINÂMICOS =================
+let camposConfig = [];
+
+async function carregarCamposDinamicos(){
+  const { data, error } = await sb
+    .from("campos_cadastro_por_loja")
+    .select("*")
+    .eq("user_id", userId)
+    .order("ordem");
+
+  if(error){
+    console.error("Erro campos dinâmicos", error);
+    return;
+  }
+
+  camposConfig = data || [];
+  renderCamposDinamicos();
+}
+
+function renderCamposDinamicos(){
+  const box = document.getElementById("camposDinamicos");
+  box.innerHTML = "";
+
+  camposConfig.forEach(c=>{
+    let input = "";
+    const req = c.obrigatorio ? "required" : "";
+
+    if(c.tipo_input==="text")
+      input=`<input id="dyn_${c.campo}" ${req}>`;
+
+    if(c.tipo_input==="number")
+      input=`<input type="number" id="dyn_${c.campo}" ${req}>`;
+
+    if(c.tipo_input==="textarea")
+      input=`<textarea id="dyn_${c.campo}" ${req}></textarea>`;
+
+    if(c.tipo_input==="checkbox")
+      input=`<input type="checkbox" id="dyn_${c.campo}">`;
+
+    box.innerHTML+=`
+      <div class="dynamic-field">
+        <label>${c.label}</label>
+        ${input}
+        ${c.ajuda?`<small>${c.ajuda}</small>`:""}
+      </div>
+    `;
+  });
+}
+
+
+
+
+
+
+  
 async function salvar(){
  loading.style.display="flex";
+// 📦 coleta campos dinâmicos
+const extras = {};
+camposConfig.forEach(c=>{
+  const el=document.getElementById(`dyn_${c.campo}`);
+  if(!el) return;
+  extras[c.campo]=el.type==="checkbox"?el.checked:el.value||null;
+});
 
  const payload={
   user_id:userId,
@@ -721,7 +784,8 @@ preco_promocional: promoAtiva.checked
   estoque_minimo:Number(estoqueMinimo.value||0),
   ordem_exibicao:Number(ordem.value||0),
   ativo:ativo.checked,
-  observacoes_internas:obs.value
+observacoes_internas:obs.value,
+extras: extras
  };
 // ✅ salva imagem gerada por IA
 if(preview.src && !blob){
@@ -962,8 +1026,24 @@ pgOnline.checked = pagamentoOnlineAtivo ? i.pg_online : false;
  ordem.value=i.ordem_exibicao||0;
  ativo.checked=i.ativo;
  obs.value=i.observacoes_internas||"";
- if(i.imagem_url){preview.src=i.imagem_url;preview.style.display="block"}
+if(i.imagem_url){
+  preview.src=i.imagem_url;
+  preview.style.display="block";
+}
+
+// 🔁 popula campos dinâmicos
+if(i.extras){
+  Object.keys(i.extras).forEach(k=>{
+    const el=document.getElementById(`dyn_${k}`);
+    if(!el) return;
+    el.type==="checkbox"
+      ? el.checked=!!i.extras[k]
+      : el.value=i.extras[k];
+  });
+}
+
 abrirModalEditar();
+
 document.getElementById("btnExcluir").style.display = "block";
 }
 
