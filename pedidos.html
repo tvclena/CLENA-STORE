@@ -424,15 +424,83 @@ async function carregarPedidosOffline(){
     return;
   }
 
-  container.innerHTML = data.map(p=>`
-    <div class="card">
-      <div class="bold">#${p.id}</div>
-      <div class="small">${p.cliente_nome}</div>
-      <div class="badge ${p.status}">${p.status}</div>
-    </div>
-  `).join("");
-}
+  container.innerHTML = data.map(p=>{
+    const itens = JSON.parse(p.itens || "[]");
 
+    return `
+      <div class="card" style="margin-bottom:20px">
+
+        <!-- HEADER -->
+        <div class="grid" style="align-items:center">
+          <div>
+            <div class="small">Pedido</div>
+            <div class="bold">#${p.id}</div>
+          </div>
+          <div>
+            <div class="small">Status</div>
+            <span class="badge ${p.status}">${p.status}</span>
+          </div>
+          <div>
+            <div class="small">Data</div>
+            <div class="bold">
+              ${new Date(p.created_at).toLocaleString("pt-BR")}
+            </div>
+          </div>
+        </div>
+
+        <!-- LOJA -->
+        <div class="section-title">🏪 Loja</div>
+        <div class="grid">
+          <div>
+            <div class="small">Nome</div>
+            <div class="bold">${p.loja_nome}</div>
+          </div>
+        </div>
+
+        <!-- CLIENTE -->
+        <div class="section-title">👤 Cliente</div>
+        <div class="grid">
+          <div>
+            <div class="small">Nome</div>
+            <div class="bold">${p.cliente_nome}</div>
+          </div>
+          <div>
+            <div class="small">WhatsApp</div>
+            <div class="bold">${p.cliente_whatsapp}</div>
+          </div>
+        </div>
+
+        <!-- ITENS -->
+        <div class="section-title">🛒 Itens</div>
+        ${itens.map(i=>`
+          <div class="item">
+            <div>
+              <div class="bold">${i.nome}</div>
+              <div class="small">
+                ${i.quantidade} × ${money(i.preco_unitario)}
+              </div>
+            </div>
+            <div class="value">${money(i.subtotal)}</div>
+          </div>
+        `).join("")}
+
+        <!-- TOTAL -->
+        <div class="section-title">💰 Pagamento</div>
+        <div class="grid">
+          <div>
+            <div class="small">Total</div>
+            <div class="value">${money(p.total)}</div>
+          </div>
+          <div>
+            <div class="small">Origem</div>
+            <div class="bold">${p.origem}</div>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }).join("");
+}
 /* INIT */
 verificarPedidosOffline();
 
