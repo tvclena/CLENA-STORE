@@ -19,13 +19,12 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-2:#ff9a57;
+  --secondary:#6b7280;
   --text:#111827;
   --card:#ffffff;
   --border:#e5e7eb;
 }
 
-/* ===== RESET / BLOQUEIO ZOOM ===== */
 *{
   box-sizing:border-box;
   font-family:Inter;
@@ -35,46 +34,11 @@
 body{
   margin:0;
   color:var(--text);
-  background:#000;
-  overflow-x:hidden;
-}
-
-/* ===== FUNDO COM BRILHO ===== */
-.bg{
-  position:fixed;
-  inset:0;
-  z-index:-2;
   background:
-    radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--primary) 35%, transparent), transparent 60%),
-    radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 65%),
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--primary) 20%, #000),
-      #000 60%);
-}
-
-.glow{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:-1;
-  overflow:hidden;
-}
-
-.glow span{
-  position:absolute;
-  top:-10%;
-  width:120px;
-  height:120px;
-  background:radial-gradient(circle,
-    color-mix(in srgb, var(--primary) 45%, transparent),
-    transparent 70%);
-  opacity:.35;
-  animation:fall linear infinite;
-}
-
-@keyframes fall{
-  from{transform:translateY(-20%)}
-  to{transform:translateY(140%)}
+    radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 60%),
+    radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--primary) 25%, transparent), transparent 65%),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 15%, #000), #000 60%);
+  overflow-x:hidden;
 }
 
 /* ===== HEADER ===== */
@@ -83,7 +47,7 @@ body{
   top:0;
   z-index:10;
   backdrop-filter:blur(14px);
-  background:rgba(255,255,255,.85);
+  background:rgba(255,255,255,.9);
   padding:14px 16px;
   display:flex;
   justify-content:space-between;
@@ -109,14 +73,12 @@ body{
   padding:18px 16px 40px;
 }
 
-/* ===== EDITOR CARD ===== */
+/* ===== EDITOR ===== */
 .editor{
-  background:rgba(255,255,255,.92);
+  background:rgba(255,255,255,.95);
   border-radius:28px;
   padding:18px;
-  box-shadow:
-    0 25px 60px rgba(0,0,0,.35),
-    inset 0 0 0 1px rgba(255,255,255,.4);
+  box-shadow:0 25px 60px rgba(0,0,0,.35);
 }
 
 /* ===== POLAROID ===== */
@@ -128,11 +90,12 @@ body{
   border-radius:16px;
   padding:14px;
   margin:0 auto 16px;
-  box-shadow:
-    0 25px 60px rgba(0,0,0,.35),
-    inset 0 0 0 1px #eee;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 25px 60px rgba(0,0,0,.35);
 }
 
+/* FOTO */
 .foto-area{
   width:100%;
   height:260px;
@@ -145,20 +108,14 @@ body{
   justify-content:center;
   font-weight:700;
   color:#6b7280;
+  cursor:pointer;
 }
-
 .foto-area img{
   position:absolute;
   touch-action:none;
 }
 
-.emoji{
-  position:absolute;
-  font-size:28px;
-  cursor:grab;
-  user-select:none;
-}
-
+/* TEXTO */
 .legenda{
   height:80px;
   display:flex;
@@ -167,6 +124,39 @@ body{
   text-align:center;
   font-size:20px;
   font-weight:600;
+  word-break:break-word;
+}
+
+/* EMOJI */
+.emoji{
+  position:absolute;
+  font-size:28px;
+  cursor:grab;
+  user-select:none;
+}
+
+/* ===== MARCA D’ÁGUA ===== */
+.watermark{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:5;
+  opacity:.12;
+  background-image:
+    repeating-linear-gradient(
+      -30deg,
+      transparent 0 60px,
+      color-mix(in srgb, var(--secondary) 45%, transparent) 60px 90px
+    );
+}
+.watermark span{
+  position:absolute;
+  font-size:12px;
+  font-weight:800;
+  color:var(--secondary);
+  opacity:.35;
+  transform:rotate(-30deg);
+  white-space:nowrap;
 }
 
 /* ===== CONTROLES ===== */
@@ -174,7 +164,6 @@ body{
   display:grid;
   gap:12px;
 }
-
 .controls input,
 .controls select,
 .controls button{
@@ -184,9 +173,8 @@ body{
   border:1px solid var(--border);
   font-weight:800;
 }
-
 .controls button.primary{
-  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
   color:#fff;
   border:none;
   font-size:15px;
@@ -235,11 +223,8 @@ body{
 
 <body>
 
-<div class="bg"></div>
-<div class="glow" id="glow"></div>
-
 <div class="header">
-  <strong>Monte seu Polaroid</strong>
+  <strong id="nomeLoja">Monte seu Polaroid</strong>
   <button onclick="history.back()">✕ Fechar</button>
 </div>
 
@@ -248,10 +233,15 @@ body{
   <div class="editor">
 
     <div class="polaroid" id="polaroid">
+
       <div class="foto-area" id="fotoArea" onclick="fileInput.click()">
         📸 Toque para adicionar foto
       </div>
+
       <div class="legenda" id="legenda"></div>
+
+      <!-- MARCA D’ÁGUA -->
+      <div class="watermark" id="watermark"></div>
     </div>
 
     <div class="controls">
@@ -278,114 +268,148 @@ body{
 </div>
 
 <script>
-/* ===== SUPABASE CORES ===== */
-const sb=supabase.createClient(
+/* ===== SUPABASE ===== */
+const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-const lojaId=new URLSearchParams(location.search).get("l");
+
+const lojaId = new URLSearchParams(location.search).get("l");
+let nomeLojaTxt = "LOJA";
+
 (async()=>{
   if(!lojaId) return;
-  const {data}=await sb.from("loja_config")
-    .select("primary_color,secondary_color")
-    .eq("user_id",lojaId).maybeSingle();
-  if(data){
-    document.documentElement.style.setProperty("--primary",data.primary_color);
-    document.documentElement.style.setProperty("--primary-2",data.secondary_color||data.primary_color);
-    criarGlow();
+
+  const { data: loja } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", lojaId)
+    .maybeSingle();
+
+  if(loja?.negocio){
+    nomeLojaTxt = loja.negocio.toUpperCase();
+    document.getElementById("nomeLoja").innerText = loja.negocio;
   }
+
+  const { data: cfg } = await sb
+    .from("loja_config")
+    .select("primary_color, secondary_color, text_color")
+    .eq("user_id", lojaId)
+    .maybeSingle();
+
+  if(cfg){
+    document.documentElement.style.setProperty("--primary", cfg.primary_color);
+    document.documentElement.style.setProperty("--secondary", cfg.secondary_color || cfg.text_color || "#6b7280");
+  }
+
+  gerarMarcaDagua();
 })();
 
-/* ===== GLOW ===== */
-function criarGlow(){
-  const g=document.getElementById("glow");
-  for(let i=0;i<10;i++){
-    const s=document.createElement("span");
-    s.style.left=Math.random()*100+"%";
-    s.style.animationDuration=(10+Math.random()*10)+"s";
-    g.appendChild(s);
+/* ===== MARCA D’ÁGUA ===== */
+function gerarMarcaDagua(){
+  const wm = document.getElementById("watermark");
+  wm.innerHTML = "";
+
+  const linhas = 6;
+  const colunas = 3;
+
+  for(let i=0;i<linhas;i++){
+    for(let j=0;j<colunas;j++){
+      const s = document.createElement("span");
+      s.innerText = nomeLojaTxt;
+      s.style.top = `${i * 60}px`;
+      s.style.left = `${j * 110}px`;
+      wm.appendChild(s);
+    }
   }
 }
 
 /* ===== EDITOR ===== */
-let foto=null,zoom=1;
+let foto = null, zoom = 1;
+
 function carregarFoto(e){
-  const f=e.target.files[0];
+  const f = e.target.files[0];
   if(!f) return;
-  const img=document.createElement("img");
-  img.src=URL.createObjectURL(f);
-  img.onload=()=>{
-    fotoArea.innerHTML="";
+
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(f);
+
+  img.onload = ()=>{
+    fotoArea.innerHTML = "";
     fotoArea.appendChild(img);
-    foto=img;
-    foto.style.width="100%";
-    foto.style.left="0";
-    foto.style.top="0";
-    drag(img,fotoArea);
-  }
+    foto = img;
+    foto.style.width = "100%";
+    foto.style.left = "0";
+    foto.style.top = "0";
+    drag(img, fotoArea);
+  };
 }
+
 function setZoom(z){
-  zoom=z;
-  if(foto) foto.style.transform=`scale(${zoom})`;
+  zoom = z;
+  if(foto) foto.style.transform = `scale(${zoom})`;
 }
+
 function addEmoji(v){
   if(!v) return;
-  const e=document.createElement("div");
-  e.className="emoji";
-  e.innerText=v;
-  e.style.left="50%";
-  e.style.top="50%";
+  const e = document.createElement("div");
+  e.className = "emoji";
+  e.innerText = v;
+  e.style.left = "50%";
+  e.style.top = "50%";
   polaroid.appendChild(e);
-  drag(e,polaroid);
+  drag(e, polaroid);
 }
-function drag(el,lim){
+
+function drag(el, limite){
   let x,y,d=false;
-  el.onpointerdown=e=>{
+  el.onpointerdown = e=>{
     d=true;
     x=e.clientX-el.offsetLeft;
     y=e.clientY-el.offsetTop;
     el.setPointerCapture(e.pointerId);
   };
-  el.onpointermove=e=>{
+  el.onpointermove = e=>{
     if(!d) return;
     let nx=e.clientX-x, ny=e.clientY-y;
-    nx=Math.max(0,Math.min(nx,lim.clientWidth-el.offsetWidth));
-    ny=Math.max(0,Math.min(ny,lim.clientHeight-el.offsetHeight));
+    nx=Math.max(0,Math.min(nx,limite.clientWidth-el.offsetWidth));
+    ny=Math.max(0,Math.min(ny,limite.clientHeight-el.offsetHeight));
     el.style.left=nx+"px";
     el.style.top=ny+"px";
   };
-  el.onpointerup=()=>d=false;
+  el.onpointerup = ()=>d=false;
 }
 
 /* ===== SALVAR ===== */
 function salvar(){
   html2canvas(polaroid).then(c=>{
-    const img=c.toDataURL("image/png");
-    const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
+    const img = c.toDataURL("image/png");
+    const lista = JSON.parse(localStorage.getItem("polaroids") || "[]");
     lista.push(img);
-    localStorage.setItem("polaroids",JSON.stringify(lista));
-    limpar();
+    localStorage.setItem("polaroids", JSON.stringify(lista));
+    limparEditor();
     render();
     window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
   });
 }
-function limpar(){
-  fotoArea.innerHTML="📸 Toque para adicionar foto";
-  legenda.innerText="";
+
+function limparEditor(){
+  fotoArea.innerHTML = "📸 Toque para adicionar foto";
+  legenda.innerText = "";
   document.querySelectorAll(".emoji").forEach(e=>e.remove());
-  foto=null;
+  foto = null;
 }
 
 /* ===== GALERIA ===== */
 function excluir(i){
-  const lista=JSON.parse(localStorage.getItem("polaroids"));
+  const lista = JSON.parse(localStorage.getItem("polaroids"));
   lista.splice(i,1);
-  localStorage.setItem("polaroids",JSON.stringify(lista));
+  localStorage.setItem("polaroids", JSON.stringify(lista));
   render();
 }
 function render(){
-  const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
-  grid.innerHTML=lista.map((i,idx)=>`
+  const lista = JSON.parse(localStorage.getItem("polaroids") || "[]");
+  grid.innerHTML = lista.map((i,idx)=>`
     <div class="item">
       <img src="${i}">
       <button onclick="excluir(${idx})">✕</button>
