@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Polaroid Personalizado</title>
+<title>Personalize seu Polaroid</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Pacifico&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
@@ -14,15 +13,16 @@
   --primary:#ff6a00;
   --bg:#f4f6fb;
   --card:#ffffff;
+  --border:#e5e7eb;
   --text:#111827;
 }
 *{box-sizing:border-box;font-family:Inter}
 body{
   margin:0;
-  background:var(--bg);
+  background:linear-gradient(180deg,#f4f6fb,#eef2ff);
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header{
   position:sticky;
   top:0;
@@ -32,45 +32,59 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  box-shadow:0 6px 24px rgba(0,0,0,.08);
 }
-.header strong{font-size:16px}
+.header strong{font-size:16px;font-weight:800}
+.header span{font-size:13px;color:#6b7280}
 
-/* ===== EDITOR ===== */
-.editor{
+/* LAYOUT */
+.container{
+  max-width:1200px;
+  margin:auto;
   padding:16px;
   display:grid;
-  gap:16px;
+  gap:20px;
+}
+@media(min-width:900px){
+  .container{
+    grid-template-columns:1fr 420px;
+    align-items:start;
+  }
 }
 
-/* ===== POLAROID ===== */
-.polaroid-wrapper{
+/* POLAROID */
+.polaroid-box{
   display:flex;
   justify-content:center;
 }
 .polaroid{
-  width:280px;
-  height:360px;
+  width:300px;
+  height:380px;
   background:#fff;
-  padding:12px;
-  border-radius:10px;
-  box-shadow:0 12px 35px rgba(0,0,0,.25);
-  position:relative;
+  padding:14px;
+  border-radius:12px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
 }
 .foto-area{
   width:100%;
-  height:240px;
+  height:260px;
   background:#e5e7eb;
+  border-radius:6px;
   position:relative;
   overflow:hidden;
 }
 .foto-area img{
   position:absolute;
-  max-width:none;
   touch-action:none;
 }
+.emoji{
+  position:absolute;
+  font-size:28px;
+  cursor:grab;
+  user-select:none;
+}
 .legenda{
-  height:60px;
+  height:70px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -79,80 +93,76 @@ body{
   word-break:break-word;
 }
 
-/* ===== EMOJI ===== */
-.emoji{
-  position:absolute;
-  font-size:28px;
-  cursor:grab;
-  user-select:none;
-}
-
-/* ===== CONTROLES ===== */
+/* CONTROLES */
 .controls{
   background:#fff;
-  padding:14px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
   display:grid;
-  gap:10px;
+  gap:12px;
+}
+.controls h3{
+  margin:0;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#6b7280;
 }
 .controls input,
 .controls select,
 .controls button{
   width:100%;
   padding:10px;
-  border-radius:10px;
-  border:1px solid #e5e7eb;
+  border-radius:12px;
+  border:1px solid var(--border);
   font-weight:600;
 }
 .controls button.primary{
   background:var(--primary);
   color:#fff;
   border:none;
+  font-weight:800;
+}
+.controls button.sec{
+  background:#fff;
 }
 
-/* ===== GALERIA ===== */
+/* GALERIA */
 .galeria{
-  padding:16px;
+  grid-column:1/-1;
 }
 .galeria h3{
+  font-size:16px;
   margin-bottom:10px;
 }
-.lista{
+.grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;
 }
 .item{
   background:#fff;
-  border-radius:14px;
-  padding:8px;
-  box-shadow:0 6px 18px rgba(0,0,0,.12);
+  border-radius:18px;
+  padding:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
   position:relative;
 }
 .item img{
   width:100%;
-  border-radius:10px;
+  border-radius:12px;
 }
 .item button{
   position:absolute;
-  top:6px;
-  right:6px;
-  border:none;
+  top:8px;
+  right:8px;
   background:#ef4444;
   color:#fff;
+  border:none;
   border-radius:50%;
-  width:26px;
-  height:26px;
+  width:28px;
+  height:28px;
   cursor:pointer;
-}
-
-/* MOBILE */
-@media(min-width:768px){
-  .editor{
-    grid-template-columns:1fr 360px;
-    align-items:start;
-  }
 }
 </style>
 </head>
@@ -160,12 +170,15 @@ body{
 <body>
 
 <div class="header">
-  <strong>Monte seu Polaroid</strong>
+  <div>
+    <strong>Personalize seu Polaroid</strong><br>
+    <span>Monte do seu jeito</span>
+  </div>
 </div>
 
-<div class="editor">
+<div class="container">
 
-  <div class="polaroid-wrapper">
+  <div class="polaroid-box">
     <div class="polaroid" id="polaroid">
       <div class="foto-area" id="fotoArea"></div>
       <div class="legenda" id="legenda"></div>
@@ -173,109 +186,113 @@ body{
   </div>
 
   <div class="controls">
+    <h3>Edição</h3>
     <input type="file" accept="image/*" onchange="carregarFoto(event)">
-    <input type="text" placeholder="Digite um emoji 😀" oninput="addEmoji(this.value)">
+    <input type="range" min="1" max="3" step="0.1" value="1" onchange="setZoom(this.value)">
+    <input type="text" placeholder="Adicionar emoji 😀" oninput="addEmoji(this.value)">
     <input type="text" placeholder="Texto do polaroid" oninput="setTexto(this.value)">
-    
+    <input type="color" onchange="setCor(this.value)">
+
     <select onchange="setFonte(this.value)">
       <option value="Inter">Inter</option>
       <option value="Pacifico">Pacifico</option>
       <option value="Montserrat">Montserrat</option>
     </select>
 
-    <input type="color" onchange="setCor(this.value)">
+    <button class="primary" onclick="salvar()">Salvar Polaroid</button>
+    <button class="sec" onclick="resetar()">Limpar editor</button>
+  </div>
 
-    <button class="primary" onclick="salvarPolaroid()">Salvar Polaroid</button>
+  <div class="galeria">
+    <h3>Seus Polaroids</h3>
+    <div class="grid" id="grid"></div>
   </div>
 
 </div>
 
-<div class="galeria">
-  <h3>Seus Polaroids</h3>
-  <div class="lista" id="lista"></div>
-</div>
-
 <script>
-let fotoEl = null;
-let emojis = [];
-
+let foto=null, zoom=1;
 function carregarFoto(e){
-  const f = e.target.files[0];
-  if(!f) return;
-  const img = document.createElement("img");
-  img.src = URL.createObjectURL(f);
-  img.onload = () => {
-    fotoArea.innerHTML = "";
+  const f=e.target.files[0];
+  if(!f)return;
+  const img=document.createElement("img");
+  img.src=URL.createObjectURL(f);
+  img.onload=()=>{
+    fotoArea.innerHTML="";
     fotoArea.appendChild(img);
-    fotoEl = img;
-    tornarArrastavel(img, fotoArea);
-  };
+    foto=img;
+    foto.style.width="100%";
+    foto.style.left="0";
+    foto.style.top="0";
+    drag(img,fotoArea);
+  }
 }
-
-function addEmoji(val){
-  if(!val) return;
-  const e = document.createElement("div");
-  e.className = "emoji";
-  e.innerText = val;
+function setZoom(z){
+  zoom=z;
+  if(foto) foto.style.transform=`scale(${zoom})`;
+}
+function addEmoji(v){
+  if(!v)return;
+  const e=document.createElement("div");
+  e.className="emoji";
+  e.innerText=v;
   e.style.left="50%";
   e.style.top="50%";
   polaroid.appendChild(e);
-  tornarArrastavel(e, polaroid);
-  emojis.push(e);
+  drag(e,polaroid);
 }
+function setTexto(t){legenda.innerText=t}
+function setCor(c){legenda.style.color=c}
+function setFonte(f){legenda.style.fontFamily=f}
 
-function setTexto(t){ legenda.innerText = t }
-function setCor(c){ legenda.style.color = c }
-function setFonte(f){ legenda.style.fontFamily = f }
-
-function tornarArrastavel(el, limite){
-  let x,y,drag=false;
-  el.addEventListener("pointerdown",e=>{
-    drag=true;
+function drag(el,lim){
+  let x,y,d=false;
+  el.onpointerdown=e=>{
+    d=true;
     x=e.clientX-el.offsetLeft;
     y=e.clientY-el.offsetTop;
     el.setPointerCapture(e.pointerId);
-  });
-  el.addEventListener("pointermove",e=>{
-    if(!drag) return;
+  }
+  el.onpointermove=e=>{
+    if(!d)return;
     let nx=e.clientX-x, ny=e.clientY-y;
-    if(limite){
-      nx=Math.max(0,Math.min(nx,limite.clientWidth-el.offsetWidth));
-      ny=Math.max(0,Math.min(ny,limite.clientHeight-el.offsetHeight));
-    }
+    nx=Math.max(0,Math.min(nx,lim.clientWidth-el.offsetWidth));
+    ny=Math.max(0,Math.min(ny,lim.clientHeight-el.offsetHeight));
     el.style.left=nx+"px";
     el.style.top=ny+"px";
-  });
-  el.addEventListener("pointerup",()=>drag=false);
+  }
+  el.onpointerup=()=>d=false;
 }
 
-function salvarPolaroid(){
+function salvar(){
   html2canvas(polaroid).then(c=>{
     const img=c.toDataURL("image/png");
     const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
     lista.push(img);
     localStorage.setItem("polaroids",JSON.stringify(lista));
-    renderGaleria();
+    render();
   });
 }
-
 function excluir(i){
-  const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
+  const lista=JSON.parse(localStorage.getItem("polaroids"));
   lista.splice(i,1);
   localStorage.setItem("polaroids",JSON.stringify(lista));
-  renderGaleria();
+  render();
 }
-
-function renderGaleria(){
+function render(){
   const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
-  document.getElementById("lista").innerHTML=lista.map((i,idx)=>`
+  grid.innerHTML=lista.map((i,idx)=>`
     <div class="item">
       <img src="${i}">
       <button onclick="excluir(${idx})">✕</button>
     </div>
   `).join("");
 }
-renderGaleria();
+function resetar(){
+  fotoArea.innerHTML="";
+  legenda.innerText="";
+}
+render();
 </script>
 
 </body>
