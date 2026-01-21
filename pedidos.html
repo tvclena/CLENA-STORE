@@ -4,19 +4,18 @@
 <meta charset="UTF-8">
 <title>Pedidos • CLENA</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  
 <style>
 :root{
   --primary:#ff6a00;
   --bg:#f4f6fb;
-  --card:#ffffff;
+  --card:#fff;
   --border:#e5e7eb;
   --text:#111827;
   --muted:#6b7280;
@@ -24,14 +23,15 @@
   --warning:#f59e0b;
   --danger:#ef4444;
   --radius:20px;
-  --shadow:0 18px 45px rgba(0,0,0,.08);
+  --shadow:0 14px 40px rgba(0,0,0,.08);
 }
+
 *{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
+body{margin:0;background:var(--bg);padding:16px;color:var(--text)}
 
 .header{
   background:#fff;
-  padding:22px;
+  padding:20px;
   border-radius:22px;
   box-shadow:var(--shadow);
   display:flex;
@@ -39,30 +39,22 @@ body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
   align-items:center;
   margin-bottom:22px
 }
+
 .brand strong{font-size:22px;font-weight:900}
 .brand span{font-size:12px;color:var(--muted)}
 
 .card{
   background:var(--card);
-  border-radius:var(--radius);
-  padding:24px;
+  border-radius:22px;
+  padding:20px;
   box-shadow:var(--shadow);
-  margin-bottom:28px
-}
-
-.section-title{
-  font-size:14px;
-  font-weight:900;
-  margin:22px 0 10px;
-  display:flex;
-  align-items:center;
-  gap:8px
+  margin-bottom:22px
 }
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:14px
 }
 
 .small{font-size:12px;color:var(--muted)}
@@ -72,189 +64,53 @@ body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
 .badge{
   padding:6px 14px;
   border-radius:999px;
-  font-size:12px;
-  font-weight:900
+  font-size:11px;
+  font-weight:900;
+  display:inline-block
 }
-.PAGO{background:#dcfce7;color:#166534}
-.PENDENTE_PAGAMENTO{background:#fff7ed;color:#9a3412}
-.CANCELADO{background:#fee2e2;color:#991b1b}
-.ERRO_PAGAMENTO{background:#fef2f2;color:#b91c1c}
-.CRIADO{background:#e0f2fe;color:#0369a1}
-.APROVED{background:#dcfce7;color:#166534}
-.PENDING{background:#fef3c7;color:#92400e}
-.REJEITADO{background:#fee2e2;color:#991b1b}
+
+.badge-manual{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.PAGO,.pago{background:#dcfce7;color:#166534}
+.pendente_pagamento{background:#fff7ed;color:#9a3412}
+.cancelado{background:#fee2e2;color:#991b1b}
 
 .item{
   display:flex;
-  gap:16px;
-  align-items:center;
-  margin-top:14px
-}
-.item img{
-  width:70px;height:70px;
-  border-radius:16px;
-  object-fit:cover;
-  border:1px solid var(--border)
+  justify-content:space-between;
+  margin-top:10px;
+  font-size:13px
 }
 
 .actions{
   display:flex;
-  gap:14px;
-  margin-top:24px
+  gap:10px;
+  margin-top:18px
 }
+
 button{
   flex:1;
-  padding:16px;
-  border-radius:16px;
+  padding:14px;
+  border-radius:14px;
   border:none;
   font-weight:900;
   cursor:pointer
 }
+
 .print{background:#111;color:#fff}
-.close{background:#f3f4f6}
+.cancel{background:#fee2e2;color:#991b1b}
+.save{background:var(--primary);color:#fff}
 
-@media print{
-  body{
-    background:#fff;
-    padding:0;
-  }
-
-  /* esconde tudo */
-  body *{
-    visibility:hidden;
-  }
-
-  /* mostra apenas o pedido selecionado */
-  .print-only,
-  .print-only *{
-    visibility:visible;
-  }
-
-  .print-only{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-  }
-
-  /* remove botões e header */
-  .actions,
-  .header{
-    display:none !important;
-  }
-
-  .card{
-    box-shadow:none;
-    border-radius:0;
-    margin:0;
-  }
-}
-/* ================= MODAL ================= */
-.modal-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-
-.modal{
-  background:#fff;
-  width:95%;
-  max-width:1200px;
-  max-height:90vh;
-  overflow:auto;
-  border-radius:22px;
-  box-shadow:0 30px 80px rgba(0,0,0,.3);
-  animation:fadeUp .25s ease;
-}
-
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(20px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* ================= BADGE ================= */
-.badge-alert{
-  position:absolute;
-  top:-6px;
-  right:-6px;
-  background:#ef4444;
-  color:#fff;
-  font-size:11px;
-  font-weight:900;
-  padding:4px 7px;
-  border-radius:999px;
-  animation:pulse 1.2s infinite;
-}
-
-@keyframes pulse{
-  0%{transform:scale(1);opacity:1}
-  50%{transform:scale(1.2);opacity:.6}
-  100%{transform:scale(1);opacity:1}
-}
-/* ===== OFFLINE CARD ===== */
-.offline-card{
-  background:#fff;
-  border-radius:18px;
-  padding:18px;
-  box-shadow:0 12px 30px rgba(0,0,0,.08);
-  margin-bottom:18px;
-}
-
-.offline-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-}
-
-.offline-id{
-  font-size:12px;
-  font-weight:900;
-  word-break:break-all;
-}
-
-.offline-date{
-  font-size:11px;
-  color:var(--muted);
-}
-
-.offline-section{
-  margin-top:14px;
-}
-
-.offline-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-
-.offline-item{
-  display:flex;
-  justify-content:space-between;
-  font-size:13px;
-  margin-top:6px;
-}
-
-.offline-total{
-  font-size:18px;
-  font-weight:900;
-}
-
-.status-select{
+select{
   width:100%;
   padding:12px;
   border-radius:12px;
   border:1px solid var(--border);
-  font-weight:800;
-  font-size:14px;
-  margin-top:10px;
+  font-weight:800
 }
-
 </style>
 </head>
 
@@ -262,17 +118,9 @@ button{
 
 <div class="header">
   <div class="brand">
-    <strong>CLENA</strong>
-    <span>clena.com.br</span>
+    <strong>CLENA</strong><br>
+    <span>Pedidos</span>
   </div>
-<div style="position:relative">
-  <button onclick="abrirPedidosOffline()"
-    style="background:none;border:none;cursor:pointer">
-    <i class="ri-file-list-3-fill"
-       style="font-size:28px;color:#ff6a00"></i>
-  </button>
-  <span id="badgeOffline" class="badge-alert" style="display:none">0</span>
-</div>
 </div>
 
 <div id="lista"></div>
@@ -289,288 +137,129 @@ const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currenc
 async function carregar(){
   const { data: auth } = await sb.auth.getUser();
   if(!auth?.user){
-    lista.innerHTML = "<div class='card'>Faça login para acessar os pedidos</div>";
+    lista.innerHTML = "<div class='card'>Faça login</div>";
     return;
   }
 
-  /* ================= LOJA ================= */
-  const { data: loja } = await sb
-    .from("user_profile")
-    .select("*")
-    .eq("user_id", auth.user.id)
-    .single();
-
-  /* ================= PEDIDOS ================= */
+  /* ONLINE */
   const { data: pedidos } = await sb
     .from("pedidos")
     .select("*")
-    .eq("loja_id", auth.user.id)
-    .order("created_at",{ascending:false});
-
-  if(!pedidos?.length){
-    lista.innerHTML = "<div class='card'>Nenhum pedido encontrado</div>";
-    return;
-  }
-
-  const pedidosIds = pedidos.map(p=>p.id);
-
-const { data: itens } = await sb
-  .from("pedidos_itens")
-  .select("*")
-  .in("pedido_id", pedidosIds);
-
-
-  const { data: pagamentos } = await sb
-    .from("movimentacoes_pagamento")
-    .select("*")
-    .in("pedido_id", pedidosIds);
-if (!itens || !Array.isArray(itens)) {
-  lista.innerHTML = "<div class='card'>Erro ao carregar itens do pedido</div>";
-  return;
-}
-
-const produtosIds = [...new Set(itens.map(i => i.produto_id))];
-
-const { data: produtos } = await sb
-  .from("produtos_servicos")
-  .select("id, imagem_url")
-  .in("id", produtosIds);
-
-const produtosMap = {};
-(produtos || []).forEach(p => {
-  produtosMap[p.id] = p;
-});
-
-  lista.innerHTML = pedidos.map(p=>{
-    const its = itens.filter(i=>i.pedido_id===p.id);
-    const pg = pagamentos.find(m=>m.pedido_id===p.id);
-
-    return `
-      <div class="card">
-
-        <div class="grid">
-          <div>
-            <div class="small">Pedido</div>
-            <div class="bold">#${p.id}</div>
-          </div>
-          <div>
-            <div class="small">Status</div>
-            <span class="badge ${p.status}">${p.status}</span>
-          </div>
-          <div>
-            <div class="small">Data</div>
-            <div class="bold">${new Date(p.created_at).toLocaleString("pt-BR")}</div>
-          </div>
-        </div>
-
-        <div class="section-title"><i class="ri-store-3-line"></i> Dados da Loja</div>
-        <div class="grid">
-          <div><div class="small">Negócio</div><div class="bold">${loja.negocio}</div></div>
-          <div><div class="small">Responsável</div><div class="bold">${loja.responsavel}</div></div>
-          <div><div class="small">WhatsApp</div><div class="bold">${loja.whatsapp}</div></div>
-          <div><div class="small">Endereço</div>
-            <div class="bold">${loja.rua}, ${loja.numero} – ${loja.bairro}<br>${loja.cidade}/${loja.uf} • CEP ${loja.cep}</div>
-          </div>
-        </div>
-
-        <div class="section-title"><i class="ri-user-3-line"></i> Cliente</div>
-        <div class="grid">
-          <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
-          <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
-        </div>
-
-        <div class="section-title"><i class="ri-shopping-cart-line"></i> Itens do Pedido</div>
-        ${its.map(i=>`
-          <div class="item">
-<img src="${produtosMap[i.produto_id]?.imagem_url || 'https://via.placeholder.com/150?text=Produto'}">
-            <div>
-              <div class="bold">${i.nome}</div>
-              <div class="small">${i.quantidade} × ${money(i.preco_unitario)}</div>
-              <div class="value">${money(i.subtotal)}</div>
-            </div>
-          </div>
-        `).join("")}
-
-        <div class="section-title"><i class="ri-bank-card-line"></i> Pagamento</div>
-        <div class="grid">
-          <div><div class="small">Status</div><div class="bold">${pg?.status || 'CRIADO'}</div></div>
-          <div><div class="small">Valor</div><div class="value">${money(p.valor_total)}</div></div>
-          <div><div class="small">Preference</div><div class="small">${pg?.mp_preference_id || '-'}</div></div>
-          <div><div class="small">Payment</div><div class="small">${pg?.mp_payment_id || '-'}</div></div>
-        </div>
-
-        <div class="actions">
-<button class="print" onclick="imprimirPedido(this)">Imprimir pedido</button>
-          <button class="close" onclick="this.closest('.card').remove()">Fechar</button>
-        </div>
-
-      </div>
-    `;
-  }).join("");
-}
-
-carregar();
-
-function imprimirPedido(botao){
-  // remove marcação anterior
-  document.querySelectorAll('.card').forEach(c =>
-    c.classList.remove('print-only')
-  );
-
-  // marca somente o pedido clicado
-  const card = botao.closest('.card');
-  card.classList.add('print-only');
-
-  window.print();
-
-  // limpa após a impressão
-  setTimeout(() => {
-    card.classList.remove('print-only');
-  }, 500);
-}
-
-/* ================= CONTADOR ================= */
-async function verificarPedidosOffline(){
-  const { data: auth } = await sb.auth.getUser();
-  if(!auth?.user) return;
-
-  const { data } = await sb
-    .from("pedidos_offline")
-    .select("id")
-    .eq("status","pendente_pagamento")
     .eq("loja_id", auth.user.id);
 
-  const badge = document.getElementById("badgeOffline");
+  const ids = (pedidos||[]).map(p=>p.id);
 
-  if(data && data.length){
-    badge.innerText = data.length;
-    badge.style.display = "block";
-  }else{
-    badge.style.display = "none";
-  }
-}
+  const { data: itens } = ids.length
+    ? await sb.from("pedidos_itens").select("*").in("pedido_id", ids)
+    : { data: [] };
 
+  const { data: pagamentos } = ids.length
+    ? await sb.from("movimentacoes_pagamento").select("*").in("pedido_id", ids)
+    : { data: [] };
 
-/* ================= MODAL ================= */
-function abrirPedidosOffline(){
-  document.getElementById("modalPedidos").style.display = "flex";
-  carregarPedidosOffline();
-}
-
-function fecharPedidosOffline(){
-  document.getElementById("modalPedidos").style.display = "none";
-}
-
-async function carregarPedidosOffline(){
-  const container = document.getElementById("conteudoPedidosOffline");
-  container.innerHTML = "<div class='card'>Carregando pedidos offline...</div>";
-
-  const { data: auth } = await sb.auth.getUser();
-  if(!auth?.user){
-    container.innerHTML = "<div class='card'>Faça login</div>";
-    return;
-  }
-
-  const { data } = await sb
+  /* OFFLINE */
+  const { data: offline } = await sb
     .from("pedidos_offline")
     .select("*")
-    .eq("loja_id", auth.user.id)
-    .order("created_at",{ascending:false});
+    .eq("loja_id", auth.user.id);
 
-  if(!data || !data.length){
-    container.innerHTML = "<div class='card'>Nenhum pedido offline</div>";
-    return;
-  }
+  const todos = [
+    ...(pedidos||[]).map(p=>{
+      const its = itens.filter(i=>i.pedido_id===p.id);
+      const pg = pagamentos.find(x=>x.pedido_id===p.id);
+      return {
+        tipo:"online",
+        id:p.id,
+        data:p.created_at,
+        cliente:p.cliente_nome,
+        whatsapp:p.cliente_whatsapp,
+        itens:its,
+        total:p.valor_total,
+        pago: pg?.status==="APROVED"
+      };
+    }),
+    ...(offline||[]).map(p=>({
+      tipo:"offline",
+      id:p.id,
+      data:p.created_at,
+      cliente:p.cliente_nome,
+      whatsapp:p.cliente_whatsapp,
+      itens:JSON.parse(p.itens||"[]"),
+      total:p.total,
+      status:p.status,
+      origem:p.origem
+    }))
+  ].sort((a,b)=>new Date(b.data)-new Date(a.data));
 
-  container.innerHTML = data.map(p=>{
-    const itens = Array.isArray(p.itens)
-      ? p.itens
-      : JSON.parse(p.itens || "[]");
+  lista.innerHTML = todos.map(p=>`
+    <div class="card">
 
-    return `
-      <div class="offline-card">
+      <div class="grid">
+        <div>
+          <div class="small">Pedido</div>
+          <div class="bold">#${p.id}</div>
+          ${p.tipo==="offline"
+            ? `<span class="badge badge-manual">Gerado manualmente</span>`
+            : ``}
+        </div>
+        <div>
+          <div class="small">Data</div>
+          <div class="bold">${new Date(p.data).toLocaleString("pt-BR")}</div>
+        </div>
+      </div>
 
-        <!-- HEADER -->
-        <div class="offline-header">
-          <div>
-            <div class="offline-id">#${p.id}</div>
-            <div class="offline-date">
-              ${new Date(p.created_at).toLocaleString("pt-BR")}
-            </div>
+      <div style="margin-top:14px">
+        <div class="small">Cliente</div>
+        <div class="bold">${p.cliente}</div>
+        <div class="small">${p.whatsapp}</div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="small">Itens</div>
+        ${p.itens.map(i=>`
+          <div class="item">
+            <span>${i.quantidade}× ${i.nome}</span>
+            <strong>${money(i.subtotal)}</strong>
           </div>
-          <span class="badge ${p.status}">${p.status}</span>
-        </div>
+        `).join("")}
+      </div>
 
-        <!-- CLIENTE -->
-        <div class="offline-section">
-          <div class="small">Cliente</div>
-          <div class="bold">${p.cliente_nome}</div>
-          <div class="small">${p.cliente_whatsapp}</div>
-        </div>
+      <div style="margin-top:14px">
+        <div class="small">Total</div>
+        <div class="value">${money(p.total)}</div>
+      </div>
 
-        <!-- ITENS -->
-        <div class="offline-section">
-          <div class="small">Itens</div>
-          ${itens.map(i=>`
-            <div class="offline-item">
-              <span>${i.quantidade}× ${i.nome}</span>
-              <strong>${money(i.subtotal)}</strong>
-            </div>
-          `).join("")}
-        </div>
-
-        <!-- TOTAL -->
-        <div class="offline-section offline-row">
-          <span class="small">Total</span>
-          <span class="offline-total">${money(p.total)}</span>
-        </div>
-
-        <!-- STATUS -->
-        <div class="offline-section">
+      ${p.tipo==="offline" ? `
+        <div style="margin-top:14px">
           <div class="small">Status do pagamento</div>
-          <select class="status-select"
-            onchange="atualizarStatusOffline('${p.id}', this.value)">
+          <select onchange="atualizarOffline('${p.id}',this.value)">
             <option value="pendente_pagamento" ${p.status==="pendente_pagamento"?"selected":""}>Pendente</option>
             <option value="pago" ${p.status==="pago"?"selected":""}>Pago</option>
             <option value="cancelado" ${p.status==="cancelado"?"selected":""}>Cancelado</option>
           </select>
         </div>
+      `:""}
 
+      <div class="actions">
+        ${(p.tipo==="online" || p.status==="pago")
+          ? `<button class="print" onclick="window.print()">Imprimir</button>`
+          : ``}
+        ${p.tipo==="offline"
+          ? `<button class="cancel" onclick="atualizarOffline('${p.id}','cancelado')">Cancelar</button>`
+          : ``}
       </div>
-    `;
-  }).join("");
-}
-async function atualizarStatusOffline(id, status){
-  await sb
-    .from("pedidos_offline")
-    .update({ status })
-    .eq("id", id);
 
-  // atualiza badge e lista
-  verificarPedidosOffline();
-  carregarPedidosOffline();
-}
-
-/* INIT */
-verificarPedidosOffline();
-
-
-</script>
-<div id="modalPedidos" class="modal-overlay">
-  <div class="modal">
-    <div style="padding:20px;border-bottom:1px solid #e5e7eb;
-                display:flex;justify-content:space-between;align-items:center">
-      <strong style="font-size:16px">Pedidos Offline</strong>
-      <button onclick="fecharPedidosOffline()" 
-        style="background:#f3f4f6;border:none;border-radius:10px;
-               padding:8px 14px;font-weight:800;cursor:pointer">
-        Fechar
-      </button>
     </div>
+  `).join("");
+}
 
-    <div id="conteudoPedidosOffline" style="padding:18px"></div>
-  </div>
-</div>
+async function atualizarOffline(id,status){
+  await sb.from("pedidos_offline").update({status}).eq("id",id);
+  carregar();
+}
+
+carregar();
+</script>
 
 </body>
 </html>
