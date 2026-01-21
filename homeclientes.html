@@ -1153,6 +1153,58 @@ html{
 html.theme-ready{
   visibility: visible;
 }
+/* ============================
+   CARD CUSTOMIZADO (LED)
+============================ */
+.card-customizado{
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* Borda animada */
+.card-customizado::before{
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    var(--primary),
+    transparent 70%
+  );
+  filter: blur(6px);
+  opacity: 0.9;
+  animation: ledMove 2.8s linear infinite;
+  pointer-events: none;
+}
+
+/* Camada interna para não sujar o conteúdo */
+.card-customizado::after{
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: inherit;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+/* Garante conteúdo acima */
+.card-customizado > *{
+  position: relative;
+  z-index: 1;
+}
+
+/* Animação do LED */
+@keyframes ledMove{
+  from{
+    transform: translateX(-40%);
+  }
+  to{
+    transform: translateX(40%);
+  }
+}
 
 
 
@@ -2222,7 +2274,7 @@ const onclickCard = customizacao
   : `abrirProduto('${i.id}')`;
 
 return `
-<div class="card" onclick="${onclickCard}">
+<div class="card ${customizacao ? 'card-customizado' : ''}" onclick="${onclickCard}">
   <div style="position:relative">
 
     ${
