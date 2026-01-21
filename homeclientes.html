@@ -17,6 +17,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(async () => {
+  try {
+    const sb = supabase.createClient(
+      "https://egxjgmzukjyyxmkukwub.supabase.co",
+      "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+    );
+
+    const lojaId = new URLSearchParams(location.search).get("l");
+    if (!lojaId) throw new Error("Sem loja");
+
+    /* 🔥 CACHE PRIMEIRO (zero flash) */
+    const cache = localStorage.getItem("THEME_" + lojaId);
+    if (cache) {
+      const c = JSON.parse(cache);
+      if (c.primary) document.documentElement.style.setProperty("--primary", c.primary);
+      if (c.secondary) document.documentElement.style.setProperty("--primary-2", c.secondary);
+      if (c.text) document.documentElement.style.setProperty("--text", c.text);
+    }
+
+    /* 🔥 SUPABASE = FONTE DA VERDADE */
+    const { data } = await sb
+      .from("loja_config")
+      .select("primary_color, secondary_color, text_color")
+      .eq("user_id", lojaId)
+      .maybeSingle();
+
+    if (data) {
+      document.documentElement.style.setProperty("--primary", data.primary_color);
+      document.documentElement.style.setProperty("--primary-2", data.secondary_color || data.primary_color);
+      document.documentElement.style.setProperty("--text", data.text_color || "#111827");
+
+      /* 🔒 salva cache */
+      localStorage.setItem(
+        "THEME_" + lojaId,
+        JSON.stringify({
+          primary: data.primary_color,
+          secondary: data.secondary_color,
+          text: data.text_color
+        })
+      );
+    }
+
+  } catch (e) {
+    console.warn("Tema não carregado:", e);
+  } finally {
+    /* 🔓 LIBERA A RENDERIZAÇÃO */
+    document.documentElement.classList.add("theme-ready");
+  }
+})();
+</script>
 
 <style>
   
@@ -1094,7 +1145,15 @@ body.modal-open{
 
 
 
-  
+  /* ===== BLOQUEIA RENDER ATÉ TEMA CARREGAR ===== */
+html{
+  visibility: hidden;
+}
+
+html.theme-ready{
+  visibility: visible;
+}
+
 
 
 
@@ -1287,20 +1346,6 @@ const { data: config } = await sb
   .eq("user_id", lojaId)
   .maybeSingle();
 
-document.documentElement.style.setProperty(
-  "--primary",
-  config?.primary_color ?? "#ff6a00"
-);
-
-document.documentElement.style.setProperty(
-  "--primary-2",
-  config?.secondary_color ?? config?.primary_color ?? "#ff9a57"
-);
-
-document.documentElement.style.setProperty(
-  "--text",
-  config?.text_color ?? "#111827"
-);
 
 
   /* LOJA */
