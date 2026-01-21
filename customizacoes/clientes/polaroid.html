@@ -3,9 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>Polaroid Personalizado</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1,
+               maximum-scale=1,
+               user-scalable=no,
+               viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Pacifico&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -19,11 +26,17 @@
   --text:#111827;
 }
 
-*{box-sizing:border-box;font-family:Inter}
+*{
+  box-sizing:border-box;
+  font-family:Inter;
+  touch-action:manipulation;
+}
+
 body{
   margin:0;
-  background:linear-gradient(180deg,var(--bg),#eef2ff);
+  background:linear-gradient(180deg,var(--primary-2),var(--bg));
   color:var(--text);
+  overscroll-behavior:contain;
 }
 
 /* ===== HEADER ===== */
@@ -34,8 +47,8 @@ body{
   background:#fff;
   padding:14px 16px;
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
   box-shadow:0 6px 24px rgba(0,0,0,.08);
 }
 .header strong{
@@ -45,58 +58,65 @@ body{
 .header button{
   border:none;
   background:none;
+  font-weight:900;
   font-size:14px;
-  font-weight:800;
-  cursor:pointer;
   color:var(--primary);
 }
 
-/* ===== LAYOUT ===== */
+/* ===== CONTAINER ===== */
 .container{
-  max-width:1200px;
+  max-width:520px;
   margin:auto;
   padding:16px;
-  display:grid;
-  gap:20px;
 }
-@media(min-width:900px){
-  .container{
-    grid-template-columns:1fr 420px;
-    align-items:start;
-  }
+
+/* ===== EDITOR ===== */
+.editor{
+  background:var(--card);
+  border-radius:26px;
+  padding:18px;
+  box-shadow:0 14px 40px rgba(0,0,0,.18);
 }
 
 /* ===== POLAROID ===== */
-.polaroid-wrap{
-  display:flex;
-  justify-content:center;
-}
 .polaroid{
-  width:300px;
+  width:100%;
+  max-width:300px;
   height:390px;
   background:#fff;
-  padding:14px;
   border-radius:14px;
+  padding:14px;
+  margin:auto;
   box-shadow:0 20px 50px rgba(0,0,0,.25);
 }
+
 .foto-area{
   width:100%;
   height:260px;
   background:#e5e7eb;
-  border-radius:8px;
+  border-radius:10px;
   position:relative;
   overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#6b7280;
+  font-weight:700;
+  cursor:pointer;
 }
+
 .foto-area img{
   position:absolute;
   touch-action:none;
 }
+
 .emoji{
   position:absolute;
   font-size:28px;
   cursor:grab;
   user-select:none;
 }
+
 .legenda{
   height:80px;
   display:flex;
@@ -104,79 +124,75 @@ body{
   justify-content:center;
   text-align:center;
   font-size:20px;
+  font-weight:600;
   word-break:break-word;
 }
 
 /* ===== CONTROLES ===== */
 .controls{
-  background:#fff;
-  border-radius:22px;
-  padding:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.1);
+  margin-top:16px;
   display:grid;
   gap:12px;
 }
-.controls h3{
-  margin:0;
-  font-size:13px;
-  font-weight:900;
-  letter-spacing:.08em;
-  color:#6b7280;
-}
+
 .controls input,
 .controls select,
 .controls button{
   width:100%;
-  padding:10px;
-  border-radius:12px;
+  padding:12px;
+  border-radius:14px;
   border:1px solid var(--border);
   font-weight:700;
 }
+
 .controls button.primary{
   background:var(--primary);
   color:#fff;
   border:none;
-}
-.controls button.sec{
-  background:#fff;
+  font-size:15px;
+  font-weight:900;
 }
 
 /* ===== GALERIA ===== */
 .galeria{
-  grid-column:1/-1;
+  margin-top:24px;
 }
+
 .galeria h3{
   font-size:16px;
   font-weight:900;
   margin-bottom:10px;
 }
+
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  grid-template-columns:repeat(2,1fr);
   gap:14px;
 }
+
 .item{
   background:#fff;
   border-radius:18px;
-  padding:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  padding:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
   position:relative;
 }
+
 .item img{
   width:100%;
   border-radius:12px;
 }
+
 .item button{
   position:absolute;
-  top:8px;
-  right:8px;
+  top:6px;
+  right:6px;
   background:#ef4444;
   color:#fff;
   border:none;
   border-radius:50%;
-  width:28px;
-  height:28px;
-  cursor:pointer;
+  width:26px;
+  height:26px;
 }
 </style>
 </head>
@@ -190,31 +206,30 @@ body{
 
 <div class="container">
 
-  <div class="polaroid-wrap">
+  <div class="editor">
+
     <div class="polaroid" id="polaroid">
-      <div class="foto-area" id="fotoArea"></div>
+      <div class="foto-area" id="fotoArea" onclick="fileInput.click()">
+        📸 Toque para adicionar foto
+      </div>
       <div class="legenda" id="legenda"></div>
     </div>
-  </div>
 
-  <div class="controls">
-    <h3>Edição</h3>
+    <div class="controls">
+      <input type="file" id="fileInput" accept="image/*" hidden onchange="carregarFoto(event)">
+      <input type="range" min="1" max="3" step="0.1" value="1" onchange="setZoom(this.value)">
+      <input type="text" placeholder="Adicionar emoji 😀" oninput="addEmoji(this.value)">
+      <input type="text" placeholder="Texto do polaroid" oninput="setTexto(this.value)">
+      <input type="color" onchange="setCor(this.value)">
+      <select onchange="setFonte(this.value)">
+        <option value="Inter">Inter</option>
+        <option value="Pacifico">Pacifico</option>
+        <option value="Montserrat">Montserrat</option>
+      </select>
 
-    <input type="file" accept="image/*" onchange="carregarFoto(event)">
-    <input type="range" min="1" max="3" step="0.1" value="1" onchange="setZoom(this.value)">
+      <button class="primary" onclick="salvar()">Salvar Polaroid</button>
+    </div>
 
-    <input type="text" placeholder="Adicionar emoji 😀" oninput="addEmoji(this.value)">
-    <input type="text" placeholder="Texto do polaroid" oninput="setTexto(this.value)">
-    <input type="color" onchange="setCor(this.value)">
-
-    <select onchange="setFonte(this.value)">
-      <option value="Inter">Inter</option>
-      <option value="Pacifico">Pacifico</option>
-      <option value="Montserrat">Montserrat</option>
-    </select>
-
-    <button class="primary" onclick="salvar()">Salvar Polaroid</button>
-    <button class="sec" onclick="resetar()">Limpar editor</button>
   </div>
 
   <div class="galeria">
@@ -225,7 +240,7 @@ body{
 </div>
 
 <script>
-/* ===== SUPABASE CORES (IGUAL AO INDEX) ===== */
+/* ===== SUPABASE CORES ===== */
 const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
@@ -233,7 +248,7 @@ const sb = supabase.createClient(
 
 const lojaId = new URLSearchParams(location.search).get("l");
 
-(async ()=>{
+(async()=>{
   if(!lojaId) return;
   const { data } = await sb
     .from("loja_config")
@@ -242,7 +257,7 @@ const lojaId = new URLSearchParams(location.search).get("l");
     .maybeSingle();
 
   if(data){
-    document.documentElement.style.setProperty("--primary", data.primary_color || "#ff6a00");
+    document.documentElement.style.setProperty("--primary", data.primary_color);
     document.documentElement.style.setProperty("--primary-2", data.secondary_color || data.primary_color);
     document.documentElement.style.setProperty("--text", data.text_color || "#111827");
   }
@@ -254,6 +269,7 @@ let foto=null, zoom=1;
 function carregarFoto(e){
   const f=e.target.files[0];
   if(!f) return;
+
   const img=document.createElement("img");
   img.src=URL.createObjectURL(f);
   img.onload=()=>{
@@ -264,12 +280,14 @@ function carregarFoto(e){
     foto.style.left="0";
     foto.style.top="0";
     drag(img,fotoArea);
-  }
+  };
 }
+
 function setZoom(z){
   zoom=z;
   if(foto) foto.style.transform=`scale(${zoom})`;
 }
+
 function addEmoji(v){
   if(!v) return;
   const e=document.createElement("div");
@@ -280,6 +298,7 @@ function addEmoji(v){
   polaroid.appendChild(e);
   drag(e,polaroid);
 }
+
 function setTexto(t){ legenda.innerText=t }
 function setCor(c){ legenda.style.color=c }
 function setFonte(f){ legenda.style.fontFamily=f }
@@ -291,7 +310,7 @@ function drag(el,lim){
     x=e.clientX-el.offsetLeft;
     y=e.clientY-el.offsetTop;
     el.setPointerCapture(e.pointerId);
-  }
+  };
   el.onpointermove=e=>{
     if(!d) return;
     let nx=e.clientX-x, ny=e.clientY-y;
@@ -299,21 +318,31 @@ function drag(el,lim){
     ny=Math.max(0,Math.min(ny,lim.clientHeight-el.offsetHeight));
     el.style.left=nx+"px";
     el.style.top=ny+"px";
-  }
+  };
   el.onpointerup=()=>d=false;
 }
 
-/* ===== SALVAR / GALERIA ===== */
+/* ===== SALVAR ===== */
 function salvar(){
   html2canvas(polaroid).then(c=>{
     const img=c.toDataURL("image/png");
     const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
     lista.push(img);
     localStorage.setItem("polaroids",JSON.stringify(lista));
+    limparEditor();
     render();
     window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
   });
 }
+
+function limparEditor(){
+  fotoArea.innerHTML="📸 Toque para adicionar foto";
+  legenda.innerText="";
+  document.querySelectorAll(".emoji").forEach(e=>e.remove());
+  foto=null;
+}
+
+/* ===== GALERIA ===== */
 function excluir(i){
   const lista=JSON.parse(localStorage.getItem("polaroids"));
   lista.splice(i,1);
@@ -328,10 +357,6 @@ function render(){
       <button onclick="excluir(${idx})">✕</button>
     </div>
   `).join("");
-}
-function resetar(){
-  fotoArea.innerHTML="";
-  legenda.innerText="";
 }
 render();
 
