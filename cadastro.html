@@ -325,13 +325,14 @@ async function carregarTipos() {
   const select = document.getElementById("tipo");
   select.innerHTML = `<option value="">Tipo do negócio</option>`;
 
-  data.forEach(t => {
-    select.innerHTML += `
-      <option value="${t.nome}">
-        ${t.nome} (${t.total_lojas})
-      </option>
-    `;
-  });
+data.forEach(t => {
+  select.innerHTML += `
+    <option value="${t.nome}">
+      ${t.nome}
+    </option>
+  `;
+});
+
 }
 
 // carrega assim que a página abre
