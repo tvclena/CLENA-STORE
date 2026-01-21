@@ -2,27 +2,31 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<title>Polaroid Personalizado</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Personalize seu Polaroid</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Pacifico&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
+  --primary-2:#ff9a57;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --text:#111827;
 }
+
 *{box-sizing:border-box;font-family:Inter}
 body{
   margin:0;
-  background:linear-gradient(180deg,#f4f6fb,#eef2ff);
+  background:linear-gradient(180deg,var(--bg),#eef2ff);
+  color:var(--text);
 }
 
-/* HEADER */
+/* ===== HEADER ===== */
 .header{
   position:sticky;
   top:0;
@@ -30,14 +34,24 @@ body{
   background:#fff;
   padding:14px 16px;
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
   box-shadow:0 6px 24px rgba(0,0,0,.08);
 }
-.header strong{font-size:16px;font-weight:800}
-.header span{font-size:13px;color:#6b7280}
+.header strong{
+  font-size:16px;
+  font-weight:900;
+}
+.header button{
+  border:none;
+  background:none;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  color:var(--primary);
+}
 
-/* LAYOUT */
+/* ===== LAYOUT ===== */
 .container{
   max-width:1200px;
   margin:auto;
@@ -52,24 +66,24 @@ body{
   }
 }
 
-/* POLAROID */
-.polaroid-box{
+/* ===== POLAROID ===== */
+.polaroid-wrap{
   display:flex;
   justify-content:center;
 }
 .polaroid{
   width:300px;
-  height:380px;
+  height:390px;
   background:#fff;
   padding:14px;
-  border-radius:12px;
+  border-radius:14px;
   box-shadow:0 20px 50px rgba(0,0,0,.25);
 }
 .foto-area{
   width:100%;
   height:260px;
   background:#e5e7eb;
-  border-radius:6px;
+  border-radius:8px;
   position:relative;
   overflow:hidden;
 }
@@ -84,19 +98,19 @@ body{
   user-select:none;
 }
 .legenda{
-  height:70px;
+  height:80px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:20px;
   text-align:center;
+  font-size:20px;
   word-break:break-word;
 }
 
-/* CONTROLES */
+/* ===== CONTROLES ===== */
 .controls{
   background:#fff;
-  border-radius:20px;
+  border-radius:22px;
   padding:16px;
   box-shadow:0 10px 30px rgba(0,0,0,.1);
   display:grid;
@@ -104,8 +118,8 @@ body{
 }
 .controls h3{
   margin:0;
-  font-size:14px;
-  text-transform:uppercase;
+  font-size:13px;
+  font-weight:900;
   letter-spacing:.08em;
   color:#6b7280;
 }
@@ -116,24 +130,24 @@ body{
   padding:10px;
   border-radius:12px;
   border:1px solid var(--border);
-  font-weight:600;
+  font-weight:700;
 }
 .controls button.primary{
   background:var(--primary);
   color:#fff;
   border:none;
-  font-weight:800;
 }
 .controls button.sec{
   background:#fff;
 }
 
-/* GALERIA */
+/* ===== GALERIA ===== */
 .galeria{
   grid-column:1/-1;
 }
 .galeria h3{
   font-size:16px;
+  font-weight:900;
   margin-bottom:10px;
 }
 .grid{
@@ -170,15 +184,13 @@ body{
 <body>
 
 <div class="header">
-  <div>
-    <strong>Personalize seu Polaroid</strong><br>
-    <span>Monte do seu jeito</span>
-  </div>
+  <strong>Monte seu Polaroid</strong>
+  <button onclick="voltar()">✕ Fechar</button>
 </div>
 
 <div class="container">
 
-  <div class="polaroid-box">
+  <div class="polaroid-wrap">
     <div class="polaroid" id="polaroid">
       <div class="foto-area" id="fotoArea"></div>
       <div class="legenda" id="legenda"></div>
@@ -187,8 +199,10 @@ body{
 
   <div class="controls">
     <h3>Edição</h3>
+
     <input type="file" accept="image/*" onchange="carregarFoto(event)">
     <input type="range" min="1" max="3" step="0.1" value="1" onchange="setZoom(this.value)">
+
     <input type="text" placeholder="Adicionar emoji 😀" oninput="addEmoji(this.value)">
     <input type="text" placeholder="Texto do polaroid" oninput="setTexto(this.value)">
     <input type="color" onchange="setCor(this.value)">
@@ -211,10 +225,35 @@ body{
 </div>
 
 <script>
+/* ===== SUPABASE CORES (IGUAL AO INDEX) ===== */
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+
+(async ()=>{
+  if(!lojaId) return;
+  const { data } = await sb
+    .from("loja_config")
+    .select("primary_color, secondary_color, text_color")
+    .eq("user_id", lojaId)
+    .maybeSingle();
+
+  if(data){
+    document.documentElement.style.setProperty("--primary", data.primary_color || "#ff6a00");
+    document.documentElement.style.setProperty("--primary-2", data.secondary_color || data.primary_color);
+    document.documentElement.style.setProperty("--text", data.text_color || "#111827");
+  }
+})();
+
+/* ===== EDITOR ===== */
 let foto=null, zoom=1;
+
 function carregarFoto(e){
   const f=e.target.files[0];
-  if(!f)return;
+  if(!f) return;
   const img=document.createElement("img");
   img.src=URL.createObjectURL(f);
   img.onload=()=>{
@@ -232,7 +271,7 @@ function setZoom(z){
   if(foto) foto.style.transform=`scale(${zoom})`;
 }
 function addEmoji(v){
-  if(!v)return;
+  if(!v) return;
   const e=document.createElement("div");
   e.className="emoji";
   e.innerText=v;
@@ -241,9 +280,9 @@ function addEmoji(v){
   polaroid.appendChild(e);
   drag(e,polaroid);
 }
-function setTexto(t){legenda.innerText=t}
-function setCor(c){legenda.style.color=c}
-function setFonte(f){legenda.style.fontFamily=f}
+function setTexto(t){ legenda.innerText=t }
+function setCor(c){ legenda.style.color=c }
+function setFonte(f){ legenda.style.fontFamily=f }
 
 function drag(el,lim){
   let x,y,d=false;
@@ -254,7 +293,7 @@ function drag(el,lim){
     el.setPointerCapture(e.pointerId);
   }
   el.onpointermove=e=>{
-    if(!d)return;
+    if(!d) return;
     let nx=e.clientX-x, ny=e.clientY-y;
     nx=Math.max(0,Math.min(nx,lim.clientWidth-el.offsetWidth));
     ny=Math.max(0,Math.min(ny,lim.clientHeight-el.offsetHeight));
@@ -264,6 +303,7 @@ function drag(el,lim){
   el.onpointerup=()=>d=false;
 }
 
+/* ===== SALVAR / GALERIA ===== */
 function salvar(){
   html2canvas(polaroid).then(c=>{
     const img=c.toDataURL("image/png");
@@ -271,6 +311,7 @@ function salvar(){
     lista.push(img);
     localStorage.setItem("polaroids",JSON.stringify(lista));
     render();
+    window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
   });
 }
 function excluir(i){
@@ -293,6 +334,11 @@ function resetar(){
   legenda.innerText="";
 }
 render();
+
+/* ===== VOLTAR ===== */
+function voltar(){
+  history.back();
+}
 </script>
 
 </body>
