@@ -1528,7 +1528,12 @@ function render(reset = true){
 
   itensVisiveis = todos
     .filter(i => i.tipo === tipoAtual && i.ativo)
-    .filter(i => i.nome.toLowerCase().includes(q));
+.filter(i =>
+  i.nome
+    .replace(/#[^#]+#/g, "")
+    .toLowerCase()
+    .includes(q)
+);
 
   if(!itensVisiveis.length){
     grid.innerHTML = `
