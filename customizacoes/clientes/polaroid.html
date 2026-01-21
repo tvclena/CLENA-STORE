@@ -45,46 +45,36 @@ body{
   z-index:-2;
   overflow:hidden;
 }
-
 .star{
   position:absolute;
-  width:2px;
-  height:2px;
   background:var(--primary);
   border-radius:50%;
-  opacity:.6;
   animation:fall linear infinite;
 }
-
 @keyframes fall{
   from{transform:translateY(-10vh)}
   to{transform:translateY(110vh)}
 }
 
-/* ===== HEADER ===== */
-.header{
-  position:sticky;
-  top:0;
-  z-index:10;
-  background:rgba(0,0,0,.55);
-  backdrop-filter:blur(12px);
-  padding:14px 16px;
-  display:flex;
-  justify-content:flex-end;
-}
-.header button{
-  border:none;
-  background:none;
-  font-size:14px;
-  font-weight:800;
-  color:var(--primary);
+/* ===== CONTAINER ===== */
+.page{
+  max-width:1200px;
+  margin:auto;
+  padding:24px 16px 40px;
 }
 
-/* ===== CONTAINER ===== */
-.container{
-  max-width:520px;
-  margin:auto;
-  padding:18px 16px 40px;
+/* ===== LAYOUT ===== */
+.layout{
+  display:grid;
+  gap:24px;
+}
+
+/* DESKTOP */
+@media(min-width:900px){
+  .layout{
+    grid-template-columns: 420px 1fr;
+    align-items:start;
+  }
 }
 
 /* ===== EDITOR ===== */
@@ -92,7 +82,7 @@ body{
   background:var(--card-bg);
   backdrop-filter:blur(18px);
   border-radius:28px;
-  padding:18px;
+  padding:20px;
   border:1px solid var(--border);
   box-shadow:0 25px 60px rgba(0,0,0,.6);
 }
@@ -105,7 +95,7 @@ body{
   background:rgba(255,255,255,.95);
   border-radius:18px;
   padding:14px;
-  margin:0 auto 16px;
+  margin:0 auto 18px;
   position:relative;
   overflow:hidden;
 }
@@ -115,16 +105,15 @@ body{
   height:260px;
   background:#e5e7eb;
   border-radius:14px;
-  position:relative;
-  overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
   font-weight:700;
   color:#6b7280;
   cursor:pointer;
+  position:relative;
+  overflow:hidden;
 }
-
 .foto-area img{
   position:absolute;
   touch-action:none;
@@ -140,6 +129,7 @@ body{
   font-size:20px;
   font-weight:600;
   color:#111;
+  word-break:break-word;
 }
 
 /* EMOJI */
@@ -190,24 +180,37 @@ body{
   font-weight:900;
 }
 
+/* ===== SELECT DARK ===== */
+select{
+  background-color:rgba(0,0,0,.35);
+}
+select option{
+  background:#0b0b0b;
+  color:#fff;
+}
+
 /* ===== GALERIA ===== */
 .galeria{
-  margin-top:28px;
+  background:var(--card-bg);
+  backdrop-filter:blur(16px);
+  border-radius:28px;
+  padding:18px;
+  border:1px solid var(--border);
+  box-shadow:0 25px 60px rgba(0,0,0,.6);
 }
 .galeria h3{
+  margin:0 0 12px;
   font-size:16px;
   font-weight:900;
-  margin-bottom:10px;
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
   gap:14px;
 }
 .item{
-  background:var(--card-bg);
-  backdrop-filter:blur(12px);
-  border-radius:18px;
+  background:rgba(0,0,0,.35);
+  border-radius:16px;
   padding:8px;
   border:1px solid var(--border);
   position:relative;
@@ -227,28 +230,6 @@ body{
   background:#ef4444;
   color:#fff;
 }
-
-/* ===== SELECT DARK / GLASS ===== */
-select{
-  background-color: rgba(0,0,0,.35);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,.2);
-}
-
-/* lista aberta */
-select option{
-  background-color: #0b0b0b; /* preto real */
-  color: #fff;
-}
-
-/* opção selecionada / foco */
-select option:checked,
-select option:hover{
-  background-color: rgba(255,255,255,.12);
-  color: #fff;
-}
-
-      
 </style>
 </head>
 
@@ -256,46 +237,43 @@ select option:hover{
 
 <div class="stars" id="stars"></div>
 
-<div class="header">
-  <button onclick="history.back()">✕ Fechar</button>
-</div>
+<div class="page">
+  <div class="layout">
 
-<div class="container">
+    <!-- EDITOR -->
+    <div class="editor">
 
-  <div class="editor">
-
-    <div class="polaroid" id="polaroid">
-
-      <div class="foto-area" id="fotoArea" onclick="fileInput.click()">
-        📸 Toque para adicionar foto
+      <div class="polaroid" id="polaroid">
+        <div class="foto-area" id="fotoArea" onclick="fileInput.click()">
+          📸 Toque para adicionar foto
+        </div>
+        <div class="legenda" id="legenda"></div>
+        <div class="watermark" id="watermark"></div>
       </div>
 
-      <div class="legenda" id="legenda"></div>
+      <div class="controls">
+        <input type="file" id="fileInput" hidden accept="image/*" onchange="carregarFoto(event)">
+        <input type="range" min="1" max="3" step="0.1" value="1" onchange="setZoom(this.value)">
+        <input type="text" placeholder="Emoji 😀" oninput="addEmoji(this.value)">
+        <input type="text" placeholder="Texto do polaroid" oninput="legenda.innerText=this.value">
+        <input type="color" onchange="legenda.style.color=this.value)">
+        <select onchange="legenda.style.fontFamily=this.value">
+          <option value="Inter">Inter</option>
+          <option value="Pacifico">Pacifico</option>
+          <option value="Montserrat">Montserrat</option>
+        </select>
+        <button class="primary" onclick="salvar()">Salvar Polaroid</button>
+      </div>
 
-      <div class="watermark" id="watermark"></div>
     </div>
 
-    <div class="controls">
-      <input type="file" id="fileInput" hidden accept="image/*" onchange="carregarFoto(event)">
-      <input type="range" min="1" max="3" step="0.1" value="1" onchange="setZoom(this.value)">
-      <input type="text" placeholder="Emoji 😀" oninput="addEmoji(this.value)">
-      <input type="text" placeholder="Texto do polaroid" oninput="legenda.innerText=this.value">
-      <input type="color" onchange="legenda.style.color=this.value">
-      <select onchange="legenda.style.fontFamily=this.value">
-        <option value="Inter">Inter</option>
-        <option value="Pacifico">Pacifico</option>
-        <option value="Montserrat">Montserrat</option>
-      </select>
-      <button class="primary" onclick="salvar()">Salvar Polaroid</button>
+    <!-- GALERIA -->
+    <div class="galeria">
+      <h3>Seus Polaroids</h3>
+      <div class="grid" id="grid"></div>
     </div>
 
   </div>
-
-  <div class="galeria">
-    <h3>Seus Polaroids</h3>
-    <div class="grid" id="grid"></div>
-  </div>
-
 </div>
 
 <script>
@@ -310,21 +288,14 @@ let nomeLojaTxt="SUA LOJA";
 (async()=>{
   if(!lojaId) return;
 
-  const {data:loja}=await sb
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id",lojaId)
-    .maybeSingle();
+  const {data:loja}=await sb.from("user_profile")
+    .select("negocio").eq("user_id",lojaId).maybeSingle();
 
-  if(loja?.negocio){
-    nomeLojaTxt=loja.negocio.toUpperCase();
-  }
+  if(loja?.negocio) nomeLojaTxt=loja.negocio.toUpperCase();
 
-  const {data:cfg}=await sb
-    .from("loja_config")
+  const {data:cfg}=await sb.from("loja_config")
     .select("primary_color,secondary_color,text_color")
-    .eq("user_id",lojaId)
-    .maybeSingle();
+    .eq("user_id",lojaId).maybeSingle();
 
   if(cfg){
     document.documentElement.style.setProperty("--primary",cfg.primary_color);
@@ -336,19 +307,16 @@ let nomeLojaTxt="SUA LOJA";
 
 /* ===== ESTRELAS ===== */
 function criarEstrelas(){
-  const s = document.getElementById("stars");
-  for(let i = 0; i < 120; i++){
-    const e = document.createElement("div");
-    e.className = "star";
-
-    const size = 1 + Math.random() * 2;
-    e.style.width = size + "px";
-    e.style.height = size + "px";
-
-    e.style.left = Math.random() * 100 + "%";
-    e.style.opacity = 0.4 + Math.random() * 0.6;
-    e.style.animationDuration = (6 + Math.random() * 10) + "s";
-
+  const s=document.getElementById("stars");
+  for(let i=0;i<140;i++){
+    const e=document.createElement("div");
+    e.className="star";
+    const size=1+Math.random()*2;
+    e.style.width=size+"px";
+    e.style.height=size+"px";
+    e.style.left=Math.random()*100+"%";
+    e.style.opacity=0.4+Math.random()*0.6;
+    e.style.animationDuration=(6+Math.random()*10)+"s";
     s.appendChild(e);
   }
 }
@@ -402,18 +370,15 @@ function addEmoji(v){
 function drag(el,lim){
   let x,y,d=false;
   el.onpointerdown=e=>{
-    d=true;
-    x=e.clientX-el.offsetLeft;
-    y=e.clientY-el.offsetTop;
+    d=true;x=e.clientX-el.offsetLeft;y=e.clientY-el.offsetTop;
     el.setPointerCapture(e.pointerId);
   };
   el.onpointermove=e=>{
     if(!d) return;
-    let nx=e.clientX-x, ny=e.clientY-y;
+    let nx=e.clientX-x,ny=e.clientY-y;
     nx=Math.max(0,Math.min(nx,lim.clientWidth-el.offsetWidth));
     ny=Math.max(0,Math.min(ny,lim.clientHeight-el.offsetHeight));
-    el.style.left=nx+"px";
-    el.style.top=ny+"px";
+    el.style.left=nx+"px";el.style.top=ny+"px";
   };
   el.onpointerup=()=>d=false;
 }
@@ -425,9 +390,7 @@ function salvar(){
     const lista=JSON.parse(localStorage.getItem("polaroids")||"[]");
     lista.push(img);
     localStorage.setItem("polaroids",JSON.stringify(lista));
-    limpar();
-    render();
-    window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+    limpar();render();
   });
 }
 function limpar(){
