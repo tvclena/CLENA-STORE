@@ -17,57 +17,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(async () => {
-  try {
-    const sb = supabase.createClient(
-      "https://egxjgmzukjyyxmkukwub.supabase.co",
-      "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-    );
-
-    const lojaId = new URLSearchParams(location.search).get("l");
-    if (!lojaId) throw new Error("Sem loja");
-
-    /* 🔥 CACHE PRIMEIRO (zero flash) */
-    const cache = localStorage.getItem("THEME_" + lojaId);
-    if (cache) {
-      const c = JSON.parse(cache);
-      if (c.primary) document.documentElement.style.setProperty("--primary", c.primary);
-      if (c.secondary) document.documentElement.style.setProperty("--primary-2", c.secondary);
-      if (c.text) document.documentElement.style.setProperty("--text", c.text);
-    }
-
-    /* 🔥 SUPABASE = FONTE DA VERDADE */
-    const { data } = await sb
-      .from("loja_config")
-      .select("primary_color, secondary_color, text_color")
-      .eq("user_id", lojaId)
-      .maybeSingle();
-
-    if (data) {
-      document.documentElement.style.setProperty("--primary", data.primary_color);
-      document.documentElement.style.setProperty("--primary-2", data.secondary_color || data.primary_color);
-      document.documentElement.style.setProperty("--text", data.text_color || "#111827");
-
-      /* 🔒 salva cache */
-      localStorage.setItem(
-        "THEME_" + lojaId,
-        JSON.stringify({
-          primary: data.primary_color,
-          secondary: data.secondary_color,
-          text: data.text_color
-        })
-      );
-    }
-
-  } catch (e) {
-    console.warn("Tema não carregado:", e);
-  } finally {
-    /* 🔓 LIBERA A RENDERIZAÇÃO */
-    document.documentElement.classList.add("theme-ready");
-  }
-})();
-</script>
 
 <style>
   
@@ -1145,15 +1094,7 @@ body.modal-open{
 
 
 
-  /* ===== BLOQUEIA RENDER ATÉ TEMA CARREGAR ===== */
-html{
-  visibility: hidden;
-}
-
-html.theme-ready{
-  visibility: visible;
-}
-
+  
 
 
 
@@ -1336,71 +1277,8 @@ let tipoAtual = null;
 let vendasPorProduto = {};   // { produto_id: total_vendido }
 let avaliacoesPorItem = {}; // { produto_id: { total, soma } }
 
-const CACHE_KEY = "CACHE_PRODUTOS_" + lojaId;
-const CACHE_TIME = "CACHE_TIMESTAMP_" + lojaId;
-const CACHE_TTL = 1000 * 60 * 5; // 5 minutos
-
-function salvarCacheProdutos(lista){
-  localStorage.setItem(CACHE_KEY, JSON.stringify(lista));
-  localStorage.setItem(CACHE_TIME, Date.now());
-}
-
-function lerCacheProdutos(){
-  try{
-    const raw = localStorage.getItem(CACHE_KEY);
-    const time = localStorage.getItem(CACHE_TIME);
-
-    if(!raw || !time) return null;
-
-    // cache válido
-    if(Date.now() - Number(time) > CACHE_TTL) return null;
-
-    return JSON.parse(raw);
-  }catch{
-    return null;
-  }
-}
-
-
-
-
-
-
-
-  
-
 /* ================= LOAD ================= */
 async function load(){
-
-
-  /* 🔥 TENTA CACHE PRIMEIRO */
-const cache = lerCacheProdutos();
-
-if(cache && Array.isArray(cache)){
-  todos = cache;
-
-  await carregarVendasProdutos();
-  await carregarAvaliacoesResumo();
-  await carregarMediaLoja();
-  await verificarLojaVerificada();
-
-  // define aba
-  const temServico = todos.some(i => i.tipo === "SERVICO" && i.ativo);
-  const temProduto = todos.some(i => i.tipo === "PRODUTO" && i.ativo);
-
-  if(temServico){
-    tipoAtual = "SERVICO";
-    setTab("SERVICO");
-  }else if(temProduto){
-    tipoAtual = "PRODUTO";
-    setTab("PRODUTO");
-  }
-
-  // 🔥 segue carregando em segundo plano
-  atualizarProdutosEmBackground();
-
-}
-
 
 /* CONFIG DE CORES — SUPABASE É A ÚNICA FONTE DA VERDADE */
 const { data: config } = await sb
@@ -1409,6 +1287,20 @@ const { data: config } = await sb
   .eq("user_id", lojaId)
   .maybeSingle();
 
+document.documentElement.style.setProperty(
+  "--primary",
+  config?.primary_color ?? "#ff6a00"
+);
+
+document.documentElement.style.setProperty(
+  "--primary-2",
+  config?.secondary_color ?? config?.primary_color ?? "#ff9a57"
+);
+
+document.documentElement.style.setProperty(
+  "--text",
+  config?.text_color ?? "#111827"
+);
 
 
   /* LOJA */
@@ -1479,6 +1371,15 @@ if (loja.bio) {
 }
 
 
+  /* PRODUTOS */
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("*")
+    .eq("user_id",lojaId)
+    .eq("ativo",true)
+    .order("ordem_exibicao");
+
+todos = data || [];
 
 // 🔥 carrega dados auxiliares ANTES de renderizar
 await carregarVendasProdutos();
@@ -2498,37 +2399,8 @@ function adicionarDireto(id){
   adicionarAoCarrinho();
 }
 
-async function atualizarProdutosEmBackground(){
-  const { data, error } = await sb
-    .from("produtos_servicos")
-    .select("*")
-    .eq("user_id", lojaId)
-    .eq("ativo", true)
-    .order("ordem_exibicao");
-
-  if(error || !data) return;
-
-  // 🔥 diff simples
-  const atual = JSON.stringify(todos);
-  const novo  = JSON.stringify(data);
-
-  // 🔒 só atualiza se mudou
-  if(atual === novo) return;
-
-  // 🔄 atualiza buffer e cache
-  todos = data;
-  salvarCacheProdutos(data);
-
-  // 🔥 re-render controlado (sem piscar)
-  render(true);
-}
 
 
-
-
-
-
-  
   
 
   
