@@ -561,25 +561,20 @@ function dataISO(d){
 }
 function mudarDia(direcao){
   dataAtual.setDate(dataAtual.getDate() + direcao);
-
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session){
-      carregarAgendaDia(session.user.id);
-    }
-  });
+  carregarAgendaDia(APP.userId);
 }
 
 const sbHome = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+const APP = parent.APP_CONTEXT;
 
 async function carregarHome(){
 
-  const { data:{ session } } = await sbHome.auth.getSession();
-  if(!session) return;
+  const lojaId = APP.userId;
+  if (!lojaId) return;
 
-  const lojaId = session.user.id;
 
   const hoje = new Date().toLocaleDateString("en-CA");
   const inicioMes = new Date();
@@ -640,9 +635,8 @@ document.addEventListener("touchend",e=>{
   const diff = e.changedTouches[0].clientX - startX;
   if(Math.abs(diff)<60) return;
   dataAtual.setDate(dataAtual.getDate() + (diff<0?1:-1));
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session) carregarAgendaDia(session.user.id);
-  });
+carregarAgendaDia(APP.userId);
+
 });
 
 async function carregarAgendaDia(lojaId){
@@ -747,14 +741,15 @@ agenda.forEach(a => {
 
 async function alterarStatus(id, status) {
 
-  const { data:{ session } } = await sbHome.auth.getSession();
-  if (!session) return;
+const lojaId = APP.userId;
+if (!lojaId) return;
+
 
   const { error } = await sbHome
     .from("agendamentos")
     .update({ status })
 .eq("id", id)
-.eq("user_id", session.user.id);
+.eq("user_id", lojaId);
 
 
   if (error) {
@@ -763,14 +758,13 @@ async function alterarStatus(id, status) {
     return;
   }
 
-  carregarAgendaDia(session.user.id);
+carregarAgendaDia(lojaId);
 }
 async function carregarCalendarioFaturamento(){
 
-  const { data:{ session } } = await sbHome.auth.getSession();
-  if(!session) return;
+const lojaId = APP.userId;
+if (!lojaId) return;
 
-  const lojaId = session.user.id;
 
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -845,10 +839,9 @@ async function carregarCalendarioFaturamento(){
 
 async function carregarServicos(){
 
-  const { data:{ session } } = await sbHome.auth.getSession();
-  if(!session) return;
+const lojaId = APP.userId;
+if (!lojaId) return;
 
-  const lojaId = session.user.id;
 
   const { data: servicos, error } = await sbHome
     .from("produtos_servicos")
@@ -929,19 +922,16 @@ function fecharServicos(){
 }
 function abrirNovoAgendamento(){
 
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(!session) return;
+  const lojaId = APP.userId;
+  if (!lojaId) return;
 
-    const lojaId = session.user.id;
+  const iframe = document.getElementById("iframeAgendar");
 
-    const iframe = document.getElementById("iframeAgendar");
+  iframe.src = `agendar.html?l=${lojaId}&novo=1`;
 
-    // 🔥 abre o agendar reutilizando tudo que já existe
-iframe.src = `agendar.html?l=${lojaId}&novo=1`;
-
-    document.getElementById("novoAgendamentoModal").style.display = "flex";
-  });
+  document.getElementById("novoAgendamentoModal").style.display = "flex";
 }
+
 
 function fecharNovoAgendamento(){
   const modal = document.getElementById("novoAgendamentoModal");
@@ -951,20 +941,18 @@ function fecharNovoAgendamento(){
   modal.style.display = "none";
 
   // 🔄 atualiza agenda do dia automaticamente
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session) carregarAgendaDia(session.user.id);
-  });
+carregarAgendaDia(APP.userId);
+
 }
 function abrirResumoDia(data){
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(!session) return;
 
-    const lojaId = session.user.id;
-    const iframe = document.getElementById("iframeResumoDia");
+  const lojaId = APP.userId;
+  if (!lojaId) return;
 
-    iframe.src = `resumodia.html?data=${data}&loja=${lojaId}`;
-    document.getElementById("resumoDiaModal").style.display = "flex";
-  });
+  const iframe = document.getElementById("iframeResumoDia");
+
+  iframe.src = `resumodia.html?data=${data}&loja=${lojaId}`;
+  document.getElementById("resumoDiaModal").style.display = "flex";
 }
 
 function fecharResumoDia(){
