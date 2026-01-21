@@ -2175,11 +2175,14 @@ function carregarProximaPagina(){
           </span>
         </div>
 
-        <button onclick="event.stopPropagation(); acao('${i.id}','${i.tipo}')">
-          ${i.tipo==="SERVICO"
-            ? (i.preco > 0 ? "Agendar" : "Orçamento")
-            : "Comprar"}
-        </button>
+${isPolaroid(i.nome) ? "" : `
+  <button onclick="event.stopPropagation(); acao('${i.id}','${i.tipo}')">
+    ${i.tipo==="SERVICO"
+      ? (i.preco > 0 ? "Agendar" : "Orçamento")
+      : "Comprar"}
+  </button>
+`}
+
       </div>
     </div>
   `).join("");
@@ -2249,7 +2252,20 @@ function abrirPolaroidPopup(produto){
 
   document.body.appendChild(modal);
 }
+function isPolaroid(nome){
+  return nome?.toLowerCase().includes("#polaroid#");
+}
 
+
+
+
+
+
+
+
+
+
+  
 
   
 
