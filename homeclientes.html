@@ -1398,6 +1398,7 @@ if(cache && Array.isArray(cache)){
 
   // 🔥 segue carregando em segundo plano
   atualizarProdutosEmBackground();
+
 }
 
 
@@ -2497,7 +2498,6 @@ function adicionarDireto(id){
   adicionarAoCarrinho();
 }
 
-
 async function atualizarProdutosEmBackground(){
   const { data, error } = await sb
     .from("produtos_servicos")
@@ -2508,16 +2508,19 @@ async function atualizarProdutosEmBackground(){
 
   if(error || !data) return;
 
+  // 🔥 diff simples
   const atual = JSON.stringify(todos);
   const novo  = JSON.stringify(data);
 
   // 🔒 só atualiza se mudou
-  if(atual !== novo){
-    todos = data;
-    salvarCacheProdutos(data);
+  if(atual === novo) return;
 
-    render(true); // 🔥 UM render controlado
-  }
+  // 🔄 atualiza buffer e cache
+  todos = data;
+  salvarCacheProdutos(data);
+
+  // 🔥 re-render controlado (sem piscar)
+  render(true);
 }
 
 
