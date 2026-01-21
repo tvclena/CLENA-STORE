@@ -133,6 +133,7 @@ const sb = supabase.createClient(
 
 const lista = document.getElementById("lista");
 const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+let produtosMap = {};
 
 function parseItensSeguro(itens){
   if(Array.isArray(itens)) return itens;
@@ -164,7 +165,7 @@ const { data: produtos } = await sb
   .from("produtos_servicos")
   .select("id, imagem_url");
 
-const produtosMap = {};
+produtosMap = {};
 (produtos || []).forEach(p => {
   produtosMap[p.id] = p.imagem_url;
 });
