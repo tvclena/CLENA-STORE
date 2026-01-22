@@ -772,9 +772,13 @@ if (!lojaId) return;
 carregarAgendaDia(lojaId);
 }
 async function carregarCalendarioFaturamento(){
+  if (!CONTEXTO_PRONTO) return;
 
-const lojaId = APP.userId;
-if (!lojaId) return;
+  const lojaId = APP.userId;
+  if (!lojaId) return;
+
+  // resto da função continua igual
+}
 
 
   const hoje = new Date();
@@ -916,9 +920,11 @@ function fecharClientes(){
 }
 
 function abrirFaturamentoMes(){
+  if (!CONTEXTO_PRONTO) return;
   document.getElementById("faturamentoModal").style.display = "flex";
   carregarCalendarioFaturamento();
 }
+
 
 function fecharFaturamentoMes(){
   document.getElementById("faturamentoModal").style.display = "none";
