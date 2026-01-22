@@ -601,7 +601,24 @@ const sb = supabase.createClient(
 let user = null;
 let profile = null;
 let fotoBlob = null; // ✅ vamos enviar blob reduzido
+let APP_CONTEXT = null;
 
+
+
+
+function setAppContext(){
+  if(!user) return;
+
+  APP_CONTEXT = {
+    userId: user.id,
+    email: user.email,
+    tipo: "lojista"
+  };
+}
+
+
+
+  
 async function proteger(){
   try{
     const { data:{ session } } = await sb.auth.getSession();
@@ -621,10 +638,12 @@ async function proteger(){
 
   }catch(err){
     console.error("Erro na sessão:", err);
-  }finally{
-    overlay.style.display = "none";
-    carregarPerfil().catch(e=>console.warn(e));
-  }
+}finally{
+  setAppContext();
+  overlay.style.display = "none";
+  carregarPerfil().catch(e=>console.warn(e));
+}
+
 }
 
 
@@ -966,25 +985,42 @@ const frames = {
   pedidos: document.getElementById("frame-pedidos"),
   config: document.getElementById("frame-config")
 };
+Object.values(frames).forEach(f=>{
+  f.addEventListener("load", ()=>{
+    enviarContextoParaIframe(f);
+  });
+});
+
 window.addEventListener("load", () => {
   frames.home.classList.add("active");
 });
 
 function go(el, key){
 
-  // navbar
-  document.querySelectorAll(".nav-item")
+  /* ================= NAVBAR ================= */
+  document
+    .querySelectorAll(".nav-item")
     .forEach(i => i.classList.remove("active"));
 
   el.classList.add("active");
 
-  // iframes
+  /* ================= IFRAMES ================= */
   Object.values(frames)
     .forEach(f => f.classList.remove("active"));
 
-  if (frames[key]) {
-    frames[key].classList.add("active");
+  const iframe = frames[key];
+  if (!iframe) return;
+
+  iframe.classList.add("active");
+
+  /* ================= CONTEXTO ================= */
+  if (APP_CONTEXT && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({
+      type: "APP_CONTEXT",
+      payload: APP_CONTEXT
+    }, "*");
   }
+
 }
 
 
@@ -1172,6 +1208,14 @@ function verificarAssinatura() {
     modal.style.display = "none";
     app.classList.remove("locked");
   }
+}
+function enviarContextoParaIframe(iframe){
+  if(!iframe || !iframe.contentWindow || !APP_CONTEXT) return;
+
+  iframe.contentWindow.postMessage({
+    type: "APP_CONTEXT",
+    payload: APP_CONTEXT
+  }, "*");
 }
 
   
