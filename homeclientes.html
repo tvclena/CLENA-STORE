@@ -198,9 +198,10 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 
 .card img{
-  border-bottom:1px solid var(--border);
+  width:100%;
+  aspect-ratio: 4 / 3; /* ou 16 / 9 */
+  object-fit:cover;
 }
-
 
 
 
@@ -208,8 +209,8 @@ body{margin:0;background:var(--bg);padding:16px}
   position:absolute;
   top:10px;
   left:10px;
-  background:linear-gradient(135deg,#ef4444,#dc2626);
-  box-shadow:0 6px 14px rgba(220,38,38,.35);
+  background:var(--primary);
+  color:#fff;
   padding:6px 10px;
   border-radius:999px;
   font-size:11px;
