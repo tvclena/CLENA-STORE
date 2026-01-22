@@ -314,19 +314,11 @@ const sb = supabase.createClient(
 async function carregarTipos() {
   const { data, error } = await sb
     .from("tipos_loja")
-    .select("slug, nome, app_path")
+    .select("nome, app_path")
     .order("nome");
-
-  console.log("TIPOS:", data);
-  console.log("ERRO:", error);
 
   if (error) {
     console.error("Erro ao carregar tipos:", error.message);
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    console.warn("Nenhum tipo encontrado");
     return;
   }
 
@@ -335,14 +327,15 @@ async function carregarTipos() {
 
   data.forEach(t => {
     const opt = document.createElement("option");
-    opt.value = t.slug;          // ex: "salao"
-    opt.textContent = t.nome;    // ex: "Salão de Beleza"
-    opt.dataset.app = t.app_path; // ex: app.html
+    opt.value = t.nome;          // EX: "STUDIO"
+    opt.textContent = t.nome;    // EX: "STUDIO"
+    opt.dataset.app = t.app_path; // EX: "app.html"
     select.appendChild(opt);
   });
 }
 
 document.addEventListener("DOMContentLoaded", carregarTipos);
+
 function slugify(text) {
   return text
     .toLowerCase()
@@ -374,25 +367,27 @@ async function cadastrar(e){
   }
 
   const userId = data.user.id;
+const tipoSelecionado = document.querySelector("#tipo option:checked");
 
   /* 2️⃣ CRIA PERFIL (UPSERT + SLUG ÚNICO) */
   const slug = `${slugify(negocio.value)}-${userId.slice(0,6)}`;
 
-  const { error: erroPerfil } = await sb
-    .from("user_profile")
-    .upsert({
-      user_id: userId,
-      responsavel: responsavel.value.trim(),
-      whatsapp: whatsapp.value.replace(/\D/g,''),
-      negocio: negocio.value.trim(),
-      tipo: tipo.value,
-      cidade: cidade.value.trim(),
-      uf: uf.value.trim().toUpperCase(),
-      email_contato: emailValue,
-      slug: slug,
-      status: "trial",
-      trial_ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
-    }, { onConflict: "user_id" });
+ const { error: erroPerfil } = await sb
+  .from("user_profile")
+  .upsert({
+    user_id: userId,
+    responsavel: responsavel.value.trim(),
+    whatsapp: whatsapp.value.replace(/\D/g,''),
+    negocio: negocio.value.trim(),
+    tipo: tipoSelecionado.value,
+    app_path: tipoSelecionado.dataset.app,
+    cidade: cidade.value.trim(),
+    uf: uf.value.trim().toUpperCase(),
+    email_contato: emailValue,
+    slug: slug,
+    status: "trial",
+    trial_ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+  }, { onConflict: "user_id" });
 
   overlay.style.display = "none";
 
