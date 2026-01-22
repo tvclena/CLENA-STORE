@@ -413,7 +413,7 @@ function irCadastro(){
   window.location.href = "cadastro.html";
 }
 
-/* ================= COUNTDOWN ================= */
+/* ================= COUNTDOWN REINICIÁVEL ================= */
 const KEY = "clena_offer_end";
 
 function gerarTempo(){
@@ -421,26 +421,31 @@ function gerarTempo(){
   return Date.now() + horas * 60 * 60 * 1000;
 }
 
-let end = localStorage.getItem(KEY);
-if(!end){
-  end = gerarTempo();
-  localStorage.setItem(KEY, end);
+/* inicializa apenas no primeiro acesso */
+if(!localStorage.getItem(KEY)){
+  localStorage.setItem(KEY, gerarTempo());
 }
 
 function tick(){
-  const diff = end - Date.now();
+  let end = Number(localStorage.getItem(KEY));
+  let diff = end - Date.now();
+
+  /* SE ZERAR → REINICIA AUTOMATICAMENTE */
   if(diff <= 0){
-    document.getElementById("countdown").innerText = "00:00:00";
-    return;
+    end = gerarTempo();
+    localStorage.setItem(KEY, end);
+    diff = end - Date.now();
   }
+
   const h = String(Math.floor(diff / 3600000)).padStart(2,"0");
-  const m = String(Math.floor(diff % 3600000 / 60000)).padStart(2,"0");
-  const s = String(Math.floor(diff % 60000 / 1000)).padStart(2,"0");
+  const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2,"0");
+  const s = String(Math.floor((diff % 60000) / 1000)).padStart(2,"0");
+
   document.getElementById("countdown").innerText = `${h}:${m}:${s}`;
 }
 
 tick();
-setInterval(tick,1000);
+setInterval(tick, 1000);
 </script>
 
 </body>
