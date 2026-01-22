@@ -425,8 +425,28 @@ iframe{
 <!-- TOPBAR -->
 <div class="topbar">
   <h1>CONSOLE</h1>
-  <div class="avatar" id="avatar" onclick="openProfile()">A</div>
+
+  <div style="display:flex;gap:10px;align-items:center">
+    <!-- 🔄 BOTÃO ATUALIZAR SISTEMA -->
+    <button id="btnRefreshAll" title="Atualizar sistema"
+      style="
+        border:none;
+        background:#f3f4f6;
+        width:38px;
+        height:38px;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+      ">
+      <i class="ri-refresh-line" style="font-size:18px"></i>
+    </button>
+
+    <div class="avatar" id="avatar" onclick="openProfile()">A</div>
+  </div>
 </div>
+
 <!-- CONTENT -->
 <div class="content">
 
@@ -1016,6 +1036,34 @@ setInterval(() => {
 
 }, REFRESH_INTERVAL);
 
+/* ================= REFRESH MANUAL: BOTÃO TOPO ================= */
+
+function refreshAllIframes() {
+  overlayText.innerText = "Atualizando sistema…";
+  overlay.style.display = "flex";
+
+  Object.values(frames).forEach((iframe) => {
+    if (!iframe || !iframe.src) return;
+
+    try {
+      // força reload real
+      iframe.contentWindow.location.reload();
+    } catch (err) {
+      // fallback seguro
+      iframe.src = iframe.src.split("?")[0] + "?v=" + Date.now();
+    }
+  });
+
+  setTimeout(() => {
+    overlay.style.display = "none";
+  }, 1200);
+}
+
+// 🔗 liga o botão do topo à função
+const btnRefreshAll = document.getElementById("btnRefreshAll");
+if (btnRefreshAll) {
+  btnRefreshAll.addEventListener("click", refreshAllIframes);
+}
 
 /* ================= ADMIN: LIMPAR CACHE GLOBAL ================= */
 
