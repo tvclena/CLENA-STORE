@@ -1127,20 +1127,36 @@ body.modal-open{
   color:var(--text) !important;
 }
 
-/* ===== COR DO TEXTO DO CARD (SUPABASE) ===== */
+/* ===========================
+   CARD – ESTILO PREMIUM
+=========================== */
 .card{
-  background:linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg) 88%, #e5e7eb),
-    color-mix(in srgb, var(--bg) 96%, #d1d5db)
-  );
+  position: relative;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.96),
+      rgba(245,247,250,.96)
+    );
+  border-radius:18px;
   border:1px solid var(--border);
-  color: var(--text); /* 🔥 ESSENCIAL */
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.7);
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+  color: var(--text);
 }
 
-.badge{
-  background:linear-gradient(135deg,#ef4444,#dc2626);
-  box-shadow:0 6px 14px rgba(220,38,38,.35);
+/* hover elegante (desktop) */
+@media (hover:hover){
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:
+      0 14px 38px rgba(0,0,0,.14),
+      inset 0 1px 0 rgba(255,255,255,.75);
+  }
 }
 
 
