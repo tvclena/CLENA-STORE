@@ -568,9 +568,17 @@ const sbHome = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-const APP = parent.APP_CONTEXT;
+let APP = {};
 
-async function carregarHome(){
+/* 🔥 recebe contexto do app shell */
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "APP_CONTEXT") {
+    APP = event.data.payload;
+    initHome(); // inicia SOMENTE quando o contexto chegar
+  }
+});
+
+async function initHome(){
 
   const lojaId = APP.userId;
   if (!lojaId) return;
@@ -623,8 +631,6 @@ const total = faturamento?.reduce(
 
   await carregarAgendaDia(lojaId);
 }
-
-carregarHome();
 
 /* swipe dias */
 let startX = 0;
