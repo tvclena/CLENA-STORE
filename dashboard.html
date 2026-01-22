@@ -986,6 +986,21 @@ function go(el, key){
     frames[key].classList.add("active");
   }
 }
+/* ================= AUTO REFRESH IFRAME ATIVO ================= */
+
+const REFRESH_INTERVAL = 60000; // 60 segundos
+
+setInterval(() => {
+  // só executa se o app estiver visível
+  if (document.hidden) return;
+
+  // pega apenas o iframe aberto
+  const iframeAtivo = document.querySelector(".content iframe.active");
+  if (!iframeAtivo) return;
+
+  // recarrega SOMENTE o iframe visível
+  iframeAtivo.contentWindow.location.reload();
+}, REFRESH_INTERVAL);
 
 
 
