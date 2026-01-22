@@ -286,7 +286,13 @@ button{
 
     <form onsubmit="cadastrar(event)">
       <input id="responsavel" placeholder="Nome do responsável" required>
-      <input id="whatsapp" placeholder="WhatsApp" required>
+<input
+  id="whatsapp"
+  placeholder="WhatsApp (DDD + número)"
+  inputmode="numeric"
+  maxlength="15"
+  required
+>
       <input id="negocio" placeholder="Nome do negócio" required>
 
 <select id="tipo" required>
@@ -336,7 +342,29 @@ data.forEach(t => {
 }
 
 document.addEventListener("DOMContentLoaded", carregarTipos);
+/* ===============================
+   📱 MÁSCARA WHATSAPP (BR)
+   Formato: (99) 99999-9999
+=============================== */
+const whatsappInput = document.getElementById("whatsapp");
 
+whatsappInput.addEventListener("input", e => {
+  let v = e.target.value.replace(/\D/g, "");
+
+  if (v.length > 11) v = v.slice(0, 11);
+
+  if (v.length <= 10) {
+    // Fixo: (99) 9999-9999
+    v = v.replace(/^(\d{2})(\d)/, "($1) $2");
+    v = v.replace(/(\d{4})(\d)/, "$1-$2");
+  } else {
+    // Celular: (99) 99999-9999
+    v = v.replace(/^(\d{2})(\d)/, "($1) $2");
+    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+  }
+
+  e.target.value = v;
+});
 function slugify(text) {
   return text
     .toLowerCase()
