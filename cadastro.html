@@ -12,10 +12,12 @@ gtag('js', new Date());
 gtag('config', 'G-T97MS35TJ6');
 </script>
 
-<title>Criar conta empresarial • Clena Store</title>
+<title>Criar conta empresarial • Clena</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ff6a00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,8 +25,9 @@ gtag('config', 'G-T97MS35TJ6');
 <style>
 :root{
   --primary:#ff6a00;
+  --primary-dark:#e55d00;
   --border:#e5e7eb;
-  --radius:22px;
+  --radius:24px;
   --danger:#c62828;
   --muted:#6b7280;
 }
@@ -33,7 +36,7 @@ gtag('config', 'G-T97MS35TJ6');
   margin:0;
   padding:0;
   box-sizing:border-box;
-  font-family:Inter;
+  font-family:Inter,sans-serif;
 }
 
 body{
@@ -43,10 +46,10 @@ body{
   background:#000;
 }
 
-/* ===== FUNDO ===== */
+/* ================= FUNDO ================= */
 .left{
   background:url("https://images.unsplash.com/photo-1523952578875-e6bb18b26645?auto=format&fit=crop&w=1600&q=80")
-  center/cover no-repeat;
+    center/cover no-repeat;
   position:relative;
   color:#fff;
 }
@@ -54,13 +57,9 @@ body{
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(
-    120deg,
-    rgba(0,0,0,.78),
-    rgba(0,0,0,.4)
-  );
+  background:linear-gradient(120deg,rgba(0,0,0,.78),rgba(0,0,0,.45));
 }
-.left div{
+.left .content{
   position:relative;
   z-index:2;
   padding:90px;
@@ -77,7 +76,7 @@ body{
   color:#e5e7eb;
 }
 
-/* ===== CARD ===== */
+/* ================= CARD ================= */
 .right{
   display:flex;
   align-items:center;
@@ -91,12 +90,13 @@ body{
   padding:46px;
   background:#fff;
   border-radius:var(--radius);
-  box-shadow:0 20px 60px rgba(0,0,0,.1);
+  box-shadow:0 22px 60px rgba(0,0,0,.12);
 }
 
 .card small{
   color:var(--primary);
   font-weight:600;
+  letter-spacing:.3px;
 }
 
 .card h2{
@@ -110,7 +110,7 @@ body{
   font-size:15px;
 }
 
-/* ===== FORM ===== */
+/* ================= FORM ================= */
 input,select{
   width:100%;
   padding:14px;
@@ -128,17 +128,22 @@ input[type="password"]{
 
 button{
   width:100%;
-  padding:15px;
+  padding:16px;
   border:none;
   border-radius:999px;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  background:linear-gradient(135deg,var(--primary),#ff9a57);
   color:#fff;
   font-weight:800;
   font-size:15px;
   cursor:pointer;
+  transition:.2s;
+}
+button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 30px rgba(255,106,0,.35);
 }
 
-/* ===== ERRO ===== */
+/* ================= ERRO ================= */
 .error{
   background:#ffe5e5;
   color:var(--danger);
@@ -149,7 +154,20 @@ button{
   display:none;
 }
 
-/* ===== MOBILE ===== */
+/* ================= OVERLAY ================= */
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  color:#fff;
+  font-weight:600;
+}
+
+/* ================= MOBILE ================= */
 @media(max-width:900px){
   body{grid-template-columns:1fr}
   .left{
@@ -158,12 +176,12 @@ button{
     filter:blur(6px);
     transform:scale(1.05);
   }
-  .left div{display:none}
+  .left .content{display:none}
   .right{
     position:relative;
     z-index:2;
     min-height:100vh;
-    padding:24px 14px;
+    padding:24px 14px env(safe-area-inset-bottom);
     background:transparent;
     align-items:flex-end;
   }
@@ -184,16 +202,21 @@ button{
 
 <body>
 
+<!-- OVERLAY -->
+<div id="overlay">Criando conta…</div>
+
+<!-- FUNDO -->
 <div class="left">
-  <div>
+  <div class="content">
     <h1>Centralize a gestão<br><span>do seu negócio</span></h1>
     <p>
-      Plataforma profissional para agendamentos, clientes, vendas e controle operacional,
-      acessível em qualquer dispositivo.
+      Plataforma profissional para agendamentos, clientes, vendas e controle operacional.
+      Funciona em qualquer dispositivo, sem complicação.
     </p>
   </div>
 </div>
 
+<!-- CARD -->
 <div class="right">
   <div class="card">
 
@@ -230,30 +253,36 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
+/* ===== CARREGA SEGMENTOS ===== */
 async function carregarTipos(){
-  const { data } = await sb
+  const { data, error } = await sb
     .from("tipos_loja_com_quantidade")
     .select("*")
     .eq("ativo", true)
     .order("nome");
 
+  if(error) return;
+
   const select = document.getElementById("tipo");
   select.innerHTML = `<option value="">Segmento do negócio</option>`;
-  data?.forEach(t=>{
+  data.forEach(t=>{
     select.innerHTML += `<option value="${t.nome}">${t.nome}</option>`;
   });
 }
-
 carregarTipos();
 
-/* === CADASTRO (mantido igual) === */
+/* ===== UTIL ===== */
 function slugify(text){
-  return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+  return text.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/(^-|-$)/g,"");
 }
 
+/* ===== CADASTRO ===== */
 async function cadastrar(e){
   e.preventDefault();
+  overlay.style.display="flex";
   errorBox.style.display="none";
 
   const { data, error } = await sb.auth.signUp({
@@ -262,26 +291,37 @@ async function cadastrar(e){
   });
 
   if(error){
+    overlay.style.display="none";
     errorBox.style.display="block";
-    errorBox.innerText=error.message;
+    errorBox.innerText = error.message;
     return;
   }
 
   const slug = `${slugify(negocio.value)}-${data.user.id.slice(0,6)}`;
 
-  await sb.from("user_profile").upsert({
-    user_id:data.user.id,
-    responsavel:responsavel.value,
-    whatsapp:whatsapp.value.replace(/\D/g,""),
-    negocio:negocio.value,
-    tipo:tipo.value,
-    cidade:cidade.value,
-    uf:uf.value.toUpperCase(),
-    email_contato:email.value,
-    slug,
-    status:"trial",
-    trial_ends_at:new Date(Date.now()+10*86400000)
-  });
+  const { error: perfilErro } = await sb
+    .from("user_profile")
+    .upsert({
+      user_id:data.user.id,
+      responsavel:responsavel.value.trim(),
+      whatsapp:whatsapp.value.replace(/\D/g,""),
+      negocio:negocio.value.trim(),
+      tipo:tipo.value,
+      cidade:cidade.value.trim(),
+      uf:uf.value.trim().toUpperCase(),
+      email_contato:email.value.trim().toLowerCase(),
+      slug,
+      status:"trial",
+      trial_ends_at:new Date(Date.now()+10*86400000)
+    },{onConflict:"user_id"});
+
+  overlay.style.display="none";
+
+  if(perfilErro){
+    errorBox.style.display="block";
+    errorBox.innerText="Conta criada, mas houve erro ao salvar o perfil.";
+    return;
+  }
 
   location.href="login.html";
 }
