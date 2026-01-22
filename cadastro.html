@@ -348,6 +348,9 @@ function slugify(text) {
 
 async function cadastrar(e){
   e.preventDefault();
+
+  await sb.auth.signOut(); // 🔒 garante cadastro limpo
+
   overlay.style.display = "flex";
   errorBox.style.display = "none";
 
