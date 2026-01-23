@@ -1170,12 +1170,70 @@ html.theme-ready{
   visibility: visible;
 }
 /* ============================
-   CARD CUSTOMIZADO (LED)
+   CARD CUSTOMIZADO – PREMIUM
 ============================ */
 .card-customizado{
   position: relative;
   border-radius: 18px;
   overflow: hidden;
+  z-index: 0;
+}
+
+/* BORDA NEON */
+.card-customizado::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:inherit;
+  background:
+    linear-gradient(
+      120deg,
+      var(--primary),
+      #ffffff,
+      var(--primary-2),
+      var(--primary)
+    );
+  background-size:300% 300%;
+  animation: neonMove 3.5s linear infinite;
+  filter: blur(3px);
+  opacity: .95;
+  z-index: -1;
+}
+
+/* CAMADA INTERNA (FUNDO REAL DO CARD) */
+.card-customizado::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:inherit;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.98),
+      rgba(245,247,250,.98)
+    );
+  z-index: -1;
+}
+
+/* CONTEÚDO SEMPRE ACIMA */
+.card-customizado > *{
+  position: relative;
+  z-index: 1;
+}
+
+/* HOVER MAIS FORTE (DESKTOP) */
+@media (hover:hover){
+  .card-customizado:hover{
+    transform: translateY(-6px) scale(1.015);
+    box-shadow:
+      0 20px 50px rgba(0,0,0,.25);
+  }
+}
+
+/* ANIMAÇÃO */
+@keyframes neonMove{
+  0%{background-position:0% 50%}
+  100%{background-position:100% 50%}
 }
 
 /* Borda animada */
