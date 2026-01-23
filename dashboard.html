@@ -1408,8 +1408,21 @@ navigator.serviceWorker.addEventListener("message", (event) => {
   }
 });
 function abrirGestaoColaboradores(){
-  location.href = "colaboradores.html";
+  const modal = document.getElementById("modalColaboradores");
+  const iframe = document.getElementById("iframeColaboradores");
+
+  iframe.src = "colaboradores.html";
+  modal.style.display = "flex";
 }
+
+function fecharColaboradores(){
+  const modal = document.getElementById("modalColaboradores");
+  const iframe = document.getElementById("iframeColaboradores");
+
+  iframe.src = "";
+  modal.style.display = "none";
+}
+
 
   
 </script>
@@ -1541,6 +1554,72 @@ if ("serviceWorker" in navigator) {
       ✔ Ativação automática<br>
       ✔ Oferta válida somente hoje
     </div>
+
+  </div>
+</div>
+<!-- ================= MODAL COLABORADORES ================= -->
+<div id="modalColaboradores" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100000;
+">
+
+  <div style="
+    width:92%;
+    max-width:720px;
+    height:80vh;
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 30px 90px rgba(0,0,0,.45);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    animation: popColab .25s ease-out;
+  ">
+
+    <style>
+      @keyframes popColab {
+        from { transform: scale(.94); opacity:0 }
+        to   { transform: scale(1); opacity:1 }
+      }
+    </style>
+
+    <!-- TOPO -->
+    <div style="
+      padding:14px 16px;
+      border-bottom:1px solid #e5e7eb;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    ">
+      <strong style="font-size:15px">Colaboradores</strong>
+      <button onclick="fecharColaboradores()" style="
+        border:none;
+        background:#f3f4f6;
+        border-radius:10px;
+        padding:8px 10px;
+        font-weight:800;
+        cursor:pointer;
+      ">
+        Fechar
+      </button>
+    </div>
+
+    <!-- IFRAME -->
+    <iframe
+      id="iframeColaboradores"
+      src=""
+      style="
+        flex:1;
+        width:100%;
+        border:none;
+        background:#fff;
+      ">
+    </iframe>
 
   </div>
 </div>
