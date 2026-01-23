@@ -1235,6 +1235,39 @@ html.theme-ready{
   0%{background-position:0% 50%}
   100%{background-position:100% 50%}
 }
+/* OVERLAY NA IMAGEM DO CUSTOMIZADO */
+.card-customizado img{
+  position: relative;
+}
+
+.card-customizado img::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,.0),
+    rgba(0,0,0,.35)
+  );
+}
+.badge-custom{
+  position:absolute;
+  top:12px;
+  left:12px;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-2)
+  );
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  padding:6px 12px;
+  border-radius:999px;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
 
 /* Borda animada */
 .card-customizado::before{
@@ -2403,6 +2436,12 @@ const onclickCard = customizacao
 return `
 <div class="card ${customizacao ? 'card-customizado' : ''}" onclick="${onclickCard}">
   <div style="position:relative">
+
+    ${
+      customizacao
+        ? `<div class="badge badge-custom">✨ Personalizado</div>`
+        : ""
+    }
 
     ${
       i.promocao_ativa && i.preco_promocional
