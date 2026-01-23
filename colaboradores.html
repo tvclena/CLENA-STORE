@@ -14,24 +14,110 @@
   --primary:#ff6a00;
   --border:#e5e7eb;
   --muted:#6b7280;
+  --bg:#f9fafb;
 }
 *{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:#fff}
-.header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+body{margin:0;background:var(--bg)}
+.header{
+  padding:16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fff;
+}
 .header h1{font-size:18px;margin:0}
-.btn{border:none;border-radius:999px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn{
+  border:none;
+  border-radius:999px;
+  padding:10px 14px;
+  font-weight:800;
+  cursor:pointer;
+}
 .btn-primary{background:var(--primary);color:#fff}
-.list{padding:16px;display:grid;gap:12px}
-.card{border:1px solid var(--border);border-radius:16px;padding:12px;display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center}
-.avatar{width:52px;height:52px;border-radius:50%;background:#eee;background-size:cover;background-position:center}
+.list{
+  padding:16px;
+  display:grid;
+  gap:12px;
+}
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:56px 1fr auto;
+  gap:12px;
+  align-items:center;
+}
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:#eee;
+  background-size:cover;
+  background-position:center;
+}
 .name{font-weight:800}
 .meta{font-size:12px;color:var(--muted)}
-.actions button{background:#f3f4f6;border:none;border-radius:10px;padding:8px;cursor:pointer}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
-.box{background:#fff;width:92%;max-width:380px;border-radius:20px;padding:16px}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.field input{padding:12px;border-radius:12px;border:1px solid var(--border)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions button{
+  background:#f3f4f6;
+  border:none;
+  border-radius:10px;
+  padding:8px;
+  cursor:pointer;
+}
+.badge{
+  font-size:11px;
+  font-weight:700;
+  padding:4px 8px;
+  border-radius:999px;
+}
+.badge.on{background:#dcfce7;color:#166534}
+.badge.off{background:#fee2e2;color:#991b1b}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+.box{
+  background:#fff;
+  width:92%;
+  max-width:400px;
+  border-radius:22px;
+  padding:18px;
+}
+.box h3{margin:0 0 12px}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:10px;
+}
+.field input{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.preview{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:#eee;
+  background-size:cover;
+  background-position:center;
+  margin:10px auto;
+}
 </style>
 </head>
 
@@ -49,8 +135,10 @@ body{margin:0;background:#fff}
   <div class="box" onclick="event.stopPropagation()">
     <h3>Novo colaborador</h3>
 
+    <div class="preview" id="previewFoto"></div>
+
     <div class="field">
-      <input id="cNome" placeholder="Nome">
+      <input id="cNome" placeholder="Nome completo">
     </div>
 
     <div class="field">
@@ -70,7 +158,7 @@ body{margin:0;background:#fff}
       <input type="file" id="cFoto" accept="image/*">
     </div>
 
-    <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+    <button class="btn btn-primary" style="width:100%" onclick="salvar()">Salvar</button>
   </div>
 </div>
 
@@ -81,7 +169,9 @@ const sb = supabase.createClient(
 );
 
 const lojaId = window.parent.APP_CONTEXT.userId;
+let fotoBlob = null;
 
+/* LISTAR */
 async function listar(){
   const { data } = await sb
     .from("colaboradores")
@@ -89,7 +179,6 @@ async function listar(){
     .eq("loja_id", lojaId)
     .order("created_at", { ascending:false });
 
-  const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
   data?.forEach(c=>{
@@ -100,9 +189,12 @@ async function listar(){
       <div>
         <div class="name">${c.nome}</div>
         <div class="meta">${c.funcao}</div>
+        <span class="badge ${c.ativo?'on':'off'}">
+          ${c.ativo?'Ativo':'Inativo'}
+        </span>
       </div>
       <div class="actions">
-        <button onclick="toggle('${c.id}', ${c.ativo})">
+        <button onclick="toggle('${c.id}',${c.ativo})">
           <i class="ri-eye-${c.ativo?'line':'off-line'}"></i>
         </button>
       </div>
@@ -110,34 +202,68 @@ async function listar(){
     lista.appendChild(div);
   });
 }
-
 listar();
 
+/* MODAL */
 function abrirModal(){ modal.style.display="flex"; }
 function fecharModal(e){ if(e.target.id==="modal") modal.style.display="none"; }
 
-async function salvar(){
-  const nome = cNome.value;
-  const funcao = cFuncao.value;
+/* MASK */
+cWhats.addEventListener("input", e=>{
+  let v = e.target.value.replace(/\D/g,'').slice(0,11);
+  if(v.length>=2) v = v.replace(/^(\d{2})(\d)/,"($1) $2");
+  if(v.length>=10) v = v.replace(/(\d{5})(\d)/,"$1-$2");
+  e.target.value = v;
+});
 
+/* FOTO PREVIEW + CROP */
+cFoto.addEventListener("change", ()=>{
+  const file = cFoto.files[0];
+  if(!file) return;
+
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = ()=>{
+    const size = Math.min(img.width,img.height);
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 600;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(
+      img,
+      (img.width-size)/2,
+      (img.height-size)/2,
+      size,size,
+      0,0,600,600
+    );
+    canvas.toBlob(b=>{
+      fotoBlob = b;
+      previewFoto.style.backgroundImage = `url(${URL.createObjectURL(b)})`;
+    },"image/jpeg",0.9);
+  };
+  img.src = url;
+});
+
+/* SALVAR */
+async function salvar(){
   const { data, error } = await sb
     .from("colaboradores")
     .insert({
       loja_id: lojaId,
-      nome,
-      funcao,
+      nome: cNome.value,
+      funcao: cFuncao.value,
       email: cEmail.value,
-      whatsapp: cWhats.value
+      whatsapp: cWhats.value,
+      ativo: true
     })
     .select()
     .single();
 
   if(error) return alert(error.message);
 
-  if(cFoto.files[0]){
+  if(fotoBlob){
     const path = `${lojaId}/${data.id}.jpg`;
     await sb.storage.from("colaboradores")
-      .upload(path, cFoto.files[0], { upsert:true });
+      .upload(path, fotoBlob, { upsert:true });
 
     const { data:pub } = sb.storage
       .from("colaboradores")
@@ -149,9 +275,13 @@ async function salvar(){
   }
 
   modal.style.display="none";
+  cNome.value=cFuncao.value=cEmail.value=cWhats.value="";
+  previewFoto.style.backgroundImage="";
+  fotoBlob=null;
   listar();
 }
 
+/* ATIVAR / DESATIVAR */
 async function toggle(id, ativo){
   await sb.from("colaboradores")
     .update({ ativo: !ativo })
