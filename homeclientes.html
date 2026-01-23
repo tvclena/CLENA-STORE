@@ -1269,52 +1269,6 @@ html.theme-ready{
   letter-spacing:.04em;
 }
 
-/* Borda animada */
-.card-customizado::before{
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background: linear-gradient(
-    120deg,
-    transparent 30%,
-    var(--primary),
-    transparent 70%
-  );
-  filter: blur(6px);
-  opacity: 0.9;
-  animation: ledMove 2.8s linear infinite;
-  pointer-events: none;
-}
-
-/* Camada interna para não sujar o conteúdo */
-.card-customizado::after{
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: inherit;
-  border-radius: inherit;
-  z-index: 0;
-}
-
-/* Garante conteúdo acima */
-.card-customizado > *{
-  position: relative;
-  z-index: 1;
-}
-
-/* Animação do LED */
-@keyframes ledMove{
-  from{
-    transform: translateX(-40%);
-  }
-  to{
-    transform: translateX(40%);
-  }
-}
-
-
-
 
 
 
