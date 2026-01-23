@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colaboradores</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:#fff}
+.header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:18px;margin:0}
+.btn{border:none;border-radius:999px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn-primary{background:var(--primary);color:#fff}
+.list{padding:16px;display:grid;gap:12px}
+.card{border:1px solid var(--border);border-radius:16px;padding:12px;display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center}
+.avatar{width:52px;height:52px;border-radius:50%;background:#eee;background-size:cover;background-position:center}
+.name{font-weight:800}
+.meta{font-size:12px;color:var(--muted)}
+.actions button{background:#f3f4f6;border:none;border-radius:10px;padding:8px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
+.box{background:#fff;width:92%;max-width:380px;border-radius:20px;padding:16px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field input{padding:12px;border-radius:12px;border:1px solid var(--border)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Colaboradores</h1>
+  <button class="btn btn-primary" onclick="abrirModal()">Adicionar</button>
+</div>
+
+<div class="list" id="lista"></div>
+
+<!-- MODAL -->
+<div class="modal" id="modal" onclick="fecharModal(event)">
+  <div class="box" onclick="event.stopPropagation()">
+    <h3>Novo colaborador</h3>
+
+    <div class="field">
+      <input id="cNome" placeholder="Nome">
+    </div>
+
+    <div class="field">
+      <input id="cFuncao" placeholder="Função (ex: Barbeiro)">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <input id="cEmail" placeholder="Email">
+      </div>
+      <div class="field">
+        <input id="cWhats" placeholder="WhatsApp">
+      </div>
+    </div>
+
+    <div class="field">
+      <input type="file" id="cFoto" accept="image/*">
+    </div>
+
+    <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = window.parent.APP_CONTEXT.userId;
+
+async function listar(){
+  const { data } = await sb
+    .from("colaboradores")
+    .select("*")
+    .eq("loja_id", lojaId)
+    .order("created_at", { ascending:false });
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  data?.forEach(c=>{
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="avatar" style="background-image:url(${c.avatar_url||''})"></div>
+      <div>
+        <div class="name">${c.nome}</div>
+        <div class="meta">${c.funcao}</div>
+      </div>
+      <div class="actions">
+        <button onclick="toggle('${c.id}', ${c.ativo})">
+          <i class="ri-eye-${c.ativo?'line':'off-line'}"></i>
+        </button>
+      </div>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+listar();
+
+function abrirModal(){ modal.style.display="flex"; }
+function fecharModal(e){ if(e.target.id==="modal") modal.style.display="none"; }
+
+async function salvar(){
+  const nome = cNome.value;
+  const funcao = cFuncao.value;
+
+  const { data, error } = await sb
+    .from("colaboradores")
+    .insert({
+      loja_id: lojaId,
+      nome,
+      funcao,
+      email: cEmail.value,
+      whatsapp: cWhats.value
+    })
+    .select()
+    .single();
+
+  if(error) return alert(error.message);
+
+  if(cFoto.files[0]){
+    const path = `${lojaId}/${data.id}.jpg`;
+    await sb.storage.from("colaboradores")
+      .upload(path, cFoto.files[0], { upsert:true });
+
+    const { data:pub } = sb.storage
+      .from("colaboradores")
+      .getPublicUrl(path);
+
+    await sb.from("colaboradores")
+      .update({ avatar_url: pub.publicUrl + "?v=" + Date.now() })
+      .eq("id", data.id);
+  }
+
+  modal.style.display="none";
+  listar();
+}
+
+async function toggle(id, ativo){
+  await sb.from("colaboradores")
+    .update({ ativo: !ativo })
+    .eq("id", id);
+  listar();
+}
+</script>
+
+</body>
+</html>
