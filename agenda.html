@@ -368,17 +368,24 @@ function changeMonth(v){
 }
 
 async function carregar(){
-  const { data, error } = await sb
+
+  let query = sb
     .from("agenda_loja")
     .select("data, fechado, horarios")
-    .eq("user_id", userId); // 🔥 FILTRO CORRETO
+    .eq("user_id", lojaId);
+
+  // 🔥 MESMA REGRA DA HOME
+  if (isUUID(profissionalSelecionado)) {
+    query = query.eq("colaborador_id", profissionalSelecionado);
+  }
+
+  const { data, error } = await query;
 
   agenda = {};
 
   data?.forEach(r => {
     let horarios = [];
 
-    // garante parse correto
     if (typeof r.horarios === "string") {
       try {
         horarios = JSON.parse(r.horarios);
@@ -397,6 +404,7 @@ async function carregar(){
 
   render();
 }
+
 
 
 function render(){
@@ -521,6 +529,9 @@ async function salvar(){
 function dateFromISO(iso) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d, 12, 0, 0); // meio-dia local
+}
+function isUUID(v){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 }
 
 </script>
