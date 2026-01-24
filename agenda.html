@@ -231,9 +231,23 @@ html,body{
 
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
+
   <h1 id="monthLabel"></h1>
+
+  <select id="seletorColaborador"
+    style="
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      padding:6px 10px;
+      font-weight:700;
+      font-size:12px;
+    ">
+    <option value="todos">Todos</option>
+  </select>
+
   <button onclick="changeMonth(1)">▶</button>
 </div>
+
 
 <div class="calendar">
   <div class="weekdays">
@@ -275,6 +289,8 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+let lojaId;
+let colaboradorSelecionado = "todos";
 
 let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
 
@@ -282,19 +298,58 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) location.href = "login.html";
 
-  // 🔥 MESMA REGRA DO HOME
+  lojaId = session.user.id;
+
+  await carregarColaboradores();
+
+  // 🔥 herda do home se existir
   if (
     window.parent &&
     window.parent.profissionalSelecionado &&
     /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
   ) {
-    userId = window.parent.profissionalSelecionado; // COLABORADOR
-  } else {
-    userId = session.user.id; // LOJA
+    colaboradorSelecionado = window.parent.profissionalSelecionado;
+    document.getElementById("seletorColaborador").value = colaboradorSelecionado;
   }
 
+  definirUserId();
   carregar();
 })();
+async function carregarColaboradores(){
+  const { data } = await sb
+    .from("colaboradores")
+    .select("id, nome")
+    .eq("loja_id", lojaId)
+    .eq("ativo", true)
+    .order("nome");
+
+  const select = document.getElementById("seletorColaborador");
+
+  (data || []).forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    select.appendChild(opt);
+  });
+
+  select.onchange = () => {
+    colaboradorSelecionado = select.value;
+    definirUserId();
+    carregar();
+  };
+}
+function definirUserId(){
+  if (
+    colaboradorSelecionado &&
+    colaboradorSelecionado !== "todos" &&
+    /^[0-9a-f-]{36}$/i.test(colaboradorSelecionado)
+  ) {
+    userId = colaboradorSelecionado;
+  } else {
+    userId = lojaId;
+  }
+}
+
 
 function changeMonth(v){
   current.setMonth(current.getMonth()+v);
