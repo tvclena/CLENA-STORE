@@ -607,11 +607,12 @@ function dataISO(d){
 function mudarDia(direcao){
   dataAtual.setDate(dataAtual.getDate() + direcao);
 
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session){
-      carregarAgendaDia(session.user.id);
-    }
-  });
+sbHome.auth.getSession().then(({data:{session}})=>{
+  if(session){
+    carregarFiltroProfissionais(session.user.id);
+    carregarHome();
+  }
+});
 }
 
 /* ================== SUPABASE ================== */
