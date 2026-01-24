@@ -595,11 +595,15 @@ body::-webkit-scrollbar{
 
 
 <script>
+/* ================== VARIÁVEIS GLOBAIS (TOPO) ================== */
+let profissionalSelecionado = "LOJA";
 let dataAtual = new Date();
 
+/* ================== FUNÇÕES AUXILIARES ================== */
 function dataISO(d){
   return d.toLocaleDateString("en-CA");
 }
+
 function mudarDia(direcao){
   dataAtual.setDate(dataAtual.getDate() + direcao);
 
@@ -610,105 +614,55 @@ function mudarDia(direcao){
   });
 }
 
+/* ================== SUPABASE ================== */
 const sbHome = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
+/* ================== HOME ================== */
 async function carregarHome(){
 
   const { data:{ session } } = await sbHome.auth.getSession();
   if(!session) return;
 
   const lojaId = session.user.id;
-
   const hoje = new Date().toLocaleDateString("en-CA");
-  const inicioMes = new Date();
-  inicioMes.setDate(1);
-  const inicio = inicioMes.toLocaleDateString("en-CA");
 
-let kpiQuery = sbHome
-  .from("agendamentos")
-  .select("*", { count:"exact", head:true })
-  .eq("user_id", lojaId)
-  .eq("data", hoje)
-  .neq("status", "CANCELADO");
-
-
-if (isUUID(profissionalSelecionado)) {
-  kpiQuery = kpiQuery
-    .not("colaborador_id", "is", null)
-    .eq("colaborador_id", profissionalSelecionado);
-}
-
-
-
-const { count: qtdHoje } = await kpiQuery;
-document.getElementById("kpiHoje").innerText = qtdHoje || 0;
-
-
-  const { count: qtdClientes } = await sbHome
-    .from("clientes_loja")
-    .select("*", { count:"exact", head:true })
-    .eq("loja_id", lojaId);
-
-  document.getElementById("kpiClientes").innerText = qtdClientes || 0;
-
-  const { count: qtdServicos } = await sbHome
-    .from("produtos_servicos")
+  let kpiQuery = sbHome
+    .from("agendamentos")
     .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId)
-    .eq("ativo", true)
-    .eq("tipo", "SERVICO");
+    .eq("data", hoje)
+    .neq("status", "CANCELADO");
 
-  document.getElementById("kpiServicos").innerText = qtdServicos || 0;
+  if (isUUID(profissionalSelecionado)) {
+    kpiQuery = kpiQuery
+      .not("colaborador_id", "is", null)
+      .eq("colaborador_id", profissionalSelecionado);
+  }
 
-const { data: faturamento } = await sbHome
-  .from("agendamentos")
-  .select("valor_total")
-  .eq("user_id", lojaId)
-  .gte("data", inicio)
-  .in("status", ["CONFIRMADO","CONCLUIDO"]);
+  const { count: qtdHoje } = await kpiQuery;
+  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
-const total = faturamento?.reduce(
-  (s,v)=>s+Number(v.valor_total||0),0
-) || 0;
-
-
-  document.getElementById("kpiFaturamento").innerText =
-    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-
-await carregarFiltroProfissionais(lojaId);
-await carregarAgendaDia(lojaId);
+  await carregarFiltroProfissionais(lojaId);
+  await carregarAgendaDia(lojaId);
 }
 
+/* ================== INICIALIZA ================== */
 carregarHome();
 
-/* swipe dias */
+/* ================== SWIPE ================== */
 let startX = 0;
-document.addEventListener("touchstart",e=>{
-  startX = e.touches[0].clientX;
-});
-document.addEventListener("touchend",e=>{
-  const diff = e.changedTouches[0].clientX - startX;
-  if(Math.abs(diff)<60) return;
-  dataAtual.setDate(dataAtual.getDate() + (diff<0?1:-1));
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session) carregarAgendaDia(session.user.id);
-  });
-});
-let profissionalSelecionado = "LOJA"; // default
 
+/* ================== FILTRO ================== */
 async function carregarFiltroProfissionais(lojaId){
-
-  profissionalSelecionado = "LOJA"; // 🔥 garante estado inicial
 
   const { data: colaboradores } = await sbHome
     .from("colaboradores")
     .select("id, nome")
     .eq("loja_id", lojaId)
-    .eq("ativo", true)
-    .order("nome");
+    .eq("ativo", true);
 
   const filtro = document.getElementById("filtroProfissional");
 
@@ -718,27 +672,18 @@ async function carregarFiltroProfissionais(lojaId){
   }
 
   filtro.style.display = "block";
-  filtro.innerHTML = "";
-
-  filtro.innerHTML += `
-    <option value="LOJA" selected>Todos (Loja)</option>
-  `;
+  filtro.innerHTML = `<option value="LOJA">Todos (Loja)</option>`;
 
   colaboradores.forEach(c=>{
-    filtro.innerHTML += `
-      <option value="${c.id}">${c.nome}</option>
-    `;
+    filtro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
   });
 
- filtro.onchange = () => {
-  profissionalSelecionado = filtro.value;
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session){
-      carregarHome(); // 🔥 recalcula KPIs + agenda
-    }
-  });
-};
-
+  filtro.onchange = () => {
+    profissionalSelecionado = filtro.value;
+    carregarHome();
+  };
+}
+  
 
 
 async function carregarAgendaDia(lojaId){
