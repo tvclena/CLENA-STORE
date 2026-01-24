@@ -345,15 +345,18 @@ async function carregarColaboradores(){
 
 function definirUserId(){
   if (
+ function definirUserId(){
+  if (
     colaboradorSelecionado &&
-    colaboradorSelecionado !== "todos" &&
+    colaboradorSelecionado !== "LOJA" &&
     /^[0-9a-f-]{36}$/i.test(colaboradorSelecionado)
   ) {
-    userId = colaboradorSelecionado;
+    userId = colaboradorSelecionado; // agenda do colaborador
   } else {
-    userId = lojaId;
+    userId = lojaId; // agenda da loja
   }
 }
+
 
 
 function changeMonth(v){
