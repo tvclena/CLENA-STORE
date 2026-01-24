@@ -234,16 +234,17 @@ html,body{
 
   <h1 id="monthLabel"></h1>
 
-  <select id="seletorColaborador"
-    style="
-      border:1px solid #e5e7eb;
-      border-radius:10px;
-      padding:6px 10px;
-      font-weight:700;
-      font-size:12px;
-    ">
-    <option value="todos">Todos</option>
-  </select>
+ <select id="seletorColaborador"
+  style="
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:6px 10px;
+    font-weight:700;
+    font-size:12px;
+  ">
+  <option value="LOJA">Agenda da Loja</option>
+</select>
+
 
   <button onclick="changeMonth(1)">▶</button>
 </div>
@@ -290,7 +291,7 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 let lojaId;
-let colaboradorSelecionado = "todos";
+let colaboradorSelecionado = "LOJA";
 
 let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
 
@@ -316,14 +317,17 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
   carregar();
 })();
 async function carregarColaboradores(){
+  const select = document.getElementById("seletorColaborador");
+
+  // limpa tudo e recria corretamente
+  select.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
+
   const { data } = await sb
     .from("colaboradores")
     .select("id, nome")
     .eq("loja_id", lojaId)
     .eq("ativo", true)
     .order("nome");
-
-  const select = document.getElementById("seletorColaborador");
 
   (data || []).forEach(c => {
     const opt = document.createElement("option");
@@ -338,6 +342,7 @@ async function carregarColaboradores(){
     carregar();
   };
 }
+
 function definirUserId(){
   if (
     colaboradorSelecionado &&
