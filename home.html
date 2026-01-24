@@ -623,15 +623,17 @@ const sbHome = supabase.createClient(
 /* ================== HOME ================== */
 async function carregarHome(){
 
+  /* ================== SESSÃO ================== */
   const { data:{ session } } = await sbHome.auth.getSession();
   if(!session) return;
 
   const lojaId = session.user.id;
-
-  /* ================== KPI AGENDAMENTOS DO DIA ================== */
   const hojeISO = new Date().toLocaleDateString("en-CA");
 
-  let kpiQuery = sbHome
+  /* ======================================================
+     KPI 1 — AGENDAMENTOS DO DIA
+     ====================================================== */
+  let kpiAgendamentos = sbHome
     .from("agendamentos")
     .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId)
@@ -639,21 +641,31 @@ async function carregarHome(){
     .neq("status", "CANCELADO");
 
   if (isUUID(profissionalSelecionado)) {
-    kpiQuery = kpiQuery.eq("colaborador_id", profissionalSelecionado);
+    kpiAgendamentos = kpiAgendamentos.eq(
+      "colaborador_id",
+      profissionalSelecionado
+    );
   }
 
-  const { count: qtdHoje } = await kpiQuery;
+  const { count: qtdHoje } = await kpiAgendamentos;
   document.getElementById("kpiHoje").innerText = qtdHoje || 0;
 
-  /* ================== KPI CLIENTES ================== */
-  const { count: qtdClientes } = await sbHome
+  /* ======================================================
+     KPI 2 — CLIENTES (clientes_profile)
+     ====================================================== */
+  let kpiClientes = sbHome
     .from("clientes_profile")
-    .select("*", { count: "exact", head: true })
+    .select("*", { count:"exact", head:true })
     .eq("loja_ativa", lojaId);
 
+  // 🔥 cliente NÃO depende de colaborador
+  const { count: qtdClientes } = await kpiClientes;
   document.getElementById("kpiClientes").innerText = qtdClientes || 0;
 
-  /* ================== KPI FATURAMENTO MÊS ================== */
+  /* ======================================================
+     KPI 3 — FATURAMENTO DO MÊS
+     Apenas CONFIRMADO ou CONCLUIDO
+     ====================================================== */
   const hoje = new Date();
   const ano = hoje.getFullYear();
   const mes = hoje.getMonth();
@@ -661,13 +673,22 @@ async function carregarHome(){
   const inicioMes = new Date(ano, mes, 1).toLocaleDateString("en-CA");
   const fimMes = new Date(ano, mes + 1, 0).toLocaleDateString("en-CA");
 
-  const { data: faturamentoMes } = await sbHome
+  let queryFaturamento = sbHome
     .from("agendamentos")
     .select("valor_total")
     .eq("user_id", lojaId)
     .gte("data", inicioMes)
     .lte("data", fimMes)
     .in("status", ["CONFIRMADO", "CONCLUIDO"]);
+
+  if (isUUID(profissionalSelecionado)) {
+    queryFaturamento = queryFaturamento.eq(
+      "colaborador_id",
+      profissionalSelecionado
+    );
+  }
+
+  const { data: faturamentoMes } = await queryFaturamento;
 
   const totalMes = faturamentoMes?.reduce(
     (soma, a) => soma + Number(a.valor_total || 0),
@@ -680,18 +701,24 @@ async function carregarHome(){
       currency: "BRL"
     });
 
-  /* ================== KPI SERVIÇOS ATIVOS ================== */
-  const { count: qtdServicos } = await sbHome
+  /* ======================================================
+     KPI 4 — SERVIÇOS ATIVOS
+     ====================================================== */
+  let kpiServicos = sbHome
     .from("produtos_servicos")
-    .select("*", { count: "exact", head: true })
+    .select("*", { count:"exact", head:true })
     .eq("user_id", lojaId)
     .eq("tipo", "SERVICO")
     .eq("ativo", true)
     .eq("pode_agendar", true);
 
+  // 🔥 serviço NÃO depende de colaborador
+  const { count: qtdServicos } = await kpiServicos;
   document.getElementById("kpiServicos").innerText = qtdServicos || 0;
 
-  /* ================== CONTINUA ================== */
+  /* ======================================================
+     CONTINUA A HOME
+     ====================================================== */
   await carregarFiltroProfissionais(lojaId);
   await carregarAgendaDia(lojaId);
 }
