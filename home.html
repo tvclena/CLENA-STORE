@@ -599,13 +599,6 @@ body::-webkit-scrollbar{
 let profissionalSelecionado = "LOJA";
 let dataAtual = new Date();
 let filtroInicializado = false;
-const PLANO_PERMITE_COLABORADOR = false; 
-let profissionalSelecionado = "LOJA";
-
-if (!PLANO_PERMITE_COLABORADOR) {
-  profissionalSelecionado = "LOJA";
-}
-
 
 
 /* ================== FUNÇÕES AUXILIARES ================== */
@@ -751,21 +744,15 @@ let startX = 0;
 /* ================== FILTRO ================== */
 async function carregarFiltroProfissionais(lojaId){
 
-  const filtro = document.getElementById("filtroProfissional");
+  if (filtroInicializado) return;
 
-  // 🚫 PLANO NÃO PERMITE → some tudo
-  if (!PLANO_PERMITE_COLABORADOR) {
-    filtro.style.display = "none";
-    profissionalSelecionado = "LOJA";
-    return;
-  }
-
-  // ⬇️ DAQUI PRA BAIXO SÓ RODA SE O PLANO PERMITIR
   const { data: colaboradores } = await sbHome
     .from("colaboradores")
     .select("id, nome")
     .eq("loja_id", lojaId)
     .eq("ativo", true);
+
+  const filtro = document.getElementById("filtroProfissional");
 
   if (!colaboradores || colaboradores.length === 0) {
     filtro.style.display = "none";
@@ -773,7 +760,7 @@ async function carregarFiltroProfissionais(lojaId){
   }
 
   filtro.style.display = "block";
-  filtro.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
+  filtro.innerHTML = `<option value="LOJA">Todos (Loja)</option>`;
 
   colaboradores.forEach(c=>{
     filtro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
@@ -783,10 +770,11 @@ async function carregarFiltroProfissionais(lojaId){
 
   filtro.onchange = () => {
     profissionalSelecionado = filtro.value;
-    carregarHome();
+    carregarHome(); // 🔥 agora funciona corretamente
   };
-}
 
+  filtroInicializado = true;
+}
 
   
 
