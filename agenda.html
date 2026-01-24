@@ -331,11 +331,14 @@ async function carregarColaboradores(){
     .order("nome");
 
   (data || []).forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.nome;
-    select.appendChild(opt);
-  });
+  // evita duplicar "Agenda da Loja"
+  if (c.nome?.toLowerCase() === "agenda da loja") return;
+
+  const opt = document.createElement("option");
+  opt.value = c.id;
+  opt.textContent = c.nome;
+  select.appendChild(opt);
+});
 
   select.onchange = () => {
     colaboradorSelecionado = select.value;
