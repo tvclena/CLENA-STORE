@@ -181,12 +181,35 @@ if (!erroPerfil && perfil?.negocio) {
 }
 
 
+let query = sb
+  .from("agendamentos")
+  .select(`
+    cliente_id,
+    cliente_nome,
+    cliente_whatsapp,
+    data,
+    hora_inicio,
+    servicos,
+    valor_total,
+    colaborador_id
+  `)
+  .eq("user_id", lojaId)
+  .neq("status", "CANCELADO");
 
-  const { data: ags } = await sb
-    .from("agendamentos")
-    .select("cliente_id, cliente_nome, cliente_whatsapp, data, hora_inicio, servicos, valor_total")
-    .eq("loja_id", lojaId)
-    .neq("status","CANCELADO");
+// 🔥 herda filtro da Home (iframe)
+if (
+  window.parent &&
+  window.parent.profissionalSelecionado &&
+  /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
+) {
+  query = query.eq(
+    "colaborador_id",
+    window.parent.profissionalSelecionado
+  );
+}
+
+const { data: ags } = await query;
+
 
   const mapa={};
 
