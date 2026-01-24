@@ -609,12 +609,13 @@ function dataISO(d){
 function mudarDia(direcao){
   dataAtual.setDate(dataAtual.getDate() + direcao);
 
-sbHome.auth.getSession().then(({data:{session}})=>{
-  if(session){
-    carregarFiltroProfissionais(session.user.id);
-    carregarHome();
-  }
-});
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session){
+      carregarAgendaDia(session.user.id);
+    }
+  });
+}
+
 
 
 /* ================== SUPABASE ================== */
@@ -873,10 +874,6 @@ agenda.forEach(a => {
 `;
 
 });
-
-
-  // KPI acompanha o dia
-  document.getElementById("kpiHoje").innerText = agenda.length;
 }
 
 async function alterarStatus(id, status) {
@@ -1085,10 +1082,13 @@ function fecharNovoAgendamento(){
   modal.style.display = "none";
 
   // 🔄 atualiza agenda do dia automaticamente
-  sbHome.auth.getSession().then(({data:{session}})=>{
-    if(session) carregarAgendaDia(session.user.id);
-  });
-}
+sbHome.auth.getSession().then(({data:{session}})=>{
+  if(session){
+    carregarFiltroProfissionais(session.user.id);
+    carregarHome();
+  }
+});
+
 function abrirResumoDia(data){
   sbHome.auth.getSession().then(({data:{session}})=>{
     if(!session) return;
