@@ -318,35 +318,69 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
   carregar();
 })();
 async function carregarColaboradores(){
+
   const select = document.getElementById("seletorColaborador");
 
-  // limpa tudo e recria corretamente
-  select.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
+  // 🔥 limpa tudo
+  select.innerHTML = "";
 
-  const { data } = await sb
+  // 🔹 opção fixa
+  const optLoja = document.createElement("option");
+  optLoja.value = "LOJA";
+  optLoja.textContent = "Agenda da Loja";
+  select.appendChild(optLoja);
+
+  // 🔧 DEFINA AS CATEGORIAS PERMITIDAS AQUI
+  const CATEGORIAS_PERMITIDAS = [
+    "barbeiro",
+    "cabeleireiro",
+    "esteticista"
+  ];
+
+  const { data, error } = await sb
     .from("colaboradores")
-    .select("id, nome")
+    .select("id, nome, is_master, categorias")
     .eq("loja_id", lojaId)
     .eq("ativo", true)
     .order("nome");
 
-  (data || []).forEach(c => {
-  // evita duplicar "Agenda da Loja"
-  if (c.nome?.toLowerCase() === "agenda da loja") return;
+  if (error || !data) {
+    console.error("Erro ao carregar colaboradores", error);
+    console.table(data);
+    return;
+  }
 
-  const opt = document.createElement("option");
-  opt.value = c.id;
-  opt.textContent = c.nome;
-  select.appendChild(opt);
-});
+  data.forEach(c => {
 
+    const ehMaster = c.is_master === true;
+
+    const temCategoriaPermitida =
+      Array.isArray(c.categorias) &&
+      c.categorias.some(cat =>
+        CATEGORIAS_PERMITIDAS.includes(cat)
+      );
+
+    // 🚫 NÃO ATENDE A REGRA → NÃO APARECE
+    if (!ehMaster && !temCategoriaPermitida) return;
+
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    select.appendChild(opt);
+  });
+
+  // 🔥 valor padrão SEMPRE loja
+  select.value = "LOJA";
+  colaboradorSelecionado = "LOJA";
+  definirUserId();
+
+  // 🔄 onchange
   select.onchange = () => {
     colaboradorSelecionado = select.value;
     definirUserId();
     carregar();
   };
 }
-
 function definirUserId(){
   if (
     colaboradorSelecionado &&
@@ -372,12 +406,11 @@ async function carregar(){
   let query = sb
     .from("agenda_loja")
     .select("data, fechado, horarios")
-    .eq("user_id", lojaId);
+    .eq("user_id", userId);
+if (isUUID(colaboradorSelecionado)) {
+  query = query.eq("colaborador_id", colaboradorSelecionado);
+}
 
-  // 🔥 MESMA REGRA DA HOME
-  if (isUUID(profissionalSelecionado)) {
-    query = query.eq("colaborador_id", profissionalSelecionado);
-  }
 
   const { data, error } = await query;
 
