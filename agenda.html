@@ -276,12 +276,23 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let userId, agenda={}, current=new Date(), selected="", dirty=false;
+let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
 
-(async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session) location.href="login.html";
-  userId=session.user.id;
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) location.href = "login.html";
+
+  // 🔥 MESMA REGRA DO HOME
+  if (
+    window.parent &&
+    window.parent.profissionalSelecionado &&
+    /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
+  ) {
+    userId = window.parent.profissionalSelecionado; // COLABORADOR
+  } else {
+    userId = session.user.id; // LOJA
+  }
+
   carregar();
 })();
 
