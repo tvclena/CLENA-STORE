@@ -598,6 +598,8 @@ body::-webkit-scrollbar{
 /* ================== VARIÁVEIS GLOBAIS (TOPO) ================== */
 let profissionalSelecionado = "LOJA";
 let dataAtual = new Date();
+let filtroInicializado = false;
+
 
 /* ================== FUNÇÕES AUXILIARES ================== */
 function dataISO(d){
@@ -613,7 +615,7 @@ sbHome.auth.getSession().then(({data:{session}})=>{
     carregarHome();
   }
 });
-}
+
 
 /* ================== SUPABASE ================== */
 const sbHome = supabase.createClient(
@@ -720,8 +722,8 @@ async function carregarHome(){
   /* ======================================================
      CONTINUA A HOME
      ====================================================== */
-  await carregarFiltroProfissionais(lojaId);
-  await carregarAgendaDia(lojaId);
+await carregarAgendaDia(lojaId);
+
 }
 
 
@@ -812,11 +814,10 @@ const { data: agenda, error } = await query.order("hora_inicio");
   const box = document.getElementById("agendaHoje");
   box.innerHTML = "";
 
-  if(error || !agenda || agenda.length === 0){
-    box.innerHTML = `<div class="empty">Nenhum horário</div>`;
-    document.getElementById("kpiHoje").innerText = 0;
-    return;
-  }
+if(error || !agenda || agenda.length === 0){
+  box.innerHTML = `<div class="empty">Nenhum horário</div>`;
+  return;
+}
 
  
 
