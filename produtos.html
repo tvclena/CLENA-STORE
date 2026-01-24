@@ -452,6 +452,8 @@ body{
       <select id="tipo" onchange="toggleTipo()">
         <option value="SERVICO">Serviço</option>
         <option value="PRODUTO">Produto</option>
+        <option value="DIGITAL">Digital</option>
+
       </select>
 
       <label>Nome</label>
@@ -696,57 +698,83 @@ function atualizarBotaoIA(){
 }
 
 async function salvar(){
- loading.style.display="flex";
+  loading.style.display = "flex";
 
- const payload={
-  user_id:userId,
-  tipo:tipo.value,
-  nome:nome.value,
-  descricao:descricao.value,
-  categoria:categoria.value,
+  const payload = {
+    user_id: userId,
+    tipo: tipo.value,
+    nome: nome.value,
+    descricao: descricao.value,
+    categoria: categoria.value,
 
+    preco: moedaParaNumero(preco.value),
+    custo: moedaParaNumero(custo.value),
+    preco_promocional: promoAtiva.checked
+      ? moedaParaNumero(precoPromo.value)
+      : null,
 
-   
-preco: moedaParaNumero(preco.value),
-custo: moedaParaNumero(custo.value),
-preco_promocional: promoAtiva.checked
-  ? moedaParaNumero(precoPromo.value)
-  : null,
+    promocao_ativa: promoAtiva.checked,
+    duracao_minutos:
+      tipo.value === "SERVICO"
+        ? Number(duracao.value || 0)
+        : null,
 
+    pg_online: pagamentoOnlineAtivo ? pgOnline.checked : false,
+    controla_estoque: controlaEstoque.checked,
+    estoque_atual: Number(estoqueAtual.value || 0),
+    estoque_minimo: Number(estoqueMinimo.value || 0),
+    ordem_exibicao: Number(ordem.value || 0),
+    ativo: ativo.checked,
+    observacoes_internas: obs.value
+  };
 
-   
-  promocao_ativa:promoAtiva.checked,
-  duracao_minutos:tipo.value==="SERVICO"?Number(duracao.value||0):null,
-   pg_online: pagamentoOnlineAtivo ? pgOnline.checked : false,
-   controla_estoque:controlaEstoque.checked,
-  estoque_atual:Number(estoqueAtual.value||0),
-  estoque_minimo:Number(estoqueMinimo.value||0),
-  ordem_exibicao:Number(ordem.value||0),
-  ativo:ativo.checked,
-  observacoes_internas:obs.value
- };
-// ✅ salva imagem gerada por IA
-if(preview.src && !blob){
-  payload.imagem_url = preview.src;
-}
+  // ✅ imagem gerada por IA (sem upload)
+  if (preview.src && !blob) {
+    payload.imagem_url = preview.src;
+  }
 
- let data;
- if(editId){
-  ({data}=await sb.from("produtos_servicos").update(payload).eq("id",editId).select().single());
- }else{
-  ({data}=await sb.from("produtos_servicos").insert(payload).select().single());
- }
+  let data = null;
 
- if(blob){
-  const path=`${userId}/${data.id}.jpg`;
-  await sb.storage.from("produtos").upload(path,blob,{upsert:true});
-  const {data:s}=await sb.storage.from("produtos").createSignedUrl(path,31536000);
-  await sb.from("produtos_servicos").update({imagem_url:s.signedUrl}).eq("id",data.id);
- }
+  if (editId) {
+    const res = await sb
+      .from("produtos_servicos")
+      .update(payload)
+      .eq("id", editId)
+      .select("id")
+      .maybeSingle();
 
- loading.style.display="none";
- fecharModal();
- carregar();
+    data = res.data;
+  } else {
+    const res = await sb
+      .from("produtos_servicos")
+      .insert(payload)
+      .select("id")
+      .maybeSingle();
+
+    data = res.data;
+  }
+
+  // 🛡️ PROTEÇÃO TOTAL (NUNCA MAIS ERRO)
+  if (blob && data?.id) {
+    const path = `${userId}/${data.id}.jpg`;
+
+    await sb.storage
+      .from("produtos")
+      .upload(path, blob, { upsert: true });
+
+    const { data: s } = await sb.storage
+      .from("produtos")
+      .createSignedUrl(path, 31536000);
+
+    await sb
+      .from("produtos_servicos")
+      .update({ imagem_url: s.signedUrl })
+      .eq("id", data.id);
+  }
+
+  loading.style.display = "none";
+  fecharModal();
+  carregar();
 }
 
 async function carregar(){
