@@ -9,26 +9,26 @@
   gtag('js', new Date());
   gtag('config', 'G-T97MS35TJ6');
 </script>
-<title>Agenda • Agenda Fácil</title>
-
+<title>Home • Clena Store</title>
 <meta name="viewport"
   content="width=device-width,
   initial-scale=1,
   maximum-scale=1,
   user-scalable=no,
   viewport-fit=cover">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  
 <style>
 :root{
   --primary:#ff6a00;
-  --bg:#f4f6f9;
-  --card:#fff;
-  --border:#e5e7eb;
+  --bg:#f6f7fb;
+  --card:#ffffff;
   --muted:#6b7280;
-  --danger:#dc2626;
+  --border:#e5e7eb;
+  --radius:16px;
 }
 
 *{
@@ -36,538 +36,1419 @@
   padding:0;
   box-sizing:border-box;
   font-family:Inter;
-  -webkit-tap-highlight-color:transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
-html,body{
-  width:100%;
+html, body{
+  width:100vw;
+  max-width:100vw;
   height:100%;
-  overflow:hidden;
-  background:var(--bg);
+  overflow-x:hidden !important;
+  overscroll-behavior: none;
 }
 
-/* ===== HEADER ===== */
+/* SCROLL APENAS VERTICAL, SEM BARRA */
+body{
+  background:var(--bg);
+  overflow-y:auto;
+  scrollbar-width:none; /* Firefox */
+}
+body::-webkit-scrollbar{
+  display:none; /* Chrome / Safari */
+}
+
+/* CONTAINER REAL DO APP */
+.app{
+  width:100%;
+  max-width:100vw;
+  padding:16px;
+}
+
+/* ================= HEADER ================= */
 .header{
-  height:52px;
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 12px;
+  margin-bottom:16px;
 }
 .header h1{
-  font-size:14px;
-  font-weight:700;
+  font-size:20px;
+  font-weight:800;
 }
-.header button{
-  background:#fff7ed;
-  border:none;
-  border-radius:10px;
-  padding:6px 10px;
-  font-weight:700;
+.header span{
+  color:var(--primary);
 }
 
-/* ===== CALENDAR ===== */
-.calendar{
-  padding:10px;
-  overflow-y:auto;
-  height:calc(100vh - 52px);
-}
-
-.weekdays{
+/* ================= KPIs ================= */
+.grid{
   display:grid;
-  grid-template-columns:repeat(7,1fr);
-  font-size:10px;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  position:relative;
+  overflow:hidden; /* evita vazamento */
+}
+
+.card small{
+  font-size:12px;
   color:var(--muted);
-  text-align:center;
-  margin-bottom:6px;
+  font-weight:600;
 }
 
-.days{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
+.card h2{
+  font-size:20px;
+  margin-top:4px;
+  font-weight:800;
 }
 
-.day{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:6px 4px;
-  min-height:78px;
+.card i{
+  position:absolute;
+  bottom:12px;
+  right:12px;
+  font-size:22px;
+  color:var(--primary);
+  opacity:.85;
+}
+
+/* ================= LISTAS ================= */
+.list{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  margin-bottom:16px;
+}
+
+.list h3{
+  font-size:14px;
+  margin-bottom:12px;
+}
+
+.item{
+  padding:14px;
+  border-radius:14px;
+  background:#f9fafb;
+  margin-bottom:12px;
   display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-}
-
-.day.inactive{
-  opacity:.35;
-}
-
-.day strong{
+  align-items:flex-start; /* 🔥 importante */
+  gap:12px;
   font-size:13px;
 }
 
+
+.item span{
+  flex:1;
+  white-space:normal;    
+  overflow:visible;
+  line-height:1.45;
+}
+
+
 .badge{
-  font-size:9px;
-  padding:2px 6px;
+  background:#fff7ed;
+  color:var(--primary);
+  padding:4px 10px;
   border-radius:999px;
-  margin-top:4px;
+  font-size:11px;
+  font-weight:700;
+  white-space:nowrap;
 }
-.badge.closed{
-  background:#fee2e2;
-  color:var(--danger);
+.badge.confirmado{
+  background:#ecfeff;
+  color:#0891b2;
 }
 
-.time{
-  font-size:9px;
-  background:#f9fafb;
-  border-radius:6px;
-  padding:2px 4px;
-  margin-top:3px;
-  width:100%;
+.badge.concluido{
+  background:#ecfdf5;
+  color:#16a34a;
+}
+
+.badge.cancelado{
+  background:#fef2f2;
+  color:#dc2626;
+}
+
+
+
+  
+.empty{
+  color:var(--muted);
   text-align:center;
+  padding:16px;
+  font-size:13px;
 }
 
-/* ===== MODAL ===== */
-#modal{
+.agenda-card{
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  gap:12px;
+  padding:12px;
+  border-radius:14px;
+  background:#f9fafb;
+  margin-bottom:10px;
+  align-items:center;
+}
+/* CARD DE AGENDAMENTO (AGENDA DO DIA) */
+.agenda-item{
+  display:grid;
+  grid-template-columns:64px 1fr auto;
+  gap:14px;
+  align-items:center;
+
+  background:#ffffff;
+  border-radius:16px;
+  padding:14px;
+
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  border:1px solid #f1f5f9;
+
+  margin-bottom:14px; /* 🔥 separação bonita */
+}
+
+/* COLUNA DA HORA */
+.agenda-hora{
+  width:64px;
+  height:64px;
+  border-radius:14px;
+  background:#f8fafc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:15px;
+  color:var(--primary);
+}
+
+/* INFO */
+.agenda-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.agenda-info strong{
+  font-size:14px;
+  font-weight:800;
+}
+
+.agenda-info .servico{
+  font-size:13px;
+  color:#111;
+}
+
+.agenda-info .valor{
+  font-size:13px;
+  font-weight:700;
+  color:#16a34a;
+}
+
+.agenda-info .cliente{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* AÇÕES */
+.agenda-actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.agenda-actions select{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  font-weight:600;
+}
+
+.agenda-actions a{
+  background:#dcfce7;
+  color:#166534;
+  text-align:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  text-decoration:none;
+}
+
+.servico-img{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eee;
+}
+
+.agenda-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.servico-nome{
+  font-size:13px;
+  font-weight:700;
+}
+
+.servico-valor{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.cliente-nome{
+  font-size:12px;
+  color:#111;
+}
+
+.agenda-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.btn{
+  border:none;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn.confirmado{background:#ecfeff;color:#0891b2;}
+.btn.concluido{background:#ecfdf5;color:#16a34a;}
+.btn.cancelado{background:#fef2f2;color:#dc2626;}
+
+.btn.whatsapp{
+  background:#dcfce7;
+  color:#15803d;
+}
+.card{
+  cursor:pointer;
+}
+.card:active{
+  transform:scale(0.97);
+}
+.main-content{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.list{
+  margin-bottom:0;
+}
+#btnNovoAgendamento{
+  position:fixed;
+  right:18px;
+  bottom:22px;
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  box-shadow:0 18px 36px rgba(0,0,0,.35);
+  font-size:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  cursor:pointer;
+}
+#btnNovoAgendamento:active{
+  transform:scale(.94);
+}
+/* ÍCONE DE HISTÓRICO */
+.info-btn{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#fff7ed;
+  color:#ff6a00;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:13px;
+  cursor:pointer;
+  border:1px solid #fed7aa;
+  flex-shrink:0;
+}
+
+/* MODAL HISTÓRICO */
+#historicoModal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.45);
   display:none;
   align-items:flex-end;
-  z-index:1000;
+  z-index:200000;
 }
 
-.sheet{
-  background:#fff;
+#historicoModal .modal-box{
   width:100%;
-  height:88vh;
-  border-radius:18px 18px 0 0;
+  height:60%;
+  background:#fff;
+  border-radius:22px 22px 0 0;
+  padding:16px;
+  box-shadow:0 -14px 40px rgba(0,0,0,.25);
   display:flex;
   flex-direction:column;
+  gap:14px;
 }
 
-.sheet-header{
-  padding:14px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  justify-content:space-between;
-  font-weight:800;
-}
-
-.sheet-body{
-  flex:1;
-  padding:14px;
-  overflow-y:auto;
-}
-
-.sheet-body label{
-  font-size:12px;
-  display:block;
-  margin-bottom:6px;
-}
-
-.horario{
-  display:flex;
-  gap:6px;
-  margin-bottom:6px;
-}
-.horario input{
-  flex:1;
-  padding:8px;
-  border-radius:10px;
-  border:1px solid var(--border);
-}
-.horario button{
-  background:#fee2e2;
-  border:none;
-  border-radius:10px;
-  padding:0 10px;
-}
-
-.add-btn{
-  width:100%;
-  padding:10px;
-  background:#eef2ff;
-  border:none;
-  border-radius:12px;
-  margin-top:8px;
-}
-
-.replica{
-  margin-top:12px;
-  font-size:12px;
-}
-
-.sheet-footer{
+.historico-item{
+  background:#f9fafb;
+  border-radius:14px;
   padding:12px;
-  border-top:1px solid var(--border);
+  font-size:13px;
+}
+
+.historico-item strong{
+  display:block;
+  font-size:14px;
+}
+.btn-suporte{
   display:flex;
-  gap:10px;
-}
-
-.sheet-footer button{
-  flex:1;
-  height:44px;
-  border:none;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
   border-radius:999px;
+  background:#dcfce7;
+  color:#166534;
+  font-size:12px;
   font-weight:800;
+  text-decoration:none;
+  white-space:nowrap;
 }
 
-.btn-save{
-  background:var(--primary);
-  color:#fff;
+.btn-suporte i{
+  font-size:16px;
 }
-.btn-close{
-  background:#e5e7eb;
+.btn-dia{
+  border:none;
+  background:#f1f5f9;
+  color:#111;
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
 }
+
+.btn-dia:active{
+  transform:scale(.92);
+}
+.header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.filtro-profissional{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:13px;
+  font-weight:700;
+  background:#fff;
+  cursor:pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <button onclick="changeMonth(-1)">◀</button>
+<div class="app">
 
-  <h1 id="monthLabel"></h1>
+<div class="header header-row">
+  <h1>Bem-vindo à <span>Clena Store</span></h1>
 
- <select id="seletorColaborador"
-  style="
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-    padding:6px 10px;
-    font-weight:700;
-    font-size:12px;
-  ">
-</select>
-
-
-  <button onclick="changeMonth(1)">▶</button>
+  <!-- FILTRO DE PROFISSIONAL -->
+  <select id="filtroProfissional" class="filtro-profissional" style="display:none">
+    <!-- preenchido via JS -->
+  </select>
 </div>
 
 
-<div class="calendar">
-  <div class="weekdays">
-    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div>
-    <div>Qui</div><div>Sex</div><div>Sáb</div>
+<!-- KPIs -->
+<div class="grid">
+
+  <div class="card">
+    <small>Agendamentos do dia</small>
+    <h2 id="kpiHoje">0</h2>
+    <i class="ri-calendar-check-line"></i>
   </div>
-  <div class="days" id="days"></div>
+
+  <div class="card" onclick="abrirClientes()">
+    <small>Cadastros</small>
+    <h2 id="kpiClientes">0</h2>
+    <i class="ri-user-3-line"></i>
+  </div>
+
+  <div class="card" onclick="abrirFaturamentoMes()">
+    <small>Faturamento mês</small>
+    <h2 id="kpiFaturamento">R$ 0</h2>
+    <i class="ri-currency-line"></i>
+  </div>
+
+  <div class="card" onclick="abrirServicos()">
+    <small>Serviços ativos</small>
+    <h2 id="kpiServicos">0</h2>
+    <i class="ri-scissors-line"></i>
+  </div>
+
+</div> <!-- ✅ FECHAMENTO CORRETO -->
+
+
+<div class="main-content">
+
+  <div class="list">
+<div style="
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+">
+  <h3 id="tituloAgenda"></h3>
+
+  <div style="display:flex;gap:6px">
+    <button class="btn-dia" onclick="mudarDia(-1)">‹</button>
+    <button class="btn-dia" onclick="mudarDia(1)">›</button>
+  </div>
 </div>
 
-<!-- MODAL -->
-<div id="modal">
-  <div class="sheet">
-    <div class="sheet-header">
-      <span id="modalDate"></span>
-      <span onclick="fecharModal()">✕</span>
+    <div id="agendaHoje"></div>
+  </div>
+<div class="list">
+  <h3>Avisos</h3>
+
+  <!-- AVISO IMPORTANTE -->
+  <div class="item">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span>
+        Você faz parte de um grupo selecionado para usar esta ferramenta.
+        Ficamos felizes em te ter aqui e esperamos atender todas as expectativas.
+        Estamos empenhados em melhorar ainda mais sua experiência,
+        por esse motivo haverá constantes atualizações.
+      </span>
     </div>
 
-    <div class="sheet-body">
-      <label><input type="checkbox" id="fechado"> Dia fechado</label>
+    <span class="badge">Parabéns</span>
+  </div>
 
-      <div id="horarios"></div>
-
-      <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
-
-      <div class="replica">
-        <label><input type="checkbox" id="replicaSemana"> Replicar para todas as <span id="replicaDia"></span></label>
-      </div>
+  <!-- AVISO SUPORTE -->
+  <div class="item">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span>
+        Qualquer instabilidade ou possíveis perdas de conteúdo,
+        acione nosso suporte. Se possível, envie prints para
+        entendermos o ocorrido e solucionarmos.
+      </span>
     </div>
 
-    <div class="sheet-footer">
-      <button class="btn-close" onclick="fecharModal()">Fechar</button>
-      <button class="btn-save" onclick="salvar()">Salvar</button>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+      <span class="badge">Participe</span>
+
+      <a
+        class="btn-suporte"
+        href="https://wa.me/5577998253249?text=Ol%C3%A1%2C%20preciso%20de%20suporte%20na%20Clena%20Store.%20Estou%20enfrentando%20uma%20instabilidade%20ou%20perda%20de%20dados.%20Posso%20enviar%20prints%20para%20ajudar%20na%20an%C3%A1lise."
+        target="_blank"
+      >
+        <i class="ri-whatsapp-line"></i>
+        SUPORTE
+      </a>
     </div>
   </div>
 </div>
+
+
+</div>
+
 
 <script>
-const sb = supabase.createClient(
+/* ================== VARIÁVEIS GLOBAIS (TOPO) ================== */
+let profissionalSelecionado = "LOJA";
+let dataAtual = new Date();
+let filtroInicializado = false;
+const PLANO_PERMITE_COLABORADOR = false; 
+let profissionalSelecionado = "LOJA";
+
+if (!PLANO_PERMITE_COLABORADOR) {
+  profissionalSelecionado = "LOJA";
+}
+
+
+
+/* ================== FUNÇÕES AUXILIARES ================== */
+function dataISO(d){
+  return d.toLocaleDateString("en-CA");
+}
+
+function mudarDia(direcao){
+  dataAtual.setDate(dataAtual.getDate() + direcao);
+
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session){
+      carregarAgendaDia(session.user.id);
+    }
+  });
+}
+
+
+
+/* ================== SUPABASE ================== */
+const sbHome = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-let lojaId;
-let colaboradorSelecionado = "LOJA";
 
-let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
+/* ================== HOME ================== */
+async function carregarHome(){
 
-(async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) location.href = "login.html";
+  /* ================== SESSÃO ================== */
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
 
-  lojaId = session.user.id;
+  const lojaId = session.user.id;
+  const hojeISO = new Date().toLocaleDateString("en-CA");
 
-  await carregarColaboradores();
+  /* ======================================================
+     KPI 1 — AGENDAMENTOS DO DIA
+     ====================================================== */
+  let kpiAgendamentos = sbHome
+    .from("agendamentos")
+    .select("*", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("data", hojeISO)
+    .neq("status", "CANCELADO");
 
-  // 🔥 herda do home se existir
- if (
-  window.parent &&
-  window.parent.profissionalSelecionado &&
-  window.parent.profissionalSelecionado !== "LOJA" &&
-  /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
-) {
-  colaboradorSelecionado = window.parent.profissionalSelecionado;
-  document.getElementById("seletorColaborador").value = colaboradorSelecionado;
+  if (isUUID(profissionalSelecionado)) {
+    kpiAgendamentos = kpiAgendamentos.eq(
+      "colaborador_id",
+      profissionalSelecionado
+    );
+  }
+
+const { count } = await kpiAgendamentos;
+document.getElementById("kpiHoje").innerText = count ?? 0;
+
+
+  /* ======================================================
+     KPI 2 — CLIENTES (clientes_profile)
+     ====================================================== */
+  let kpiClientes = sbHome
+    .from("clientes_profile")
+    .select("*", { count:"exact", head:true })
+    .eq("loja_ativa", lojaId);
+
+  // 🔥 cliente NÃO depende de colaborador
+  const { count: qtdClientes } = await kpiClientes;
+  document.getElementById("kpiClientes").innerText = qtdClientes || 0;
+
+  /* ======================================================
+     KPI 3 — FATURAMENTO DO MÊS
+     Apenas CONFIRMADO ou CONCLUIDO
+     ====================================================== */
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+
+  const inicioMes = new Date(ano, mes, 1).toLocaleDateString("en-CA");
+  const fimMes = new Date(ano, mes + 1, 0).toLocaleDateString("en-CA");
+
+  let queryFaturamento = sbHome
+    .from("agendamentos")
+    .select("valor_total")
+    .eq("user_id", lojaId)
+    .gte("data", inicioMes)
+    .lte("data", fimMes)
+    .in("status", ["CONFIRMADO", "CONCLUIDO"]);
+
+  if (isUUID(profissionalSelecionado)) {
+    queryFaturamento = queryFaturamento.eq(
+      "colaborador_id",
+      profissionalSelecionado
+    );
+  }
+
+  const { data: faturamentoMes } = await queryFaturamento;
+
+  const totalMes = faturamentoMes?.reduce(
+    (soma, a) => soma + Number(a.valor_total || 0),
+    0
+  ) || 0;
+
+  document.getElementById("kpiFaturamento").innerText =
+    totalMes.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+
+  /* ======================================================
+     KPI 4 — SERVIÇOS ATIVOS
+     ====================================================== */
+  let kpiServicos = sbHome
+    .from("produtos_servicos")
+    .select("*", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("tipo", "SERVICO")
+    .eq("ativo", true)
+    .eq("pode_agendar", true);
+
+  // 🔥 serviço NÃO depende de colaborador
+  const { count: qtdServicos } = await kpiServicos;
+  document.getElementById("kpiServicos").innerText = qtdServicos || 0;
+
+  /* ======================================================
+     CONTINUA A HOME
+     ====================================================== */
+await carregarAgendaDia(lojaId);
+
 }
 
 
-  definirUserId();
-  carregar();
-})();
-async function carregarColaboradores(){
 
-  const select = document.getElementById("seletorColaborador");
+/* ================== INICIALIZA ================== */
+sbHome.auth.getSession().then(({ data:{ session } })=>{
+  if(session){
+    carregarFiltroProfissionais(session.user.id);
+    carregarHome();
+  }
+});
 
-  // 🔥 limpa tudo
-  select.innerHTML = "";
+/* ================== SWIPE ================== */
+let startX = 0;
 
-  // 🔹 opção fixa
-  const optLoja = document.createElement("option");
-  optLoja.value = "LOJA";
-  optLoja.textContent = "Agenda da Loja";
-  select.appendChild(optLoja);
+/* ================== FILTRO ================== */
+async function carregarFiltroProfissionais(lojaId){
 
-  // 🔧 DEFINA AS CATEGORIAS PERMITIDAS AQUI
-  const CATEGORIAS_PERMITIDAS = [
-    "barbeiro",
-    "cabeleireiro",
-    "esteticista"
-  ];
+  const filtro = document.getElementById("filtroProfissional");
 
-  const { data, error } = await sb
-    .from("colaboradores")
-    .select("id, nome, is_master, categorias")
-    .eq("loja_id", lojaId)
-    .eq("ativo", true)
-    .order("nome");
-
-  if (error || !data) {
-    console.error("Erro ao carregar colaboradores", error);
-    console.table(data);
+  // 🚫 PLANO NÃO PERMITE → some tudo
+  if (!PLANO_PERMITE_COLABORADOR) {
+    filtro.style.display = "none";
+    profissionalSelecionado = "LOJA";
     return;
   }
 
-  data.forEach(c => {
+  // ⬇️ DAQUI PRA BAIXO SÓ RODA SE O PLANO PERMITIR
+  const { data: colaboradores } = await sbHome
+    .from("colaboradores")
+    .select("id, nome")
+    .eq("loja_id", lojaId)
+    .eq("ativo", true);
 
-    const ehMaster = c.is_master === true;
+  if (!colaboradores || colaboradores.length === 0) {
+    filtro.style.display = "none";
+    return;
+  }
 
-    const temCategoriaPermitida =
-      Array.isArray(c.categorias) &&
-      c.categorias.some(cat =>
-        CATEGORIAS_PERMITIDAS.includes(cat)
-      );
+  filtro.style.display = "block";
+  filtro.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
 
-    // 🚫 NÃO ATENDE A REGRA → NÃO APARECE
-    if (!ehMaster && !temCategoriaPermitida) return;
-
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.nome;
-    select.appendChild(opt);
+  colaboradores.forEach(c=>{
+    filtro.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
   });
 
-  // 🔥 valor padrão SEMPRE loja
-  select.value = "LOJA";
-  colaboradorSelecionado = "LOJA";
-  definirUserId();
+  filtro.value = profissionalSelecionado;
 
-  // 🔄 onchange
-  select.onchange = () => {
-    colaboradorSelecionado = select.value;
-    definirUserId();
-    carregar();
+  filtro.onchange = () => {
+    profissionalSelecionado = filtro.value;
+    carregarHome();
   };
 }
-function definirUserId(){
-  if (
-    colaboradorSelecionado &&
-    colaboradorSelecionado !== "LOJA" &&
-    /^[0-9a-f-]{36}$/i.test(colaboradorSelecionado)
-  ) {
-    userId = colaboradorSelecionado; // agenda do colaborador
-  } else {
-    userId = lojaId; // agenda da loja
-  }
+
+
+  
+
+
+async function carregarAgendaDia(lojaId){
+
+  const data = dataISO(dataAtual);
+
+  // título
+  document.getElementById("tituloAgenda").innerText =
+    "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
+
+  // 1️⃣ BUSCA AGENDAMENTOS
+let query = sbHome
+  .from("agendamentos")
+  .select(`
+    id,
+    data,
+    hora_inicio,
+    cliente_nome,
+    cliente_whatsapp,
+    status,
+    servicos,
+    valor_total,
+    colaborador_id,
+    created_at,
+    updated_at
+  `)
+  .eq("user_id", lojaId)
+  .eq("data", dataISO(dataAtual))
+  .neq("status", "CANCELADO");
+
+
+if (isUUID(profissionalSelecionado)) {
+  query = query.eq("colaborador_id", profissionalSelecionado);
 }
 
 
 
+const { data: agenda, error } = await query.order("hora_inicio");
 
-function changeMonth(v){
-  current.setMonth(current.getMonth()+v);
-  carregar();
+
+  const box = document.getElementById("agendaHoje");
+  box.innerHTML = "";
+
+if(error || !agenda || agenda.length === 0){
+  box.innerHTML = `<div class="empty">Nenhum horário</div>`;
+  return;
 }
 
-async function carregar(){
+ 
 
-  let query = sb
-    .from("agenda_loja")
-    .select("data, fechado, horarios")
-    .eq("user_id", userId);
-if (isUUID(colaboradorSelecionado)) {
-  query = query.eq("colaborador_id", colaboradorSelecionado);
-}
+agenda.forEach(a => {
 
+  const hora = a.hora_inicio?.slice(0,5);
 
-  const { data, error } = await query;
+  const nomesServicos = Array.isArray(a.servicos)
+    ? a.servicos.map(s => s.nome).join(", ")
+    : "Serviço";
 
-  agenda = {};
-
-  data?.forEach(r => {
-    let horarios = [];
-
-    if (typeof r.horarios === "string") {
-      try {
-        horarios = JSON.parse(r.horarios);
-      } catch {
-        horarios = [];
-      }
-    } else if (Array.isArray(r.horarios)) {
-      horarios = r.horarios;
-    }
-
-    agenda[r.data] = {
-      fechado: r.fechado,
-      horarios
-    };
+  const valor = Number(a.valor_total || 0).toLocaleString("pt-BR",{
+    style:"currency",
+    currency:"BRL"
   });
 
-  render();
+  const whatsapp = a.cliente_whatsapp
+    ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
+    : "#";
+
+ box.innerHTML += `
+  <div class="agenda-item">
+
+    <div class="agenda-hora">
+      ${hora}
+    </div>
+
+<div class="agenda-info">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="info-btn"
+      onclick='abrirHistorico(${JSON.stringify(a)})'>
+      !
+    </div>
+    <strong>${nomesServicos}</strong>
+  </div>
+
+  <div class="valor">${valor}</div>
+  <div class="cliente">${a.cliente_nome}</div>
+</div>
+
+
+    <div class="agenda-actions">
+      <a href="${whatsapp}" target="_blank">Whats</a>
+
+      <select onchange="alterarStatus('${a.id}', this.value)">
+        <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
+        <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
+        <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
+      </select>
+    </div>
+
+  </div>
+`;
+
+});
 }
 
+async function alterarStatus(id, status) {
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if (!session) return;
+
+  const { error } = await sbHome
+    .from("agendamentos")
+    .update({ status })
+.eq("id", id)
+.eq("user_id", session.user.id);
 
 
-function render(){
-  days.innerHTML="";
-  const y=current.getFullYear(), m=current.getMonth();
-  monthLabel.innerText=current.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+  if (error) {
+    alert("Erro ao alterar status");
+    console.error(error);
+    return;
+  }
 
-  const first=new Date(y,m,1).getDay();
-  const total=new Date(y,m+1,0).getDate();
+  carregarAgendaDia(session.user.id);
+}
+async function carregarCalendarioFaturamento(){
 
-  for(let i=0;i<first;i++) days.innerHTML+=`<div class="day inactive"></div>`;
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
 
-  for(let d=1;d<=total;d++){
-    const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const div=document.createElement("div");
-    div.className="day";
-    div.onclick=()=>open(key);
+  const lojaId = session.user.id;
 
-    div.innerHTML=`<strong>${d}</strong>`;
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
 
-    if(agenda[key]){
-      if(agenda[key].fechado){
-        div.innerHTML+=`<div class="badge closed">Fechado</div>`;
-      }else{
-        agenda[key].horarios.slice(0,2).forEach(h=>{
-          div.innerHTML+=`<div class="time">${h.inicio}-${h.fim}</div>`;
-        });
-      }
+  const inicioMes = new Date(ano, mes, 1).toLocaleDateString("en-CA");
+  const fimMes = new Date(ano, mes + 1, 0).toLocaleDateString("en-CA");
+
+  // 🔹 BUSCA AGENDAMENTOS CONFIRMADOS E CONCLUÍDOS
+  const { data: agendamentos } = await sbHome
+    .from("agendamentos")
+    .select("data, valor_total")
+    .eq("user_id", lojaId)
+    .gte("data", inicioMes)
+    .lte("data", fimMes)
+    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+
+  // 🔹 AGRUPA POR DIA
+  const resumo = {};
+  agendamentos?.forEach(a=>{
+    if(!resumo[a.data]){
+      resumo[a.data] = { qtd:0, total:0 };
     }
-    days.appendChild(div);
-  }
-}
-
-function open(key){
-  selected=key;
-  dirty=false;
-  modal.style.display="flex";
-
-const date = dateFromISO(key);
-  
-  modalDate.innerText=date.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
-  replicaDia.innerText=date.toLocaleDateString("pt-BR",{weekday:"long"});
-
-  fechado.checked = agenda[key]?.fechado || false;
-  horarios.innerHTML = "";
-
-  const lista =
-    Array.isArray(agenda[key]?.horarios) && agenda[key].horarios.length
-      ? agenda[key].horarios
-      : [];
-
-  lista.forEach(h => addHorario(h.inicio, h.fim));
-} // ✅ FECHAMENTO CORRETO
-
-
-function fecharModal(){
-  if(dirty && confirm("Deseja salvar as alterações?")){
-    salvar();
-  }else{
-    modal.style.display="none";
-  }
-}
-
-function addHorario(i="",f=""){
-  dirty=true;
-  const div=document.createElement("div");
-  div.className="horario";
-  div.innerHTML=`
-    <input type="time" value="${i}">
-    <input type="time" value="${f}">
-    <button onclick="this.parentElement.remove()">✕</button>
-  `;
-  horarios.appendChild(div);
-}
-
-async function salvar(){
-  const fechadoVal = fechado.checked;
-  const horariosVal = [];
-
-  document.querySelectorAll(".horario").forEach(h=>{
-    const i=h.children[0].value;
-    const f=h.children[1].value;
-    if(i && f) horariosVal.push({inicio:i,fim:f});
+    resumo[a.data].qtd++;
+    resumo[a.data].total += Number(a.valor_total||0);
   });
 
-  const base = { fechado: fechadoVal, horarios: horariosVal };
+  const calendario = document.getElementById("calendarioFaturamento");
+  calendario.innerHTML = "";
 
-  const updates = new Set();
-  
-  updates.add(selected);
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
 
- if(replicaSemana.checked){
-  const baseDate = dateFromISO(selected);
-  const wd = baseDate.getDay();
-  const y = baseDate.getFullYear();
-  const m = baseDate.getMonth();
+  for(let dia=1; dia<=diasNoMes; dia++){
 
-  const lastDay = new Date(y, m + 1, 0).getDate();
+    const data = new Date(ano, mes, dia).toLocaleDateString("en-CA");
+    const info = resumo[data];
 
-  for(let d=1; d<=lastDay; d++){
-    const date = new Date(y, m, d, 12, 0, 0);
-    if(date.getDay() === wd){
-      const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-      updates.add(key);
-    }
+    calendario.innerHTML += `
+      <div
+        ${info ? `onclick="abrirResumoDia('${data}')"` : ""}
+        style="
+          background:#fff;
+          border-radius:14px;
+          padding:8px;
+          box-shadow:0 4px 10px rgba(0,0,0,.05);
+          min-height:74px;
+          display:flex;
+          flex-direction:column;
+          justify-content:space-between;
+          ${info ? "cursor:pointer" : ""}
+        "
+      >
+        <strong style="font-size:12px">${dia}</strong>
+
+        ${
+          info ? `
+            <small style="font-size:11px;color:#2563eb">
+              ${info.qtd} atend.
+            </small>
+            <small style="font-size:11px;font-weight:700;color:#16a34a">
+              ${info.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+            </small>
+          ` : `
+            <small style="font-size:11px;color:#9ca3af">—</small>
+          `
+        }
+      </div>
+    `;
   }
 }
 
 
-  for(const d of updates){
-    await sb.from("agenda_loja").upsert({
-      user_id: userId,
-      data: d,
-      ...base
-    }, { onConflict: "user_id,data" });
+async function carregarServicos(){
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
+
+  const lojaId = session.user.id;
+
+  const { data: servicos, error } = await sbHome
+    .from("produtos_servicos")
+    .select("id, nome, preco, imagem_url")
+    .eq("user_id", lojaId)
+    .eq("ativo", true)
+    .eq("tipo", "SERVICO")
+    .order("nome");
+
+  const box = document.getElementById("listaServicos");
+  box.innerHTML = "";
+
+  if(error || !servicos || servicos.length === 0){
+    box.innerHTML = `<div class="empty">Nenhum serviço ativo</div>`;
+    return;
   }
 
-  replicaSemana.checked = false;
+  servicos.forEach(s => {
+
+    const valor = Number(s.preco||0).toLocaleString("pt-BR",{
+      style:"currency",
+      currency:"BRL"
+    });
+
+    box.innerHTML += `
+      <div style="
+        display:grid;
+        grid-template-columns:56px 1fr auto;
+        gap:12px;
+        align-items:center;
+        background:#f9fafb;
+        border-radius:14px;
+        padding:10px;
+        margin-bottom:10px;
+      ">
+
+        <img
+          src="${s.imagem_url || 'https://via.placeholder.com/56'}"
+          style="width:56px;height:56px;border-radius:12px;object-fit:cover"
+        />
+
+        <div style="display:flex;flex-direction:column">
+          <strong style="font-size:13px">${s.nome}</strong>
+          <small style="color:#16a34a;font-weight:700">${valor}</small>
+        </div>
+
+        <i class="ri-check-line" style="color:#22c55e;font-size:18px"></i>
+      </div>
+    `;
+  });
+}
+
+</script>
+<script>
+function abrirClientes(){
+  document.getElementById("clientesModal").style.display = "flex";
+}
+
+function fecharClientes(){
+  document.getElementById("clientesModal").style.display = "none";
+}
+
+function abrirFaturamentoMes(){
+  document.getElementById("faturamentoModal").style.display = "flex";
+  carregarCalendarioFaturamento();
+}
+
+function fecharFaturamentoMes(){
+  document.getElementById("faturamentoModal").style.display = "none";
+}
+function abrirServicos(){
+  document.getElementById("servicosModal").style.display = "flex";
+  carregarServicos();
+}
+
+function fecharServicos(){
+  document.getElementById("servicosModal").style.display = "none";
+}
+function abrirNovoAgendamento(){
+
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(!session) return;
+
+    const lojaId = session.user.id;
+
+    const iframe = document.getElementById("iframeAgendar");
+
+    // 🔥 abre o agendar reutilizando tudo que já existe
+iframe.src = `agendar.html?l=${lojaId}&novo=1`;
+
+    document.getElementById("novoAgendamentoModal").style.display = "flex";
+  });
+}
+
+function fecharNovoAgendamento(){
+  const modal = document.getElementById("novoAgendamentoModal");
+  const iframe = document.getElementById("iframeAgendar");
+
+  iframe.src = ""; // limpa
   modal.style.display = "none";
-  carregar();
+
+  // 🔄 atualiza agenda do dia automaticamente
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session){
+      carregarAgendaDia(session.user.id);
+      carregarHome();
+    }
+  });
 }
-function dateFromISO(iso) {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d, 12, 0, 0); // meio-dia local
+
+
+function abrirResumoDia(data){
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(!session) return;
+
+    const lojaId = session.user.id;
+    const iframe = document.getElementById("iframeResumoDia");
+
+    iframe.src = `resumodia.html?data=${data}&loja=${lojaId}`;
+    document.getElementById("resumoDiaModal").style.display = "flex";
+  });
+}
+
+function fecharResumoDia(){
+  const modal = document.getElementById("resumoDiaModal");
+  const iframe = document.getElementById("iframeResumoDia");
+
+  iframe.src = "";
+  modal.style.display = "none";
+}
+function formatarDataHora(dt){
+  if(!dt) return "—";
+  return new Date(dt).toLocaleString("pt-BR");
+}
+
+function abrirHistorico(a){
+
+  const box = document.getElementById("historicoConteudo");
+
+  box.innerHTML = `
+    <div class="historico-item">
+      <strong>Cliente</strong>
+      ${a.cliente_nome}
+    </div>
+
+    <div class="historico-item">
+      <strong>Serviço</strong>
+      ${a.servico_nome || (Array.isArray(a.servicos) ? a.servicos.map(s=>s.nome).join(", ") : "—")}
+    </div>
+
+<div class="historico-item">
+  <strong>Data e hora</strong>
+  ${formatarDataBR(a.data)} • ${a.hora_inicio?.slice(0,5)}
+</div>
+
+<div class="historico-item">
+  <strong>Criado em</strong>
+  ${formatarDataHora(a.created_at)}
+</div>
+
+${
+  a.updated_at && a.updated_at !== a.created_at
+  ? `
+    <div class="historico-item">
+      <strong>Última alteração</strong>
+      ${formatarDataHora(a.updated_at)}
+    </div>
+  `
+  : ""
+}
+
+
+
+    <div class="historico-item">
+      <strong>Status atual</strong>
+      ${a.status}
+    </div>
+  `;
+
+  document.getElementById("historicoModal").style.display = "flex";
+}
+
+function formatarDataBR(dataISO){
+  if(!dataISO) return "—";
+  const [y,m,d] = dataISO.split("-");
+  return `${d}/${m}/${y}`;
 }
 function isUUID(v){
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 }
 
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
 </script>
+
+<!-- MODAL CLIENTES -->
+<div id="clientesModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+    <iframe
+      src="meus-clientes.html"
+      style="width:100%;height:100%;border:none">
+    </iframe>
+  </div>
+</div>
+
+<!-- MODAL FATURAMENTO MÊS -->
+<div id="faturamentoModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="padding:16px;display:flex;justify-content:space-between;align-items:center">
+      <strong style="font-size:16px">Faturamento do mês</strong>
+      <button onclick="fecharFaturamentoMes()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- calendário -->
+    <div id="calendarioFaturamento"
+         style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:0 16px 24px;overflow-y:auto">
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL RESUMO DO DIA -->
+<div id="resumoDiaModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:100000;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="
+      padding:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #e5e7eb
+    ">
+      <strong style="font-size:16px">Resumo do dia</strong>
+      <button onclick="fecharResumoDia()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- iframe -->
+    <iframe
+      id="iframeResumoDia"
+      src=""
+      style="flex:1;border:none;width:100%"
+    ></iframe>
+
+  </div>
+</div>
+
+
+<!-- MODAL SERVIÇOS -->
+<div id="servicosModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- topo -->
+    <div style="padding:16px">
+
+      <!-- handle -->
+      <div style="
+        width:40px;
+        height:4px;
+        background:#d1d5db;
+        border-radius:999px;
+        margin:0 auto 12px;
+      "></div>
+
+      <!-- header -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong style="font-size:16px">Serviços ativos</strong>
+        <button onclick="fecharServicos()" style="
+          border:none;
+          background:#e5e7eb;
+          border-radius:999px;
+          padding:6px 12px;
+          font-weight:700;
+        ">Fechar</button>
+      </div>
+
+    </div>
+
+    <!-- lista -->
+    <div id="listaServicos" style="
+      flex:1;
+      overflow-y:auto;
+      padding:0 16px 24px;
+      -webkit-overflow-scrolling:touch;
+    "></div>
+
+  </div>
+</div>
+<button id="btnNovoAgendamento" onclick="abrirNovoAgendamento()">
+  <i class="ri-add-line"></i>
+</button>
+<div id="novoAgendamentoModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:100000;
+">
+
+  <div style="
+    width:100%;
+    height:94%;
+    background:#fff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="
+      padding:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #e5e7eb
+    ">
+      <strong>Novo agendamento</strong>
+      <button onclick="fecharNovoAgendamento()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- iframe -->
+    <iframe
+      id="iframeAgendar"
+      src=""
+      style="flex:1;border:none;width:100%"
+    ></iframe>
+
+  </div>
+</div>
+<script>
+window.addEventListener("message", function(event) {
+  if (event.data === "AGENDAMENTO_OK") {
+    fecharNovoAgendamento();
+  }
+});
+</script>
+<div id="historicoModal">
+  <div class="modal-box">
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong>Histórico do agendamento</strong>
+      <button onclick="document.getElementById('historicoModal').style.display='none'"
+        style="border:none;background:#e5e7eb;border-radius:999px;padding:6px 12px;font-weight:700">
+        Fechar
+      </button>
+    </div>
+
+    <div id="historicoConteudo"></div>
+
+  </div>
+</div>
 
 </body>
 </html>
