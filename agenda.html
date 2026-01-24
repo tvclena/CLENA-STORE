@@ -242,6 +242,7 @@ html,body{
     font-weight:700;
     font-size:12px;
   ">
+  <option value="LOJA">Agenda da Loja</option>
 </select>
 
 
@@ -303,52 +304,37 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
   await carregarColaboradores();
 
   // 🔥 herda do home se existir
- if (
-  window.parent &&
-  window.parent.profissionalSelecionado &&
-  window.parent.profissionalSelecionado !== "LOJA" &&
-  /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
-) {
-  colaboradorSelecionado = window.parent.profissionalSelecionado;
-  document.getElementById("seletorColaborador").value = colaboradorSelecionado;
-}
-
+  if (
+    window.parent &&
+    window.parent.profissionalSelecionado &&
+    /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
+  ) {
+    colaboradorSelecionado = window.parent.profissionalSelecionado;
+    document.getElementById("seletorColaborador").value = colaboradorSelecionado;
+  }
 
   definirUserId();
   carregar();
 })();
-async function carregarColaboradores() {
+async function carregarColaboradores(){
   const select = document.getElementById("seletorColaborador");
 
-  // limpa tudo
-  select.innerHTML = "";
+  // limpa tudo e recria corretamente
+  select.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
 
-  // opção fixa da loja
-  select.innerHTML += `
-    <option value="LOJA">Agenda da Loja</option>
-  `;
-
-  const { data, error } = await sb
+  const { data } = await sb
     .from("colaboradores")
     .select("id, nome")
     .eq("loja_id", lojaId)
     .eq("ativo", true)
     .order("nome");
 
-  if (error) {
-    console.error("Erro ao carregar colaboradores:", error);
-    return;
-  }
-
-  data.forEach(c => {
+  (data || []).forEach(c => {
     const opt = document.createElement("option");
     opt.value = c.id;
     opt.textContent = c.nome;
     select.appendChild(opt);
   });
-
-  // valor inicial
-  select.value = colaboradorSelecionado || "LOJA";
 
   select.onchange = () => {
     colaboradorSelecionado = select.value;
@@ -358,6 +344,8 @@ async function carregarColaboradores() {
 }
 
 function definirUserId(){
+  if (
+ function definirUserId(){
   if (
     colaboradorSelecionado &&
     colaboradorSelecionado !== "LOJA" &&
@@ -371,34 +359,29 @@ function definirUserId(){
 
 
 
-
 function changeMonth(v){
   current.setMonth(current.getMonth()+v);
   carregar();
 }
 
 async function carregar(){
-
-  let query = sb
+  const { data, error } = await sb
     .from("agenda_loja")
     .select("data, fechado, horarios")
-    .eq("user_id", lojaId); // ✅ SEMPRE loja
-
-  if (isUUID(colaboradorSelecionado)) {
-    query = query.eq("colaborador_id", colaboradorSelecionado);
-  } else {
-    query = query.is("colaborador_id", null); // agenda da loja
-  }
-
-  const { data, error } = await query;
+    .eq("user_id", userId); // 🔥 FILTRO CORRETO
 
   agenda = {};
 
-  data?.forEach(r=>{
+  data?.forEach(r => {
     let horarios = [];
 
+    // garante parse correto
     if (typeof r.horarios === "string") {
-      try { horarios = JSON.parse(r.horarios); } catch {}
+      try {
+        horarios = JSON.parse(r.horarios);
+      } catch {
+        horarios = [];
+      }
     } else if (Array.isArray(r.horarios)) {
       horarios = r.horarios;
     }
@@ -411,7 +394,6 @@ async function carregar(){
 
   render();
 }
-
 
 
 function render(){
@@ -492,45 +474,50 @@ async function salvar(){
   const horariosVal = [];
 
   document.querySelectorAll(".horario").forEach(h=>{
-    const i = h.children[0].value;
-    const f = h.children[1].value;
-    if(i && f) horariosVal.push({ inicio:i, fim:f });
+    const i=h.children[0].value;
+    const f=h.children[1].value;
+    if(i && f) horariosVal.push({inicio:i,fim:f});
   });
 
-  const base = {
-    fechado: fechadoVal,
-    horarios: horariosVal
-  };
+  const base = { fechado: fechadoVal, horarios: horariosVal };
 
   const updates = new Set();
+  
   updates.add(selected);
 
-  for(const d of updates){
+ if(replicaSemana.checked){
+  const baseDate = dateFromISO(selected);
+  const wd = baseDate.getDay();
+  const y = baseDate.getFullYear();
+  const m = baseDate.getMonth();
 
-    await sb
-      .from("agenda_loja")
-      .insert({
-        user_id: lojaId, // ✅ sempre loja
-        colaborador_id: isUUID(colaboradorSelecionado)
-          ? colaboradorSelecionado
-          : null,
-        data: d,
-        ...base
-      });
+  const lastDay = new Date(y, m + 1, 0).getDate();
+
+  for(let d=1; d<=lastDay; d++){
+    const date = new Date(y, m, d, 12, 0, 0);
+    if(date.getDay() === wd){
+      const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      updates.add(key);
+    }
+  }
+}
+
+
+  for(const d of updates){
+    await sb.from("agenda_loja").upsert({
+      user_id: userId,
+      data: d,
+      ...base
+    }, { onConflict: "user_id,data" });
   }
 
   replicaSemana.checked = false;
   modal.style.display = "none";
   carregar();
 }
-
-
 function dateFromISO(iso) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d, 12, 0, 0); // meio-dia local
-}
-function isUUID(v){
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 }
 
 </script>
