@@ -627,16 +627,18 @@ async function carregarHome(){
   inicioMes.setDate(1);
   const inicio = inicioMes.toLocaleDateString("en-CA");
 
- let kpiQuery = sbHome
+let kpiQuery = sbHome
   .from("agendamentos")
   .select("*", { count:"exact", head:true })
   .eq("user_id", lojaId)
-  .eq("data", hoje)
-  .neq("status","CANCELADO");
+  .eq("data", hoje);
 
 if (isUUID(profissionalSelecionado)) {
-  kpiQuery = kpiQuery.eq("colaborador_id", profissionalSelecionado);
+  kpiQuery = kpiQuery
+    .not("colaborador_id", "is", null)
+    .eq("colaborador_id", profissionalSelecionado);
 }
+
 
 
 const { count: qtdHoje } = await kpiQuery;
@@ -744,7 +746,7 @@ async function carregarAgendaDia(lojaId){
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
   // 1️⃣ BUSCA AGENDAMENTOS
- let query = sbHome
+let query = sbHome
   .from("agendamentos")
   .select(`
     id,
@@ -753,19 +755,21 @@ async function carregarAgendaDia(lojaId){
     cliente_nome,
     cliente_whatsapp,
     status,
-    servico_nome,
     servicos,
     valor_total,
+    colaborador_id,
     created_at,
-    updated_at,
-    colaborador_id
+    updated_at
   `)
   .eq("user_id", lojaId)
-  .eq("data", data)
+  .eq("data", dataISO(dataAtual))
   .neq("status", "CANCELADO");
 
+
 if (isUUID(profissionalSelecionado)) {
-  query = query.eq("colaborador_id", profissionalSelecionado);
+  query = query
+    .not("colaborador_id", "is", null)
+    .eq("colaborador_id", profissionalSelecionado);
 }
 
 
