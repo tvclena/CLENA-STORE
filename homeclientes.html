@@ -1363,7 +1363,7 @@ html.theme-ready{
 <div class="tabs">
   <button id="tabServicos" onclick="setTab('SERVICO')">Serviços</button>
   <button id="tabProdutos" onclick="setTab('PRODUTO')">Produtos</button>
- <button id="tabProdutos" onclick="setTab('DIGITAL')">Digital</button>
+  <button id="tabDigital" onclick="setTab('DIGITAL')">Digitais</button>
 
 </div>
 
@@ -1562,6 +1562,11 @@ const servicosAtivos = todos.filter(
 const produtosAtivos = todos.filter(
   i => i.tipo === "PRODUTO" && i.ativo
 );
+const digitaisAtivos = todos.filter(
+  i => i.tipo === "DIGITAL" && i.ativo
+);
+
+tabDigital.style.display = digitaisAtivos.length ? "inline-block" : "none";
 
 // 🔥 controla abas
 tabServicos.style.display = servicosAtivos.length ? "inline-block" : "none";
@@ -1569,25 +1574,20 @@ tabProdutos.style.display = produtosAtivos.length ? "inline-block" : "none";
 
 // 🔥 define aba inicial
 if (servicosAtivos.length) {
-  tipoAtual = "SERVICO";
   setTab("SERVICO");
 } else if (produtosAtivos.length) {
-  tipoAtual = "PRODUTO";
   setTab("PRODUTO");
+} else if (digitaisAtivos.length) {
+  setTab("DIGITAL");
 } else {
   tipoAtual = null;
   grid.innerHTML = `
-    <p style="
-      grid-column:1/-1;
-      text-align:center;
-      color:#6b7280;
-      padding:40px 0;
-      font-weight:600
-    ">
- Nenhum serviço ou produto disponível no momento
+    <p style="grid-column:1/-1;text-align:center;color:#6b7280;padding:40px 0;font-weight:600">
+      Nenhum item disponível no momento
     </p>
   `;
 }
+
 
 }
 async function carregarVendasProdutos(){
@@ -1668,15 +1668,26 @@ function render(reset = true){
 
 function setTab(t){
   tipoAtual = t;
+
   tabServicos.classList.toggle("active", t === "SERVICO");
   tabProdutos.classList.toggle("active", t === "PRODUTO");
-  render(true); // 🔥 reseta paginação
+  tabDigital.classList.toggle("active", t === "DIGITAL");
+
+  render(true);
 }
+
 
 
 function acao(id, tipo){
   const item = todos.find(p => p.id === id);
   if(!item) return;
+
+  // 👉 DIGITAL (abre modal informativo)
+  if (tipo === "DIGITAL") {
+    produtoAtual = item;
+    abrirProduto(id);
+    return;
+  }
 
   // 👉 SERVIÇO COM PREÇO
   if(tipo === "SERVICO" && item.preco > 0){
@@ -1684,7 +1695,7 @@ function acao(id, tipo){
     return;
   }
 
-  // 👉 SERVIÇO SEM PREÇO = ORÇAMENTO (WhatsApp)
+  // 👉 SERVIÇO SEM PREÇO = ORÇAMENTO
   if(tipo === "SERVICO" && item.preco <= 0){
     produtoAtual = item;
     solicitarOrcamentoWhats();
@@ -1697,6 +1708,7 @@ function acao(id, tipo){
     adicionarAoCarrinho();
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   mapearModal();   // 🔥 PRIMEIRO
@@ -1740,7 +1752,11 @@ mpImagemMobile.src = galeria[0] || "";
 
 
   
-  mpDescricao.innerText = produtoAtual.descricao || "";
+mpDescricao.innerText =
+  produtoAtual.descricao ||
+  (produtoAtual.tipo === "DIGITAL"
+    ? "Arquivo digital personalizável. Entrega realizada via WhatsApp."
+    : "");
 mpImagemMobile.onclick = () => {
   if (!galeria.length) return;
 
@@ -1841,6 +1857,12 @@ function configurarBotaoAcaoModal(){
     btn.style.display = "block";
     return;
   }
+if(produtoAtual.tipo === "DIGITAL"){
+  btn.innerText = "📥 Solicitar arquivo";
+  btn.onclick = solicitarArquivoWhats;
+  btn.style.display = "block";
+  return;
+}
 
   btn.innerText = "Solicitar orçamento";
   btn.onclick = solicitarOrcamentoWhats;
@@ -2444,19 +2466,29 @@ return `
             : "☆☆☆☆☆"
         }
       </span>
-      <span class="card-vendidos">
-        ${vendasPorProduto[i.id] || 0} vendidos
-      </span>
+     <span class="card-vendidos">
+  ${
+    i.tipo === "DIGITAL"
+      ? "Arquivo digital"
+      : `${vendasPorProduto[i.id] || 0} vendidos`
+  }
+</span>
+
     </div>
 
     <div class="meta">
-      <span>
-        ${
+     <span>
+  ${
+    i.tipo === "PRODUTO"
+      ? (
           i.controla_estoque
             ? `Em estoque: ${i.estoque_atual}`
             : `Estoque livre`
-        }
-      </span>
+        )
+      : `Entrega digital`
+  }
+</span>
+
 
       <span class="price">
         ${
@@ -2562,6 +2594,21 @@ function adicionarDireto(id){
 }
 
 
+function solicitarArquivoWhats(){
+  const mensagem = encodeURIComponent(
+`Olá! Tenho interesse no arquivo digital:
+
+📌 Produto: ${produtoAtual.nome}
+📝 Descrição: ${produtoAtual.descricao || "—"}
+
+Pode me explicar como funciona a entrega?`
+  );
+
+  const lojaLink = document.getElementById("btnWhatsLoja")?.href;
+  if(!lojaLink) return;
+
+  window.open(lojaLink + `&text=${mensagem}`, "_blank");
+}
 
   
 
