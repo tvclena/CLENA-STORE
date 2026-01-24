@@ -304,14 +304,16 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
   await carregarColaboradores();
 
   // 🔥 herda do home se existir
-  if (
-    window.parent &&
-    window.parent.profissionalSelecionado &&
-    /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
-  ) {
-    colaboradorSelecionado = window.parent.profissionalSelecionado;
-    document.getElementById("seletorColaborador").value = colaboradorSelecionado;
-  }
+ if (
+  window.parent &&
+  window.parent.profissionalSelecionado &&
+  window.parent.profissionalSelecionado !== "LOJA" &&
+  /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
+) {
+  colaboradorSelecionado = window.parent.profissionalSelecionado;
+  document.getElementById("seletorColaborador").value = colaboradorSelecionado;
+}
+
 
   definirUserId();
   carregar();
