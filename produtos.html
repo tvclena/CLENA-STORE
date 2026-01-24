@@ -627,20 +627,31 @@ planoUsuario = perfil?.assinatura_plano || "";
 
 
 function toggleTipo(){
-  const isServico = tipo.value === "SERVICO";
+  const tipoSelecionado = tipo.value;
 
-  // controla blocos
-  boxServico.style.display = isServico ? "block" : "none";
-  boxProduto.style.display = isServico ? "none" : "block";
+  // RESET
+  boxServico.style.display = "none";
+  boxProduto.style.display = "none";
 
-  // pagamento online para SERVIÇO E PRODUTO
-  if(pagamentoOnlineAtivo){
+  // SERVIÇO
+  if (tipoSelecionado === "SERVICO") {
+    boxServico.style.display = "block";
+  }
+
+  // PRODUTO
+  if (tipoSelecionado === "PRODUTO") {
+    boxProduto.style.display = "block";
+  }
+
+  // PAGAMENTO ONLINE (SERVICO, PRODUTO, DIGITAL)
+  if (pagamentoOnlineAtivo) {
     boxPagamentoOnline.style.display = "block";
-  }else{
+  } else {
     boxPagamentoOnline.style.display = "none";
     pgOnline.checked = false;
   }
 }
+
   
 promoAtiva.addEventListener("change", () => {
   precoPromo.disabled = !promoAtiva.checked;
