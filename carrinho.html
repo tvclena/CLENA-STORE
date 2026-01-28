@@ -191,8 +191,22 @@ const sb = supabase.createClient(
 const moeda = v => v.toLocaleString("pt-BR",{minimumFractionDigits:2});
 
 /* PARAMS */
-const lojaId = new URLSearchParams(location.search).get("l");
+let lojaId =
+  new URLSearchParams(location.search).get("l") ||
+  localStorage.getItem("LOJA_ATUAL");
+
+if (!lojaId) {
+  alert("Loja não identificada");
+  throw new Error("Loja não identificada");
+}
 const KEY = "carrinho_" + lojaId;
+if (!location.search.includes("l=")) {
+  history.replaceState(
+    null,
+    "",
+    location.pathname + "?l=" + lojaId
+  );
+}
 
 let carrinho = JSON.parse(localStorage.getItem(KEY)) || [];
 
