@@ -394,13 +394,15 @@ async function verificarProdutosLoja(lojaId) {
     return;
   }
 
-  const nav = document.getElementById("navProdutos");
+ const nav = document.getElementById("navProdutos");
+if (!nav) return;
 
-  if (count > 0) {
-    nav.style.display = "flex";
-  } else {
-    nav.style.display = "none";
-  }
+if (count > 0) {
+  nav.style.display = "flex";
+} else {
+  nav.style.display = "none";
+}
+
 }
 
 
@@ -452,10 +454,15 @@ frame.addEventListener("load", () => {
   }
 
   // 🔑 fallback de loja
-  if (!lojaId && perfil.loja_ativa) {
-    lojaId = perfil.loja_ativa;
-    history.replaceState(null, "", `app.html?l=${lojaId}`);
-  }
+if (!lojaId && perfil.loja_ativa) {
+  lojaId = perfil.loja_ativa;
+  history.replaceState(null, "", `app.html?l=${lojaId}`);
+}
+
+if (lojaId) {
+  localStorage.setItem("LOJA_ATUAL", lojaId);
+}
+
 
   // 🔄 sincroniza loja ativa
   if (lojaId && lojaId !== perfil.loja_ativa) {
@@ -824,8 +831,11 @@ onMessage(messaging, payload => {
 
 
 
- function getCarrinhoQuantidade(){
-  const lojaId = new URLSearchParams(location.search).get("l");
+function getCarrinhoQuantidade(){
+  const lojaId =
+    new URLSearchParams(location.search).get("l") ||
+    localStorage.getItem("LOJA_ATUAL");
+
   if(!lojaId) return 0;
 
   const carrinho = JSON.parse(
@@ -850,11 +860,18 @@ function atualizarBadgeCarrinho(){
 }
 
 function abrirCarrinho(){
-  const lojaId = new URLSearchParams(location.search).get("l");
-  if(!lojaId) return;
+  const lojaId =
+    new URLSearchParams(location.search).get("l") ||
+    localStorage.getItem("LOJA_ATUAL");
+
+  if(!lojaId){
+    alert("Loja não identificada");
+    return;
+  }
 
   frame.src = `carrinho.html?l=${lojaId}&t=${Date.now()}`;
 }
+
 /* 🔥 EXPÕE FUNÇÕES PARA O IFRAME */
 window.abrirCarrinho = abrirCarrinho;
 window.atualizarBadgeCarrinho = atualizarBadgeCarrinho;
