@@ -26,6 +26,10 @@
     );
 
     const lojaId = new URLSearchParams(location.search).get("l");
+    if (lojaId) {
+  localStorage.setItem("LOJA_ATUAL", lojaId);
+}
+
     if (!lojaId) throw new Error("Sem loja");
 
     /* 🔥 CACHE PRIMEIRO (zero flash) */
