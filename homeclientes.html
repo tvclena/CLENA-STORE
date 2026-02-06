@@ -1309,15 +1309,22 @@ html.theme-ready{
     </div>
     <div>
       
-<div class="loja-titulo">
-<h1 id="nomeLoja" class="loja-nome">Carregando…</h1>
+<div class="loja-titulo" style="align-items:flex-start; gap:8px">
+  <div>
+    <h1 id="nomeLoja" class="loja-nome">Carregando…</h1>
 
-  <!-- BOTÃO WHATSAPP -->
-  <a id="btnWhatsLoja"
-     target="_blank"
-     style="display:none">
-    <i class="ri-whatsapp-line"></i>
-  </a>
+    <div style="display:flex; gap:10px; margin-top:6px">
+      <!-- BOTÃO INSTAGRAM (EM CIMA) -->
+      <a id="btnInstaLoja" target="_blank" style="display:none">
+        <i class="ri-instagram-line" style="font-size:22px;color:#E1306C"></i>
+      </a>
+
+      <!-- BOTÃO WHATSAPP (EMBAIXO) -->
+      <a id="btnWhatsLoja" target="_blank" style="display:none">
+        <i class="ri-whatsapp-line" style="font-size:22px;color:#25D366"></i>
+      </a>
+    </div>
+  </div>
 </div>
 
 <p id="cidadeLoja" class="loja-info"></p>
@@ -1506,10 +1513,28 @@ enderecoCompleto =
 
 document.getElementById("enderecoTexto").innerText = enderecoCompleto;
   // 🔥 BOTÃO WHATSAPP AO LADO DO NOME
-if (loja.whatsapp) {
+const btnWhatsLoja = document.getElementById("btnWhatsLoja");
+const btnInstaLoja = document.getElementById("btnInstaLoja");
 
-let numero = loja.whatsapp.replace(/\D/g, "");
-if (numero.startsWith("55")) numero = numero.slice(2);
+// 📸 Instagram (em cima)
+if (loja.instagram) {
+  let insta = loja.instagram.trim();
+
+  // garante https
+  if (!/^https?:\/\//i.test(insta)) {
+    insta = "https://www.instagram.com/" + insta.replace("@", "").replace("/", "");
+  }
+
+  btnInstaLoja.href = insta;
+  btnInstaLoja.style.display = "inline-flex";
+} else {
+  btnInstaLoja.style.display = "none";
+}
+
+// 📲 WhatsApp (embaixo)
+if (loja.whatsapp) {
+  let numero = loja.whatsapp.replace(/\D/g, "");
+  if (numero.startsWith("55")) numero = numero.slice(2);
 
   const mensagem = encodeURIComponent(
     `Olá! Vim pelo app e gostaria de falar com a ${loja.negocio}.`
@@ -1517,6 +1542,8 @@ if (numero.startsWith("55")) numero = numero.slice(2);
 
   btnWhatsLoja.href = `https://wa.me/55${numero}?text=${mensagem}`;
   btnWhatsLoja.style.display = "inline-flex";
+} else {
+  btnWhatsLoja.style.display = "none";
 }
 
   if(loja.avatar_url) logo.src = loja.avatar_url;
