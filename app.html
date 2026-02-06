@@ -280,146 +280,32 @@ iframe{width:100%;height:100%;border:none}
   pointer-events: auto;
 }
 
-/* HERO / POP-UP PREMIUM */
-.hero{
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at top, rgba(255,255,255,.06), transparent 40%),
-    linear-gradient(180deg,#000,#0b0b0c);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
-  z-index:9998;
-}
 
-.hero-card{
-  width:100%;
-  max-width:420px;
-  background:linear-gradient(180deg,#0f0f12,#0b0b0c);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:28px;
-  padding:28px 22px 24px;
-  text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.55);
-}
-
-.hero-logo{
-  width:96px;height:96px;
-  border-radius:50%;
-  background:#111;
-  background-size:cover;
-  background-position:center;
-  border:2px solid rgba(255,255,255,.25);
-  margin:0 auto 14px;
-}
-
-.hero-card h1{
-  color:#fff;
-  font-size:26px;
-  font-weight:800;
-  letter-spacing:-.02em;
-  margin-bottom:10px;
-}
-
-.hero-card p{
-  white-space:pre-line; /* respeita quebras da bio */
-  color:#cbd5e1;
-  font-size:14px;
-  line-height:1.5;
-  margin-bottom:18px;
-}
-
-.hero-cta{
-  width:100%;
-  padding:16px 18px;
-  border-radius:999px;
-  border:none;
-  font-weight:800;
-  font-size:15px;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  color:#000;
-  cursor:pointer;
-  margin-bottom:16px;
-  box-shadow:0 10px 30px rgba(255,106,0,.35);
-}
-
-.hero-redes{
-  display:flex;
-  justify-content:center;
-  gap:14px;
-}
-
-.hero-redes button{
-  width:52px;height:52px;
-  border-radius:50%;
-  border:1px solid rgba(255,255,255,.15);
-  background:#0f0f12;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:24px;
-  cursor:pointer;
-  color:#fff;
-}
-
-#heroWhats i{ color:#25D366; }
-#heroInsta i{ color:#E1306C; }
 
   
 </style>
 </head>
 
 <body>
-<!-- HERO / POP-UP PREMIUM -->
-<div class="hero" id="hero" style="display:none">
-  <div class="hero-card">
-    <div class="hero-logo" id="heroLogo"></div>
 
-    <h1 id="heroTitulo"></h1>
-    <p id="heroBio"></p>
-
-    <button class="hero-cta" onclick="acessarAgora()">
-      Acesse agora →
-    </button>
-
-    <div class="hero-redes">
-      <button id="heroWhats" onclick="abrirWhatsapp()" style="display:none" aria-label="WhatsApp">
-        <i class="ri-whatsapp-line"></i>
-      </button>
-      <button id="heroInsta" onclick="abrirInstagram()" style="display:none" aria-label="Instagram">
-        <i class="ri-instagram-line"></i>
-      </button>
-    </div>
-  </div>
-</div>
 <div class="topbar">
   <h1 id="nomeLoja">CLENA.COM.BR</h1>
 
   <div style="display:flex;align-items:center;gap:14px">
 
-    <!-- 📸 INSTAGRAM -->
-    <div class="cart-btn" id="btnInstagram" style="display:none" onclick="abrirInstagram()">
-      <i class="ri-instagram-line"></i>
-    </div>
+<div class="cart-btn" id="cartIcon" onclick="abrirCarrinho()">
+  <i class="ri-shopping-cart-line"></i>
+  <span id="cartCount" class="cart-badge">0</span>
+</div>
 
-    <!-- 💬 WHATSAPP -->
-    <div class="cart-btn" id="btnWhatsapp" style="display:none" onclick="abrirWhatsapp()">
-      <i class="ri-whatsapp-line"></i>
-    </div>
 
-    <!-- 🛒 CARRINHO -->
-    <div class="cart-btn" id="cartIcon" onclick="abrirCarrinho()">
-      <i class="ri-shopping-cart-line"></i>
-      <span id="cartCount" class="cart-badge">0</span>
-    </div>
 
-    <!-- 👤 AVATAR (DEIXA SÓ ESSE) -->
+    <!-- 👤 AVATAR -->
     <div class="avatar" id="avatar" onclick="openProfile()">A</div>
 
   </div>
 </div>
+
 
 <div class="content">
   <iframe id="frame"></iframe>
@@ -493,15 +379,6 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
-
-
-// 🔥 refs do HERO (obrigatório)
-const hero = document.getElementById("hero");
-const heroLogo = document.getElementById("heroLogo");
-const heroTitulo = document.getElementById("heroTitulo");
-const heroBio = document.getElementById("heroBio");
-const heroWhats = document.getElementById("heroWhats");
-const heroInsta = document.getElementById("heroInsta");
 async function verificarProdutosLoja(lojaId) {
   if (!lojaId) return;
 
@@ -601,18 +478,17 @@ if (lojaId) {
     perfil.loja_ativa = lojaId;
   }
 
-const { data: lojaTopo } = await sb
-  .from("user_profile")
-  .select("negocio, instagram, whatsapp, bio, avatar_url")
-  .eq("user_id", perfil.loja_ativa)
-  .maybeSingle();
+  // 🔥 ATUALIZA NOME DA LOJA NO TOPO
+  const { data: lojaTopo } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", perfil.loja_ativa)
+    .maybeSingle();
 
-if (lojaTopo?.negocio) {
-  nomeLoja.innerText = lojaTopo.negocio;
-}
+  if (lojaTopo?.negocio) {
+    nomeLoja.innerText = lojaTopo.negocio;
+  }
 
-setLinksRedes(lojaTopo);
-if (lojaTopo) montarHero(lojaTopo);
   // 🖼️ carrega iframe inicial
   frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
 
@@ -1042,74 +918,14 @@ profileOverlay.addEventListener("click", (e) => {
 });
 
 
-let redesLoja = {
-  instagram: null,
-  whatsapp: null
-};
 
-function setLinksRedes(lojaTopo) {
-  if (!lojaTopo) return;
-
-  redesLoja.instagram = lojaTopo.instagram || null;
-  redesLoja.whatsapp = lojaTopo.whatsapp || null;
-
-  const btnInsta = document.getElementById("btnInstagram");
-  const btnWhats = document.getElementById("btnWhatsapp");
-
-  if (btnInsta) btnInsta.style.display = redesLoja.instagram ? "flex" : "none";
-  if (btnWhats) btnWhats.style.display = redesLoja.whatsapp ? "flex" : "none";
-}
-
-
-
-
-  function montarHero(lojaTopo){
-  if(!lojaTopo) return;
-
-  // Foto da loja
-  if (lojaTopo.avatar_url) {
-    heroLogo.style.backgroundImage = `url(${lojaTopo.avatar_url})`;
-  } else {
-    heroLogo.style.backgroundImage = "none";
-  }
-
-  // Nome da loja
-  heroTitulo.innerText = lojaTopo.negocio || "";
-
-  // Bio (vem do banco)
-  heroBio.innerText = lojaTopo.bio || "";
-
-  // Botões de redes embaixo
-  heroWhats.style.display = lojaTopo.whatsapp ? "flex" : "none";
-  heroInsta.style.display = lojaTopo.instagram ? "flex" : "none";
-
-  // Mostra o pop-up
-  document.getElementById("hero").style.display = "flex";
-}function acessarAgora(){
-  const lojaId = new URLSearchParams(location.search).get("l");
-  location.href = `index.html?l=${lojaId}`; // mantém o fluxo atual (nome + celular)
-}
-function abrirInstagram() {
-  if (!redesLoja.instagram) return;
-
-  let url = redesLoja.instagram.trim();
-  if (!url.startsWith("http")) {
-    url = "https://instagram.com/" + url.replace("@", "");
-  }
-  window.open(url, "_blank");
-}
-
-function abrirWhatsapp() {
-  if (!redesLoja.whatsapp) return;
-  const numero = redesLoja.whatsapp.replace(/\D/g, "");
-  window.open(`https://wa.me/55${numero}`, "_blank");
-}
 
 
 
   
 
 </script>
+
 
 </body>
 </html>
