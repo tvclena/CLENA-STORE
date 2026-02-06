@@ -612,7 +612,7 @@ if (lojaTopo?.negocio) {
 }
 
 setLinksRedes(lojaTopo);
-montarHero(lojaTopo);
+if (lojaTopo) montarHero(lojaTopo);
   // 🖼️ carrega iframe inicial
   frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
 
