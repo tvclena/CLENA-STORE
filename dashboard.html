@@ -1327,13 +1327,13 @@ if (pFoto.files.length) {
 }
 
 
-await sb
+const { error } = await sb
   .from("user_profile")
   .update({
     negocio: pNegocio.value || null,
     bio: pBio.value || null,
     whatsapp: pWhatsapp.value || null,
-    instagram: pInstagram.value || null,   // 👈 NOVO
+    instagram: pInstagram.value || null,
     email_contato: pEmailContato.value || null,
     avatar_url: avatarPath,
     cep: pCep.value || null,
@@ -1344,6 +1344,8 @@ await sb
     uf: pUf.value || null
   })
   .eq("user_id", user.id);
+
+if (error) throw error;
 
 
     if(error) throw error;
