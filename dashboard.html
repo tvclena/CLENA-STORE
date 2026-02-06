@@ -580,16 +580,21 @@ iframe{
     Cadastre e gerencie profissionais da sua loja
   </div>
 </div>
-    <div class="row">
-      <div class="field">
-        <label>WhatsApp</label>
-        <input id="pWhatsapp" placeholder="(77) 99999-9999" inputmode="numeric">
-      </div>
-      <div class="field">
-        <label>E-mail de contato</label>
-        <input id="pEmailContato" placeholder="contato@seunegocio.com">
-      </div>
-    </div>
+<div class="row">
+  <div class="field">
+    <label>WhatsApp</label>
+    <input id="pWhatsapp" placeholder="(77) 99999-9999" inputmode="numeric">
+  </div>
+  <div class="field">
+    <label>Instagram</label>
+    <input id="pInstagram" placeholder="@sualoja ou https://instagram.com/sualoja">
+  </div>
+</div>
+
+<div class="field">
+  <label>E-mail de contato</label>
+  <input id="pEmailContato" placeholder="contato@seunegocio.com">
+</div>
 
     <h3>Endereço</h3>
 
@@ -707,7 +712,7 @@ pNegocio.value = p.negocio || "";
 pBio.value = p.bio || ""; // 👈 AQUI
 pWhatsapp.value = maskWhats(p.whatsapp || "");
 pEmailContato.value = p.email_contato || "";
-
+pInstagram.value = p.instagram || "";
 
   pCep.value = p.cep || "";
   pRua.value = p.rua || "";
@@ -1322,22 +1327,23 @@ if (pFoto.files.length) {
 }
 
 
-    const { error } = await sb
-.from("user_profile")
-.update({
-  negocio: pNegocio.value || null,
-  bio: pBio.value || null,        // 👈 AQUI
-  whatsapp: pWhatsapp.value || null,
-  email_contato: pEmailContato.value || null,
-  avatar_url: avatarPath,
-  cep: pCep.value || null,
-  rua: pRua.value || null,
-  numero: pNumero.value || null,
-  bairro: pBairro.value || null,
-  cidade: pCidade.value || null,
-  uf: pUf.value || null
-})
-.eq("user_id", user.id);
+await sb
+  .from("user_profile")
+  .update({
+    negocio: pNegocio.value || null,
+    bio: pBio.value || null,
+    whatsapp: pWhatsapp.value || null,
+    instagram: pInstagram.value || null,   // 👈 NOVO
+    email_contato: pEmailContato.value || null,
+    avatar_url: avatarPath,
+    cep: pCep.value || null,
+    rua: pRua.value || null,
+    numero: pNumero.value || null,
+    bairro: pBairro.value || null,
+    cidade: pCidade.value || null,
+    uf: pUf.value || null
+  })
+  .eq("user_id", user.id);
 
 
     if(error) throw error;
