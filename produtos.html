@@ -740,32 +740,34 @@ async function salvar(){
   loading.style.display = "flex";
 
   const payload = {
-    user_id: userId,
-    tipo: tipo.value,
-    nome: nome.value,
-    descricao: descricao.value,
-    categoria: categoria.value,
+  user_id: userId,
+  tipo: tipo.value,
+  nome: nome.value?.trim() || "",
+  descricao: descricao.value?.trim() || "",
+  categoria: categoria.value?.trim() || "",
 
-    preco: moedaParaNumero(preco.value),
-    custo: moedaParaNumero(custo.value),
-    preco_promocional: promoAtiva.checked
-      ? moedaParaNumero(precoPromo.value)
-      : null,
+  preco: Number(moedaParaNumero(preco.value) || 0),
+  custo: Number(moedaParaNumero(custo.value) || 0),
+  preco_promocional: promoAtiva.checked
+    ? Number(moedaParaNumero(precoPromo.value) || 0)
+    : null,
 
-    promocao_ativa: promoAtiva.checked,
-    duracao_minutos:
-      tipo.value === "SERVICO"
-        ? Number(duracao.value || 0)
-        : null,
+  promocao_ativa: !!promoAtiva.checked,
 
-    pg_online: pagamentoOnlineAtivo ? pgOnline.checked : false,
-    controla_estoque: controlaEstoque.checked,
-    estoque_atual: Number(estoqueAtual.value || 0),
-    estoque_minimo: Number(estoqueMinimo.value || 0),
-    ordem_exibicao: Number(ordem.value || 0),
-    ativo: ativo.checked,
-    observacoes_internas: obs.value
-  };
+  duracao_minutos:
+    tipo.value === "SERVICO"
+      ? Number(duracao.value || 0)
+      : 0,   // 🔥 AQUI ESTÁ O FIX
+
+  pg_online: pagamentoOnlineAtivo ? !!pgOnline.checked : false,
+  controla_estoque: !!controlaEstoque.checked,
+  estoque_atual: Number(estoqueAtual.value || 0),
+  estoque_minimo: Number(estoqueMinimo.value || 0),
+  ordem_exibicao: Number(ordem.value || 0),
+  ativo: !!ativo.checked,
+  observacoes_internas: obs.value?.trim() || "",
+  extras: null
+};
 
 if (previewUrl && blobs.length === 0) {
   payload.imagem_url = previewUrl;
