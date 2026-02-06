@@ -1424,7 +1424,8 @@ if(!lojaId){
 
 const bannerStars = document.getElementById("bannerStars");
 const bannerVerificada = document.getElementById("bannerVerificada");
-
+const busca = document.getElementById("busca");
+let enderecoCompleto = "";
 // ===== MODAL PRODUTO (REFERÊNCIAS ÚNICAS) =====
 let produtoAtual = null;
 
@@ -1495,9 +1496,6 @@ if(!loja){
 
 /* 🔥 AQUI */
 await carregarCustomizacoesLoja();
-const btnWhatsLoja = document.getElementById("btnWhatsLoja");
-
-
 const nomeLoja = document.getElementById("nomeLoja");
 const cidadeLoja = document.getElementById("cidadeLoja");
 const logo = document.getElementById("logo");
@@ -1508,9 +1506,8 @@ cidadeLoja.innerText = `${loja.cidade} • ${loja.uf}`;
 logo.src = loja.avatar_url;
 
   
-enderecoCompleto =
+let enderecoCompleto =
   `${loja.rua || ""}, ${loja.numero || ""} - ${loja.cidade || ""}/${loja.uf || ""}`;
-
 document.getElementById("enderecoTexto").innerText = enderecoCompleto;
   // 🔥 BOTÃO WHATSAPP AO LADO DO NOME
 const btnWhatsLoja = document.getElementById("btnWhatsLoja");
@@ -2252,8 +2249,6 @@ async function verificarLojaVerificada(){
     bannerVerificada.style.display = "flex";
   }
 }
-
-let enderecoCompleto = "";
 
 function abrirMapaPopup(){
   document.getElementById("mapaEndereco").innerText = enderecoCompleto;
