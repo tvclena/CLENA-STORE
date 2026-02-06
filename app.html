@@ -291,13 +291,27 @@ iframe{width:100%;height:100%;border:none}
 <div class="topbar">
   <h1 id="nomeLoja">CLENA.COM.BR</h1>
 
-  <div style="display:flex;align-items:center;gap:14px">
+<div style="display:flex;align-items:center;gap:14px">
 
-<div class="cart-btn" id="cartIcon" onclick="abrirCarrinho()">
-  <i class="ri-shopping-cart-line"></i>
-  <span id="cartCount" class="cart-badge">0</span>
+  <!-- 📸 INSTAGRAM -->
+  <div class="cart-btn" id="btnInstagram" style="display:none" onclick="abrirInstagram()">
+    <i class="ri-instagram-line"></i>
+  </div>
+
+  <!-- 💬 WHATSAPP -->
+  <div class="cart-btn" id="btnWhatsapp" style="display:none" onclick="abrirWhatsapp()">
+    <i class="ri-whatsapp-line"></i>
+  </div>
+
+  <!-- 🛒 CARRINHO -->
+  <div class="cart-btn" id="cartIcon" onclick="abrirCarrinho()">
+    <i class="ri-shopping-cart-line"></i>
+    <span id="cartCount" class="cart-badge">0</span>
+  </div>
+
+  <div class="avatar" id="avatar" onclick="openProfile()">A</div>
+
 </div>
-
 
 
     <!-- 👤 AVATAR -->
@@ -478,16 +492,17 @@ if (lojaId) {
     perfil.loja_ativa = lojaId;
   }
 
-  // 🔥 ATUALIZA NOME DA LOJA NO TOPO
-  const { data: lojaTopo } = await sb
-    .from("user_profile")
-    .select("negocio")
-    .eq("user_id", perfil.loja_ativa)
-    .maybeSingle();
+const { data: lojaTopo } = await sb
+  .from("user_profile")
+  .select("negocio, instagram, whatsapp")
+  .eq("user_id", perfil.loja_ativa)
+  .maybeSingle();
 
-  if (lojaTopo?.negocio) {
-    nomeLoja.innerText = lojaTopo.negocio;
-  }
+if (lojaTopo?.negocio) {
+  nomeLoja.innerText = lojaTopo.negocio;
+}
+
+setLinksRedes(lojaTopo);
 
   // 🖼️ carrega iframe inicial
   frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
@@ -918,7 +933,39 @@ profileOverlay.addEventListener("click", (e) => {
 });
 
 
+let redesLoja = {
+  instagram: null,
+  whatsapp: null
+};
 
+function setLinksRedes(lojaTopo) {
+  if (!lojaTopo) return;
+
+  redesLoja.instagram = lojaTopo.instagram || null;
+  redesLoja.whatsapp = lojaTopo.whatsapp || null;
+
+  const btnInsta = document.getElementById("btnInstagram");
+  const btnWhats = document.getElementById("btnWhatsapp");
+
+  if (btnInsta) btnInsta.style.display = redesLoja.instagram ? "flex" : "none";
+  if (btnWhats) btnWhats.style.display = redesLoja.whatsapp ? "flex" : "none";
+}
+
+function abrirInstagram() {
+  if (!redesLoja.instagram) return;
+
+  let url = redesLoja.instagram.trim();
+  if (!url.startsWith("http")) {
+    url = "https://instagram.com/" + url.replace("@", "");
+  }
+  window.open(url, "_blank");
+}
+
+function abrirWhatsapp() {
+  if (!redesLoja.whatsapp) return;
+  const numero = redesLoja.whatsapp.replace(/\D/g, "");
+  window.open(`https://wa.me/55${numero}`, "_blank");
+}
 
 
 
