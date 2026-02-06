@@ -543,7 +543,7 @@ if (lojaId) {
 
 const { data: lojaTopo } = await sb
   .from("user_profile")
-  .select("negocio, instagram, whatsapp")
+  .select("negocio, instagram, whatsapp, avatar_url")
   .eq("user_id", perfil.loja_ativa)
   .maybeSingle();
 
@@ -660,7 +660,7 @@ async function trocarLoja(lojaId){
   // 🔥 atualiza nome da loja no topo
 const { data: novaLoja } = await sb
   .from("user_profile")
-  .select("negocio, instagram, whatsapp")
+  .select("negocio, instagram, whatsapp, avatar_url")
   .eq("user_id", lojaId)
   .maybeSingle();
 
@@ -995,8 +995,7 @@ function setLinksRedes(lojaTopo) {
   if (!lojaTopo) return;
 
 redesLoja.instagram = (lojaTopo.instagram || "").trim() || null;
-redesLoja.whatsapp = (lojaTopo.whatsapp || "").trim() || null;;
-
+redesLoja.whatsapp = (lojaTopo.whatsapp || "").trim() || null;
   const btnInsta = document.getElementById("btnInstagram");
   const btnWhats = document.getElementById("btnWhatsapp");
 
