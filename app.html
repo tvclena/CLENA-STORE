@@ -307,6 +307,11 @@ iframe{width:100%;height:100%;border:none}
   <div class="cart-btn" id="cartIcon" onclick="abrirCarrinho()">
     <i class="ri-shopping-cart-line"></i>
     <span id="cartCount" class="cart-badge">0</span>
+  </div>
+
+  <div class="avatar" id="avatar" onclick="openProfile()">A</div>
+
+</div>
 
 
     <!-- 👤 AVATAR -->
@@ -600,16 +605,16 @@ async function trocarLoja(lojaId){
   // 🔥 atualiza URL (fonte da verdade)
   history.replaceState(null, "", `app.html?l=${lojaId}`);
 
-const { data: novaLoja } = await sb
-  .from("user_profile")
-  .select("negocio, instagram, whatsapp")
-  .eq("user_id", lojaId)
-  .maybeSingle();
+  // 🔥 atualiza nome da loja no topo
+  const { data: novaLoja } = await sb
+    .from("user_profile")
+    .select("negocio")
+    .eq("user_id", lojaId)
+    .maybeSingle();
 
-if (novaLoja) {
-  nomeLoja.innerText = novaLoja.negocio || "";
-  setLinksRedes(novaLoja); // 🔥 atualiza Instagram + WhatsApp do topo
-}
+  if(novaLoja?.negocio){
+    nomeLoja.innerText = novaLoja.negocio;
+  }
 
   // 🔥 força reload REAL do iframe
   frame.src = "about:blank";
@@ -936,7 +941,7 @@ let redesLoja = {
 function setLinksRedes(lojaTopo) {
   if (!lojaTopo) return;
 
-redesLoja.instagram = (lojaTopo.instagram || "").trim() || null;
+  redesLoja.instagram = lojaTopo.instagram || null;
   redesLoja.whatsapp = lojaTopo.whatsapp || null;
 
   const btnInsta = document.getElementById("btnInstagram");
