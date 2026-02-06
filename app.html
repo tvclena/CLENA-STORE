@@ -280,7 +280,62 @@ iframe{width:100%;height:100%;border:none}
   pointer-events: auto;
 }
 
+/* OVERLAY BOAS-VINDAS */
+#welcomeOverlay{
+  position:fixed; inset:0; z-index:99999;
+  display:none; align-items:center; justify-content:center;
+  background:
+    radial-gradient(1200px 800px at 50% -10%, rgba(255,255,255,.08), transparent 60%),
+    linear-gradient(180deg,#0b0d10,#050607);
+}
 
+.welcome-card{
+  width:92%; max-width:420px;
+  padding:26px 22px 22px;
+  border-radius:28px;
+  text-align:center;
+  color:#fff;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+.welcome-logo{
+  width:86px;height:86px;border-radius:50%;
+  margin:0 auto 12px;
+  background:#111;
+  background-size:cover;background-position:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.15);
+}
+
+.welcome-title{font-size:26px;font-weight:900;letter-spacing:.3px;margin:6px 0}
+.welcome-sub{font-size:14px;color:#c7c9cf;margin-bottom:18px}
+
+.welcome-cta{
+  width:100%; padding:16px 18px; border-radius:999px; border:0;
+  font-weight:900; color:#fff; cursor:pointer;
+  background: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary), #fff 18%));
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--primary), transparent 60%);
+}
+
+.welcome-social{
+  margin-top:14px;
+  display:flex; gap:14px; justify-content:center;
+}
+.welcome-social .soc{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background: rgba(255,255,255,.9);
+  color:#111; cursor:pointer;
+}
+
+/* FORM CADASTRO */
+#welcomeForm{
+  display:none; margin-top:14px;
+}
+#welcomeForm input{
+  width:100%; padding:12px 14px; border-radius:12px; border:1px solid #e5e7eb; margin-bottom:10px;
+}
 
   
 </style>
@@ -497,7 +552,10 @@ if (lojaTopo?.negocio) {
 }
 
 setLinksRedes(lojaTopo);
-
+// mostra boas-vindas se faltar nome/whatsapp
+if (!perfil.nome || !perfil.whatsapp) {
+  mostrarWelcome(lojaTopo);
+}
   // 🖼️ carrega iframe inicial
   frame.src = `homeclientes.html?l=${perfil.loja_ativa}&t=${Date.now()}`;
 
@@ -962,12 +1020,78 @@ function abrirWhatsapp() {
   window.open(`https://wa.me/55${numero}`, "_blank");
 }
 
+function abrirCadastroWelcome(){
+  document.getElementById("welcomeForm").style.display = "block";
+}
 
+function mostrarWelcome(lojaTopo){
+  const overlay = document.getElementById("welcomeOverlay");
+  const logo = document.getElementById("welcomeLogo");
+  const title = document.getElementById("welcomeTitle");
+
+  // cores da loja (já vem do :root --primary)
+  title.innerText = `Seja bem-vindo à ${lojaTopo?.negocio || "nossa loja"}`;
+
+  // logo da loja
+  if (lojaTopo?.avatar_url) {
+    logo.style.backgroundImage = `url(${lojaTopo.avatar_url})`;
+  }
+
+  // redes (reaproveita o que você já tem)
+  document.getElementById("welcomeInsta").style.display = redesLoja.instagram ? "flex" : "none";
+  document.getElementById("welcomeWhats").style.display = redesLoja.whatsapp ? "flex" : "none";
+
+  overlay.style.display = "flex";
+}
+
+async function salvarWelcome(){
+  const nome = document.getElementById("welcomeNome").value.trim();
+  const whats = document.getElementById("welcomeWhatsInput").value.trim();
+  if(!nome || !whats){ alert("Preencha nome e WhatsApp"); return; }
+
+  const { error } = await sb
+    .from("clientes_profile")
+    .update({ nome, whatsapp: whats })
+    .eq("id", user.id);
+
+  if(error){ alert("Erro ao salvar"); return; }
+
+  perfil.nome = nome;
+  perfil.whatsapp = whats;
+
+  document.getElementById("welcomeOverlay").style.display = "none";
+}
 
   
 
 </script>
 
+<div id="welcomeOverlay">
+  <div class="welcome-card">
+    <div id="welcomeLogo" class="welcome-logo"></div>
 
+    <div id="welcomeTitle" class="welcome-title">Seja bem-vindo</div>
+    <div id="welcomeSub" class="welcome-sub">Agende agora com a sua barbearia favorita.</div>
+
+    <button id="welcomeCTA" class="welcome-cta" onclick="abrirCadastroWelcome()">
+      Clique aqui e agende agora mesmo
+    </button>
+
+    <div class="welcome-social">
+      <div class="soc" id="welcomeInsta" style="display:none" onclick="abrirInstagram()">
+        <i class="ri-instagram-line" style="font-size:22px"></i>
+      </div>
+      <div class="soc" id="welcomeWhats" style="display:none" onclick="abrirWhatsapp()">
+        <i class="ri-whatsapp-line" style="font-size:22px"></i>
+      </div>
+    </div>
+
+    <div id="welcomeForm">
+      <input id="welcomeNome" placeholder="Seu nome completo" />
+      <input id="welcomeWhatsInput" placeholder="WhatsApp" />
+      <button class="welcome-cta" onclick="salvarWelcome()">Entrar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
