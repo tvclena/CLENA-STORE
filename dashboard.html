@@ -1333,7 +1333,7 @@ const { error } = await sb
     negocio: pNegocio.value || null,
     bio: pBio.value || null,
     whatsapp: pWhatsapp.value || null,
-    instagram: pInstagram.value || null,
+    instagram: (pInstagram.value || "").trim() || null,
     email_contato: pEmailContato.value || null,
     avatar_url: avatarPath,
     cep: pCep.value || null,
@@ -1346,9 +1346,6 @@ const { error } = await sb
   .eq("user_id", user.id);
 
 if (error) throw error;
-
-
-    if(error) throw error;
 
     profileModal.style.display = "none";
 
