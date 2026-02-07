@@ -894,8 +894,7 @@ async function salvarCliente(confirmarDepois = false){
 
   } catch(e){
     console.error(e);
-    abrirModal(); // reabre se der erro
-    alert("Erro ao salvar cliente");
+alert("Erro ao confirmar agendamento. Tente novamente.");    alert("Erro ao salvar cliente");
   } finally {
     btns.forEach(b => {
       b.disabled = false;
@@ -1198,11 +1197,14 @@ function formatarMoedaBR(valor){
 
 
 function ativarBuscaClientes(){
-
   const buscaInput = document.getElementById("buscaCliente");
   const lista = document.getElementById("listaClientes");
 
   if (!buscaInput || !lista) return;
+
+  // 🔒 evita múltiplos listeners ao abrir o modal várias vezes
+  if (buscaInput.dataset.bound === "1") return;
+  buscaInput.dataset.bound = "1";
 
   let timer = null;
 
