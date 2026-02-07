@@ -505,65 +505,56 @@ async function buscarClientesLoja(termo){
   
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
-const { data } = await sb
-  .from("produtos_servicos")
-  .select(`
-    id,
-    nome,
-    preco,
-    imagem_url,
-    duracao_minutos,
-    ordem_exibicao,
-    created_at,
-    updated_at
-  `)
-  .eq("user_id", lojaId)
-  .eq("ativo", true)
-  .eq("tipo", "SERVICO")
-  .not("duracao_minutos", "is", null)
-  .order("ordem_exibicao", { ascending: true, nullsLast: true })
-  .order("updated_at", { ascending: false })
-  .order("created_at", { ascending: true });
+  const lojaLogadaId = await getLojaLogadaId();
+  if(!lojaLogadaId) return;
 
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select(`
+      id,
+      nome,
+      preco,
+      imagem_url,
+      duracao_minutos,
+      ordem_exibicao,
+      created_at,
+      updated_at
+    `)
+    .eq("user_id", lojaLogadaId)   // ✅ loja real (auth)
+    .eq("ativo", true)
+    .eq("tipo", "SERVICO")
+    .not("duracao_minutos", "is", null)
+    .order("ordem_exibicao", { ascending: true, nullsLast: true })
+    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: true });
 
+  const container = document.getElementById("services");
+  const lista = data || [];
 
-const container = document.getElementById("services");
-const lista = data || [];
-
-container.innerHTML = lista.map(s => `
-  <div class="service"
-       data-id="${s.id}"
-       onclick="selecionarServico(
-         '${s.id}',
-         ${s.duracao_minutos},
-         '${s.nome}',
-         ${Number(s.preco)}
-       )">
-       
-    <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
-    <div class="service-info">
-      <div class="service-name">${s.nome}</div>
-      <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
+  container.innerHTML = lista.map(s => `
+    <div class="service" data-id="${s.id}"
+      onclick="selecionarServico('${s.id}', ${s.duracao_minutos}, '${s.nome}', ${Number(s.preco)})">
+      <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
+      <div class="service-info">
+        <div class="service-name">${s.nome}</div>
+        <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
+      </div>
     </div>
-  </div>
-`).join("");
-
+  `).join("");
 
   // ✅ SE VEIO SERVIÇO PELA URL, JÁ SELECIONA AUTOMATICAMENTE
-  if(servicoPreSelecionado){
+  if(servicoPreSelecionado && data?.length){
     const s = data.find(x => x.id === servicoPreSelecionado);
     if(s){
-selecionarServico(
-  s.id,
-  s.duracao_minutos,
-  s.nome,
-  Number(s.preco)
-);
+      selecionarServico(
+        s.id,
+        s.duracao_minutos,
+        s.nome,
+        Number(s.preco)
+      );
     }
   }
 }
-
-
 
   
 function formatarDia(dataISO){
@@ -584,9 +575,14 @@ function addDias(data, qtd){
 }
 
 async function carregarDiasLazy(){
-
   if(carregandoDias) return;
   carregandoDias = true;
+
+  const lojaLogadaId = await getLojaLogadaId();
+  if(!lojaLogadaId){
+    carregandoDias = false;
+    return;
+  }
 
   const inicio = cursorData || hojeLocal();
   const fim = addDias(inicio, BLOCO_DIAS);
@@ -594,13 +590,13 @@ async function carregarDiasLazy(){
   const { data: agenda } = await sb
     .from("agenda_loja")
     .select("*")
-    .eq("user_id", lojaId)
+    .eq("user_id", lojaLogadaId)   // ✅ loja real
     .eq("fechado", false)
     .gte("data", inicio)
     .lte("data", fim)
     .order("data");
 
-  for(const d of agenda){
+  for(const d of (agenda || [])){
 
     let blocos;
     try{
@@ -612,10 +608,10 @@ async function carregarDiasLazy(){
     const { data: ags } = await sb
       .from("agendamentos")
       .select("hora_inicio,hora_fim")
-      .eq("user_id", lojaId)
+      .eq("user_id", lojaLogadaId)   // ✅ loja real
       .eq("data", d.data);
 
-    const ocupados = ags.map(a => [
+    const ocupados = (ags || []).map(a => [
       toMin(a.hora_inicio),
       toMin(a.hora_fim)
     ]);
@@ -626,19 +622,17 @@ async function carregarDiasLazy(){
       let s = toMin(b.inicio);
       let e = toMin(b.fim);
 
-while(s + duracaoTotal <= e){
-  const conflito = ocupados.some(o =>
-    !(s + duracaoTotal <= o[0] || s >= o[1])
-  );
+      while(s + duracaoTotal <= e){
+        const conflito = ocupados.some(o =>
+          !(s + duracaoTotal <= o[0] || s >= o[1])
+        );
 
-  if(!conflito){
-    livre = true;
-    break;
-  }
-
-  s += duracaoTotal;
-}
-
+        if(!conflito){
+          livre = true;
+          return;
+        }
+        s += duracaoTotal;
+      }
     });
 
     if(livre){
@@ -700,8 +694,9 @@ function selecionarServico(id, duracao, nome, preco){
 
 /* ================= DIA → HORÁRIOS ================= */
 async function selecionarDia(index){
+  const lojaLogadaId = await getLojaLogadaId();
+  if(!lojaLogadaId) return;
 
-  /* ===== MARCA VISUAL DO DIA ===== */
   document.querySelectorAll("#days .item")
     .forEach(el => el.classList.remove("selected"));
 
@@ -712,72 +707,54 @@ async function selecionarDia(index){
     itemSelecionado.classList.add("selected");
   }
 
-  /* ===== MOSTRA SEÇÃO DE HORÁRIOS ===== */
   document.getElementById("secTimes").classList.remove("hidden");
 
-  /* ===== FEEDBACK DE CARREGAMENTO ===== */
   document.getElementById("times").innerHTML = `
     <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">
       🔄 Buscando horários disponíveis...
     </div>
   `;
 
-  /* ===== DADOS DO DIA ===== */
   const dia = DIAS_VALIDOS[index];
   dados.data = dia.data;
 
-  /* ===== HORÁRIOS DA AGENDA ===== */
   const blocos = typeof dia.horarios === "string"
     ? JSON.parse(dia.horarios)
     : dia.horarios;
 
-  /* ===== AGENDAMENTOS JÁ OCUPADOS ===== */
   const { data: ag } = await sb
     .from("agendamentos")
     .select("hora_inicio,hora_fim")
-    .eq("user_id", lojaId)
+    .eq("user_id", lojaLogadaId)   // ✅ loja real
     .eq("data", dia.data);
 
-  const ocupados = ag.map(a => [
+  const ocupados = (ag || []).map(a => [
     toMin(a.hora_inicio),
     toMin(a.hora_fim)
   ]);
 
-  /* ===== GERA SLOTS LIVRES ===== */
   let slots = [];
 
   blocos.forEach(b => {
     let inicio = toMin(b.inicio);
     let fim = toMin(b.fim);
 
-while(inicio + duracaoTotal <= fim){
+    while(inicio + duracaoTotal <= fim){
       const conflito = ocupados.some(o =>
-!(inicio + duracaoTotal <= o[0] || inicio >= o[1])
+        !(inicio + duracaoTotal <= o[0] || inicio >= o[1])
       );
 
       if(!conflito){
         slots.push(toHour(inicio));
       }
-
-inicio += duracaoTotal;    }
+      inicio += duracaoTotal;
+    }
   });
 
-  /* ===== RENDERIZA HORÁRIOS ===== */
-  if(slots.length === 0){
-    document.getElementById("times").innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">
-        ❌ Nenhum horário disponível neste dia
-      </div>
-    `;
-    return;
-  }
-
-  document.getElementById("times").innerHTML = slots.map(h => `
-<div class="item" onclick="selecionarHorario(this,'${h}')">${h}</div>
-  `).join("");
+  document.getElementById("times").innerHTML = slots.length
+    ? slots.map(h => `<div class="item" onclick="selecionarHorario(this,'${h}')">${h}</div>`).join("")
+    : `<div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">❌ Nenhum horário disponível neste dia</div>`;
 }
-
-
 
 (async ()=>{
   await verificarLogin();
@@ -908,13 +885,36 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
+    const lojaLogadaId = await getLojaLogadaId();
+    if(!lojaLogadaId) throw new Error("Loja não encontrada");
+
     await sb.from("clientes_profile").upsert({
-      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
+      id: usuarioLogado?.id || lojaLogadaId + "_" + Date.now(),
       nome,
       whatsapp: whats,
       email,
-      loja_ativa: lojaId
+      loja_ativa: lojaLogadaId   // ✅ loja real
     });
+
+    clienteDB = { nome, whatsapp: whats, email };
+
+    fecharModal();
+
+    if(confirmarDepois && dados?.hora){
+      setTimeout(() => confirmarAgendamento(), 120);
+    }
+
+  } catch(e){
+    console.error(e);
+    alert("Erro ao salvar cliente. Tente novamente.");
+  } finally {
+    btns.forEach(b => {
+      b.disabled = false;
+      b.style.opacity = 1;
+    });
+    salvandoCliente = false;
+  }
+}
 
     clienteDB = { nome, whatsapp: whats, email };
 
