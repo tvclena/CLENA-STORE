@@ -356,13 +356,15 @@ async function carregarCliente(){
 
 
 async function buscarClientesLoja(termo){
-  const t = termo.trim();
+  const t = termo.trim().toLowerCase();
 
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id,nome,whatsapp,email,avatar_url")
-    .eq("loja_ativa", lojaId) // 🔥 filtra só clientes dessa loja
-    .or(`nome.ilike.%${t}%,whatsapp.ilike.%${t}%`)
+    .eq("loja_ativa", lojaId)
+    .or(
+      `nome.ilike.%${t}%,whatsapp.ilike.%${t}%`
+    )
     .limit(10);
 
   if(error){
