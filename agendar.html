@@ -638,10 +638,11 @@ inicio += duracaoTotal;    }
 
 (async ()=>{
   await verificarLogin();
-  await carregarCliente(); // 🔥 ESSENCIAL
+  await carregarCliente(); // não mexe no fluxo do cliente final
   carregarServicos();
 
-  if(!clienteValido()){
+  // 🔥 SE VEIO DO PAINEL DA LOJA, abre o modal de cliente logo ao entrar
+  if(modoNovoPainel){
     abrirModal();
   }
 })();
@@ -701,7 +702,7 @@ function abrirModal(){
   const modal = document.getElementById("clienteModal");
   if(!modal.classList.contains("hidden")) return;
 
-  const cliente = getCliente();
+  const cliente = getCliente(); // já busca do storage / Supabase
   if(cliente){
     cliNome.value = cliente.nome || "";
     cliWhats.value = cliente.whatsapp || "";
