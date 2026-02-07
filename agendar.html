@@ -390,6 +390,30 @@ const sb = supabase.createClient(
 let usuarioLogado = null;
 let clienteDB = null;
 let confirmandoAgendamento = false; // 🔒 trava anti duplo clique
+
+
+async function getLojaLogadaId() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user?.id) return null;
+
+  const { data: loja, error } = await sb
+    .from("user_profile")
+    .select("id")
+    .eq("user_id", session.user.id)
+    .single();
+
+  if (error || !loja?.id) {
+    console.error("❌ Loja logada não encontrada:", error);
+    return null;
+  }
+
+  return loja.id; // ✅ ID REAL da loja logada
+}
+
+
+
+
+  
 async function verificarLogin(){
   const { data: { session } } = await sb.auth.getSession();
   usuarioLogado = session?.user || null;
@@ -456,10 +480,13 @@ async function buscarClientesLoja(termo){
   const termoNorm = normalizarTexto(termo);
   if(termoNorm.length < 2) return [];
 
+  const lojaLogadaId = await getLojaLogadaId();
+  if(!lojaLogadaId) return [];
+
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id,nome,whatsapp,email,avatar_url")
-    .eq("loja_ativa", lojaId)   // UUID da loja (correto para seu banco)
+    .eq("loja_ativa", lojaLogadaId)   // ✅ SOMENTE clientes da loja logada
     .limit(80);
 
   if(error){
@@ -475,7 +502,6 @@ async function buscarClientesLoja(termo){
     })
     .slice(0, 10);
 }
-
   
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
