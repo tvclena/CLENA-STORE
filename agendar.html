@@ -480,14 +480,11 @@ async function buscarClientesLoja(termo){
   const termoNorm = normalizarTexto(termo);
   if(termoNorm.length < 2) return [];
 
-  const lojaLogadaId = await getLojaLogadaId();
-  if(!lojaLogadaId) return [];
-
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id,nome,whatsapp,email,avatar_url")
-    .eq("loja_ativa", lojaLogadaId)   // ✅ SOMENTE clientes da loja logada
-    .limit(80);
+    .eq("loja_ativa", lojaId)   // 🔥 mesma fonte do app cliente
+    .limit(50);
 
   if(error){
     console.error("Erro ao buscar clientes:", error);
@@ -499,8 +496,7 @@ async function buscarClientesLoja(termo){
       const nomeNorm  = normalizarTexto(c.nome || "");
       const whatsNorm = normalizarTexto(c.whatsapp || "");
       return nomeNorm.includes(termoNorm) || whatsNorm.includes(termoNorm);
-    })
-    .slice(0, 10);
+    });
 }
   
 /* ================= SERVIÇOS ================= */
@@ -885,22 +881,27 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-    const lojaLogadaId = await getLojaLogadaId();
-    if(!lojaLogadaId) throw new Error("Loja não encontrada");
+    // 🔥 AQUI É A CHAVE: cria cliente SEM user_profile
+    const { data: criado, error } = await sb
+      .from("clientes_profile")
+      .insert({
+        nome,
+        whatsapp: whats,
+        email,
+        loja_ativa: lojaId // 🔥 mesma lógica do app cliente
+      })
+      .select()
+      .single();
 
-    await sb.from("clientes_profile").upsert({
-      id: usuarioLogado?.id || lojaLogadaId + "_" + Date.now(),
-      nome,
-      whatsapp: whats,
-      email,
-      loja_ativa: lojaLogadaId   // ✅ loja real
-    });
+    if(error){
+      console.error("Erro ao criar cliente:", error);
+      alert("Erro ao salvar cliente");
+      return;
+    }
 
-  
+    clienteDB = criado; // 🔥 agora cliente existe no banco
 
-    clienteDB = { nome, whatsapp: whats, email };
-
-    fecharModal(); // ✅ fecha só depois de salvar
+    fecharModal();
 
     if(confirmarDepois && dados?.hora){
       setTimeout(() => confirmarAgendamento(), 120);
