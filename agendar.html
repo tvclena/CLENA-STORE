@@ -870,11 +870,8 @@ document.addEventListener("DOMContentLoaded", () => {
 let salvandoCliente = false;
 
 async function salvarCliente(confirmarDepois = false){
-  if (salvandoCliente) return; // 🛑 bloqueia duplo clique
+  if (salvandoCliente) return;
   salvandoCliente = true;
-
-  // 🔥 FECHA O MODAL IMEDIATAMENTE (UX premium)
-  fecharModal();
 
   const btns = document.querySelectorAll('#clienteModal button');
   btns.forEach(b => {
@@ -887,11 +884,10 @@ async function salvarCliente(confirmarDepois = false){
     const whats = cliWhats.value.replace(/\D/g,"");
     const email = cliEmail.value.trim() || null;
 
-if(nome.length < 3 || whats.length < 10){
-  alert("Informe nome completo e WhatsApp válido");
-  if(modoNovoPainel) abrirModal(); 
-  return;
-}
+    if(nome.length < 3 || whats.length < 10){
+      alert("Informe nome completo e WhatsApp válido");
+      return;
+    }
 
     await sb.from("clientes_profile").upsert({
       id: usuarioLogado?.id || lojaId + "_" + Date.now(),
@@ -902,17 +898,17 @@ if(nome.length < 3 || whats.length < 10){
     });
 
     clienteDB = { nome, whatsapp: whats, email };
-if(confirmarDepois && dados?.hora){
-  setTimeout(() => confirmarAgendamento(), 120); // 🔥 delay evita reabrir modal
-}
 
+    fecharModal(); // ✅ fecha só depois de salvar
 
-} catch(e){
-  console.error(e);
-  alert("Erro ao salvar cliente. Tente novamente.");
-}
-  
-  finally {
+    if(confirmarDepois && dados?.hora){
+      setTimeout(() => confirmarAgendamento(), 120);
+    }
+
+  } catch(e){
+    console.error(e);
+    alert("Erro ao salvar cliente. Tente novamente.");
+  } finally {
     btns.forEach(b => {
       b.disabled = false;
       b.style.opacity = 1;
@@ -1297,15 +1293,15 @@ function normalizarTexto(str = ""){
     .replace(/[^a-z0-9]/g, "");       // remove espaço e símbolos
 }  
 
-
-// 🛡️ BLINDAGEM ABSOLUTA
-if(!modoNovoPainel){
-  const modal = document.getElementById("clienteModal");
-  if(modal){
-    modal.classList.add("hidden");
-    modal.style.display = "none";
+document.addEventListener("DOMContentLoaded", () => {
+  if(!modoNovoPainel){
+    const modal = document.getElementById("clienteModal");
+    if(modal){
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
   }
-}
+});
 </script>
 <!-- MODAL CLIENTE (PREMIUM CENTRALIZADO) -->
 <div id="clienteModal" class="hidden modal-root">
