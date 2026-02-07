@@ -457,7 +457,10 @@ body::-webkit-scrollbar{
   <div class="header">
     <h1>Bem-vindo à <span>Clena Store</span></h1>
   </div>
-
+<div class="list">
+  <h3>Agenda por profissional</h3>
+  <div id="listaColaboradores"></div>
+</div>
 <!-- KPIs -->
 <div class="grid">
 
@@ -580,7 +583,10 @@ async function carregarHome(){
   if(!session) return;
 
   const lojaId = session.user.id;
-
+// 🔥 MULTI-AGENDA: Home sempre representa a agenda da loja
+  if (window.parent && window.parent.setProfissionalAtivo) {
+    window.parent.setProfissionalAtivo("LOJA");
+  }
   const hoje = new Date().toLocaleDateString("en-CA");
   const inicioMes = new Date();
   inicioMes.setDate(1);
@@ -630,7 +636,51 @@ const total = faturamento?.reduce(
 }
 
 carregarHome();
+carregarColaboradoresHome();// ================= MULTI-AGENDA: LISTAR COLABORADORES =================
+async function carregarColaboradoresHome(){
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
 
+  const lojaId = session.user.id;
+
+  const { data, error } = await sbHome
+    .from("colaboradores")
+    .select("id, nome, funcao, avatar_url, ativo")
+    .eq("loja_id", lojaId)
+    .eq("ativo", true)
+    .order("nome");
+
+  const box = document.getElementById("listaColaboradores");
+  if(!box) return;
+
+  box.innerHTML = "";
+
+  if(error || !data || data.length === 0){
+    box.innerHTML = `<div class="empty">Nenhum colaborador cadastrado</div>`;
+    return;
+  }
+
+  data.forEach(c => {
+    const isLoja = c.funcao === "LOJA";
+
+    box.innerHTML += `
+      <div class="item"
+        onclick="window.parent.setProfissionalAtivo('${isLoja ? "LOJA" : c.id}')">
+        <div style="display:flex;align-items:center;gap:10px">
+          <img
+            src="${c.avatar_url || "https://via.placeholder.com/40"}"
+            style="width:40px;height:40px;border-radius:50%;object-fit:cover"
+          />
+          <span>
+            <strong>${c.nome}</strong><br>
+            <small style="color:#6b7280">${isLoja ? "Agenda da Loja" : "Profissional"}</small>
+          </span>
+        </div>
+        <span class="badge">${isLoja ? "LOJA" : "AGENDA"}</span>
+      </div>
+    `;
+  });
+}
 /* swipe dias */
 let startX = 0;
 document.addEventListener("touchstart",e=>{
