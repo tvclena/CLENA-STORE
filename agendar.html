@@ -741,28 +741,50 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-async function salvarCliente(){
-  const nome = cliNome.value.trim().toUpperCase();
-  const whats = cliWhats.value.replace(/\D/g,"");
-  const email = cliEmail.value.trim() || null;
+let salvandoCliente = false;
 
-  if(nome.length < 3 || whats.length < 10){
-    alert("Informe nome completo e WhatsApp válido");
-    return;
-  }
+async function salvarCliente(confirmarDepois = false){
+  if (salvandoCliente) return; // 🛑 bloqueia duplo clique
+  salvandoCliente = true;
 
-  // 🔥 SALVA NO PERFIL DO CLIENTE
-  await sb.from("clientes_profile").upsert({
-    id: usuarioLogado.id,
-    nome,
-    whatsapp: whats,
-    email
+  const btns = document.querySelectorAll('#clienteModal button');
+  btns.forEach(b => {
+    b.disabled = true;
+    b.style.opacity = .7;
   });
 
-  // Atualiza memória
-  clienteDB = { nome, whatsapp: whats, email };
+  try{
+    const nome = cliNome.value.trim().toUpperCase();
+    const whats = cliWhats.value.replace(/\D/g,"");
+    const email = cliEmail.value.trim() || null;
 
-  fecharModal();
+    if(nome.length < 3 || whats.length < 10){
+      alert("Informe nome completo e WhatsApp válido");
+      return;
+    }
+
+    await sb.from("clientes_profile").upsert({
+      id: usuarioLogado?.id || lojaId + "_" + Date.now(), // fallback
+      nome,
+      whatsapp: whats,
+      email
+    });
+
+    clienteDB = { nome, whatsapp: whats, email };
+
+    fecharModal();
+
+    // ⚡ se já tiver horário, confirma automaticamente
+    if(confirmarDepois && dados?.hora){
+      await confirmarAgendamento();
+    }
+  } finally {
+    btns.forEach(b => {
+      b.disabled = false;
+      b.style.opacity = 1;
+    });
+    salvandoCliente = false;
+  }
 }
 
 async function confirmar(h){
@@ -1076,26 +1098,70 @@ function formatarMoedaBR(valor){
   
   
 </script>
-<!-- MODAL CLIENTE -->
+<!-- MODAL CLIENTE (PREMIUM) -->
 <div id="clienteModal" class="hidden" style="position:fixed; inset:0; z-index:10000;">
   <div class="overlay" onclick="fecharModal()" style="position:absolute; inset:0;"></div>
 
   <div class="msg-final" style="
     position:relative;
-    z-index:10001;   /* 🔥 card acima do overlay */
-    max-width:380px
+    z-index:10001;
+    max-width:420px;
+    width:calc(100% - 32px);
+    padding:22px;
+    border-radius:24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+    animation: fadeUp .25s ease;
   ">
-    <h2 style="margin-bottom:6px">Seus dados</h2>
-    <p style="color:#6b7280;margin-bottom:10px">
-      Precisamos dessas informações para confirmar seu agendamento
-    </p>
 
-    <input id="cliNome" placeholder="NOME COMPLETO" style="text-transform:uppercase;width:100%;margin-bottom:10px">
-    <input id="cliWhats" placeholder="WHATSAPP" inputmode="numeric" style="width:100%;margin-bottom:10px">
-    <input id="cliEmail" placeholder="E-MAIL (opcional)" style="width:100%;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="
+        width:36px;height:36px;border-radius:12px;
+        background:linear-gradient(135deg,var(--primary),var(--primary-2));
+        color:#fff;display:flex;align-items:center;justify-content:center;
+        font-weight:900;
+      ">👤</div>
 
-    <button onclick="salvarCliente()" style="width:100%">
-      Salvar e continuar
+      <div>
+        <h2 style="margin:0;font-size:18px">Dados do cliente</h2>
+        <small style="color:#6b7280">Preencha para confirmar o agendamento</small>
+      </div>
+    </div>
+
+    <label style="font-size:12px;color:#6b7280;font-weight:700">Nome completo</label>
+    <input id="cliNome" placeholder="Ex: João da Silva"
+      style="width:100%;margin:6px 0 10px;padding:12px;border-radius:12px;border:1px solid var(--border);font-weight:700;text-transform:uppercase">
+
+    <label style="font-size:12px;color:#6b7280;font-weight:700">WhatsApp</label>
+    <input id="cliWhats" placeholder="(77) 99999-9999" inputmode="numeric"
+      style="width:100%;margin:6px 0 10px;padding:12px;border-radius:12px;border:1px solid var(--border);font-weight:700">
+
+    <label style="font-size:12px;color:#6b7280;font-weight:700">E-mail (opcional)</label>
+    <input id="cliEmail" placeholder="email@exemplo.com"
+      style="width:100%;margin:6px 0 14px;padding:12px;border-radius:12px;border:1px solid var(--border);font-weight:700">
+
+    <button onclick="salvarCliente(true)" style="
+      width:100%;
+      padding:14px;
+      border-radius:999px;
+      border:none;
+      font-weight:900;
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
+      color:#fff;
+      box-shadow:0 10px 24px rgba(255,106,0,.35);
+    ">
+      💾 Salvar e confirmar
+    </button>
+
+    <button onclick="fecharModal()" style="
+      width:100%;
+      margin-top:8px;
+      padding:12px;
+      border-radius:999px;
+      border:none;
+      font-weight:800;
+      background:#f3f4f6;
+    ">
+      Cancelar
     </button>
   </div>
 </div>
