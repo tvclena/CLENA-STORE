@@ -438,25 +438,35 @@ async function carregarCliente(){
 
 
 async function buscarClientesLoja(termo){
-  const t = termo.trim().toLowerCase();
+  const termoNorm = normalizarTexto(termo);
 
+  if(termoNorm.length < 2) return [];
+
+  // 🔥 Busca clientes da loja (sem normalizar no Supabase)
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id,nome,whatsapp,email,avatar_url")
     .eq("loja_ativa", lojaId)
-    .or(
-      `nome.ilike.%${t}%,whatsapp.ilike.%${t}%`
-    )
-    .limit(10);
+    .limit(80); // pode aumentar se sua base for maior
 
   if(error){
     console.error("Erro ao buscar clientes:", error);
     return [];
   }
 
-  return data || [];
-}
+  // 🔎 Filtra no FRONT ignorando acento, espaço e símbolos
+  const filtrados = (data || []).filter(c => {
+    const nomeNorm  = normalizarTexto(c.nome || "");
+    const whatsNorm = normalizarTexto(c.whatsapp || "");
 
+    return (
+      nomeNorm.includes(termoNorm) ||
+      whatsNorm.includes(termoNorm)
+    );
+  });
+
+  return filtrados.slice(0, 10);
+}
   
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
@@ -1294,7 +1304,13 @@ async function salvarCliente(confirmarDepois = false){
   }
 }
 
-  
+function normalizarTexto(str = ""){
+  return str
+    .toLowerCase()
+    .normalize("NFD")                 // separa acentos (é -> e +  ́)
+    .replace(/[\u0300-\u036f]/g, "")  // remove os acentos
+    .replace(/[^a-z0-9]/g, "");       // remove espaço e símbolos
+}  
   
 </script>
 <!-- MODAL CLIENTE (PREMIUM CENTRALIZADO) -->
