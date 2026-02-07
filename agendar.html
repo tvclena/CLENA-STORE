@@ -309,11 +309,11 @@ sb.auth.onAuthStateChange((_event, session) => {
   usuarioLogado = session?.user || null;
 });
 
-const lojaId = new URLSearchParams(location.search).get("l");
-const servicoPreSelecionado =
-  new URLSearchParams(location.search).get("servico");
-const alterarId =
-  new URLSearchParams(location.search).get("alterar");
+const params = new URLSearchParams(location.search);
+const lojaId = params.get("l");
+const servicoPreSelecionado = params.get("servico");
+const alterarId = params.get("alterar");
+const modoNovoPainel = params.get("novo") === "1";
 
 ;
 
@@ -779,12 +779,13 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-    await sb.from("clientes_profile").upsert({
-      id: usuarioLogado?.id || lojaId + "_" + Date.now(), // fallback
-      nome,
-      whatsapp: whats,
-      email
-    });
+await sb.from("clientes_profile").upsert({
+  id: usuarioLogado?.id || lojaId + "_" + Date.now(), // fallback
+  nome,
+  whatsapp: whats,
+  email,
+  loja_ativa: lojaId   // 🔥 VINCULA À LOJA
+});
 
     clienteDB = { nome, whatsapp: whats, email };
 
@@ -879,8 +880,7 @@ if(alterarId){
     return;
   }
 
-  // ✅ SUCESSO
- document.body.insertAdjacentHTML("beforeend", `
+document.body.insertAdjacentHTML("beforeend", `
   <div class="overlay" id="overlayConfirm">
     <div class="msg-final" style="
       max-width:420px;
@@ -944,15 +944,11 @@ if(alterarId){
   </div>
 `);
 
-document.body.insertAdjacentHTML("beforeend", `...`);
-
 // 🧹 LIMPA CLIENTE ATIVO NO PAINEL DA LOJA (após confirmar)
 if (modoNovoPainel) {
   clienteDB = null;
   try { localStorage.removeItem("CLIENTE_LOJA"); } catch {}
 }
-} // fim da função confirmar
-
   
 } // ✅ FECHAMENTO CORRETO DA FUNÇÃO confirmar
 
