@@ -753,6 +753,21 @@ async function carregarColaboradoresHome(){
     `;
   });
 }
+
+
+function setProfissionalHome(id){
+  window.profissionalSelecionado = id;
+
+  // atualiza visualmente os cards
+  document.querySelectorAll(".colab-card").forEach(el=>{
+    el.classList.remove("ativo");
+  });
+
+  const ativo = document.querySelector(`.colab-card[onclick*="${id}"]`);
+  if(ativo) ativo.classList.add("ativo");
+
+  // aqui você pode forçar abrir agenda do profissional no iframe se quiser
+}
 /* swipe dias */
 let startX = 0;
 document.addEventListener("touchstart",e=>{
