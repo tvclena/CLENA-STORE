@@ -446,7 +446,74 @@ body::-webkit-scrollbar{
 .btn-dia:active{
   transform:scale(.92);
 }
+.colab-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:12px;
+}
 
+.colab-card{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.colab-card:active{
+  transform:scale(.97);
+}
+
+.colab-card.ativo{
+  border:2px solid var(--primary);
+  background:#fff7ed;
+  box-shadow:0 6px 18px rgba(255,106,0,.15);
+}
+
+.colab-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.colab-avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#eee;
+}
+
+.colab-nome{
+  font-weight:800;
+  font-size:13px;
+}
+
+.colab-tipo{
+  font-size:11px;
+  color:#6b7280;
+}
+
+.colab-badge{
+  font-size:10px;
+  font-weight:800;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#fff7ed;
+  color:#ff6a00;
+  border:1px solid #fed7aa;
+}
+
+.colab-badge.loja{
+  background:#ecfeff;
+  color:#0891b2;
+  border-color:#67e8f9;
+}
 </style>
 </head>
 
@@ -459,7 +526,8 @@ body::-webkit-scrollbar{
   </div>
 <div class="list">
   <h3>Agenda por profissional</h3>
-  <div id="listaColaboradores"></div>
+
+  <div id="listaColaboradores" class="colab-grid"></div>
 </div>
 <!-- KPIs -->
 <div class="grid">
@@ -643,7 +711,7 @@ async function carregarColaboradoresHome(){
 
   const lojaId = session.user.id;
 
-  const { data, error } = await sbHome
+  const { data } = await sbHome
     .from("colaboradores")
     .select("id, nome, funcao, avatar_url, ativo")
     .eq("loja_id", lojaId)
@@ -655,28 +723,32 @@ async function carregarColaboradoresHome(){
 
   box.innerHTML = "";
 
-  if(error || !data || data.length === 0){
-    box.innerHTML = `<div class="empty">Nenhum colaborador cadastrado</div>`;
-    return;
-  }
+  const ativo = window.profissionalSelecionado || "LOJA";
 
   data.forEach(c => {
     const isLoja = c.funcao === "LOJA";
+    const id = isLoja ? "LOJA" : c.id;
+    const ativoClass = ativo === id ? "ativo" : "";
 
     box.innerHTML += `
-      <div class="item"
-        onclick="window.parent.setProfissionalAtivo('${isLoja ? "LOJA" : c.id}')">
-        <div style="display:flex;align-items:center;gap:10px">
-          <img
-            src="${c.avatar_url || "https://via.placeholder.com/40"}"
-            style="width:40px;height:40px;border-radius:50%;object-fit:cover"
-          />
-          <span>
-            <strong>${c.nome}</strong><br>
-            <small style="color:#6b7280">${isLoja ? "Agenda da Loja" : "Profissional"}</small>
-          </span>
+      <div class="colab-card ${ativoClass}"
+        onclick="setProfissionalHome('${id}')">
+
+        <div class="colab-info">
+          <img class="colab-avatar"
+               src="${c.avatar_url || "https://via.placeholder.com/40"}" />
+
+          <div>
+            <div class="colab-nome">${c.nome}</div>
+            <div class="colab-tipo">
+              ${isLoja ? "Agenda da Loja" : "Profissional"}
+            </div>
+          </div>
         </div>
-        <span class="badge">${isLoja ? "LOJA" : "AGENDA"}</span>
+
+        <span class="colab-badge ${isLoja ? "loja" : ""}">
+          ${isLoja ? "LOJA" : "AGENDA"}
+        </span>
       </div>
     `;
   });
