@@ -355,7 +355,23 @@ async function carregarCliente(){
 }
 
 
+async function buscarClientesLoja(termo){
+  const t = termo.trim();
 
+  const { data, error } = await sb
+    .from("clientes_profile")
+    .select("id,nome,whatsapp,email,avatar_url")
+    .eq("loja_ativa", lojaId) // 🔥 filtra só clientes dessa loja
+    .or(`nome.ilike.%${t}%,whatsapp.ilike.%${t}%`)
+    .limit(10);
+
+  if(error){
+    console.error("Erro ao buscar clientes:", error);
+    return [];
+  }
+
+  return data || [];
+}
 
   
 /* ================= SERVIÇOS ================= */
@@ -927,6 +943,17 @@ if(alterarId){
     </div>
   </div>
 `);
+
+document.body.insertAdjacentHTML("beforeend", `...`);
+
+// 🧹 LIMPA CLIENTE ATIVO NO PAINEL DA LOJA (após confirmar)
+if (modoNovoPainel) {
+  clienteDB = null;
+  try { localStorage.removeItem("CLIENTE_LOJA"); } catch {}
+}
+} // fim da função confirmar
+
+  
 } // ✅ FECHAMENTO CORRETO DA FUNÇÃO confirmar
 
 
@@ -1090,7 +1117,53 @@ function formatarMoedaBR(valor){
 
 
 
+const buscaInput = document.getElementById("buscaCliente");
+const lista = document.getElementById("listaClientes");
 
+if (buscaInput && lista) {
+  let timer = null;
+
+  buscaInput.addEventListener("input", () => {
+    clearTimeout(timer);
+    const termo = buscaInput.value.trim();
+
+    timer = setTimeout(async () => {
+      if (termo.length < 2) {
+        lista.style.display = "none";
+        return;
+      }
+
+      const clientes = await buscarClientesLoja(termo);
+
+      if (!clientes.length) {
+        lista.innerHTML = `<div style="padding:10px;color:#6b7280">Nenhum cliente encontrado</div>`;
+        lista.style.display = "block";
+        return;
+      }
+
+      lista.innerHTML = clientes.map(c => `
+        <div onclick="selecionarClienteLoja('${c.id}','${c.nome}','${c.whatsapp}','${c.email || ""}')"
+             style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
+          <strong>${c.nome}</strong><br>
+          <small>${c.whatsapp}</small>
+        </div>
+      `).join("");
+
+      lista.style.display = "block";
+    }, 300);
+  });
+}
+
+function selecionarClienteLoja(id, nome, whatsapp, email){
+  cliNome.value = nome;
+  cliWhats.value = whatsapp;
+  cliEmail.value = email || "";
+
+  clienteDB = { id, nome, whatsapp, email };
+
+  const lista = document.getElementById("listaClientes");
+  if(lista) lista.style.display = "none";
+}
 
 
 
@@ -1127,9 +1200,26 @@ function formatarMoedaBR(valor){
       </div>
     </div>
 
-    <label style="font-size:12px;color:#6b7280;font-weight:700">Nome completo</label>
-    <input id="cliNome" placeholder="Ex: João da Silva"
-      style="width:100%;margin:6px 0 10px;padding:12px;border-radius:12px;border:1px solid var(--border);font-weight:700;text-transform:uppercase">
+<!-- 🔎 BUSCAR CLIENTE DA LOJA -->
+<div style="margin-bottom:10px">
+  <input id="buscaCliente" placeholder="🔎 Buscar cliente por nome ou WhatsApp"
+    style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);font-weight:700">
+
+  <div id="listaClientes" style="
+    margin-top:6px;
+    border-radius:12px;
+    background:#fff;
+    box-shadow:0 10px 24px rgba(0,0,0,.15);
+    overflow:hidden;
+    display:none;
+    max-height:220px;
+    overflow:auto;
+  "></div>
+</div>
+
+<label style="font-size:12px;color:#6b7280;font-weight:700">Nome completo</label>
+<input id="cliNome" placeholder="Ex: João da Silva"
+  style="width:100%;margin:6px 0 10px;padding:12px;border-radius:12px;border:1px solid var(--border);font-weight:700;text-transform:uppercase">
 
     <label style="font-size:12px;color:#6b7280;font-weight:700">WhatsApp</label>
     <input id="cliWhats" placeholder="(77) 99999-9999" inputmode="numeric"
