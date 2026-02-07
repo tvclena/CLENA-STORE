@@ -302,8 +302,8 @@ let usuarioLogado = null;
 let clienteDB = null;
 
 async function verificarLogin(){
-  const { data } = await sb.auth.getUser();
-  usuarioLogado = data?.user || null;
+  const { data: { session } } = await sb.auth.getSession();
+  usuarioLogado = session?.user || null;
 }
 sb.auth.onAuthStateChange((_event, session) => {
   usuarioLogado = session?.user || null;
