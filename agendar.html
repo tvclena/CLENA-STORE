@@ -872,6 +872,11 @@ async function salvarCliente(confirmarDepois = false){
   });
 
   try{
+    if(!lojaId){
+      alert("Loja não identificada. Reabra o painel pela loja.");
+      return;
+    }
+
     const nome = cliNome.value.trim().toUpperCase();
     const whats = cliWhats.value.replace(/\D/g,"");
     const email = cliEmail.value.trim() || null;
@@ -881,14 +886,32 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-    // 🔥 AQUI É A CHAVE: cria cliente SEM user_profile
+    // 🔎 evita duplicar cliente na mesma loja
+    const { data: jaExiste } = await sb
+      .from("clientes_profile")
+      .select("id,nome,whatsapp,email")
+      .eq("loja_ativa", lojaId)
+      .eq("whatsapp", whats)
+      .maybeSingle();
+
+    if(jaExiste){
+      clienteDB = jaExiste;
+      fecharModal();
+
+      if(confirmarDepois && dados?.hora){
+        setTimeout(() => confirmarAgendamento(), 120);
+      }
+      return;
+    }
+
+    // 🔥 cria cliente igual ao app do cliente
     const { data: criado, error } = await sb
       .from("clientes_profile")
       .insert({
         nome,
         whatsapp: whats,
         email,
-        loja_ativa: lojaId // 🔥 mesma lógica do app cliente
+        loja_ativa: lojaId
       })
       .select()
       .single();
@@ -899,7 +922,7 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-    clienteDB = criado; // 🔥 agora cliente existe no banco
+    clienteDB = criado;
 
     fecharModal();
 
@@ -918,7 +941,6 @@ async function salvarCliente(confirmarDepois = false){
     salvandoCliente = false;
   }
 }
-
 async function confirmar(h){
 
   const cliente = getCliente();
