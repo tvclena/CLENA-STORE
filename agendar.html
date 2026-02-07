@@ -452,37 +452,30 @@ async function carregarCliente(){
   clienteDB = data || null;
 }
 
-
 async function buscarClientesLoja(termo){
   const termoNorm = normalizarTexto(termo);
-
   if(termoNorm.length < 2) return [];
 
-  // 🔥 Busca clientes da loja (sem normalizar no Supabase)
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id,nome,whatsapp,email,avatar_url")
-    .eq("loja_ativa", lojaId)
-    .limit(80); // pode aumentar se sua base for maior
+    .eq("loja_ativa", lojaId)   // UUID da loja (correto para seu banco)
+    .limit(80);
 
   if(error){
     console.error("Erro ao buscar clientes:", error);
     return [];
   }
 
-  // 🔎 Filtra no FRONT ignorando acento, espaço e símbolos
-  const filtrados = (data || []).filter(c => {
-    const nomeNorm  = normalizarTexto(c.nome || "");
-    const whatsNorm = normalizarTexto(c.whatsapp || "");
-
-    return (
-      nomeNorm.includes(termoNorm) ||
-      whatsNorm.includes(termoNorm)
-    );
-  });
-
-  return filtrados.slice(0, 10);
+  return (data || [])
+    .filter(c => {
+      const nomeNorm  = normalizarTexto(c.nome || "");
+      const whatsNorm = normalizarTexto(c.whatsapp || "");
+      return nomeNorm.includes(termoNorm) || whatsNorm.includes(termoNorm);
+    })
+    .slice(0, 10);
 }
+
   
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
