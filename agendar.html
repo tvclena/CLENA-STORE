@@ -759,6 +759,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let salvandoCliente = false;
 
+let salvandoCliente = false;
+
 async function salvarCliente(confirmarDepois = false){
   if (salvandoCliente) return; // 🛑 bloqueia duplo clique
   salvandoCliente = true;
@@ -779,19 +781,18 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-await sb.from("clientes_profile").upsert({
-  id: usuarioLogado?.id || lojaId + "_" + Date.now(), // fallback
-  nome,
-  whatsapp: whats,
-  email,
-  loja_ativa: lojaId   // 🔥 VINCULA À LOJA
-});
+    await sb.from("clientes_profile").upsert({
+      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
+      nome,
+      whatsapp: whats,
+      email,
+      loja_ativa: lojaId // 🔥 vincula à loja
+    });
 
     clienteDB = { nome, whatsapp: whats, email };
 
     fecharModal();
 
-    // ⚡ se já tiver horário, confirma automaticamente
     if(confirmarDepois && dados?.hora){
       await confirmarAgendamento();
     }
@@ -949,9 +950,7 @@ if (modoNovoPainel) {
   clienteDB = null;
   try { localStorage.removeItem("CLIENTE_LOJA"); } catch {}
 }
-  
-} // ✅ FECHAMENTO CORRETO DA FUNÇÃO confirmar
-
+}
 
 function selecionarHorario(el, h){
 
