@@ -325,6 +325,13 @@ border:5px solid var(--primary);
 
 .btn-primary:active{ transform:scale(.98); }
 .btn-secondary:active{ transform:scale(.98); }
+
+/* 🔒 garante que nunca apareça no app do cliente */
+body:not([data-painel="1"]) #clienteModal {
+  display: none !important;
+}
+
+  
 </style>
 </head>
 
@@ -396,9 +403,15 @@ const lojaId = params.get("l");
 const servicoPreSelecionado = params.get("servico");
 const alterarId = params.get("alterar");
 const modoNovoPainel = params.get("novo") === "1";
+
 // 🔒 trava global: se estiver no app do cliente, nunca abre modal
 if(!modoNovoPainel){
   window.abrirModal = () => {};
+}
+
+// 🔒 marca o body quando for painel da loja
+if(modoNovoPainel){
+  document.body.setAttribute("data-painel", "1");
 }
 ;
 
@@ -872,11 +885,11 @@ async function salvarCliente(confirmarDepois = false){
     const whats = cliWhats.value.replace(/\D/g,"");
     const email = cliEmail.value.trim() || null;
 
-    if(nome.length < 3 || whats.length < 10){
-      alert("Informe nome completo e WhatsApp válido");
-      abrirModal(); // reabre se inválido
-      return;
-    }
+if(nome.length < 3 || whats.length < 10){
+  alert("Informe nome completo e WhatsApp válido");
+  if(modoNovoPainel) abrirModal(); 
+  return;
+}
 
     await sb.from("clientes_profile").upsert({
       id: usuarioLogado?.id || lojaId + "_" + Date.now(),
@@ -1281,7 +1294,16 @@ function normalizarTexto(str = ""){
     .replace(/[\u0300-\u036f]/g, "")  // remove os acentos
     .replace(/[^a-z0-9]/g, "");       // remove espaço e símbolos
 }  
-  
+
+
+// 🛡️ BLINDAGEM ABSOLUTA
+if(!modoNovoPainel){
+  const modal = document.getElementById("clienteModal");
+  if(modal){
+    modal.classList.add("hidden");
+    modal.style.display = "none";
+  }
+}
 </script>
 <!-- MODAL CLIENTE (PREMIUM CENTRALIZADO) -->
 <div id="clienteModal" class="hidden modal-root">
