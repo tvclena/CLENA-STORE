@@ -1264,45 +1264,7 @@ function selecionarClienteLoja(id, nome, whatsapp, email){
     confirmarAgendamento();
   }
 }
-async function salvarCliente(confirmarDepois = false){
-  if (salvandoCliente) return;
-  salvandoCliente = true;
 
-  fecharModal(); // ✅ FECHA O POP-UP AO CLICAR EM SALVAR
-
-  try{
-    const nome = cliNome.value.trim().toUpperCase();
-    const whats = cliWhats.value.replace(/\D/g,"");
-    const email = cliEmail.value.trim() || null;
-
-    if(nome.length < 3 || whats.length < 10){
-      alert("Informe nome completo e WhatsApp válido");
-      abrirModal(); // reabre se estiver inválido
-      return;
-    }
-
-    await sb.from("clientes_profile").upsert({
-      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
-      nome,
-      whatsapp: whats,
-      email,
-      loja_ativa: lojaId
-    });
-
-    clienteDB = { nome, whatsapp: whats, email };
-
-    if(confirmarDepois && dados?.hora){
-      await confirmarAgendamento();
-    }
-
-  } catch(e){
-    console.error(e);
-    abrirModal(); // reabre se der erro
-    alert("Erro ao salvar cliente");
-  } finally {
-    salvandoCliente = false;
-  }
-}
 
 function normalizarTexto(str = ""){
   return str
