@@ -896,25 +896,7 @@ async function salvarCliente(confirmarDepois = false){
       loja_ativa: lojaLogadaId   // ✅ loja real
     });
 
-    clienteDB = { nome, whatsapp: whats, email };
-
-    fecharModal();
-
-    if(confirmarDepois && dados?.hora){
-      setTimeout(() => confirmarAgendamento(), 120);
-    }
-
-  } catch(e){
-    console.error(e);
-    alert("Erro ao salvar cliente. Tente novamente.");
-  } finally {
-    btns.forEach(b => {
-      b.disabled = false;
-      b.style.opacity = 1;
-    });
-    salvandoCliente = false;
-  }
-}
+  
 
     clienteDB = { nome, whatsapp: whats, email };
 
