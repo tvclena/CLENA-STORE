@@ -300,7 +300,7 @@ const sb = supabase.createClient(
 );
 let usuarioLogado = null;
 let clienteDB = null;
-
+let confirmandoAgendamento = false; // 🔒 trava anti duplo clique
 async function verificarLogin(){
   const { data: { session } } = await sb.auth.getSession();
   usuarioLogado = session?.user || null;
@@ -398,9 +398,10 @@ const { data } = await sb
 
 
 
-  const container = document.getElementById("services");
+const container = document.getElementById("services");
+const lista = data || [];
 
- container.innerHTML = data.map(s=>`
+container.innerHTML = lista.map(s => `
   <div class="service"
        data-id="${s.id}"
        onclick="selecionarServico(
@@ -411,12 +412,9 @@ const { data } = await sb
        )">
        
     <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
-
     <div class="service-info">
       <div class="service-name">${s.nome}</div>
-<div class="service-price">
-  R$ ${formatarMoedaBR(s.preco)}
-</div>
+      <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
     </div>
   </div>
 `).join("");
@@ -718,27 +716,29 @@ function abrirModal(){
   const modal = document.getElementById("clienteModal");
   if(!modal.classList.contains("hidden")) return;
 
-  const cliente = getCliente(); // storage/Supabase
-  if(cliente){
-    cliNome.value = cliente.nome || "";
-    cliWhats.value = cliente.whatsapp || "";
-    cliEmail.value = cliente.email || "";
+  if(!modoNovoPainel){
+    const cliente = getCliente();
+    if(cliente){
+      cliNome.value = cliente.nome || "";
+      cliWhats.value = cliente.whatsapp || "";
+      cliEmail.value = cliente.email || "";
+    }
+  }else{
+    cliNome.value = "";
+    cliWhats.value = "";
+    cliEmail.value = "";
+    clienteDB = null;
   }
 
-  // 🔓 garante edição
-  cliNome.removeAttribute("disabled");
-  cliWhats.removeAttribute("disabled");
-  cliEmail.removeAttribute("disabled");
-  cliNome.removeAttribute("readonly");
-  cliWhats.removeAttribute("readonly");
-  cliEmail.removeAttribute("readonly");
-
   modal.classList.remove("hidden");
+
+  // 🔥 ativa a busca sempre que abrir
+  setTimeout(ativarBuscaClientes, 0);
 }
 
 
 function fecharModal(){
-  if(!clienteValido()) return;
+  if(!clienteValido() && !modoNovoPainel) return;
   document.getElementById("clienteModal").classList.add("hidden");
 }
 
@@ -1015,25 +1015,6 @@ duracaoTotal = dados.servicos
   .reduce((s, x) => s + x.duracao, 0);
 
 
-  container.innerHTML = dados.servicos.map(s => `
-    <div style="
-      display:flex;
-      align-items:center;
-      gap:8px;
-      background:#fff;
-      padding:8px 12px;
-      border-radius:14px;
-      font-weight:700;
-      box-shadow:0 6px 18px rgba(0,0,0,.15);
-    ">
-      ${s.nome}
-      <span onclick="removerServico('${s.id}')" style="
-        cursor:pointer;
-        color:#ef4444;
-        font-weight:900;
-      ">✖</span>
-    </div>
-  `).join("");
 }
 
 function removerServico(id){
@@ -1067,8 +1048,12 @@ function confirmarServicos(){
 
 async function confirmarAgendamento(){
 
+  if(confirmandoAgendamento) return;   // 🛑 bloqueia duplo clique
+  confirmandoAgendamento = true;
+
   if(!dados.hora){
     alert("Selecione um horário");
+    confirmandoAgendamento = false;
     return;
   }
 
@@ -1087,10 +1072,11 @@ async function confirmarAgendamento(){
 
   try{
     await confirmar(dados.hora);
-  }finally{
+  } finally {
     document.getElementById("overlayLoading")?.remove();
     btn.disabled = false;
     btn.innerText = "Confirmar agendamento";
+    confirmandoAgendamento = false; // 🔓 libera novamente
   }
 }
 
@@ -1109,11 +1095,13 @@ function formatarMoedaBR(valor){
 
 
 
+function ativarBuscaClientes(){
 
-const buscaInput = document.getElementById("buscaCliente");
-const lista = document.getElementById("listaClientes");
+  const buscaInput = document.getElementById("buscaCliente");
+  const lista = document.getElementById("listaClientes");
 
-if (buscaInput && lista) {
+  if (!buscaInput || !lista) return;
+
   let timer = null;
 
   buscaInput.addEventListener("input", () => {
@@ -1129,14 +1117,23 @@ if (buscaInput && lista) {
       const clientes = await buscarClientesLoja(termo);
 
       if (!clientes.length) {
-        lista.innerHTML = `<div style="padding:10px;color:#6b7280">Nenhum cliente encontrado</div>`;
+        lista.innerHTML = `
+          <div style="padding:10px;color:#6b7280">
+            Nenhum cliente encontrado — você pode cadastrar
+          </div>
+        `;
         lista.style.display = "block";
         return;
       }
 
       lista.innerHTML = clientes.map(c => `
-        <div onclick="selecionarClienteLoja('${c.id}','${c.nome}','${c.whatsapp}','${c.email || ""}')"
-             style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
+        <div onclick="selecionarClienteLoja(
+          '${c.id}',
+          '${c.nome}',
+          '${c.whatsapp}',
+          '${c.email || ""}'
+        )"
+        style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
           <strong>${c.nome}</strong><br>
           <small>${c.whatsapp}</small>
         </div>
@@ -1156,9 +1153,13 @@ function selecionarClienteLoja(id, nome, whatsapp, email){
 
   const lista = document.getElementById("listaClientes");
   if(lista) lista.style.display = "none";
+
+  // feedback visual
+  document.getElementById("buscaCliente").value = nome;
+
+  // 🔥 fecha o modal e segue o fluxo normal
+  fecharModal();
 }
-
-
 
 
   
