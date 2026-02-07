@@ -822,8 +822,9 @@ function abrirModal(){
 
 
 function fecharModal(){
-  if(!clienteValido() && !modoNovoPainel) return;
-  document.getElementById("clienteModal").classList.add("hidden");
+  const modal = document.getElementById("clienteModal");
+  if(!modal) return;
+  modal.classList.add("hidden");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1235,26 +1236,45 @@ function ativarBuscaClientes(){
   });
 }
 
-function selecionarClienteLoja(id, nome, whatsapp, email){
-  cliNome.value = nome;
-  cliWhats.value = whatsapp;
-  cliEmail.value = email || "";
+async function salvarCliente(confirmarDepois = false){
+  if (salvandoCliente) return;
+  salvandoCliente = true;
 
-  clienteDB = { id, nome, whatsapp, email };
+  fecharModal(); // ✅ FECHA O POP-UP AO CLICAR EM SALVAR
 
-  const lista = document.getElementById("listaClientes");
-  if(lista) lista.style.display = "none";
+  try{
+    const nome = cliNome.value.trim().toUpperCase();
+    const whats = cliWhats.value.replace(/\D/g,"");
+    const email = cliEmail.value.trim() || null;
 
-  document.getElementById("buscaCliente").value = nome;
+    if(nome.length < 3 || whats.length < 10){
+      alert("Informe nome completo e WhatsApp válido");
+      abrirModal(); // reabre se estiver inválido
+      return;
+    }
 
-  fecharModal(); // 🔥 fecha na hora
+    await sb.from("clientes_profile").upsert({
+      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
+      nome,
+      whatsapp: whats,
+      email,
+      loja_ativa: lojaId
+    });
 
-  // 🔥 se já tinha horário, continua agendamento automaticamente
-  if(dados?.hora){
-    confirmarAgendamento();
+    clienteDB = { nome, whatsapp: whats, email };
+
+    if(confirmarDepois && dados?.hora){
+      await confirmarAgendamento();
+    }
+
+  } catch(e){
+    console.error(e);
+    abrirModal(); // reabre se der erro
+    alert("Erro ao salvar cliente");
+  } finally {
+    salvandoCliente = false;
   }
 }
-
 
   
   
