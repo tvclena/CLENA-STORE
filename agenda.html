@@ -10,6 +10,7 @@
   gtag('config', 'G-T97MS35TJ6');
 </script>
 <title>Agenda • Agenda Fácil</title>
+
 <meta name="viewport"
   content="width=device-width,
   initial-scale=1,
@@ -230,9 +231,23 @@ html,body{
 
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
+
   <h1 id="monthLabel"></h1>
+
+ <select id="seletorColaborador"
+  style="
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:6px 10px;
+    font-weight:700;
+    font-size:12px;
+  ">
+</select>
+
+
   <button onclick="changeMonth(1)">▶</button>
 </div>
+
 
 <div class="calendar">
   <div class="weekdays">
@@ -274,15 +289,75 @@ const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+let lojaId;
+let colaboradorSelecionado = "LOJA";
 
-let userId, agenda={}, current=new Date(), selected="", dirty=false;
+let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
 
-(async()=>{
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session) location.href="login.html";
-  userId=session.user.id;
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) location.href = "login.html";
+
+  lojaId = session.user.id;
+
+  await carregarColaboradores();
+
+  // 🔥 herda do home se existir
+ if (
+  window.parent &&
+  window.parent.profissionalSelecionado &&
+  window.parent.profissionalSelecionado !== "LOJA" &&
+  /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
+) {
+  colaboradorSelecionado = window.parent.profissionalSelecionado;
+  document.getElementById("seletorColaborador").value = colaboradorSelecionado;
+}
+
+
+  definirUserId();
   carregar();
 })();
+async function carregarColaboradores(){
+  const select = document.getElementById("seletorColaborador");
+
+  // limpa tudo e recria corretamente
+  select.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
+
+  const { data } = await sb
+    .from("colaboradores")
+    .select("id, nome")
+    .eq("loja_id", lojaId)
+    .eq("ativo", true)
+    .order("nome");
+
+  (data || []).forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    select.appendChild(opt);
+  });
+
+  select.onchange = () => {
+    colaboradorSelecionado = select.value;
+    definirUserId();
+    carregar();
+  };
+}
+
+function definirUserId(){
+  if (
+    colaboradorSelecionado &&
+    colaboradorSelecionado !== "LOJA" &&
+    /^[0-9a-f-]{36}$/i.test(colaboradorSelecionado)
+  ) {
+    userId = colaboradorSelecionado; // agenda do colaborador
+  } else {
+    userId = lojaId; // agenda da loja
+  }
+}
+
+
+
 
 function changeMonth(v){
   current.setMonth(current.getMonth()+v);
