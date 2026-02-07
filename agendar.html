@@ -396,7 +396,10 @@ const lojaId = params.get("l");
 const servicoPreSelecionado = params.get("servico");
 const alterarId = params.get("alterar");
 const modoNovoPainel = params.get("novo") === "1";
-
+// 🔒 trava global: se estiver no app do cliente, nunca abre modal
+if(!modoNovoPainel){
+  window.abrirModal = () => {};
+}
 ;
 
 let dados = {
@@ -805,7 +808,6 @@ function clienteValido(){
   return !!(c?.nome && c?.whatsapp);
 }
 
-
 function abrirModal(){
   // 🚫 NUNCA abre no app do cliente
   if(!modoNovoPainel) return;
@@ -908,7 +910,7 @@ async function confirmar(h){
 
   const cliente = getCliente();
 
- if(!cliente?.whatsapp){
+if(!cliente?.whatsapp){
   if(modoNovoPainel){
     abrirModal();   // só abre no painel da loja
   }else{
@@ -916,7 +918,6 @@ async function confirmar(h){
   }
   return;
 }
-
 const fim = toHour(toMin(h) + duracaoTotal);
 
   // 🔁 DEFINE ENDPOINT CORRETO
