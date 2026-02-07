@@ -847,6 +847,9 @@ async function salvarCliente(confirmarDepois = false){
   if (salvandoCliente) return; // 🛑 bloqueia duplo clique
   salvandoCliente = true;
 
+  // 🔥 FECHA O MODAL IMEDIATAMENTE (UX premium)
+  fecharModal();
+
   const btns = document.querySelectorAll('#clienteModal button');
   btns.forEach(b => {
     b.disabled = true;
@@ -860,6 +863,7 @@ async function salvarCliente(confirmarDepois = false){
 
     if(nome.length < 3 || whats.length < 10){
       alert("Informe nome completo e WhatsApp válido");
+      abrirModal(); // reabre se inválido
       return;
     }
 
@@ -868,16 +872,19 @@ async function salvarCliente(confirmarDepois = false){
       nome,
       whatsapp: whats,
       email,
-      loja_ativa: lojaId // 🔥 vincula à loja
+      loja_ativa: lojaId
     });
 
     clienteDB = { nome, whatsapp: whats, email };
 
-    fecharModal();
-
     if(confirmarDepois && dados?.hora){
       await confirmarAgendamento();
     }
+
+  } catch(e){
+    console.error(e);
+    abrirModal(); // reabre se der erro
+    alert("Erro ao salvar cliente");
   } finally {
     btns.forEach(b => {
       b.disabled = false;
@@ -1238,11 +1245,14 @@ function selecionarClienteLoja(id, nome, whatsapp, email){
   const lista = document.getElementById("listaClientes");
   if(lista) lista.style.display = "none";
 
-  // feedback visual
   document.getElementById("buscaCliente").value = nome;
 
-  // 🔥 fecha o modal e segue o fluxo normal
-  fecharModal();
+  fecharModal(); // 🔥 fecha na hora
+
+  // 🔥 se já tinha horário, continua agendamento automaticamente
+  if(dados?.hora){
+    confirmarAgendamento();
+  }
 }
 
 
