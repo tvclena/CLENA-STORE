@@ -807,29 +807,22 @@ function clienteValido(){
 
 
 function abrirModal(){
-  const modal = document.getElementById("clienteModal");
-  if(!modal.classList.contains("hidden")) return;
+  // 🚫 NUNCA abre no app do cliente
+  if(!modoNovoPainel) return;
 
-  if(!modoNovoPainel){
-    const cliente = getCliente();
-    if(cliente){
-      cliNome.value = cliente.nome || "";
-      cliWhats.value = cliente.whatsapp || "";
-      cliEmail.value = cliente.email || "";
-    }
-  }else{
-    cliNome.value = "";
-    cliWhats.value = "";
-    cliEmail.value = "";
-    clienteDB = null;
-  }
+  const modal = document.getElementById("clienteModal");
+  if(!modal || !modal.classList.contains("hidden")) return;
+
+  cliNome.value = "";
+  cliWhats.value = "";
+  cliEmail.value = "";
+  clienteDB = null;
 
   modal.classList.remove("hidden");
 
   // 🔥 ativa a busca sempre que abrir
   setTimeout(ativarBuscaClientes, 0);
 }
-
 
 function fecharModal(){
   const modal = document.getElementById("clienteModal");
@@ -915,10 +908,14 @@ async function confirmar(h){
 
   const cliente = getCliente();
 
-  if(!cliente?.whatsapp){
-    abrirModal();
-    return;
+ if(!cliente?.whatsapp){
+  if(modoNovoPainel){
+    abrirModal();   // só abre no painel da loja
+  }else{
+    alert("Preencha seus dados para confirmar o agendamento.");
   }
+  return;
+}
 
 const fim = toHour(toMin(h) + duracaoTotal);
 
