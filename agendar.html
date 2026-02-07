@@ -702,12 +702,20 @@ function abrirModal(){
   const modal = document.getElementById("clienteModal");
   if(!modal.classList.contains("hidden")) return;
 
-  const cliente = getCliente(); // já busca do storage / Supabase
+  const cliente = getCliente(); // storage/Supabase
   if(cliente){
     cliNome.value = cliente.nome || "";
     cliWhats.value = cliente.whatsapp || "";
     cliEmail.value = cliente.email || "";
   }
+
+  // 🔓 garante edição
+  cliNome.removeAttribute("disabled");
+  cliWhats.removeAttribute("disabled");
+  cliEmail.removeAttribute("disabled");
+  cliNome.removeAttribute("readonly");
+  cliWhats.removeAttribute("readonly");
+  cliEmail.removeAttribute("readonly");
 
   modal.classList.remove("hidden");
 }
@@ -1069,10 +1077,14 @@ function formatarMoedaBR(valor){
   
 </script>
 <!-- MODAL CLIENTE -->
-<div id="clienteModal" class="hidden">
-  <div class="overlay" onclick="fecharModal()"></div>
+<div id="clienteModal" class="hidden" style="position:fixed; inset:0; z-index:10000;">
+  <div class="overlay" onclick="fecharModal()" style="position:absolute; inset:0;"></div>
 
-  <div class="msg-final" style="max-width:380px">
+  <div class="msg-final" style="
+    position:relative;
+    z-index:10001;   /* 🔥 card acima do overlay */
+    max-width:380px
+  ">
     <h2 style="margin-bottom:6px">Seus dados</h2>
     <p style="color:#6b7280;margin-bottom:10px">
       Precisamos dessas informações para confirmar seu agendamento
@@ -1087,6 +1099,5 @@ function formatarMoedaBR(valor){
     </button>
   </div>
 </div>
-
 </body>
 </html>
