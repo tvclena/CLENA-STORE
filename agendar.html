@@ -1235,7 +1235,25 @@ function ativarBuscaClientes(){
     }, 300);
   });
 }
+function selecionarClienteLoja(id, nome, whatsapp, email){
+  cliNome.value = nome;
+  cliWhats.value = whatsapp;
+  cliEmail.value = email || "";
 
+  clienteDB = { id, nome, whatsapp, email };
+
+  const lista = document.getElementById("listaClientes");
+  if(lista) lista.style.display = "none";
+
+  document.getElementById("buscaCliente").value = nome;
+
+  fecharModal(); // ✅ FECHA O POP-UP AO ESCOLHER O CLIENTE
+
+  // 👉 Se já tiver horário escolhido, continua o fluxo automaticamente
+  if(dados?.hora){
+    confirmarAgendamento();
+  }
+}
 async function salvarCliente(confirmarDepois = false){
   if (salvandoCliente) return;
   salvandoCliente = true;
