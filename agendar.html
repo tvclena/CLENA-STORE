@@ -834,9 +834,14 @@ function abrirModal(){
 function fecharModal(){
   const modal = document.getElementById("clienteModal");
   if(!modal) return;
-  modal.classList.add("hidden");
-}
 
+  modal.classList.add("hidden");
+  modal.style.pointerEvents = "none";   // 🔥 bloqueia clique residual
+
+  setTimeout(() => {
+    modal.style.pointerEvents = "auto"; // libera depois
+  }, 300);
+}
 document.addEventListener("DOMContentLoaded", () => {
   const whatsInput = document.getElementById("cliWhats");
   if(!whatsInput) return;
@@ -887,15 +892,17 @@ async function salvarCliente(confirmarDepois = false){
     });
 
     clienteDB = { nome, whatsapp: whats, email };
+if(confirmarDepois && dados?.hora){
+  setTimeout(() => confirmarAgendamento(), 120); // 🔥 delay evita reabrir modal
+}
 
-    if(confirmarDepois && dados?.hora){
-      await confirmarAgendamento();
-    }
 
-  } catch(e){
-    console.error(e);
-alert("Erro ao confirmar agendamento. Tente novamente.");    alert("Erro ao salvar cliente");
-  } finally {
+} catch(e){
+  console.error(e);
+  alert("Erro ao salvar cliente. Tente novamente.");
+}
+  
+  finally {
     btns.forEach(b => {
       b.disabled = false;
       b.style.opacity = 1;
@@ -907,7 +914,8 @@ alert("Erro ao confirmar agendamento. Tente novamente.");    alert("Erro ao salv
 async function confirmar(h){
 
   const cliente = getCliente();
-  if(!cliente){
+
+  if(!cliente?.whatsapp){
     abrirModal();
     return;
   }
