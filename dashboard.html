@@ -1051,17 +1051,7 @@ function go(el, key){
     frames[key].classList.add("active");
   }
 }
-// ================= MULTI-AGENDA: PROFISSIONAL ATIVO =================
-function setProfissionalAtivo(idOuLOJA){
-  // idOuLOJA = "LOJA" ou UUID do colaborador
-  window.profissionalSelecionado = idOuLOJA;
 
-  // se a agenda estiver aberta, recarrega pra herdar o contexto
-  const frameAgenda = document.getElementById("frame-agenda");
-  if (frameAgenda && frameAgenda.contentWindow) {
-    frameAgenda.contentWindow.location.reload();
-  }
-}
 // ⬇️ DEFINA AQUI QUAIS IFRAMES PODEM ATUALIZAR
 const AUTO_REFRESH_FRAMES = [
   "frame-teste",
