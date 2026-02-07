@@ -825,6 +825,9 @@ function abrirModal(){
   // 🚫 NUNCA abre no app do cliente
   if(!modoNovoPainel) return;
 
+  // 🚫 cliente final logado nunca vê modal
+  if(usuarioLogado && clienteDB?.whatsapp) return;
+
   const modal = document.getElementById("clienteModal");
   if(!modal || !modal.classList.contains("hidden")) return;
 
@@ -835,7 +838,6 @@ function abrirModal(){
 
   modal.classList.remove("hidden");
 
-  // 🔥 ativa a busca sempre que abrir
   setTimeout(ativarBuscaClientes, 0);
 }
 
