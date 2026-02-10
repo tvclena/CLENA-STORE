@@ -1279,7 +1279,17 @@ html.theme-ready{
   pointer-events: none;
 }
 
+/* 🔒 trava layout da imagem no modal (evita balanço) */
+.modal-img,
+.modal-img-mini{
+  min-height: 260px;      /* mobile */
+}
 
+@media (min-width: 769px){
+  .modal-img{
+    min-height: 100%;
+  }
+}
 
 
 
@@ -1853,10 +1863,11 @@ if (produtoAtual.tipo === "PRODUTO") {
   carregarRelacionados();
   configurarBotaoAcaoModal();
 
-  iniciarAutoplay(); // 🔥 AQUI
+document.body.classList.add("modal-open");
+modalProduto.style.display = "flex";
 
-  document.body.classList.add("modal-open");
-  modalProduto.style.display = "flex";
+// espera o modal abrir pra iniciar o carrossel
+setTimeout(() => iniciarAutoplay(), 120);
 }
 
 
