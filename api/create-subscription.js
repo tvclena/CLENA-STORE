@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const valor = 129.9;
+    const valor = 29.9;
 
     const payment = await paymentClient.create({
       body: {
