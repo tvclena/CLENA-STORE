@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#ff6a00" />
+<title>Contas a Pagar</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --bg:#f4f6fb;
+  --card:#fff;
+  --muted:#6b7280;
+  --danger:#dc2626;
+  --success:#16a34a;
+  --radius:22px;
+  --shadow:0 18px 50px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;font-family:Inter;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+
+.header{
+  position:sticky;top:0;z-index:10;
+  background:#fff;border-bottom:1px solid var(--border);
+  padding:14px 16px 12px;
+}
+.header h1{margin:0;font-size:18px;font-weight:900}
+.filters{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:10px}
+.search{display:flex;gap:8px;align-items:center;background:#f3f4f6;padding:10px 14px;border-radius:999px}
+.search input{border:none;background:transparent;outline:none;width:100%}
+.list{padding:12px 12px 90px;overflow:auto;height:calc(100vh - 96px)}
+
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.badge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:999px}
+.badge.pendente{background:#fff7ed;color:#c2410c}
+.badge.pago{background:#ecfdf5;color:#16a34a}
+.valor{font-size:20px;font-weight:900;margin:6px 0}
+.meta{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;border:none;border-radius:999px;padding:10px;font-weight:900;cursor:pointer}
+.btn-pay{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff}
+.btn-edit{background:#f3f4f6}
+.btn-danger{background:#fee2e2;color:#dc2626}
+
+.fab{
+  position:fixed;right:16px;bottom:16px;
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;font-size:26px;border:none;
+  box-shadow:0 20px 60px rgba(255,106,0,.45);
+}
+
+/* MODAIS */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;z-index:20}
+.box{background:#fff;width:100%;max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;padding:20px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{font-size:12px;color:var(--muted)}
+.field input,.field select{padding:12px;border-radius:12px;border:1px solid var(--border)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save{margin-top:6px;width:100%;padding:14px;border:none;border-radius:999px;background:var(--primary);color:#fff;font-weight:900}
+.secondary{background:#f3f4f6;color:#111}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Contas a pagar</h1>
+  <div class="filters">
+    <div class="search">
+      <i class="ri-search-line"></i>
+      <input id="busca" placeholder="Buscar fornecedor, plano, valor..." />
+    </div>
+    <button class="secondary" onclick="carregar()">Atualizar</button>
+  </div>
+</div>
+
+<div class="list" id="lista"></div>
+
+<button class="fab" onclick="abrirModal()">+</button>
+
+<!-- MODAL CADASTRO -->
+<div class="modal" id="modalCadastro" onclick="fecharModal(event)">
+  <div class="box" onclick="event.stopPropagation()">
+    <h3>Nova conta a pagar</h3>
+
+    <div class="field">
+      <label>Fornecedor</label>
+      <input id="fornecedor" placeholder="Buscar ou cadastrar">
+    </div>
+
+    <div class="field">
+      <label>Plano de contas</label>
+      <input id="plano" placeholder="Buscar ou cadastrar">
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Emissão</label>
+        <input id="emissao" type="date">
+      </div>
+      <div class="field">
+        <label>Vencimento</label>
+        <input id="vencimento" type="date">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Valor</label>
+        <input id="valor" inputmode="decimal" placeholder="0,00">
+      </div>
+      <div class="field">
+        <label>Meio de pagamento</label>
+        <select id="meio">
+          <option value="PIX">PIX</option>
+          <option value="BOLETO">Boleto</option>
+          <option value="CREDITO">Crédito</option>
+          <option value="DEBITO">Débito</option>
+          <option value="DINHEIRO">Dinheiro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Conta bancária</label>
+      <input id="conta" placeholder="Buscar ou cadastrar">
+    </div>
+
+    <button class="save" onclick="salvar()">Salvar</button>
+  </div>
+</div>
+
+<!-- MODAL LIQUIDAR -->
+<div class="modal" id="modalLiquidar" onclick="fecharLiquidar(event)">
+  <div class="box" onclick="event.stopPropagation()">
+    <h3>Liquidar conta</h3>
+    <p style="font-size:13px;color:#6b7280">O pagamento foi do valor total?</p>
+
+    <div class="row">
+      <button class="save" onclick="confirmarLiquidacao(true)">Valor total</button>
+      <button class="secondary" onclick="confirmarLiquidacao(false)">Alterar valor</button>
+    </div>
+
+    <div id="editarValorBox" style="display:none;margin-top:10px">
+      <input id="novoValor" placeholder="Novo valor pago" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border)">
+      <button class="save" style="margin-top:8px" onclick="confirmarLiquidacao('edit')">Confirmar valor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = window.parent?.APP_CONTEXT?.userId || null;
+let contaSelecionada = null;
+
+async function carregar(){
+  if(!lojaId) return;
+
+  const { data, error } = await sb
+    .from("contas_pagar")
+    .select("*, fornecedores(nome), planos_contas(nome), contas_bancarias(nome)")
+    .eq("loja_id", lojaId)
+    .order("vencimento", { ascending: true });
+
+  if(error){ console.error(error); return; }
+
+  render(data || []);
+}
+
+function render(lista){
+  const el = document.getElementById("lista");
+  el.innerHTML = "";
+
+  lista.forEach(c => {
+    const status = c.status || "PENDENTE";
+    const badgeClass = status === "PAGO" ? "pago" : "pendente";
+
+    el.innerHTML += `
+      <div class="card">
+        <div class="top">
+          <strong>${c.fornecedores?.nome || "Fornecedor"}</strong>
+          <span class="badge ${badgeClass}">${status}</span>
+        </div>
+        <div class="valor">R$ ${Number(c.valor).toFixed(2).replace(".",",")}</div>
+        <div class="meta">
+          Venc: ${c.vencimento || "-"} • 
+          ${c.planos_contas?.nome || "Plano"} • 
+          ${c.meio_pagamento || "-"}
+        </div>
+        <div class="actions">
+          ${status === "PENDENTE" ? `<button class="btn btn-pay" onclick="abrirLiquidar('${c.id}')">Liquidar</button>` : ``}
+          <button class="btn btn-edit" onclick="editar('${c.id}')">Editar</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function abrirModal(){ modalCadastro.style.display="flex"; }
+function fecharModal(e){ if(e && e.target!==modalCadastro) return; modalCadastro.style.display="none"; }
+
+async function salvar(){
+  const payload = {
+    loja_id: lojaId,
+    fornecedor_nome: fornecedor.value.trim(),
+    plano_nome: plano.value.trim(),
+    emissao: emissao.value,
+    vencimento: vencimento.value,
+    valor: parseFloat(valor.value.replace(",", ".")),
+    meio_pagamento: meio.value,
+    conta_nome: conta.value.trim(),
+    status: "PENDENTE"
+  };
+
+  const { error } = await sb.from("contas_pagar").insert(payload);
+  if(error) return alert(error.message);
+
+  modalCadastro.style.display="none";
+  carregar();
+}
+
+function abrirLiquidar(id){
+  contaSelecionada = id;
+  modalLiquidar.style.display = "flex";
+}
+
+function fecharLiquidar(e){ if(e && e.target!==modalLiquidar) return; modalLiquidar.style.display="none"; editarValorBox.style.display="none"; }
+
+async function confirmarLiquidacao(tipo){
+  if(!contaSelecionada) return;
+
+  let valorPago = null;
+  if(tipo === true){
+    // paga valor total
+  } else if(tipo === "edit"){
+    valorPago = parseFloat(novoValor.value.replace(",", "."));
+    if(!valorPago) return alert("Informe o valor pago");
+  } else {
+    editarValorBox.style.display="block";
+    return;
+  }
+
+  const { error } = await sb
+    .from("contas_pagar")
+    .update({
+      status: "PAGO",
+      valor_pago: valorPago || null,
+      data_pagamento: new Date().toISOString()
+    })
+    .eq("id", contaSelecionada);
+
+  if(error) return alert(error.message);
+
+  modalLiquidar.style.display="none";
+  editarValorBox.style.display="none";
+  carregar();
+}
+
+document.addEventListener("DOMContentLoaded", carregar);
+</script>
+
+</body>
+</html>
