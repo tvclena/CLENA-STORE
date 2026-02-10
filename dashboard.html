@@ -379,7 +379,72 @@ iframe{
   margin-top:0; /* remove o margin antigo */
 }
 
+/* ===== CONFIG MENU ===== */
+.nav-config{
+  position:relative;
+}
 
+.config-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+
+.config-btn .gear{
+  transition:transform .35s ease;
+}
+
+.nav-config.open .gear{
+  transform:rotate(180deg);
+}
+
+/* SUBMENU */
+.config-menu{
+  position:absolute;
+  bottom:calc(100% + 10px); /* sobe pra cima da navbar */
+  left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.18);
+  padding:8px;
+  min-width:170px;
+  display:none;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s ease;
+  border:1px solid var(--border);
+  z-index:999;
+}
+
+.nav-config.open .config-menu{
+  display:block;
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+  pointer-events:auto;
+}
+
+/* ITENS */
+.config-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  color:#111827;
+}
+
+.config-item i{
+  font-size:16px;
+}
+
+.config-item:hover{
+  background:#f3f4f6;
+}
 
 
 
@@ -513,10 +578,38 @@ iframe{
     Pedidos
   </div>
 
-  <div class="nav-item" onclick="go(this,'config')">
-    <i class="ri-settings-3-line"></i>
+<div class="nav-item nav-config" id="navConfig">
+
+  <!-- BOTÃO PRINCIPAL -->
+  <div class="config-btn" onclick="toggleConfigMenu(event)">
+    <i class="ri-settings-3-line gear"></i>
     Ajustes
   </div>
+
+  <!-- SUBMENU (SOBE PRA CIMA) -->
+  <div class="config-menu" id="configMenu">
+    <div class="config-item" onclick="goFromMenu(this,'config')">
+      <i class="ri-settings-4-line"></i>
+      Configurações
+    </div>
+
+    <div class="config-item" onclick="goFromMenu(this,'produtos')">
+      <i class="ri-store-2-line"></i>
+      Produtos
+    </div>
+
+    <div class="config-item" onclick="goFromMenu(this,'agenda')">
+      <i class="ri-calendar-line"></i>
+      Agenda
+    </div>
+
+    <div class="config-item" onclick="goFromMenu(this,'pedidos')">
+      <i class="ri-shopping-bag-3-line"></i>
+      Pedidos
+    </div>
+  </div>
+
+</div>
 
 </nav>
 
@@ -1051,6 +1144,36 @@ function go(el, key){
     frames[key].classList.add("active");
   }
 }
+
+
+
+function toggleConfigMenu(e){
+  e.stopPropagation();
+  document.getElementById("navConfig").classList.toggle("open");
+}
+
+/* Fecha menu ao clicar fora */
+document.addEventListener("click", () => {
+  document.getElementById("navConfig").classList.remove("open");
+});
+
+/* Abre iframe normalmente + fecha menu */
+function goFromMenu(el, key){
+  document.querySelectorAll(".nav-item")
+    .forEach(i => i.classList.remove("active"));
+
+  document.getElementById("navConfig").classList.add("active");
+
+  Object.values(frames).forEach(f => f.classList.remove("active"));
+
+  if (frames[key]) frames[key].classList.add("active");
+
+  document.getElementById("navConfig").classList.remove("open");
+}
+
+
+
+  
 // ================= MULTI-AGENDA: PROFISSIONAL ATIVO =================
 function setProfissionalAtivo(idOuLOJA){
   // idOuLOJA = "LOJA" ou UUID do colaborador
