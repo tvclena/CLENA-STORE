@@ -447,6 +447,24 @@ body::-webkit-scrollbar{
   transform:scale(.92);
 }
 
+/* ===== CREDIÁRIO (visual laranja) ===== */
+.agenda-item.crediario{
+  border-color:#fed7aa;
+  background:linear-gradient(180deg,#fff7ed,#ffffff);
+}
+.agenda-item.crediario .agenda-hora{
+  background:#ffedd5;
+  color:#9a3412;
+}
+.agenda-item.crediario .valor{
+  color:#f97316;
+}
+.badge.crediario{
+  background:#ffedd5;
+  color:#9a3412;
+}
+
+  
 </style>
 </head>
 
@@ -704,8 +722,8 @@ agenda.forEach(a => {
     ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
     : "#";
 
- box.innerHTML += `
-  <div class="agenda-item">
+box.innerHTML += `
+  <div class="agenda-item ${a.status === "CREDIARIO" ? "crediario" : ""}">
 
     <div class="agenda-hora">
       ${hora}
@@ -728,11 +746,12 @@ agenda.forEach(a => {
     <div class="agenda-actions">
       <a href="${whatsapp}" target="_blank">Whats</a>
 
-      <select onchange="alterarStatus('${a.id}', this.value)">
-        <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
-        <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
-        <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
-      </select>
+<select onchange="alterarStatus('${a.id}', this.value)">
+  <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
+  <option value="CREDIARIO" ${a.status==="CREDIARIO"?"selected":""}>CREDIÁRIO</option>
+  <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
+  <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
+</select>
     </div>
 
   </div>
