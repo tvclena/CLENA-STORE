@@ -70,13 +70,13 @@ html,body{height:100%;background:var(--bg)}
 <body>
 <div class="page">
   <div class="header">
-    <h2>A Receber (Fiado)</h2>
-    <p>Agendamentos fiados aguardando pagamento</p>
+    <h2>A Receber</h2>
+    <p>Crediários aguardando pagamento</p>
   </div>
 
   <div class="content">
     <div class="list" id="list"></div>
-    <div class="empty" id="empty" style="display:none">Nenhum fiado pendente 🎉</div>
+    <div class="empty" id="empty" style="display:none">Nenhum crediário pendente 🎉</div>
   </div>
 
   <div class="footer">
@@ -109,7 +109,7 @@ async function listar(){
     .from("agendamentos")
     .select("id, data, cliente_nome, cliente_id, valor_total, status, servicos")
     .eq("user_id", userId)
-    .eq("status", "FIADO")
+    .eq("status", "CREDIARIO")
     .order("data",{ascending:true});
 
   const list = document.getElementById("list");
@@ -151,7 +151,7 @@ async function listar(){
         <h4>${r.cliente_nome || "Cliente"}</h4>
         <div class="muted">${getServicoNome(r.servicos)}</div>
         <div class="line">🗓 ${dataFmt(r.data)}</div>
-        <span class="badge">FIADO</span>
+        <span class="badge">CREDIARIO</span>
       </div>
 
       <div style="text-align:right">
