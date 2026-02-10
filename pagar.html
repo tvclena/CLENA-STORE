@@ -210,24 +210,65 @@ function render(lista){
 function abrirModal(){ modalCadastro.style.display="flex"; }
 function fecharModal(e){ if(e && e.target!==modalCadastro) return; modalCadastro.style.display="none"; }
 
+async function getOrCreate(table, nomeCampo, nomeValor){
+  const { data: existente, error: e1 } = await sb
+    .from(table)
+    .select("id")
+    .eq("loja_id", lojaId)
+    .ilike(nomeCampo, nomeValor)
+    .maybeSingle();
+
+  if(e1) throw e1;
+
+  if(existente) return existente.id;
+
+  const { data: novo, error: e2 } = await sb
+    .from(table)
+    .insert({ loja_id: lojaId, [nomeCampo]: nomeValor })
+    .select("id")
+    .single();
+
+  if(e2) throw e2;
+
+  return novo.id;
+}
+
 async function salvar(){
-  const payload = {
-    loja_id: lojaId,
-    fornecedor_nome: fornecedor.value.trim(),
-    plano_nome: plano.value.trim(),
-    emissao: emissao.value,
-    vencimento: vencimento.value,
-    valor: parseFloat(valor.value.replace(",", ".")),
-    meio_pagamento: meio.value,
-    conta_nome: conta.value.trim(),
-    status: "PENDENTE"
-  };
+  try{
+    const fornecedorNome = fornecedor.value.trim();
+    const planoNome = plano.value.trim();
+    const contaNome = conta.value.trim();
 
-  const { error } = await sb.from("contas_pagar").insert(payload);
-  if(error) return alert(error.message);
+    if(!fornecedorNome || !planoNome || !contaNome){
+      return alert("Preencha fornecedor, plano e conta bancária");
+    }
 
-  modalCadastro.style.display="none";
-  carregar();
+    const fornecedorId = await getOrCreate("fornecedores", "nome", fornecedorNome);
+    const planoId = await getOrCreate("planos_contas", "nome", planoNome);
+    const contaId = await getOrCreate("contas_bancarias", "nome", contaNome);
+
+    const payload = {
+      loja_id: lojaId,
+      fornecedor_id: fornecedorId,
+      plano_conta_id: planoId,
+      conta_bancaria_id: contaId,
+      emissao: emissao.value,
+      vencimento: vencimento.value,
+      valor: parseFloat(valor.value.replace(",", ".")),
+      meio_pagamento: meio.value,
+      status: "PENDENTE"
+    };
+
+    const { error } = await sb.from("contas_pagar").insert(payload);
+    if(error) throw error;
+
+    modalCadastro.style.display = "none";
+    carregar();
+
+  }catch(err){
+    console.error(err);
+    alert("Erro ao salvar: " + err.message);
+  }
 }
 
 function abrirLiquidar(id){
