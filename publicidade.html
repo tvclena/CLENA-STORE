@@ -3,163 +3,214 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Publicidade • Agenda Fácil</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Publicidade • Clena Marketing</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
 <style>
 :root{
   --primary:#ff6a00;
-  --bg:#f8fafc;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --text:#111827;
-  --muted:#6b7280;
+  --bg:#0b0b0f;
+  --card:#111217;
+  --border:rgba(255,255,255,.08);
+  --text:#f8fafc;
+  --muted:#9ca3af;
   --success:#16a34a;
+  --ig1:#f58529;
+  --ig2:#dd2a7b;
+  --ig3:#8134af;
 }
 *{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
-html,body{height:100%;background:var(--bg)}
-.page{height:100%;display:flex;flex-direction:column}
-.header{padding:16px 16px 10px}
-.header h2{font-size:18px;font-weight:900}
-.header p{font-size:12px;color:var(--muted)}
-.content{flex:1;overflow:auto;padding:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.card{
-  background:var(--card);
+html,body{height:100%;background:radial-gradient(1200px 600px at 10% -10%, #1b0f07, transparent 60%), var(--bg); color:var(--text)}
+.page{min-height:100%;display:flex;flex-direction:column}
+.header{
+  padding:22px 18px 10px;
+}
+.badge{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.04em;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#111;
+  margin-bottom:10px;
+}
+.header h1{font-size:22px;font-weight:900;margin-bottom:6px}
+.header p{font-size:13px;color:var(--muted)}
+
+.hero{
+  margin:10px 16px 0;
+  background:linear-gradient(135deg, rgba(255,106,0,.18), rgba(221,42,123,.12));
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.04);
+  border-radius:22px;
+  padding:16px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
 }
-.card h3{font-size:14px;margin-bottom:6px}
-.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.hero .row{
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+}
+.hero .ig{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,var(--ig1),var(--ig2),var(--ig3));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:22px; box-shadow:0 10px 30px rgba(221,42,123,.45);
+}
+.hero strong{font-size:16px}
+.hero .desc{font-size:12px;color:var(--muted)}
+
+.content{padding:16px; display:grid; gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+
+.card{
+  background:linear-gradient(180deg,#12131a,#0e0f14);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+  position:relative;
+  overflow:hidden;
+}
+.card::after{
+  content:"";
+  position:absolute; inset:auto -40% -40% -40%;
+  height:60%;
+  background:radial-gradient(50% 50% at 50% 100%, rgba(255,106,0,.25), transparent 60%);
+}
+.card h3{font-size:16px;font-weight:900;margin-bottom:6px}
+.card .price{font-size:24px;font-weight:900;color:#22c55e}
+.card .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+
+.list{display:grid;gap:8px;margin:10px 0}
+.item{display:flex;gap:8px;font-size:12px;color:#e5e7eb}
+.item i{color:#22c55e}
+
+.cta{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px
+}
 .btn{
-  border:none;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer
+  border:none;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer;
+  display:flex;align-items:center;gap:8px; white-space:nowrap
 }
-.btn-primary{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff}
-.btn-outline{background:#fff;border:1px solid var(--border);color:#111}
-.table{width:100%;border-collapse:separate;border-spacing:0 8px}
-.tr{background:#fff;border:1px solid var(--border)}
-.tr td{padding:10px 12px;font-size:13px}
+.btn-primary{
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#111;
+  box-shadow:0 14px 40px rgba(255,106,0,.45);
+}
+.btn-outline{
+  background:transparent;color:#fff;border:1px solid var(--border)
+}
+
 .footer{
-  padding:12px 16px;border-top:1px solid var(--border);background:#fff;
-  display:flex;gap:8px;justify-content:flex-end
+  margin-top:auto;
+  padding:16px;
+  border-top:1px solid var(--border);
+  background:rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center
 }
-.empty{padding:24px;text-align:center;color:var(--muted)}
+.whats{
+  color:#22c55e; font-weight:900
+}
 </style>
 </head>
 <body>
 <div class="page">
   <div class="header">
-    <h2>Publicidade</h2>
-    <p>Gerencie anúncios no telão e TVs do seu estabelecimento</p>
+    <span class="badge">CLENA MARKETING</span>
+    <h1>Planos de Publicidade & Redes Sociais</h1>
+    <p>A Clena administra seu Instagram, cria posters para suas redes sociais e cuida da sua presença digital.</p>
+  </div>
+
+  <div class="hero">
+    <div class="row">
+      <div class="ig"><i class="ri-instagram-line"></i></div>
+      <strong>Gestão completa do Instagram da sua loja</strong>
+    </div>
+    <div class="desc">
+      Conteúdo estratégico, artes profissionais, constância de postagens e identidade visual alinhada à sua marca.
+    </div>
   </div>
 
   <div class="content">
     <div class="grid">
+
       <div class="card">
-        <h3>Plano Telão</h3>
-        <span class="badge">Destaque</span>
-        <p style="font-size:12px;color:#6b7280;margin-top:6px">
-          Exibição premium no telão principal
-        </p>
-        <div class="row">
-          <strong>R$ 700/mês</strong>
+        <h3>Plano Start</h3>
+        <div class="price">Sob consulta</div>
+        <div class="sub">Ideal para começar no digital</div>
+        <div class="list">
+          <div class="item"><i class="ri-check-line"></i> Artes para Instagram</div>
+          <div class="item"><i class="ri-check-line"></i> 8 posts/mês</div>
+          <div class="item"><i class="ri-check-line"></i> 4 stories/semana</div>
+          <div class="item"><i class="ri-check-line"></i> Identidade visual básica</div>
         </div>
-        <div class="row">
-          <button class="btn btn-primary" onclick="criarCampanha('telao')">Criar campanha</button>
-          <button class="btn btn-outline" onclick="verPlanos()">Ver detalhes</button>
+        <div class="cta">
+          <button class="btn btn-primary" onclick="whats('Plano Start')">
+            <i class="ri-whatsapp-line"></i> Solicitar ativação
+          </button>
         </div>
       </div>
 
       <div class="card">
-        <h3>Plano TVs</h3>
-        <p style="font-size:12px;color:#6b7280">
-          Exibição rotativa nas TVs do ambiente
-        </p>
-        <div class="row">
-          <strong>Consultar valores</strong>
+        <h3>Plano Pro</h3>
+        <div class="price">Sob consulta</div>
+        <div class="sub">Para crescer e engajar</div>
+        <div class="list">
+          <div class="item"><i class="ri-check-line"></i> Gestão do Instagram</div>
+          <div class="item"><i class="ri-check-line"></i> 12 posts/mês</div>
+          <div class="item"><i class="ri-check-line"></i> Stories diários</div>
+          <div class="item"><i class="ri-check-line"></i> Posters para promoções</div>
         </div>
-        <div class="row">
-          <button class="btn btn-outline" onclick="verPlanos()">Ver detalhes</button>
+        <div class="cta">
+          <button class="btn btn-primary" onclick="whats('Plano Pro')">
+            <i class="ri-whatsapp-line"></i> Solicitar ativação
+          </button>
         </div>
       </div>
+
+      <div class="card">
+        <h3>Plano Premium</h3>
+        <div class="price">Sob consulta</div>
+        <div class="sub">Presença digital completa</div>
+        <div class="list">
+          <div class="item"><i class="ri-check-line"></i> Gestão total do Instagram</div>
+          <div class="item"><i class="ri-check-line"></i> Posts ilimitados</div>
+          <div class="item"><i class="ri-check-line"></i> Criação de campanhas</div>
+          <div class="item"><i class="ri-check-line"></i> Posters para redes e loja</div>
+        </div>
+        <div class="cta">
+          <button class="btn btn-primary" onclick="whats('Plano Premium')">
+            <i class="ri-whatsapp-line"></i> Solicitar ativação
+          </button>
+        </div>
+      </div>
+
     </div>
-
-    <h3 style="margin:16px 0 8px;font-size:14px">Minhas campanhas</h3>
-    <table class="table" id="tbl">
-      <!-- linhas via JS -->
-    </table>
-
-    <div class="empty" id="empty">Nenhuma campanha criada ainda.</div>
   </div>
 
   <div class="footer">
-    <button class="btn btn-outline" onclick="window.location.reload()">Atualizar</button>
+    <div>
+      Atendimento Clena:
+      <span class="whats">(77) 99825-3249</span>
+    </div>
+    <button class="btn btn-outline" onclick="whats('Quero uma assessoria de marketing para minha loja')">
+      <i class="ri-instagram-line"></i> Falar no WhatsApp
+    </button>
   </div>
 </div>
 
 <script>
-const sb = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
-
-const ctx = window.parent?.APP_CONTEXT || {};
-const userId = ctx.userId;
-
-async function listar(){
-  if(!userId) return;
-  const { data, error } = await sb
-    .from("publicidade_campanhas")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending:false });
-
-  const tbl = document.getElementById("tbl");
-  const empty = document.getElementById("empty");
-  tbl.innerHTML = "";
-
-  if(!data || !data.length){
-    empty.style.display = "block";
-    return;
-  }
-
-  empty.style.display = "none";
-  data.forEach(c => {
-    const tr = document.createElement("tr");
-    tr.className = "tr";
-    tr.innerHTML = `
-      <td><strong>${c.nome || "Campanha"}</strong></td>
-      <td>${c.plano}</td>
-      <td>${c.status || "pendente"}</td>
-      <td>${new Date(c.created_at).toLocaleDateString()}</td>
-    `;
-    tbl.appendChild(tr);
-  });
+function whats(plano){
+  const msg = encodeURIComponent(
+    `Olá! Quero solicitar ativação e orçamento para o ${plano}. Minha loja deseja assessoria da Clena para Instagram e criação de artes.`
+  );
+  window.open(`https://wa.me/5577998253249?text=${msg}`, "_blank");
 }
-
-async function criarCampanha(plano){
-  const nome = prompt("Nome da campanha:");
-  if(!nome) return;
-
-  await sb.from("publicidade_campanhas").insert({
-    user_id: userId,
-    plano,
-    nome,
-    status: "pendente"
-  });
-
-  listar();
-}
-
-function verPlanos(){
-  alert("Planos: Telão (R$ 700/mês). TVs: sob consulta.");
-}
-
-listar();
 </script>
 </body>
 </html>
