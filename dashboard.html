@@ -170,7 +170,8 @@ iframe{
   font-size:22px;
 }
 
-.nav-item.active{
+.nav-item.active,
+.nav-config.active .config-btn{
   color:var(--primary);
 }
 
@@ -523,13 +524,17 @@ iframe{
   </div>
 </div>
 
-<!-- CONTENT -->
 <div class="content">
 
-<iframe id="frame-pagar" src="pagar.html"></iframe>
-<iframe id="frame-receber" src="receber.html"></iframe>
-<iframe id="frame-publicidade" src="publicidade.html"></iframe>
-<iframe id="frame-estoque" src="estoque.html"></iframe>
+  <iframe id="frame-home" src="home.html" class="active"></iframe>
+  <iframe id="frame-produtos" src="produtos.html"></iframe>
+  <iframe id="frame-agenda" src="agenda.html"></iframe>
+  <iframe id="frame-pedidos" src="pedidos.html"></iframe>
+
+  <iframe id="frame-pagar" src="pagar.html"></iframe>
+  <iframe id="frame-receber" src="receber.html"></iframe>
+  <iframe id="frame-publicidade" src="publicidade.html"></iframe>
+  <iframe id="frame-estoque" src="estoque.html"></iframe>
 
 </div>
 
@@ -1137,8 +1142,11 @@ function toggleConfigMenu(e){
 }
 
 /* Fecha menu ao clicar fora */
-document.addEventListener("click", () => {
-  document.getElementById("navConfig").classList.remove("open");
+document.addEventListener("click", (e) => {
+  const nav = document.getElementById("navConfig");
+  if (!nav.contains(e.target)) {
+    nav.classList.remove("open");
+  }
 });
 
 /* Abre iframe normalmente + fecha menu */
