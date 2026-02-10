@@ -177,7 +177,11 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 </div>
 
 <script>
-const sb = supabase.createClient("https://egxjgmzukjyyxmkukwub.supabase.co","sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi");
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
 const lojaId = window.parent?.APP_CONTEXT?.userId || null;
 let mesAtual = new Date();
 
@@ -203,6 +207,9 @@ async function carregar(){
 
   mesLabel.innerText = mesAtual.toLocaleString("pt-BR", { month: "long", year: "numeric" });
 
+  // ============================
+  // A PAGAR
+  // ============================
   const { data: pagar } = await sb
     .from("contas_pagar")
     .select("*, fornecedores(nome), planos_contas(nome)")
@@ -210,14 +217,28 @@ async function carregar(){
     .gte("vencimento", inicio)
     .lte("vencimento", fim);
 
+  // ============================
+  // A RECEBER (AGENDAMENTOS)
+  // ============================
+  const { data: receber } = await sb
+    .from("agendamentos")
+    .select("cliente_nome, valor_total, status, data")
+    .eq("loja_id", lojaId)
+    .gte("data", inicio)
+    .lte("data", fim)
+    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+
   renderPagar(pagar || []);
+  renderReceber(receber || []);
 }
 
 function renderPagar(lista){
   let total = 0;
   listaPagar.innerHTML = "";
+
   lista.forEach(c=>{
     if(c.status === "PENDENTE") total += Number(c.valor || 0);
+
     listaPagar.innerHTML += `
       <div class="card">
         <div class="top">
@@ -225,11 +246,41 @@ function renderPagar(lista){
           <span class="badge ${c.status === "PAGO" ? "pago" : "pendente"}">${c.status}</span>
         </div>
         <div class="valor">R$ ${Number(c.valor).toFixed(2).replace(".",",")}</div>
-        <div class="meta">Venc: ${c.vencimento} • Plano: ${c.planos_contas?.nome || "-"}</div>
+        <div class="meta">
+          Venc: ${c.vencimento}<br>
+          Plano: ${c.planos_contas?.nome || "-"}
+        </div>
       </div>
     `;
   });
+
   totalPagar.innerText = "R$ " + total.toFixed(2).replace(".",",");
+}
+
+function renderReceber(lista){
+  let total = 0;
+  listaReceber.innerHTML = "";
+
+  lista.forEach(r=>{
+    if(r.status === "CONFIRMADO") total += Number(r.valor_total || 0);
+
+    listaReceber.innerHTML += `
+      <div class="card">
+        <div class="top">
+          <strong>${r.cliente_nome || "Cliente"}</strong>
+          <span class="badge ${r.status === "CONCLUIDO" ? "pago" : "pendente"}">
+            ${r.status === "CONCLUIDO" ? "Recebido" : "A receber"}
+          </span>
+        </div>
+        <div class="valor">R$ ${Number(r.valor_total).toFixed(2).replace(".",",")}</div>
+        <div class="meta">
+          Data: ${r.data}
+        </div>
+      </div>
+    `;
+  });
+
+  totalReceber.innerText = "R$ " + total.toFixed(2).replace(".",",");
 }
 
 function abrirModal(){ modal.style.display="flex"; }
@@ -247,7 +298,7 @@ async function salvar(){
     conta_bancaria_id,
     emissao: emissao.value,
     vencimento: vencimento.value,
-    valor: parseFloat(valor.value.replace(",",".")),
+    valor: parseFloat(valor.value.replace(",", ".")),
     meio_pagamento: meio.value,
     status: "PENDENTE"
   });
