@@ -84,7 +84,7 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
   background:#fff;border-radius:18px;padding:12px;
   box-shadow:var(--shadow)
 }
-.top{display:flex;justify-content:space-between;align-items:center}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .badge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:999px}
 .badge.pendente{background:#fff7ed;color:#c2410c}
 .badge.pago{background:#ecfdf5;color:#16a34a}
@@ -143,36 +143,37 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
   <div id="listaReceber" class="list" style="display:none"></div>
 </div>
 
-<button class="fab" onclick="abrirModal()">+</button>
-
-<div class="modal" id="modal" onclick="fecharModal(event)">
+<!-- MODAL EDITAR RECEBER -->
+<div class="modal" id="modalEditar" onclick="fecharEditar(event)">
   <div class="box-modal" onclick="event.stopPropagation()">
-    <h3>Nova conta a pagar</h3>
+    <h3>Editar recebimento</h3>
 
-    <div class="field"><label>Fornecedor</label><input id="fornecedor"></div>
-    <div class="field"><label>Plano</label><input id="plano"></div>
-
-    <div class="row">
-      <div class="field"><label>Emissão</label><input id="emissao" type="date"></div>
-      <div class="field"><label>Vencimento</label><input id="vencimento" type="date"></div>
+    <div class="field">
+      <label>Cliente</label>
+      <input id="editCliente" disabled>
     </div>
 
     <div class="row">
-      <div class="field"><label>Valor</label><input id="valor"></div>
       <div class="field">
-        <label>Meio</label>
-        <select id="meio">
-          <option>PIX</option>
-          <option>Boleto</option>
-          <option>Crédito</option>
-          <option>Débito</option>
-        </select>
+        <label>Data</label>
+        <input id="editData" type="date">
+      </div>
+      <div class="field">
+        <label>Valor</label>
+        <input id="editValor">
       </div>
     </div>
 
-    <div class="field"><label>Conta bancária</label><input id="conta"></div>
+    <div class="field">
+      <label>Status</label>
+      <select id="editStatus">
+        <option value="CONFIRMADO">A RECEBER</option>
+        <option value="CREDIARIO">CREDIÁRIO</option>
+        <option value="CONCLUIDO">RECEBIDO</option>
+      </select>
+    </div>
 
-    <button class="save" onclick="salvar()">Salvar</button>
+    <button class="save" onclick="salvarEdicaoReceber()">Salvar alterações</button>
   </div>
 </div>
 
@@ -184,6 +185,13 @@ const sb = supabase.createClient(
 
 const lojaId = window.parent?.APP_CONTEXT?.userId || null;
 let mesAtual = new Date();
+let receberEditando = null;
+
+function dataBR(iso){
+  if(!iso) return "—";
+  const [y,m,d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
 
 function mostrar(tipo, btn){
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -207,9 +215,6 @@ async function carregar(){
 
   mesLabel.innerText = mesAtual.toLocaleString("pt-BR", { month: "long", year: "numeric" });
 
-  // ============================
-  // A PAGAR
-  // ============================
   const { data: pagar } = await sb
     .from("contas_pagar")
     .select("*, fornecedores(nome), planos_contas(nome)")
@@ -217,16 +222,13 @@ async function carregar(){
     .gte("vencimento", inicio)
     .lte("vencimento", fim);
 
-  // ============================
-  // A RECEBER (AGENDAMENTOS)
-  // ============================
   const { data: receber } = await sb
     .from("agendamentos")
-    .select("cliente_nome, valor_total, status, data")
+    .select("id, cliente_nome, valor_total, status, data")
     .eq("loja_id", lojaId)
     .gte("data", inicio)
     .lte("data", fim)
-    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+    .in("status", ["CONFIRMADO","CONCLUIDO","CREDIARIO"]);
 
   renderPagar(pagar || []);
   renderReceber(receber || []);
@@ -247,14 +249,14 @@ function renderPagar(lista){
         </div>
         <div class="valor">R$ ${Number(c.valor).toFixed(2).replace(".",",")}</div>
         <div class="meta">
-          Venc: ${c.vencimento}<br>
+          Venc: ${dataBR(c.vencimento)}<br>
           Plano: ${c.planos_contas?.nome || "-"}
         </div>
       </div>
     `;
   });
 
-  totalPagar.innerText = "R$ " + total.toFixed(2).replace(".",",");
+  totalPagar.innerText = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
 function renderReceber(lista){
@@ -265,45 +267,60 @@ function renderReceber(lista){
     if(r.status === "CONFIRMADO") total += Number(r.valor_total || 0);
 
     listaReceber.innerHTML += `
-      <div class="card">
+      <div class="card" onclick='abrirEditarReceber(${JSON.stringify(r)})'>
         <div class="top">
           <strong>${r.cliente_nome || "Cliente"}</strong>
-          <span class="badge ${r.status === "CONCLUIDO" ? "pago" : "pendente"}">
-            ${r.status === "CONCLUIDO" ? "Recebido" : "A receber"}
-          </span>
+          <select onchange="alterarStatusReceber('${r.id}', this.value); event.stopPropagation()">
+            <option value="CONFIRMADO" ${r.status==="CONFIRMADO"?"selected":""}>A RECEBER</option>
+            <option value="CREDIARIO" ${r.status==="CREDIARIO"?"selected":""}>CREDIÁRIO</option>
+            <option value="CONCLUIDO" ${r.status==="CONCLUIDO"?"selected":""}>RECEBIDO</option>
+          </select>
         </div>
-        <div class="valor">R$ ${Number(r.valor_total).toFixed(2).replace(".",",")}</div>
-        <div class="meta">
-          Data: ${r.data}
-        </div>
+        <div class="valor">R$ ${Number(r.valor_total||0).toFixed(2).replace(".",",")}</div>
+        <div class="meta">Data: ${dataBR(r.data)}</div>
       </div>
     `;
   });
 
-  totalReceber.innerText = "R$ " + total.toFixed(2).replace(".",",");
+  totalReceber.innerText = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-function abrirModal(){ modal.style.display="flex"; }
-function fecharModal(e){ if(e.target!==modal) return; modal.style.display="none"; }
+async function alterarStatusReceber(id, status){
+  await sb.from("agendamentos")
+    .update({ status })
+    .eq("loja_id", lojaId)
+    .eq("id", id);
 
-async function salvar(){
-  const fornecedor_id = (await sb.rpc("get_or_create_fornecedor",{p_loja:lojaId,p_nome:fornecedor.value})).data;
-  const plano_conta_id = (await sb.rpc("get_or_create_plano",{p_loja:lojaId,p_nome:plano.value})).data;
-  const conta_bancaria_id = (await sb.rpc("get_or_create_conta",{p_loja:lojaId,p_nome:conta.value})).data;
+  carregar();
+}
 
-  await sb.from("contas_pagar").insert({
-    loja_id: lojaId,
-    fornecedor_id,
-    plano_conta_id,
-    conta_bancaria_id,
-    emissao: emissao.value,
-    vencimento: vencimento.value,
-    valor: parseFloat(valor.value.replace(",", ".")),
-    meio_pagamento: meio.value,
-    status: "PENDENTE"
-  });
+function abrirEditarReceber(r){
+  receberEditando = r;
+  editCliente.value = r.cliente_nome || "Cliente";
+  editData.value = r.data;
+  editValor.value = Number(r.valor_total||0).toFixed(2).replace(".",",");
+  editStatus.value = r.status;
+  modalEditar.style.display = "flex";
+}
 
-  modal.style.display="none";
+function fecharEditar(e){
+  if(e.target !== modalEditar) return;
+  modalEditar.style.display = "none";
+}
+
+async function salvarEdicaoReceber(){
+  if(!receberEditando) return;
+
+  await sb.from("agendamentos")
+    .update({
+      data: editData.value,
+      valor_total: parseFloat(editValor.value.replace(",", ".")),
+      status: editStatus.value
+    })
+    .eq("loja_id", lojaId)
+    .eq("id", receberEditando.id);
+
+  modalEditar.style.display = "none";
   carregar();
 }
 
