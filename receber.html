@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>A Receber • Agenda Fácil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
+}
+*{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
+html,body{height:100%;background:var(--bg)}
+.page{height:100%;display:flex;flex-direction:column}
+.header{padding:16px}
+.header h2{font-size:18px;font-weight:900}
+.header p{font-size:12px;color:var(--muted)}
+.content{flex:1;overflow:auto;padding:16px}
+.card{
+  background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.04)
+}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:#6b7280}
+.field input{
+  padding:12px;border-radius:12px;border:1px solid var(--border);font-size:13px
+}
+.btn{
+  border:none;border-radius:999px;padding:12px 14px;font-weight:900;cursor:pointer
+}
+.btn-primary{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff}
+.table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
+.tr{background:#fff;border:1px solid var(--border)}
+.tr td{padding:10px 12px;font-size:13px}
+.badge-ok{color:#16a34a;font-weight:800}
+.badge-pend{color:#f59e0b;font-weight:800}
+.footer{padding:12px 16px;border-top:1px solid var(--border);background:#fff}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h2>A Receber</h2>
+    <p>Controle de valores pendentes de clientes/parceiros</p>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <div class="row">
+        <div class="field">
+          <label>Descrição</label>
+          <input id="desc" placeholder="Ex: Evento empresa X" />
+        </div>
+        <div class="field">
+          <label>Valor (R$)</label>
+          <input id="valor" placeholder="0,00" inputmode="decimal" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <div class="field">
+          <label>Vencimento</label>
+          <input id="venc" type="date" />
+        </div>
+        <div class="field" style="align-self:end">
+          <button class="btn btn-primary" onclick="criar()">Adicionar</button>
+        </div>
+      </div>
+    </div>
+
+    <table class="table" id="tbl"></table>
+  </div>
+
+  <div class="footer">
+    <strong id="total">Total pendente: R$ 0,00</strong>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const ctx = window.parent?.APP_CONTEXT || {};
+const userId = ctx.userId;
+
+function moeda(n){
+  return (Number(n||0)).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+
+async function listar(){
+  if(!userId) return;
+
+  const { data } = await sb
+    .from("contas_receber")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at",{ascending:false});
+
+  const tbl = document.getElementById("tbl");
+  tbl.innerHTML = "";
+
+  let total = 0;
+
+  (data||[]).forEach(r=>{
+    if(r.status !== "pago") total += Number(r.valor||0);
+
+    const tr = document.createElement("tr");
+    tr.className = "tr";
+    tr.innerHTML = `
+      <td><strong>${r.descricao}</strong></td>
+      <td>${moeda(r.valor)}</td>
+      <td>${r.vencimento ? new Date(r.vencimento).toLocaleDateString() : "-"}</td>
+      <td>
+        ${r.status === "pago"
+          ? '<span class="badge-ok">Pago</span>'
+          : `<button onclick="marcarPago('${r.id}')" class="btn btn-primary">Marcar pago</button>`
+        }
+      </td>
+    `;
+    tbl.appendChild(tr);
+  });
+
+  document.getElementById("total").innerText = "Total pendente: " + moeda(total);
+}
+
+async function criar(){
+  const descricao = desc.value.trim();
+  const valor = Number(valor.value.replace(",","."));
+  const vencimento = venc.value || null;
+
+  if(!descricao || !valor) return alert("Preencha descrição e valor");
+
+  await sb.from("contas_receber").insert({
+    user_id: userId,
+    descricao,
+    valor,
+    vencimento,
+    status:"pendente"
+  });
+
+  desc.value = "";
+  valor.value = "";
+  venc.value = "";
+
+  listar();
+}
+
+async function marcarPago(id){
+  await sb.from("contas_receber").update({ status:"pago" }).eq("id", id);
+  listar();
+}
+
+listar();
+</script>
+</body>
+</html>
