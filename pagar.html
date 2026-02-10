@@ -19,11 +19,7 @@
 *{box-sizing:border-box;font-family:Inter;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:linear-gradient(180deg,#fff,#f4f6fb);overflow:hidden}
 
-.header{
-  position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);
-  backdrop-filter: blur(8px);border-bottom:1px solid var(--border);
-  padding:14px 16px 12px
-}
+.header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 16px 12px}
 .header h1{margin:0;font-size:18px;font-weight:900}
 
 .resumo{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}
@@ -56,12 +52,7 @@ html,body{margin:0;height:100%;background:linear-gradient(180deg,#fff,#f4f6fb);o
 .btn-edit{background:#f1f5f9}
 .btn-pay{background:#dcfce7;color:#166534}
 
-.fab{
-  position:fixed;bottom:24px;right:16px;
-  width:56px;height:56px;border-radius:50%;
-  border:none;background:var(--primary);color:#fff;
-  font-size:26px;box-shadow:var(--shadow);z-index:50
-}
+.fab{position:fixed;bottom:24px;right:16px;width:56px;height:56px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:26px;box-shadow:var(--shadow);z-index:50}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:100}
 .box-modal{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:20px}
@@ -102,16 +93,15 @@ html,body{margin:0;height:100%;background:linear-gradient(180deg,#fff,#f4f6fb);o
 
 <button class="fab" onclick="abrirCriarPagar()"><i class="ri-add-line"></i></button>
 
-<!-- MODAL CRIAR / EDITAR PAGAR -->
+<!-- MODAL PAGAR -->
 <div class="modal" id="modalPagar" onclick="fecharModal(event,'modalPagar')">
   <div class="box-modal" onclick="event.stopPropagation()">
     <h3 id="tituloPagar">Nova conta a pagar</h3>
 
-    <div class="field"><label>Fornecedor</label><input id="pagarFornecedor" placeholder="Ex: Energia, Aluguel" /></div>
-
+    <div class="field"><label>Fornecedor</label><input id="pagarFornecedor" /></div>
     <div class="row">
       <div class="field"><label>Vencimento inicial</label><input id="pagarData" type="date"></div>
-      <div class="field"><label>Valor</label><input id="pagarValor" placeholder="0,00"></div>
+      <div class="field"><label>Valor</label><input id="pagarValor"></div>
     </div>
 
     <div class="switch">
@@ -138,10 +128,34 @@ html,body{margin:0;height:100%;background:linear-gradient(180deg,#fff,#f4f6fb);o
   </div>
 </div>
 
+<!-- MODAL RECEBER (igual ao seu original) -->
+<div class="modal" id="modalEditar" onclick="fecharEditar(event)">
+  <div class="box-modal" onclick="event.stopPropagation()">
+    <h3>Editar recebimento</h3>
+    <div class="field"><label>Cliente</label><input id="editCliente" disabled></div>
+    <div class="row">
+      <div class="field"><label>Data</label><input id="editData" type="date"></div>
+      <div class="field"><label>Valor</label><input id="editValor"></div>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="editStatus">
+        <option value="CONFIRMADO">A RECEBER</option>
+        <option value="CREDIARIO">CREDIÁRIO</option>
+        <option value="CONCLUIDO">RECEBIDO</option>
+      </select>
+    </div>
+    <button class="save" onclick="salvarEdicaoReceber()">Salvar alterações</button>
+    <button class="delete" onclick="excluirReceber()">Excluir</button>
+  </div>
+</div>
+
 <script>
 const sb = supabase.createClient("https://egxjgmzukjyyxmkukwub.supabase.co","sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi");
 const lojaId = window.parent?.APP_CONTEXT?.userId || null;
-let mesAtual=new Date(), pagarEditando=null;
+let mesAtual=new Date(), pagarEditando=null, receberEditando=null;
+
+function dataBR(iso){ if(!iso) return "—"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 
 function mostrar(tipo,btn){
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -150,87 +164,66 @@ function mostrar(tipo,btn){
   listaReceber.style.display=tipo==="receber"?"flex":"none";
 }
 function mudarMes(dir){ mesAtual.setMonth(mesAtual.getMonth()+dir); carregar(); }
-
-function toggleRecorrencia(){
-  recorrenciaBox.style.display = pagarRecorrente.checked ? "grid" : "none";
-}
+function toggleRecorrencia(){ recorrenciaBox.style.display = pagarRecorrente.checked ? "grid" : "none"; }
 
 function abrirCriarPagar(){
   pagarEditando=null;
   tituloPagar.innerText="Nova conta a pagar";
-  pagarFornecedor.value="";
-  pagarData.value="";
-  pagarValor.value="";
-  pagarRecorrente.checked=false;
-  recorrenciaBox.style.display="none";
-  pagarFimRecorrencia.value="";
-  btnExcluirPagar.style.display="none";
-  modalPagar.style.display="flex";
+  pagarFornecedor.value=""; pagarData.value=""; pagarValor.value="";
+  pagarRecorrente.checked=false; recorrenciaBox.style.display="none"; pagarFimRecorrencia.value="";
+  btnExcluirPagar.style.display="none"; modalPagar.style.display="flex";
 }
-
 function abrirEditarPagar(c){
   pagarEditando=c;
   tituloPagar.innerText="Editar conta a pagar";
-  pagarFornecedor.value=c.fornecedores?.nome || "";
-  pagarData.value=c.vencimento;
+  pagarFornecedor.value=c.fornecedores?.nome||""; pagarData.value=c.vencimento;
   pagarValor.value=Number(c.valor||0).toFixed(2).replace(".",",");
-  pagarRecorrente.checked=!!c.recorrente;
-  recorrenciaBox.style.display=c.recorrente?"grid":"none";
-  pagarFrequencia.value=c.frequencia||"MENSAL";
-  pagarFimRecorrencia.value=c.recorrencia_fim||"";
-  btnExcluirPagar.style.display="block";
-  modalPagar.style.display="flex";
+  pagarRecorrente.checked=!!c.recorrente; recorrenciaBox.style.display=c.recorrente?"grid":"none";
+  pagarFrequencia.value=c.frequencia||"MENSAL"; pagarFimRecorrencia.value=c.recorrencia_fim||"";
+  btnExcluirPagar.style.display="block"; modalPagar.style.display="flex";
 }
-
 function fecharModal(e,id){ if(e.target.id===id) document.getElementById(id).style.display="none"; }
 
 async function salvarPagar(){
-  const base = {
-    loja_id: lojaId,
-    valor: parseFloat(pagarValor.value.replace(",",".")),
-    vencimento: pagarData.value,
-    status: "PENDENTE",
-    recorrente: pagarRecorrente.checked,
-    frequencia: pagarRecorrente.checked ? pagarFrequencia.value : null,
-    recorrencia_fim: pagarRecorrente.checked ? (pagarFimRecorrencia.value || null) : null
+  const base={
+    loja_id:lojaId,
+    valor:parseFloat(pagarValor.value.replace(",",".")),
+    vencimento:pagarData.value,
+    status:"PENDENTE",
+    recorrente:pagarRecorrente.checked,
+    frequencia:pagarRecorrente.checked?pagarFrequencia.value:null,
+    recorrencia_fim:pagarRecorrente.checked?(pagarFimRecorrencia.value||null):null
   };
-
   if(pagarRecorrente.checked && !pagarFimRecorrencia.value){
     if(!confirm("Recorrência sem data final. Deseja continuar?")) return;
   }
-
   if(pagarEditando){
-    await sb.from("contas_pagar").update(base).eq("id", pagarEditando.id);
+    await sb.from("contas_pagar").update(base).eq("id",pagarEditando.id);
   } else {
     if(!pagarRecorrente.checked){
       await sb.from("contas_pagar").insert(base);
     } else {
-      const datas = [];
-      let d = new Date(pagarData.value);
-      const fim = pagarFimRecorrencia.value ? new Date(pagarFimRecorrencia.value) : new Date(new Date().getFullYear()+1,11,31);
-
-      while(d <= fim){
-        datas.push(new Date(d));
+      const datas=[]; let d=new Date(pagarData.value);
+      const fim=pagarFimRecorrencia.value?new Date(pagarFimRecorrencia.value):new Date(new Date().getFullYear()+1,11,31);
+      while(d<=fim){
+        datas.push({ ...base, vencimento:d.toISOString().split("T")[0] });
         if(pagarFrequencia.value==="MENSAL") d.setMonth(d.getMonth()+1);
         else d.setDate(d.getDate()+7);
       }
-
-      const payload = datas.map(dt=>({
-        ...base,
-        vencimento: dt.toISOString().split("T")[0]
-      }));
-      await sb.from("contas_pagar").insert(payload);
+      await sb.from("contas_pagar").insert(datas);
     }
   }
-
-  modalPagar.style.display="none";
-  carregar();
+  modalPagar.style.display="none"; carregar();
 }
-
 async function excluirPagar(){
   if(!confirm("Excluir esta conta a pagar?")) return;
-  await sb.from("contas_pagar").delete().eq("id", pagarEditando.id);
+  await sb.from("contas_pagar").delete().eq("id",pagarEditando.id);
   modalPagar.style.display="none"; carregar();
+}
+async function togglePago(id,status){
+  const novo=status==="PAGO"?"PENDENTE":"PAGO";
+  if(!confirm("Confirmar alteração?")) return;
+  await sb.from("contas_pagar").update({status:novo}).eq("id",id); carregar();
 }
 
 async function carregar(){
@@ -241,12 +234,14 @@ async function carregar(){
   mesLabel.innerText=mesAtual.toLocaleString("pt-BR",{month:"long",year:"numeric"});
 
   const {data:pagar}=await sb.from("contas_pagar").select("*, fornecedores(nome)").eq("loja_id",lojaId).gte("vencimento",ini).lte("vencimento",fim).order("vencimento");
+  const {data:receber}=await sb.from("agendamentos").select("id, cliente_nome, valor_total, status, data").eq("loja_id",lojaId).gte("data",ini).lte("data",fim).in("status",["CONFIRMADO","CONCLUIDO","CREDIARIO"]);
+
   renderPagar(pagar||[]);
+  renderReceber(receber||[]);
 }
 
 function renderPagar(lista){
-  let total=0;
-  listaPagar.innerHTML="";
+  let total=0; listaPagar.innerHTML="";
   lista.forEach(c=>{
     if(c.status==="PENDENTE") total+=Number(c.valor||0);
     listaPagar.innerHTML+=`
@@ -256,23 +251,61 @@ function renderPagar(lista){
           <span class="badge ${c.status==="PAGO"?"pago":"pendente"}">${c.status}</span>
         </div>
         <div class="valor">R$ ${Number(c.valor||0).toFixed(2).replace(".",",")}</div>
-        <div class="meta">Venc: ${c.vencimento} ${c.recorrente?" • Recorrente":""}</div>
+        <div class="meta">Venc: ${dataBR(c.vencimento)} ${c.recorrente?"• Recorrente":""}</div>
         <div class="actions">
           <button class="btn-edit" onclick='abrirEditarPagar(${JSON.stringify(c)})'>Editar</button>
           <button class="btn-pay" onclick="togglePago('${c.id}','${c.status}')">${c.status==="PAGO"?"Reabrir":"Marcar pago"}</button>
         </div>
       </div>`;
   });
-  totalPagar.innerText = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  totalPagar.innerText=total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
-
-async function togglePago(id,status){
-  const novo = status==="PAGO" ? "PENDENTE" : "PAGO";
-  if(!confirm("Confirmar alteração?")) return;
-  await sb.from("contas_pagar").update({status:novo}).eq("id",id);
+function renderReceber(lista){
+  let total=0; listaReceber.innerHTML="";
+  lista.forEach(r=>{
+    if(r.status==="CONFIRMADO") total+=Number(r.valor_total||0);
+    listaReceber.innerHTML+=`
+      <div class="card" onclick='abrirEditarReceber(${JSON.stringify(r)})'>
+        <div class="top">
+          <strong>${r.cliente_nome||"Cliente"}</strong>
+          <select onclick="event.stopPropagation()" onchange="alterarStatusReceber('${r.id}',this.value);event.stopPropagation()">
+            <option value="CONFIRMADO" ${r.status==="CONFIRMADO"?"selected":""}>A RECEBER</option>
+            <option value="CREDIARIO" ${r.status==="CREDIARIO"?"selected":""}>CREDIÁRIO</option>
+            <option value="CONCLUIDO" ${r.status==="CONCLUIDO"?"selected":""}>RECEBIDO</option>
+          </select>
+        </div>
+        <div class="valor">R$ ${Number(r.valor_total||0).toFixed(2).replace(".",",")}</div>
+        <div class="meta">Data: ${dataBR(r.data)}</div>
+      </div>`;
+  });
+  totalReceber.innerText=total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+function abrirEditarReceber(r){
+  receberEditando=r;
+  editCliente.value=r.cliente_nome||"Cliente";
+  editData.value=r.data;
+  editValor.value=Number(r.valor_total||0).toFixed(2).replace(".",",");
+  editStatus.value=r.status;
+  modalEditar.style.display="flex";
+}
+function fecharEditar(e){ if(e.target!==modalEditar) return; modalEditar.style.display="none"; }
+async function salvarEdicaoReceber(){
+  await sb.from("agendamentos").update({
+    data:editData.value,
+    valor_total:parseFloat(editValor.value.replace(",",".")),
+    status:editStatus.value
+  }).eq("loja_id",lojaId).eq("id",receberEditando.id);
+  modalEditar.style.display="none"; carregar();
+}
+async function excluirReceber(){
+  if(!confirm("Excluir este recebimento?")) return;
+  await sb.from("agendamentos").delete().eq("loja_id",lojaId).eq("id",receberEditando.id);
+  modalEditar.style.display="none"; carregar();
+}
+async function alterarStatusReceber(id,status){
+  await sb.from("agendamentos").update({status}).eq("loja_id",lojaId).eq("id",id);
   carregar();
 }
-
 document.addEventListener("DOMContentLoaded", carregar);
 </script>
 </body>
