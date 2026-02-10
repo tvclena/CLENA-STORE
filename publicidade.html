@@ -29,7 +29,6 @@ html,body{
   color:var(--text)
 }
 .page{min-height:100%;display:flex;flex-direction:column}
-
 .header{padding:22px 18px 10px}
 .badge{
   display:inline-block;padding:6px 12px;border-radius:999px;
@@ -37,12 +36,12 @@ html,body{
   background:linear-gradient(135deg,#ff6a00,#ff9a57); color:#111;
   box-shadow:0 10px 30px rgba(255,106,0,.45); margin-bottom:10px
 }
-.header h1{font-size:24px;font-weight:900;margin-bottom:6px}
+.header h1{font-size:26px;font-weight:900;margin-bottom:6px}
 .header p{font-size:13px;color:var(--muted)}
 
 .hero{
-  margin:10px 16px 0;border:1px solid var(--border);border-radius:24px;
-  padding:18px;display:grid;gap:10px; position:relative; overflow:hidden;
+  margin:10px 16px 0;border:1px solid var(--border);border-radius:26px;
+  padding:18px;display:grid;gap:12px; position:relative; overflow:hidden;
   background:linear-gradient(135deg, rgba(255,106,0,.22), rgba(221,42,123,.16));
 }
 .hero::after{
@@ -52,22 +51,22 @@ html,body{
   animation: glow 6s ease-in-out infinite alternate;
 }
 @keyframes glow{from{opacity:.6}to{opacity:1}}
-.hero .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:1}
+.hero .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;z-index:1}
 .hero .ig{
-  width:44px;height:44px;border-radius:14px;
+  width:46px;height:46px;border-radius:14px;
   background:linear-gradient(135deg,var(--ig1),var(--ig2),var(--ig3));
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:22px; box-shadow:0 10px 30px rgba(221,42,123,.55)
 }
-.hero strong{font-size:17px}
+.hero strong{font-size:18px}
 .hero .desc{font-size:13px;color:var(--muted);z-index:1}
 
-.content{padding:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.section{padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
 
 .card{
   background:linear-gradient(180deg,#12131a,#0e0f14);
-  border:1px solid var(--border);border-radius:24px;padding:18px;
+  border:1px solid var(--border);border-radius:26px;padding:18px;
   box-shadow:0 20px 60px rgba(0,0,0,.45);
   position:relative;overflow:hidden;
   transform:translateY(20px); opacity:0;
@@ -77,13 +76,12 @@ html,body{
 .card:nth-child(2){animation-delay:.12s}
 .card:nth-child(3){animation-delay:.2s}
 @keyframes enter{to{transform:none;opacity:1}}
-
 .card:hover{transform:translateY(-6px) scale(1.015); transition:.25s ease}
 .card::after{
   content:""; position:absolute; inset:auto -40% -40% -40%;
   height:60%; background:radial-gradient(50% 50% at 50% 100%, rgba(255,106,0,.28), transparent 60%);
 }
-.card.featured{
+.featured{
   outline:2px solid rgba(255,106,0,.5);
   box-shadow:0 0 0 1px rgba(255,106,0,.25), 0 30px 100px rgba(255,106,0,.35);
 }
@@ -95,9 +93,10 @@ html,body{
   box-shadow:0 10px 30px rgba(255,106,0,.45);
 }
 
-.card h3{font-size:17px;font-weight:900;margin-bottom:6px}
-.card .price{font-size:26px;font-weight:900;color:var(--success)}
-.card .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+h2{font-size:22px;margin-bottom:6px}
+.card h3{font-size:18px;font-weight:900;margin-bottom:6px}
+.price{font-size:28px;font-weight:900;color:var(--success)}
+.sub{font-size:12px;color:var(--muted);margin-bottom:10px}
 
 .list{display:grid;gap:8px;margin:10px 0}
 .item{display:flex;gap:8px;font-size:12px;color:#e5e7eb}
@@ -111,6 +110,23 @@ html,body{
 }
 .btn:hover{filter:brightness(1.05)}
 
+.compare{
+  border:1px solid var(--border); border-radius:20px; overflow:hidden;
+  margin-top:10px
+}
+.compare table{width:100%; border-collapse:collapse; font-size:12px}
+.compare th,.compare td{padding:10px;border-bottom:1px solid var(--border); text-align:center}
+.compare th{background:#12131a}
+.compare td:first-child{text-align:left}
+
+.faq{display:grid;gap:10px;margin-top:12px}
+.faq details{
+  border:1px solid var(--border); border-radius:14px; padding:12px;
+  background:#0f1016
+}
+.faq summary{cursor:pointer; font-weight:800}
+.faq p{font-size:12px;color:var(--muted);margin-top:6px}
+
 .footer{
   margin-top:auto; padding:16px;border-top:1px solid var(--border);
   background:rgba(0,0,0,.35); backdrop-filter: blur(6px);
@@ -121,30 +137,31 @@ html,body{
 </head>
 <body>
 <div class="page">
+
   <div class="header">
     <span class="badge">CLENA MARKETING</span>
     <h1>Planos de Publicidade & Redes Sociais</h1>
-    <p>A Clena administra seu Instagram, cria posters para suas redes sociais e cuida da sua presença digital.</p>
+    <p>Gestão completa do Instagram, posters profissionais e presença digital estratégica para sua loja.</p>
   </div>
 
   <div class="hero">
     <div class="row">
       <div class="ig"><i class="ri-instagram-line"></i></div>
-      <strong>Gestão completa do Instagram da sua loja</strong>
+      <strong>Transforme o Instagram da sua loja em uma máquina de vendas</strong>
     </div>
-    <div class="desc">Conteúdo estratégico, artes profissionais e constância de postagens.</div>
+    <div class="desc">Artes profissionais, estratégia, consistência e campanhas para atrair mais clientes.</div>
   </div>
 
-  <div class="content">
+  <div class="section">
+    <h2>Escolha seu plano</h2>
     <div class="grid">
-
       <div class="card">
         <h3>Plano Start</h3>
         <div class="price">Sob consulta</div>
         <div class="sub">Ideal para começar no digital</div>
         <div class="list">
-          <div class="item"><i class="ri-check-line"></i> 8 posts por mês</div>
-          <div class="item"><i class="ri-check-line"></i> 4 stories por semana</div>
+          <div class="item"><i class="ri-check-line"></i> 8 posts/mês</div>
+          <div class="item"><i class="ri-check-line"></i> 4 stories/semana</div>
           <div class="item"><i class="ri-check-line"></i> Artes profissionais</div>
           <div class="item"><i class="ri-check-line"></i> Identidade visual básica</div>
         </div>
@@ -159,7 +176,7 @@ html,body{
         <div class="price">Sob consulta</div>
         <div class="sub">Para crescer e engajar</div>
         <div class="list">
-          <div class="item"><i class="ri-check-line"></i> 12 posts por mês</div>
+          <div class="item"><i class="ri-check-line"></i> 12 posts/mês</div>
           <div class="item"><i class="ri-check-line"></i> Stories diários</div>
           <div class="item"><i class="ri-check-line"></i> Gestão do Instagram</div>
           <div class="item"><i class="ri-check-line"></i> Posters promocionais</div>
@@ -183,16 +200,44 @@ html,body{
           <i class="ri-whatsapp-line"></i> Solicitar orçamento
         </button>
       </div>
+    </div>
 
+    <h2 style="margin-top:16px">Compare os planos</h2>
+    <div class="compare">
+      <table>
+        <tr><th>Recursos</th><th>Start</th><th>Pro</th><th>Premium</th></tr>
+        <tr><td>Posts por mês</td><td>8</td><td>12</td><td>Ilimitados</td></tr>
+        <tr><td>Stories</td><td>4/semana</td><td>Diários</td><td>Diários</td></tr>
+        <tr><td>Gestão do Instagram</td><td>—</td><td>✔</td><td>✔</td></tr>
+        <tr><td>Campanhas</td><td>—</td><td>—</td><td>✔</td></tr>
+        <tr><td>Posters para loja</td><td>—</td><td>✔</td><td>✔</td></tr>
+      </table>
+    </div>
+
+    <h2 style="margin-top:16px">Dúvidas frequentes</h2>
+    <div class="faq">
+      <details>
+        <summary>Em quanto tempo começo a ver resultados?</summary>
+        <p>Normalmente entre 30 e 60 dias já é possível notar mais engajamento e alcance.</p>
+      </details>
+      <details>
+        <summary>Vocês criam artes para promoções da loja?</summary>
+        <p>Sim! Todos os planos incluem criação de artes para promoções e datas especiais.</p>
+      </details>
+      <details>
+        <summary>Preciso fornecer fotos?</summary>
+        <p>Se tiver, ótimo! Se não, a Clena cria artes e layouts personalizados.</p>
+      </details>
     </div>
   </div>
 
   <div class="footer">
     <div>Atendimento Clena: <span class="whats">(77) 99825-3249</span></div>
-    <button class="btn" onclick="whatsPlano('Assessoria','Quero assessoria completa de marketing para minha loja')">
+    <button class="btn" onclick="whatsPlano('Assessoria completa','Quero assessoria completa de marketing para minha loja')">
       <i class="ri-whatsapp-line"></i> Falar no WhatsApp
     </button>
   </div>
+
 </div>
 
 <script>
