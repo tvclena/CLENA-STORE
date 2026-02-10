@@ -534,7 +534,7 @@ iframe{
   <iframe id="frame-pagar" src="pagar.html"></iframe>
   <iframe id="frame-receber" src="receber.html"></iframe>
   <iframe id="frame-publicidade" src="publicidade.html"></iframe>
-  <iframe id="frame-estoque" src="estoque.html"></iframe>
+  <iframe id="frame-config" src="config.html"></iframe>
 
 </div>
 
@@ -587,9 +587,9 @@ iframe{
     Publicidade
   </div>
 
-  <div class="config-item" onclick="goFromMenu(this,'estoque')">
+  <div class="config-item" onclick="goFromMenu(this,'config')">
     <i class="ri-archive-drawer-line"></i>
-    Estoque
+    Ajustes
   </div>
 
 </div>
@@ -1111,7 +1111,7 @@ const frames = {
   pagar: document.getElementById("frame-pagar"),
   receber: document.getElementById("frame-receber"),
   publicidade: document.getElementById("frame-publicidade"),
-  estoque: document.getElementById("frame-estoque")
+  config: document.getElementById("frame-config")
 };
 window.addEventListener("load", () => {
   frames.home.classList.add("active");
