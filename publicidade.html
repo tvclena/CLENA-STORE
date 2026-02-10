@@ -62,7 +62,7 @@ html,body{
 .hero strong{font-size:17px}
 .hero .desc{font-size:13px;color:var(--muted);z-index:1}
 
-.content{padding:16px;display:grid;gap:12px}
+.content{padding:16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 
 .card{
@@ -103,23 +103,13 @@ html,body{
 .item{display:flex;gap:8px;font-size:12px;color:#e5e7eb}
 .item i{color:var(--success)}
 
-.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .btn{
   border:none;border-radius:999px;padding:12px 18px;font-weight:900;cursor:pointer;
   display:flex;align-items:center;gap:8px; white-space:nowrap;
-  position:relative; overflow:hidden; isolation:isolate;
-}
-.btn-primary{
   background:linear-gradient(135deg,#ff6a00,#ff9a57); color:#111;
   box-shadow:0 14px 40px rgba(255,106,0,.45);
 }
-.btn-primary::after{
-  content:""; position:absolute; inset:0; transform:translateX(-120%);
-  background:linear-gradient(120deg, transparent 30%, rgba(255,255,255,.45), transparent 70%);
-  transition:transform .6s ease;
-}
-.btn-primary:hover::after{transform:translateX(120%)}
-.btn-outline{background:transparent;color:#fff;border:1px solid var(--border)}
+.btn:hover{filter:brightness(1.05)}
 
 .footer{
   margin-top:auto; padding:16px;border-top:1px solid var(--border);
@@ -147,21 +137,20 @@ html,body{
 
   <div class="content">
     <div class="grid">
+
       <div class="card">
         <h3>Plano Start</h3>
         <div class="price">Sob consulta</div>
         <div class="sub">Ideal para começar no digital</div>
         <div class="list">
-          <div class="item"><i class="ri-check-line"></i> Artes para Instagram</div>
-          <div class="item"><i class="ri-check-line"></i> 8 posts/mês</div>
-          <div class="item"><i class="ri-check-line"></i> 4 stories/semana</div>
+          <div class="item"><i class="ri-check-line"></i> 8 posts por mês</div>
+          <div class="item"><i class="ri-check-line"></i> 4 stories por semana</div>
+          <div class="item"><i class="ri-check-line"></i> Artes profissionais</div>
           <div class="item"><i class="ri-check-line"></i> Identidade visual básica</div>
         </div>
-        <div class="cta">
-          <button class="btn btn-primary" onclick="whats('Plano Start')">
-            <i class="ri-whatsapp-line"></i> Solicitar ativação
-          </button>
-        </div>
+        <button class="btn" onclick="whatsPlano('Plano Start','8 posts/mês, 4 stories/semana, artes profissionais, identidade visual básica')">
+          <i class="ri-whatsapp-line"></i> Solicitar orçamento
+        </button>
       </div>
 
       <div class="card featured">
@@ -170,16 +159,14 @@ html,body{
         <div class="price">Sob consulta</div>
         <div class="sub">Para crescer e engajar</div>
         <div class="list">
-          <div class="item"><i class="ri-check-line"></i> Gestão do Instagram</div>
-          <div class="item"><i class="ri-check-line"></i> 12 posts/mês</div>
+          <div class="item"><i class="ri-check-line"></i> 12 posts por mês</div>
           <div class="item"><i class="ri-check-line"></i> Stories diários</div>
-          <div class="item"><i class="ri-check-line"></i> Posters para promoções</div>
+          <div class="item"><i class="ri-check-line"></i> Gestão do Instagram</div>
+          <div class="item"><i class="ri-check-line"></i> Posters promocionais</div>
         </div>
-        <div class="cta">
-          <button class="btn btn-primary" onclick="whats('Plano Pro')">
-            <i class="ri-whatsapp-line"></i> Solicitar ativação
-          </button>
-        </div>
+        <button class="btn" onclick="whatsPlano('Plano Pro','12 posts/mês, stories diários, gestão do Instagram, posters promocionais')">
+          <i class="ri-whatsapp-line"></i> Solicitar orçamento
+        </button>
       </div>
 
       <div class="card">
@@ -187,32 +174,35 @@ html,body{
         <div class="price">Sob consulta</div>
         <div class="sub">Presença digital completa</div>
         <div class="list">
-          <div class="item"><i class="ri-check-line"></i> Gestão total do Instagram</div>
           <div class="item"><i class="ri-check-line"></i> Posts ilimitados</div>
+          <div class="item"><i class="ri-check-line"></i> Gestão total do Instagram</div>
           <div class="item"><i class="ri-check-line"></i> Criação de campanhas</div>
-          <div class="item"><i class="ri-check-line"></i> Posters para redes e loja</div>
+          <div class="item"><i class="ri-check-line"></i> Posters para loja e redes</div>
         </div>
-        <div class="cta">
-          <button class="btn btn-primary" onclick="whats('Plano Premium')">
-            <i class="ri-whatsapp-line"></i> Solicitar ativação
-          </button>
-        </div>
+        <button class="btn" onclick="whatsPlano('Plano Premium','posts ilimitados, gestão total do Instagram, campanhas, posters para loja e redes')">
+          <i class="ri-whatsapp-line"></i> Solicitar orçamento
+        </button>
       </div>
+
     </div>
   </div>
 
   <div class="footer">
     <div>Atendimento Clena: <span class="whats">(77) 99825-3249</span></div>
-    <button class="btn btn-outline" onclick="whats('Quero uma assessoria de marketing para minha loja')">
-      <i class="ri-instagram-line"></i> Falar no WhatsApp
+    <button class="btn" onclick="whatsPlano('Assessoria','Quero assessoria completa de marketing para minha loja')">
+      <i class="ri-whatsapp-line"></i> Falar no WhatsApp
     </button>
   </div>
 </div>
 
 <script>
-function whats(plano){
+function whatsPlano(plano, resumo){
   const msg = encodeURIComponent(
-    `Olá! Quero solicitar ativação e orçamento para o ${plano}. Minha loja deseja assessoria da Clena para Instagram e criação de artes.`
+`Olá! Quero solicitar orçamento para o ${plano}.
+Resumo do plano:
+- ${resumo}
+
+Minha loja deseja a assessoria da Clena para Instagram e criação de artes.`
   );
   window.open(`https://wa.me/5577998253249?text=${msg}`, "_blank");
 }
