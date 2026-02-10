@@ -16,14 +16,18 @@
   --border:rgba(255,255,255,.08);
   --text:#f8fafc;
   --muted:#9ca3af;
-  --success:#16a34a;
+  --success:#22c55e;
   --ig1:#f58529; --ig2:#dd2a7b; --ig3:#8134af;
 }
 *{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
-html,body{height:100%;background:
-  radial-gradient(1200px 600px at 10% -10%, #1b0f07, transparent 60%),
-  radial-gradient(800px 400px at 110% 10%, rgba(221,42,123,.15), transparent 60%),
-  var(--bg); color:var(--text)}
+html,body{
+  height:100%;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #1b0f07, transparent 60%),
+    radial-gradient(800px 400px at 110% 10%, rgba(221,42,123,.15), transparent 60%),
+    var(--bg);
+  color:var(--text)
+}
 .page{min-height:100%;display:flex;flex-direction:column}
 
 .header{padding:22px 18px 10px}
@@ -31,15 +35,14 @@ html,body{height:100%;background:
   display:inline-block;padding:6px 12px;border-radius:999px;
   font-size:11px;font-weight:900;letter-spacing:.06em;
   background:linear-gradient(135deg,#ff6a00,#ff9a57); color:#111;
-  box-shadow:0 10px 30px rgba(255,106,0,.45);
-  margin-bottom:10px
+  box-shadow:0 10px 30px rgba(255,106,0,.45); margin-bottom:10px
 }
-.header h1{font-size:22px;font-weight:900;margin-bottom:6px}
+.header h1{font-size:24px;font-weight:900;margin-bottom:6px}
 .header p{font-size:13px;color:var(--muted)}
 
 .hero{
-  margin:10px 16px 0;border:1px solid var(--border);border-radius:22px;
-  padding:16px;display:grid;gap:10px; position:relative; overflow:hidden;
+  margin:10px 16px 0;border:1px solid var(--border);border-radius:24px;
+  padding:18px;display:grid;gap:10px; position:relative; overflow:hidden;
   background:linear-gradient(135deg, rgba(255,106,0,.22), rgba(221,42,123,.16));
 }
 .hero::after{
@@ -49,55 +52,62 @@ html,body{height:100%;background:
   animation: glow 6s ease-in-out infinite alternate;
 }
 @keyframes glow{from{opacity:.6}to{opacity:1}}
-
 .hero .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:1}
 .hero .ig{
-  width:42px;height:42px;border-radius:12px;
+  width:44px;height:44px;border-radius:14px;
   background:linear-gradient(135deg,var(--ig1),var(--ig2),var(--ig3));
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:22px; box-shadow:0 10px 30px rgba(221,42,123,.55)
 }
-.hero strong{font-size:16px}
-.hero .desc{font-size:12px;color:var(--muted);z-index:1}
+.hero strong{font-size:17px}
+.hero .desc{font-size:13px;color:var(--muted);z-index:1}
 
 .content{padding:16px;display:grid;gap:12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 
 .card{
   background:linear-gradient(180deg,#12131a,#0e0f14);
-  border:1px solid var(--border);border-radius:22px;padding:16px;
+  border:1px solid var(--border);border-radius:24px;padding:18px;
   box-shadow:0 20px 60px rgba(0,0,0,.45);
-  position:relative;overflow:hidden; transform:translateY(12px); opacity:0;
-  animation: enter .6s ease forwards;
+  position:relative;overflow:hidden;
+  transform:translateY(20px); opacity:0;
+  animation: enter .7s cubic-bezier(.2,.7,.2,1) forwards;
 }
-.card:nth-child(2){animation-delay:.08s}
-.card:nth-child(3){animation-delay:.16s}
+.card:nth-child(1){animation-delay:.05s}
+.card:nth-child(2){animation-delay:.12s}
+.card:nth-child(3){animation-delay:.2s}
 @keyframes enter{to{transform:none;opacity:1}}
 
-.card:hover{transform:translateY(-4px) scale(1.01); transition:.25s ease}
+.card:hover{transform:translateY(-6px) scale(1.015); transition:.25s ease}
 .card::after{
   content:""; position:absolute; inset:auto -40% -40% -40%;
   height:60%; background:radial-gradient(50% 50% at 50% 100%, rgba(255,106,0,.28), transparent 60%);
 }
-
 .card.featured{
   outline:2px solid rgba(255,106,0,.5);
-  box-shadow:0 0 0 1px rgba(255,106,0,.25), 0 25px 80px rgba(255,106,0,.25);
+  box-shadow:0 0 0 1px rgba(255,106,0,.25), 0 30px 100px rgba(255,106,0,.35);
+}
+.ribbon{
+  position:absolute; top:12px; right:-38px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#111; font-weight:900; font-size:11px;
+  padding:6px 40px; transform:rotate(20deg);
+  box-shadow:0 10px 30px rgba(255,106,0,.45);
 }
 
-.card h3{font-size:16px;font-weight:900;margin-bottom:6px}
-.card .price{font-size:24px;font-weight:900;color:#22c55e}
+.card h3{font-size:17px;font-weight:900;margin-bottom:6px}
+.card .price{font-size:26px;font-weight:900;color:var(--success)}
 .card .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
 
 .list{display:grid;gap:8px;margin:10px 0}
 .item{display:flex;gap:8px;font-size:12px;color:#e5e7eb}
-.item i{color:#22c55e}
+.item i{color:var(--success)}
 
 .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .btn{
-  border:none;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer;
+  border:none;border-radius:999px;padding:12px 18px;font-weight:900;cursor:pointer;
   display:flex;align-items:center;gap:8px; white-space:nowrap;
-  position:relative; overflow:hidden;
+  position:relative; overflow:hidden; isolation:isolate;
 }
 .btn-primary{
   background:linear-gradient(135deg,#ff6a00,#ff9a57); color:#111;
@@ -116,7 +126,7 @@ html,body{height:100%;background:
   background:rgba(0,0,0,.35); backdrop-filter: blur(6px);
   display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center
 }
-.whats{color:#22c55e;font-weight:900}
+.whats{color:var(--success);font-weight:900}
 </style>
 </head>
 <body>
@@ -132,9 +142,7 @@ html,body{height:100%;background:
       <div class="ig"><i class="ri-instagram-line"></i></div>
       <strong>Gestão completa do Instagram da sua loja</strong>
     </div>
-    <div class="desc">
-      Conteúdo estratégico, artes profissionais, constância de postagens e identidade visual alinhada à sua marca.
-    </div>
+    <div class="desc">Conteúdo estratégico, artes profissionais e constância de postagens.</div>
   </div>
 
   <div class="content">
@@ -150,11 +158,14 @@ html,body{height:100%;background:
           <div class="item"><i class="ri-check-line"></i> Identidade visual básica</div>
         </div>
         <div class="cta">
-          <button class="btn btn-primary" onclick="whats('Plano Start')"><i class="ri-whatsapp-line"></i> Solicitar ativação</button>
+          <button class="btn btn-primary" onclick="whats('Plano Start')">
+            <i class="ri-whatsapp-line"></i> Solicitar ativação
+          </button>
         </div>
       </div>
 
       <div class="card featured">
+        <span class="ribbon">MAIS VENDIDO</span>
         <h3>Plano Pro</h3>
         <div class="price">Sob consulta</div>
         <div class="sub">Para crescer e engajar</div>
@@ -165,7 +176,9 @@ html,body{height:100%;background:
           <div class="item"><i class="ri-check-line"></i> Posters para promoções</div>
         </div>
         <div class="cta">
-          <button class="btn btn-primary" onclick="whats('Plano Pro')"><i class="ri-whatsapp-line"></i> Solicitar ativação</button>
+          <button class="btn btn-primary" onclick="whats('Plano Pro')">
+            <i class="ri-whatsapp-line"></i> Solicitar ativação
+          </button>
         </div>
       </div>
 
@@ -180,7 +193,9 @@ html,body{height:100%;background:
           <div class="item"><i class="ri-check-line"></i> Posters para redes e loja</div>
         </div>
         <div class="cta">
-          <button class="btn btn-primary" onclick="whats('Plano Premium')"><i class="ri-whatsapp-line"></i> Solicitar ativação</button>
+          <button class="btn btn-primary" onclick="whats('Plano Premium')">
+            <i class="ri-whatsapp-line"></i> Solicitar ativação
+          </button>
         </div>
       </div>
     </div>
