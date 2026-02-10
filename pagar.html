@@ -25,65 +25,26 @@
 *{box-sizing:border-box;font-family:Inter;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 
-.header{
-  position:sticky;top:0;z-index:10;
-  background:#fff;border-bottom:1px solid var(--border);
-  padding:14px 16px 12px;
-}
+.header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--border);padding:14px 16px 12px}
 .header h1{margin:0;font-size:18px;font-weight:900}
 
-.resumo{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  padding:12px;
-}
-.box{
-  background:#fff;border-radius:20px;padding:14px;
-  box-shadow:var(--shadow)
-}
+.resumo{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.box{background:#fff;border-radius:20px;padding:14px;box-shadow:var(--shadow)}
 .box h4{margin:0 0 6px;font-size:12px;color:var(--muted)}
 .box strong{font-size:20px}
 .box.pagar strong{color:var(--danger)}
 .box.receber strong{color:var(--success)}
 
-.mes-nav{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 12px 10px;
-}
-.mes-nav button{
-  width:38px;height:38px;border-radius:50%;
-  border:none;background:#fff;
-  box-shadow:var(--shadow);
-  font-size:20px
-}
+.mes-nav{display:flex;justify-content:space-between;align-items:center;padding:0 12px 10px}
+.mes-nav button{width:38px;height:38px;border-radius:50%;border:none;background:#fff;box-shadow:var(--shadow);font-size:20px}
 
-.tabs{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  padding:0 12px 10px;
-}
-.tab{
-  background:#fff;border:1px solid var(--border);
-  padding:12px;border-radius:999px;font-weight:800
-}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 10px}
+.tab{background:#fff;border:1px solid var(--border);padding:12px;border-radius:999px;font-weight:800}
 .tab.active{background:var(--primary);color:#fff;border:none}
 
-.section{
-  padding:0 12px 120px;
-}
-.list{
-  display:flex;
-  flex-direction:column;
-  gap:10px
-}
-.card{
-  background:#fff;border-radius:18px;padding:12px;
-  box-shadow:var(--shadow)
-}
+.section{padding:0 12px 120px}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:#fff;border-radius:18px;padding:12px;box-shadow:var(--shadow)}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .badge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:999px}
 .badge.pendente{background:#fff7ed;color:#c2410c}
@@ -91,40 +52,27 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .valor{font-size:16px;font-weight:900;margin-top:4px}
 .meta{font-size:12px;color:var(--muted)}
 
-.fab{
-  position:fixed;right:16px;bottom:16px;
-  width:56px;height:56px;border-radius:50%;
-  background:linear-gradient(135deg,#ff6a00,#ff9a57);
-  color:#fff;font-size:28px;border:none;
-  box-shadow:0 20px 60px rgba(255,106,0,.45)
-}
+.actions{display:flex;gap:6px;margin-top:8px}
+.actions button{flex:1;border:none;padding:8px;border-radius:999px;font-weight:800;cursor:pointer}
+.btn-edit{background:#f1f5f9}
+.btn-pay{background:#dcfce7;color:#166534}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end}
 .box-modal{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:20px}
 .field{margin-bottom:10px}
 .field label{font-size:12px;color:#6b7280}
-.field input,.field select{
-  width:100%;padding:12px;border-radius:12px;border:1px solid var(--border)
-}
+.field input,.field select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border)}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .save{width:100%;padding:14px;border:none;border-radius:999px;background:var(--primary);color:#fff;font-weight:900}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>Console Financeiro</h1>
-</div>
+<div class="header"><h1>Console Financeiro</h1></div>
 
 <div class="resumo">
-  <div class="box pagar">
-    <h4>Total a pagar (mês)</h4>
-    <strong id="totalPagar">R$ 0,00</strong>
-  </div>
-  <div class="box receber">
-    <h4>Total a receber (mês)</h4>
-    <strong id="totalReceber">R$ 0,00</strong>
-  </div>
+  <div class="box pagar"><h4>Total a pagar (mês)</h4><strong id="totalPagar">R$ 0,00</strong></div>
+  <div class="box receber"><h4>Total a receber (mês)</h4><strong id="totalReceber">R$ 0,00</strong></div>
 </div>
 
 <div class="mes-nav">
@@ -147,23 +95,11 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 <div class="modal" id="modalEditar" onclick="fecharEditar(event)">
   <div class="box-modal" onclick="event.stopPropagation()">
     <h3>Editar recebimento</h3>
-
-    <div class="field">
-      <label>Cliente</label>
-      <input id="editCliente" disabled>
-    </div>
-
+    <div class="field"><label>Cliente</label><input id="editCliente" disabled></div>
     <div class="row">
-      <div class="field">
-        <label>Data</label>
-        <input id="editData" type="date">
-      </div>
-      <div class="field">
-        <label>Valor</label>
-        <input id="editValor">
-      </div>
+      <div class="field"><label>Data</label><input id="editData" type="date"></div>
+      <div class="field"><label>Valor</label><input id="editValor"></div>
     </div>
-
     <div class="field">
       <label>Status</label>
       <select id="editStatus">
@@ -172,105 +108,64 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
         <option value="CONCLUIDO">RECEBIDO</option>
       </select>
     </div>
-
     <button class="save" onclick="salvarEdicaoReceber()">Salvar alterações</button>
   </div>
 </div>
 
 <script>
-const sb = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
-
+const sb = supabase.createClient("https://egxjgmzukjyyxmkukwub.supabase.co","sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi");
 const lojaId = window.parent?.APP_CONTEXT?.userId || null;
 let mesAtual = new Date();
 let receberEditando = null;
 
-function dataBR(iso){
-  if(!iso) return "—";
-  const [y,m,d] = iso.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function mostrar(tipo, btn){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  btn.classList.add("active");
-  listaPagar.style.display = tipo === "pagar" ? "flex" : "none";
-  listaReceber.style.display = tipo === "receber" ? "flex" : "none";
-}
-
-function mudarMes(dir){
-  mesAtual.setMonth(mesAtual.getMonth() + dir);
-  carregar();
-}
+function dataBR(iso){ if(!iso) return "—"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+function mostrar(tipo,btn){ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); btn.classList.add("active"); listaPagar.style.display=tipo==="pagar"?"flex":"none"; listaReceber.style.display=tipo==="receber"?"flex":"none"; }
+function mudarMes(dir){ mesAtual.setMonth(mesAtual.getMonth()+dir); carregar(); }
 
 async function carregar(){
   if(!lojaId) return;
+  const y=mesAtual.getFullYear(), m=mesAtual.getMonth();
+  const ini=new Date(y,m,1).toISOString().split("T")[0];
+  const fim=new Date(y,m+1,0).toISOString().split("T")[0];
+  mesLabel.innerText=mesAtual.toLocaleString("pt-BR",{month:"long",year:"numeric"});
 
-  const ano = mesAtual.getFullYear();
-  const mes = mesAtual.getMonth();
-  const inicio = new Date(ano, mes, 1).toISOString().split("T")[0];
-  const fim = new Date(ano, mes+1, 0).toISOString().split("T")[0];
+  const {data:pagar}=await sb.from("contas_pagar").select("*, fornecedores(nome), planos_contas(nome)").eq("loja_id",lojaId).gte("vencimento",ini).lte("vencimento",fim);
+  const {data:receber}=await sb.from("agendamentos").select("id, cliente_nome, valor_total, status, data").eq("loja_id",lojaId).gte("data",ini).lte("data",fim).in("status",["CONFIRMADO","CONCLUIDO","CREDIARIO"]);
 
-  mesLabel.innerText = mesAtual.toLocaleString("pt-BR", { month: "long", year: "numeric" });
-
-  const { data: pagar } = await sb
-    .from("contas_pagar")
-    .select("*, fornecedores(nome), planos_contas(nome)")
-    .eq("loja_id", lojaId)
-    .gte("vencimento", inicio)
-    .lte("vencimento", fim);
-
-  const { data: receber } = await sb
-    .from("agendamentos")
-    .select("id, cliente_nome, valor_total, status, data")
-    .eq("loja_id", lojaId)
-    .gte("data", inicio)
-    .lte("data", fim)
-    .in("status", ["CONFIRMADO","CONCLUIDO","CREDIARIO"]);
-
-  renderPagar(pagar || []);
-  renderReceber(receber || []);
+  renderPagar(pagar||[]);
+  renderReceber(receber||[]);
 }
 
 function renderPagar(lista){
-  let total = 0;
-  listaPagar.innerHTML = "";
-
+  let total=0; listaPagar.innerHTML="";
   lista.forEach(c=>{
-    if(c.status === "PENDENTE") total += Number(c.valor || 0);
-
-    listaPagar.innerHTML += `
+    if(c.status==="PENDENTE") total+=Number(c.valor||0);
+    listaPagar.innerHTML+=`
       <div class="card">
         <div class="top">
-          <strong>${c.fornecedores?.nome || "Fornecedor"}</strong>
-          <span class="badge ${c.status === "PAGO" ? "pago" : "pendente"}">${c.status}</span>
+          <strong>${c.fornecedores?.nome||"Fornecedor"}</strong>
+          <span class="badge ${c.status==="PAGO"?"pago":"pendente"}">${c.status}</span>
         </div>
-        <div class="valor">R$ ${Number(c.valor).toFixed(2).replace(".",",")}</div>
-        <div class="meta">
-          Venc: ${dataBR(c.vencimento)}<br>
-          Plano: ${c.planos_contas?.nome || "-"}
+        <div class="valor">R$ ${Number(c.valor||0).toFixed(2).replace(".",",")}</div>
+        <div class="meta">Venc: ${dataBR(c.vencimento)}</div>
+        <div class="actions">
+          <button class="btn-edit" onclick='abrirEditarPagar(${JSON.stringify(c)})'>Editar</button>
+          ${c.status!=="PAGO"?`<button class="btn-pay" onclick="marcarPago('${c.id}')">Marcar pago</button>`:""}
         </div>
-      </div>
-    `;
+      </div>`;
   });
-
-  totalPagar.innerText = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  totalPagar.innerText=total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
 function renderReceber(lista){
-  let total = 0;
-  listaReceber.innerHTML = "";
-
+  let total=0; listaReceber.innerHTML="";
   lista.forEach(r=>{
-    if(r.status === "CONFIRMADO") total += Number(r.valor_total || 0);
-
-    listaReceber.innerHTML += `
+    if(r.status==="CONFIRMADO") total+=Number(r.valor_total||0);
+    listaReceber.innerHTML+=`
       <div class="card" onclick='abrirEditarReceber(${JSON.stringify(r)})'>
         <div class="top">
-          <strong>${r.cliente_nome || "Cliente"}</strong>
-          <select onchange="alterarStatusReceber('${r.id}', this.value); event.stopPropagation()">
+          <strong>${r.cliente_nome||"Cliente"}</strong>
+          <select onchange="alterarStatusReceber('${r.id}', this.value); event.stopPropagation(); abrirEditarReceber(${JSON.stringify(r)})">
             <option value="CONFIRMADO" ${r.status==="CONFIRMADO"?"selected":""}>A RECEBER</option>
             <option value="CREDIARIO" ${r.status==="CREDIARIO"?"selected":""}>CREDIÁRIO</option>
             <option value="CONCLUIDO" ${r.status==="CONCLUIDO"?"selected":""}>RECEBIDO</option>
@@ -278,54 +173,35 @@ function renderReceber(lista){
         </div>
         <div class="valor">R$ ${Number(r.valor_total||0).toFixed(2).replace(".",",")}</div>
         <div class="meta">Data: ${dataBR(r.data)}</div>
-      </div>
-    `;
+      </div>`;
   });
-
-  totalReceber.innerText = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  totalReceber.innerText=total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-async function alterarStatusReceber(id, status){
-  await sb.from("agendamentos")
-    .update({ status })
-    .eq("loja_id", lojaId)
-    .eq("id", id);
-
+async function alterarStatusReceber(id,status){
+  await sb.from("agendamentos").update({status}).eq("loja_id",lojaId).eq("id",id);
   carregar();
 }
 
 function abrirEditarReceber(r){
-  receberEditando = r;
-  editCliente.value = r.cliente_nome || "Cliente";
-  editData.value = r.data;
-  editValor.value = Number(r.valor_total||0).toFixed(2).replace(".",",");
-  editStatus.value = r.status;
-  modalEditar.style.display = "flex";
+  receberEditando=r;
+  editCliente.value=r.cliente_nome||"Cliente";
+  editData.value=r.data;
+  editValor.value=Number(r.valor_total||0).toFixed(2).replace(".",",");
+  editStatus.value=r.status;
+  modalEditar.style.display="flex";
 }
-
-function fecharEditar(e){
-  if(e.target !== modalEditar) return;
-  modalEditar.style.display = "none";
-}
-
+function fecharEditar(e){ if(e.target!==modalEditar) return; modalEditar.style.display="none"; }
 async function salvarEdicaoReceber(){
-  if(!receberEditando) return;
-
-  await sb.from("agendamentos")
-    .update({
-      data: editData.value,
-      valor_total: parseFloat(editValor.value.replace(",", ".")),
-      status: editStatus.value
-    })
-    .eq("loja_id", lojaId)
-    .eq("id", receberEditando.id);
-
-  modalEditar.style.display = "none";
-  carregar();
+  await sb.from("agendamentos").update({
+    data:editData.value,
+    valor_total:parseFloat(editValor.value.replace(",",".")),
+    status:editStatus.value
+  }).eq("loja_id",lojaId).eq("id",receberEditando.id);
+  modalEditar.style.display="none"; carregar();
 }
 
 document.addEventListener("DOMContentLoaded", carregar);
 </script>
-
 </body>
 </html>
