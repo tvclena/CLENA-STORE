@@ -526,31 +526,10 @@ iframe{
 <!-- CONTENT -->
 <div class="content">
 
-  <iframe
-    id="frame-home"
-    src="home.html"
-    class="active">
-  </iframe>
-
-  <iframe
-    id="frame-produtos"
-    src="produtos.html">
-  </iframe>
-
-  <iframe
-    id="frame-agenda"
-    src="agenda.html">
-  </iframe>
-
-  <iframe
-    id="frame-pedidos"
-    src="pedidos.html">
-  </iframe>
-
-  <iframe
-    id="frame-config"
-    src="config.html">
-  </iframe>
+<iframe id="frame-pagar" src="pagar.html"></iframe>
+<iframe id="frame-receber" src="receber.html"></iframe>
+<iframe id="frame-publicidade" src="publicidade.html"></iframe>
+<iframe id="frame-estoque" src="estoque.html"></iframe>
 
 </div>
 
@@ -586,28 +565,29 @@ iframe{
     Ajustes
   </div>
 
-  <!-- SUBMENU (SOBE PRA CIMA) -->
   <div class="config-menu" id="configMenu">
-    <div class="config-item" onclick="goFromMenu(this,'config')">
-      <i class="ri-settings-4-line"></i>
-      Configurações
-    </div>
 
-    <div class="config-item" onclick="goFromMenu(this,'produtos')">
-      <i class="ri-store-2-line"></i>
-      Produtos
-    </div>
-
-    <div class="config-item" onclick="goFromMenu(this,'agenda')">
-      <i class="ri-calendar-line"></i>
-      Agenda
-    </div>
-
-    <div class="config-item" onclick="goFromMenu(this,'pedidos')">
-      <i class="ri-shopping-bag-3-line"></i>
-      Pedidos
-    </div>
+  <div class="config-item" onclick="goFromMenu(this,'pagar')">
+    <i class="ri-wallet-3-line"></i>
+    A pagar
   </div>
+
+  <div class="config-item" onclick="goFromMenu(this,'receber')">
+    <i class="ri-hand-coin-line"></i>
+    A receber
+  </div>
+
+  <div class="config-item" onclick="goFromMenu(this,'publicidade')">
+    <i class="ri-megaphone-line"></i>
+    Publicidade
+  </div>
+
+  <div class="config-item" onclick="goFromMenu(this,'estoque')">
+    <i class="ri-archive-drawer-line"></i>
+    Estoque
+  </div>
+
+</div>
 
 </div>
 
@@ -1122,7 +1102,11 @@ const frames = {
   produtos: document.getElementById("frame-produtos"),
   agenda: document.getElementById("frame-agenda"),
   pedidos: document.getElementById("frame-pedidos"),
-  config: document.getElementById("frame-config")
+
+  pagar: document.getElementById("frame-pagar"),
+  receber: document.getElementById("frame-receber"),
+  publicidade: document.getElementById("frame-publicidade"),
+  estoque: document.getElementById("frame-estoque")
 };
 window.addEventListener("load", () => {
   frames.home.classList.add("active");
