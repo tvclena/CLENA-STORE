@@ -26,12 +26,15 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .box strong{font-size:20px}
 .box.pagar strong{color:var(--danger)}
 .box.receber strong{color:var(--success)}
+
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 10px}
 .tab{background:#fff;border:1px solid var(--border);padding:12px;border-radius:999px;font-weight:800}
 .tab.active{background:var(--primary);color:#fff;border:none}
-.section{padding:0 12px 120px}
+
+.section{padding:0 12px 120px;height:calc(100vh - 200px);overflow:auto}
 .list{display:flex;flex-direction:column;gap:10px}
-.card{background:#fff;border-radius:18px;padding:12px;box-shadow:var(--shadow);cursor:pointer}
+
+.card{background:#fff;border-radius:18px;padding:12px;box-shadow:var(--shadow)}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .valor{font-size:16px;font-weight:900;margin-top:4px}
 .meta{font-size:12px;color:var(--muted)}
@@ -39,9 +42,11 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .actions button{flex:1;border:none;padding:8px;border-radius:999px;font-weight:800;cursor:pointer}
 .btn-edit{background:#f1f5f9}
 .btn-pay{background:#dcfce7;color:#166534}
+
 .fab{position:fixed;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;
   background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff;font-size:28px;border:none;
   box-shadow:0 20px 60px rgba(255,106,0,.45)}
+
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end}
 .box-modal{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:20px}
 .field{margin-bottom:10px}
@@ -57,8 +62,8 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 <div class="header"><h1>Console Financeiro</h1></div>
 
 <div class="resumo">
-  <div class="box pagar"><h4>Total a pagar (mês)</h4><strong id="totalPagar">R$ 0,00</strong></div>
-  <div class="box receber"><h4>Total a receber (mês)</h4><strong id="totalReceber">R$ 0,00</strong></div>
+  <div class="box pagar"><h4>Total a pagar</h4><strong id="totalPagar">R$ 0,00</strong></div>
+  <div class="box receber"><h4>Total a receber</h4><strong id="totalReceber">R$ 0,00</strong></div>
 </div>
 
 <div class="tabs">
@@ -101,15 +106,18 @@ const lojaId = window.parent?.APP_CONTEXT?.userId || null;
 let receberEditando=null;
 
 function dataBR(iso){ if(!iso) return "—"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
-function mostrar(tipo,btn){ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); btn.classList.add("active"); listaPagar.style.display=tipo==="pagar"?"flex":"none"; listaReceber.style.display=tipo==="receber"?"flex":"none"; }
-
+function mostrar(tipo,btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  listaPagar.style.display=tipo==="pagar"?"flex":"none";
+  listaReceber.style.display=tipo==="receber"?"flex":"none";
+}
 async function carregar(){
-  if(!lojaId) return;
-  const {data:pagar}=await sb.from("contas_pagar").select("id, fornecedor, valor, vencimento, status").eq("loja_id",lojaId);
-  const {data:receber}=await sb.from("agendamentos").select("id, cliente_nome, valor_total, status, data").eq("loja_id",lojaId);
+  const {data:pagar}=await sb.from("contas_pagar").select("*").eq("loja_id",lojaId);
+  const {data:receber}=await sb.from("agendamentos").select("*").eq("loja_id",lojaId);
 
   let tp=0,tr=0;
-  listaPagar.innerHTML="";
+  listaPagar.innerHTML=""; listaReceber.innerHTML="";
   pagar?.forEach(p=>{
     if(p.status==="PENDENTE") tp+=Number(p.valor||0);
     listaPagar.innerHTML+=`
@@ -122,8 +130,6 @@ async function carregar(){
         </div>
       </div>`;
   });
-
-  listaReceber.innerHTML="";
   receber?.forEach(r=>{
     if(r.status==="CONFIRMADO") tr+=Number(r.valor_total||0);
     listaReceber.innerHTML+=`
@@ -140,19 +146,9 @@ async function carregar(){
         <div class="meta">Data: ${dataBR(r.data)}</div>
       </div>`;
   });
-
   totalPagar.innerText=tp.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   totalReceber.innerText=tr.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
-
-async function alterarStatusReceber(id,status){
-  if(receberEditando?.status==="CONCLUIDO" && status!=="CONCLUIDO"){
-    if(!confirm("Deseja reabrir este recebimento?")) return;
-  }
-  await sb.from("agendamentos").update({status}).eq("id",id);
-  carregar();
-}
-
 function abrirEditarReceber(r){
   receberEditando=r;
   editCliente.value=r.cliente_nome;
@@ -162,11 +158,7 @@ function abrirEditarReceber(r){
   modalEditar.style.display="flex";
 }
 function fecharEditar(e){ if(e.target!==modalEditar) return; modalEditar.style.display="none"; }
-
 async function salvarEdicaoReceber(){
-  if(receberEditando.status==="CONCLUIDO" && editStatus.value!=="CONCLUIDO"){
-    if(!confirm("Deseja reabrir este recebimento?")) return;
-  }
   await sb.from("agendamentos").update({
     data:editData.value,
     valor_total:parseFloat(editValor.value.replace(",",".")),
@@ -174,23 +166,17 @@ async function salvarEdicaoReceber(){
   }).eq("id",receberEditando.id);
   modalEditar.style.display="none"; carregar();
 }
-
 async function excluirReceber(){
-  if(!confirm("Excluir este recebimento?")) return;
+  if(!confirm("Excluir recebimento?")) return;
   await sb.from("agendamentos").delete().eq("id",receberEditando.id);
   modalEditar.style.display="none"; carregar();
 }
-
 async function marcarPago(id){
-  if(!confirm("Confirmar pagamento da despesa?")) return;
+  if(!confirm("Confirmar pagamento?")) return;
   await sb.from("contas_pagar").update({status:"PAGO"}).eq("id",id);
   carregar();
 }
-
-function abrirCriarPagar(){
-  alert("Aqui entra seu fluxo de criação de despesa (mantive o botão).");
-}
-
+function abrirCriarPagar(){ alert("Fluxo de criação aqui."); }
 document.addEventListener("DOMContentLoaded", carregar);
 </script>
 </body>
