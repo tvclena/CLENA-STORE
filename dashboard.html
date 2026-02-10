@@ -504,7 +504,7 @@ iframe{
   <h1>CONSOLE</h1>
 
   <div style="display:flex;gap:10px;align-items:center">
-  <!-- 🔄 BOTÃO ATUALIZAR SISTEMA (DESATIVADO TEMPORARIAMENTE)
+
 <button id="btnRefreshAll" title="Atualizar sistema"
   style="
     border:none;
@@ -519,7 +519,6 @@ iframe{
   ">
   <i class="ri-refresh-line" style="font-size:18px"></i>
 </button>
--->
     <div class="avatar" id="avatar" onclick="openProfile()">A</div>
   </div>
 </div>
@@ -1213,14 +1212,13 @@ function refreshAllIframes() {
   overlay.style.display = "flex";
 
   Object.values(frames).forEach((iframe) => {
-    if (!iframe || !iframe.src) return;
+    if (!iframe) return;
 
     try {
-      // força reload real
-      iframe.contentWindow.location.reload();
-    } catch (err) {
-      // fallback seguro
+      // força reload mesmo se contentWindow falhar
       iframe.src = iframe.src.split("?")[0] + "?v=" + Date.now();
+    } catch (err) {
+      console.warn("Falha ao atualizar iframe:", iframe?.id);
     }
   });
 
