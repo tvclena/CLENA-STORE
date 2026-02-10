@@ -109,6 +109,7 @@ h2{font-size:22px;margin-bottom:6px}
   box-shadow:0 14px 40px rgba(255,106,0,.45);
 }
 .btn:hover{filter:brightness(1.05)}
+.btn:focus-visible{outline:3px solid rgba(255,154,87,.9); outline-offset:2px}
 
 .compare{
   border:1px solid var(--border); border-radius:20px; overflow:hidden;
@@ -165,7 +166,7 @@ h2{font-size:22px;margin-bottom:6px}
           <div class="item"><i class="ri-check-line"></i> Artes profissionais</div>
           <div class="item"><i class="ri-check-line"></i> Identidade visual básica</div>
         </div>
-        <button class="btn" onclick="whatsPlano('Plano Start','8 posts/mês, 4 stories/semana, artes profissionais, identidade visual básica')">
+        <button class="btn" onclick="whatsPlano('Plano Start','8 posts/mês, 4 stories/semana, artes profissionais, identidade visual básica')" aria-label="Solicitar orçamento do Plano Start">
           <i class="ri-whatsapp-line"></i> Solicitar orçamento
         </button>
       </div>
@@ -181,7 +182,7 @@ h2{font-size:22px;margin-bottom:6px}
           <div class="item"><i class="ri-check-line"></i> Gestão do Instagram</div>
           <div class="item"><i class="ri-check-line"></i> Posters promocionais</div>
         </div>
-        <button class="btn" onclick="whatsPlano('Plano Pro','12 posts/mês, stories diários, gestão do Instagram, posters promocionais')">
+        <button class="btn" onclick="whatsPlano('Plano Pro','12 posts/mês, stories diários, gestão do Instagram, posters promocionais')" aria-label="Solicitar orçamento do Plano Pro">
           <i class="ri-whatsapp-line"></i> Solicitar orçamento
         </button>
       </div>
@@ -196,7 +197,7 @@ h2{font-size:22px;margin-bottom:6px}
           <div class="item"><i class="ri-check-line"></i> Criação de campanhas</div>
           <div class="item"><i class="ri-check-line"></i> Posters para loja e redes</div>
         </div>
-        <button class="btn" onclick="whatsPlano('Plano Premium','posts ilimitados, gestão total do Instagram, campanhas, posters para loja e redes')">
+        <button class="btn" onclick="whatsPlano('Plano Premium','posts ilimitados, gestão total do Instagram, campanhas, posters para loja e redes')" aria-label="Solicitar orçamento do Plano Premium">
           <i class="ri-whatsapp-line"></i> Solicitar orçamento
         </button>
       </div>
@@ -233,7 +234,7 @@ h2{font-size:22px;margin-bottom:6px}
 
   <div class="footer">
     <div>Atendimento Clena: <span class="whats">(77) 99825-3249</span></div>
-    <button class="btn" onclick="whatsPlano('Assessoria completa','Quero assessoria completa de marketing para minha loja')">
+    <button class="btn" onclick="whatsPlano('Assessoria completa','Quero assessoria completa de marketing para minha loja')" aria-label="Falar no WhatsApp com a Clena">
       <i class="ri-whatsapp-line"></i> Falar no WhatsApp
     </button>
   </div>
@@ -249,7 +250,13 @@ Resumo do plano:
 
 Minha loja deseja a assessoria da Clena para Instagram e criação de artes.`
   );
-  window.open(`https://wa.me/5577998253249?text=${msg}`, "_blank");
+
+  const phone = "5577998253249";
+  const waLink = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    ? `https://wa.me/${phone}?text=${msg}`
+    : `https://web.whatsapp.com/send?phone=${phone}&text=${msg}`;
+
+  window.open(waLink, "_blank", "noopener");
 }
 </script>
 </body>
