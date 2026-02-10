@@ -331,7 +331,33 @@ body:not([data-painel="1"]) #clienteModal {
   display: none !important;
 }
 
-  
+ @keyframes popIn {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.chip-servico{
+  background:#fff;
+  border:2px solid var(--primary);
+  border-radius:999px;
+  padding:8px 14px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 6px 18px rgba(255,106,0,.25);
+  animation: popIn .18s ease;
+}
+.chip-servico .preco{
+  color:var(--primary);
+}
+.chip-servico button{
+  border:none;
+  background:transparent;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:900;
+  line-height:1;
+} 
 </style>
 </head>
 
@@ -346,7 +372,16 @@ body:not([data-painel="1"]) #clienteModal {
 
 <div class="section hidden" id="secSelecionados">
   <div class="title">Serviços selecionados</div>
-
+<div id="resumoSelecionados" style="
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  gap:10px;
+">
+  <div id="contadorServicos" style="font-weight:800;color:#374151"></div>
+  <div id="totalServicos" style="font-weight:900;color:var(--primary)"></div>
+</div>
   <div id="servicosSelecionados"
        style="display:flex;gap:10px;flex-wrap:wrap">
   </div>
@@ -1087,47 +1122,65 @@ function renderizarSelecionados(){
 
   const sec = document.getElementById("secSelecionados");
   const container = document.getElementById("servicosSelecionados");
+  const contador = document.getElementById("contadorServicos");
+  const totalEl = document.getElementById("totalServicos");
+  const btnVerDatas = document.querySelector(".btn-ver-datas");
 
-if(dados.servicos.length === 0){
-  sec.classList.add("hidden");
+  if(dados.servicos.length === 0){
+    sec.classList.add("hidden");
 
+    document.getElementById("secDays").classList.add("hidden");
+    document.getElementById("secTimes").classList.add("hidden");
+    document.getElementById("secConfirmar").classList.add("hidden");
+    dados.hora = null;
+
+    document.getElementById("days").innerHTML = "";
+    document.getElementById("times").innerHTML = "";
+
+    DIAS_VALIDOS = [];
+    cursorData = null;
+    carregandoDias = false;
+    duracaoTotal = 0;
+
+    container.innerHTML = "";
+    if(contador) contador.innerText = "";
+    if(totalEl) totalEl.innerText = "";
+    if(btnVerDatas) btnVerDatas.disabled = true;
+
+    return;
+  }
+
+  sec.classList.remove("hidden");
+
+  // 🧮 total + contador
+  const total = dados.servicos.reduce((s, x) => s + x.preco, 0);
+  if(contador) contador.innerText = `${dados.servicos.length} serviço(s) selecionado(s)`;
+  if(totalEl) totalEl.innerText = `Total: R$ ${formatarMoedaBR(total)}`;
+
+  // 🎨 chips premium
+  container.innerHTML = dados.servicos.map(s => `
+    <div class="chip-servico">
+      <span>${s.nome}</span>
+      <span class="preco">R$ ${formatarMoedaBR(s.preco)}</span>
+      <button onclick="removerServico('${s.id}')" aria-label="Remover ${s.nome}">✕</button>
+    </div>
+  `).join("");
+
+  if(btnVerDatas) btnVerDatas.disabled = false;
+
+  // 🔥 reseta datas/horários ao mudar serviços
   document.getElementById("secDays").classList.add("hidden");
   document.getElementById("secTimes").classList.add("hidden");
-  document.getElementById("secConfirmar").classList.add("hidden");
-  dados.hora = null;
-
   document.getElementById("days").innerHTML = "";
   document.getElementById("times").innerHTML = "";
 
   DIAS_VALIDOS = [];
   cursorData = null;
   carregandoDias = false;
-  duracaoTotal = 0;
 
-  return;
+  // ⏱️ duração total
+  duracaoTotal = dados.servicos.reduce((s, x) => s + x.duracao, 0);
 }
-
-
-
-sec.classList.remove("hidden");
-
-/* 🔥 RESETA DATAS E HORÁRIOS SEMPRE QUE MUDA SERVIÇO */
-document.getElementById("secDays").classList.add("hidden");
-document.getElementById("secTimes").classList.add("hidden");
-document.getElementById("days").innerHTML = "";
-document.getElementById("times").innerHTML = "";
-
-DIAS_VALIDOS = [];
-cursorData = null;
-carregandoDias = false;
-
-/* 🔢 RECALCULA DURAÇÃO */
-duracaoTotal = dados.servicos
-  .reduce((s, x) => s + x.duracao, 0);
-
-
-}
-
 function removerServico(id){
   dados.servicos = dados.servicos.filter(s => s.id !== id);
   document.querySelector(`[data-id="${id}"]`)
