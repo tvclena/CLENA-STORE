@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Publicidade • Agenda Fácil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --success:#16a34a;
+}
+*{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
+html,body{height:100%;background:var(--bg)}
+.page{height:100%;display:flex;flex-direction:column}
+.header{padding:16px 16px 10px}
+.header h2{font-size:18px;font-weight:900}
+.header p{font-size:12px;color:var(--muted)}
+.content{flex:1;overflow:auto;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.04);
+}
+.card h3{font-size:14px;margin-bottom:6px}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.btn{
+  border:none;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer
+}
+.btn-primary{background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff}
+.btn-outline{background:#fff;border:1px solid var(--border);color:#111}
+.table{width:100%;border-collapse:separate;border-spacing:0 8px}
+.tr{background:#fff;border:1px solid var(--border)}
+.tr td{padding:10px 12px;font-size:13px}
+.footer{
+  padding:12px 16px;border-top:1px solid var(--border);background:#fff;
+  display:flex;gap:8px;justify-content:flex-end
+}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h2>Publicidade</h2>
+    <p>Gerencie anúncios no telão e TVs do seu estabelecimento</p>
+  </div>
+
+  <div class="content">
+    <div class="grid">
+      <div class="card">
+        <h3>Plano Telão</h3>
+        <span class="badge">Destaque</span>
+        <p style="font-size:12px;color:#6b7280;margin-top:6px">
+          Exibição premium no telão principal
+        </p>
+        <div class="row">
+          <strong>R$ 700/mês</strong>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" onclick="criarCampanha('telao')">Criar campanha</button>
+          <button class="btn btn-outline" onclick="verPlanos()">Ver detalhes</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Plano TVs</h3>
+        <p style="font-size:12px;color:#6b7280">
+          Exibição rotativa nas TVs do ambiente
+        </p>
+        <div class="row">
+          <strong>Consultar valores</strong>
+        </div>
+        <div class="row">
+          <button class="btn btn-outline" onclick="verPlanos()">Ver detalhes</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin:16px 0 8px;font-size:14px">Minhas campanhas</h3>
+    <table class="table" id="tbl">
+      <!-- linhas via JS -->
+    </table>
+
+    <div class="empty" id="empty">Nenhuma campanha criada ainda.</div>
+  </div>
+
+  <div class="footer">
+    <button class="btn btn-outline" onclick="window.location.reload()">Atualizar</button>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const ctx = window.parent?.APP_CONTEXT || {};
+const userId = ctx.userId;
+
+async function listar(){
+  if(!userId) return;
+  const { data, error } = await sb
+    .from("publicidade_campanhas")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending:false });
+
+  const tbl = document.getElementById("tbl");
+  const empty = document.getElementById("empty");
+  tbl.innerHTML = "";
+
+  if(!data || !data.length){
+    empty.style.display = "block";
+    return;
+  }
+
+  empty.style.display = "none";
+  data.forEach(c => {
+    const tr = document.createElement("tr");
+    tr.className = "tr";
+    tr.innerHTML = `
+      <td><strong>${c.nome || "Campanha"}</strong></td>
+      <td>${c.plano}</td>
+      <td>${c.status || "pendente"}</td>
+      <td>${new Date(c.created_at).toLocaleDateString()}</td>
+    `;
+    tbl.appendChild(tr);
+  });
+}
+
+async function criarCampanha(plano){
+  const nome = prompt("Nome da campanha:");
+  if(!nome) return;
+
+  await sb.from("publicidade_campanhas").insert({
+    user_id: userId,
+    plano,
+    nome,
+    status: "pendente"
+  });
+
+  listar();
+}
+
+function verPlanos(){
+  alert("Planos: Telão (R$ 700/mês). TVs: sob consulta.");
+}
+
+listar();
+</script>
+</body>
+</html>
