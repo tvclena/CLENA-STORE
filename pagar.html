@@ -47,6 +47,19 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .box.pagar strong{color:var(--danger)}
 .box.receber strong{color:var(--success)}
 
+.mes-nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 12px 10px;
+}
+.mes-nav button{
+  width:38px;height:38px;border-radius:50%;
+  border:none;background:#fff;
+  box-shadow:var(--shadow);
+  font-size:20px
+}
+
 .tabs{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -62,16 +75,11 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .section{
   padding:0 12px 120px;
 }
-.section h3{
-  margin:12px 0 6px;font-size:14px
-}
-
 .list{
   display:flex;
   flex-direction:column;
   gap:10px
 }
-
 .card{
   background:#fff;border-radius:18px;padding:12px;
   box-shadow:var(--shadow)
@@ -82,6 +90,24 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .badge.pago{background:#ecfdf5;color:#16a34a}
 .valor{font-size:16px;font-weight:900;margin-top:4px}
 .meta{font-size:12px;color:var(--muted)}
+
+.fab{
+  position:fixed;right:16px;bottom:16px;
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;font-size:28px;border:none;
+  box-shadow:0 20px 60px rgba(255,106,0,.45)
+}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end}
+.box-modal{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:20px}
+.field{margin-bottom:10px}
+.field label{font-size:12px;color:#6b7280}
+.field input,.field select{
+  width:100%;padding:12px;border-radius:12px;border:1px solid var(--border)
+}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save{width:100%;padding:14px;border:none;border-radius:999px;background:var(--primary);color:#fff;font-weight:900}
 </style>
 </head>
 <body>
@@ -92,13 +118,19 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 
 <div class="resumo">
   <div class="box pagar">
-    <h4>Total a pagar (mês atual)</h4>
+    <h4>Total a pagar (mês)</h4>
     <strong id="totalPagar">R$ 0,00</strong>
   </div>
   <div class="box receber">
-    <h4>Total a receber (mês atual)</h4>
+    <h4>Total a receber (mês)</h4>
     <strong id="totalReceber">R$ 0,00</strong>
   </div>
+</div>
+
+<div class="mes-nav">
+  <button onclick="mudarMes(-1)"><i class="ri-arrow-left-s-line"></i></button>
+  <strong id="mesLabel"></strong>
+  <button onclick="mudarMes(1)"><i class="ri-arrow-right-s-line"></i></button>
 </div>
 
 <div class="tabs">
@@ -111,100 +143,117 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
   <div id="listaReceber" class="list" style="display:none"></div>
 </div>
 
-<script>
-const sb = supabase.createClient(
-  "https://egxjgmzukjyyxmkukwub.supabase.co",
-  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
-);
+<button class="fab" onclick="abrirModal()">+</button>
 
+<div class="modal" id="modal" onclick="fecharModal(event)">
+  <div class="box-modal" onclick="event.stopPropagation()">
+    <h3>Nova conta a pagar</h3>
+
+    <div class="field"><label>Fornecedor</label><input id="fornecedor"></div>
+    <div class="field"><label>Plano</label><input id="plano"></div>
+
+    <div class="row">
+      <div class="field"><label>Emissão</label><input id="emissao" type="date"></div>
+      <div class="field"><label>Vencimento</label><input id="vencimento" type="date"></div>
+    </div>
+
+    <div class="row">
+      <div class="field"><label>Valor</label><input id="valor"></div>
+      <div class="field">
+        <label>Meio</label>
+        <select id="meio">
+          <option>PIX</option>
+          <option>Boleto</option>
+          <option>Crédito</option>
+          <option>Débito</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field"><label>Conta bancária</label><input id="conta"></div>
+
+    <button class="save" onclick="salvar()">Salvar</button>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient("SUA_SUPABASE_URL","SUA_ANON_KEY");
 const lojaId = window.parent?.APP_CONTEXT?.userId || null;
+let mesAtual = new Date();
 
 function mostrar(tipo, btn){
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   btn.classList.add("active");
-
   listaPagar.style.display = tipo === "pagar" ? "flex" : "none";
   listaReceber.style.display = tipo === "receber" ? "flex" : "none";
+}
+
+function mudarMes(dir){
+  mesAtual.setMonth(mesAtual.getMonth() + dir);
+  carregar();
 }
 
 async function carregar(){
   if(!lojaId) return;
 
-  const hoje = new Date();
-  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split("T")[0];
-  const fimMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).toISOString().split("T")[0];
+  const ano = mesAtual.getFullYear();
+  const mes = mesAtual.getMonth();
+  const inicio = new Date(ano, mes, 1).toISOString().split("T")[0];
+  const fim = new Date(ano, mes+1, 0).toISOString().split("T")[0];
 
-  const { data: pagar, error: e1 } = await sb
+  mesLabel.innerText = mesAtual.toLocaleString("pt-BR", { month: "long", year: "numeric" });
+
+  const { data: pagar } = await sb
     .from("contas_pagar")
     .select("*, fornecedores(nome), planos_contas(nome)")
     .eq("loja_id", lojaId)
-    .gte("vencimento", inicioMes)
-    .lte("vencimento", fimMes);
-
-  const { data: receber, error: e2 } = await sb
-    .from("agendamentos")
-    .select("cliente_nome, valor_total, status, data")
-    .eq("loja_id", lojaId)
-    .gte("data", inicioMes)
-    .lte("data", fimMes)
-    .in("status", ["CONFIRMADO","CONCLUIDO"]);
-
-  if(e1) console.error(e1);
-  if(e2) console.error(e2);
+    .gte("vencimento", inicio)
+    .lte("vencimento", fim);
 
   renderPagar(pagar || []);
-  renderReceber(receber || []);
 }
 
 function renderPagar(lista){
   let total = 0;
   listaPagar.innerHTML = "";
-
   lista.forEach(c=>{
     if(c.status === "PENDENTE") total += Number(c.valor || 0);
-
     listaPagar.innerHTML += `
       <div class="card">
         <div class="top">
-          <strong>${c.fornecedores?.nome || c.fornecedor_nome || "Fornecedor"}</strong>
+          <strong>${c.fornecedores?.nome || "Fornecedor"}</strong>
           <span class="badge ${c.status === "PAGO" ? "pago" : "pendente"}">${c.status}</span>
         </div>
         <div class="valor">R$ ${Number(c.valor).toFixed(2).replace(".",",")}</div>
-        <div class="meta">
-          Vencimento: ${c.vencimento || "-"}<br>
-          Plano: ${c.planos_contas?.nome || c.plano_nome || "-"}<br>
-          Meio: ${c.meio_pagamento || "-"}
-        </div>
+        <div class="meta">Venc: ${c.vencimento} • Plano: ${c.planos_contas?.nome || "-"}</div>
       </div>
     `;
   });
-
   totalPagar.innerText = "R$ " + total.toFixed(2).replace(".",",");
 }
 
-function renderReceber(lista){
-  let total = 0;
-  listaReceber.innerHTML = "";
+function abrirModal(){ modal.style.display="flex"; }
+function fecharModal(e){ if(e.target!==modal) return; modal.style.display="none"; }
 
-  lista.forEach(r=>{
-    if(r.status === "CONFIRMADO") total += Number(r.valor_total || 0);
+async function salvar(){
+  const fornecedor_id = (await sb.rpc("get_or_create_fornecedor",{p_loja:lojaId,p_nome:fornecedor.value})).data;
+  const plano_conta_id = (await sb.rpc("get_or_create_plano",{p_loja:lojaId,p_nome:plano.value})).data;
+  const conta_bancaria_id = (await sb.rpc("get_or_create_conta",{p_loja:lojaId,p_nome:conta.value})).data;
 
-    listaReceber.innerHTML += `
-      <div class="card">
-        <div class="top">
-          <strong>${r.cliente_nome || "Cliente"}</strong>
-          <span class="badge ${r.status === "CONCLUIDO" ? "pago" : "pendente"}">${r.status}</span>
-        </div>
-        <div class="valor">R$ ${Number(r.valor_total).toFixed(2).replace(".",",")}</div>
-        <div class="meta">
-          Data: ${r.data}<br>
-          Status: ${r.status === "CONCLUIDO" ? "Recebido" : "A receber"}
-        </div>
-      </div>
-    `;
+  await sb.from("contas_pagar").insert({
+    loja_id: lojaId,
+    fornecedor_id,
+    plano_conta_id,
+    conta_bancaria_id,
+    emissao: emissao.value,
+    vencimento: vencimento.value,
+    valor: parseFloat(valor.value.replace(",",".")),
+    meio_pagamento: meio.value,
+    status: "PENDENTE"
   });
 
-  totalReceber.innerText = "R$ " + total.toFixed(2).replace(".",",");
+  modal.style.display="none";
+  carregar();
 }
 
 document.addEventListener("DOMContentLoaded", carregar);
