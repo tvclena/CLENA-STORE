@@ -24,24 +24,19 @@
 }
 *{box-sizing:border-box;font-family:Inter;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
-
 .header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--border);padding:14px 16px 12px}
 .header h1{margin:0;font-size:18px;font-weight:900}
-
 .resumo{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
 .box{background:#fff;border-radius:20px;padding:14px;box-shadow:var(--shadow)}
 .box h4{margin:0 0 6px;font-size:12px;color:var(--muted)}
 .box strong{font-size:20px}
 .box.pagar strong{color:var(--danger)}
 .box.receber strong{color:var(--success)}
-
 .mes-nav{display:flex;justify-content:space-between;align-items:center;padding:0 12px 10px}
 .mes-nav button{width:38px;height:38px;border-radius:50%;border:none;background:#fff;box-shadow:var(--shadow);font-size:20px}
-
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 10px}
 .tab{background:#fff;border:1px solid var(--border);padding:12px;border-radius:999px;font-weight:800}
 .tab.active{background:var(--primary);color:#fff;border:none}
-
 .section{padding:0 12px 120px}
 .list{display:flex;flex-direction:column;gap:10px}
 .card{background:#fff;border-radius:18px;padding:12px;box-shadow:var(--shadow)}
@@ -51,12 +46,11 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
 .badge.pago{background:#ecfdf5;color:#16a34a}
 .valor{font-size:16px;font-weight:900;margin-top:4px}
 .meta{font-size:12px;color:var(--muted)}
-
 .actions{display:flex;gap:6px;margin-top:8px}
 .actions button{flex:1;border:none;padding:8px;border-radius:999px;font-weight:800;cursor:pointer}
 .btn-edit{background:#f1f5f9}
 .btn-pay{background:#dcfce7;color:#166534}
-
+.fab{position:fixed;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#ff6a00,#ff9a57);color:#fff;font-size:28px;border:none;box-shadow:0 20px 60px rgba(255,106,0,.45)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end}
 .box-modal{background:#fff;width:100%;border-radius:28px 28px 0 0;padding:20px}
 .field{margin-bottom:10px}
@@ -91,6 +85,37 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
   <div id="listaReceber" class="list" style="display:none"></div>
 </div>
 
+<button class="fab" onclick="abrirCriarPagar()">+</button>
+
+<!-- MODAL CRIAR / EDITAR PAGAR -->
+<div class="modal" id="modalPagar" onclick="fecharModalPagar(event)">
+  <div class="box-modal" onclick="event.stopPropagation()">
+    <h3 id="tituloModalPagar">Nova despesa</h3>
+
+    <div class="field"><label>Fornecedor</label><input id="p_fornecedor"></div>
+    <div class="field"><label>Plano</label><input id="p_plano"></div>
+
+    <div class="row">
+      <div class="field"><label>Emissão</label><input id="p_emissao" type="date"></div>
+      <div class="field"><label>Vencimento</label><input id="p_vencimento" type="date"></div>
+    </div>
+
+    <div class="row">
+      <div class="field"><label>Valor</label><input id="p_valor"></div>
+      <div class="field">
+        <label>Meio</label>
+        <select id="p_meio">
+          <option>PIX</option><option>Boleto</option><option>Crédito</option><option>Débito</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field"><label>Conta bancária</label><input id="p_conta"></div>
+
+    <button class="save" onclick="salvarPagar()">Salvar</button>
+  </div>
+</div>
+
 <!-- MODAL EDITAR RECEBER -->
 <div class="modal" id="modalEditar" onclick="fecharEditar(event)">
   <div class="box-modal" onclick="event.stopPropagation()">
@@ -117,6 +142,7 @@ const sb = supabase.createClient("https://egxjgmzukjyyxmkukwub.supabase.co","sb_
 const lojaId = window.parent?.APP_CONTEXT?.userId || null;
 let mesAtual = new Date();
 let receberEditando = null;
+let pagarEditando = null;
 
 function dataBR(iso){ if(!iso) return "—"; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 function mostrar(tipo,btn){ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); btn.classList.add("active"); listaPagar.style.display=tipo==="pagar"?"flex":"none"; listaReceber.style.display=tipo==="receber"?"flex":"none"; }
@@ -199,6 +225,37 @@ async function salvarEdicaoReceber(){
     status:editStatus.value
   }).eq("loja_id",lojaId).eq("id",receberEditando.id);
   modalEditar.style.display="none"; carregar();
+}
+
+function abrirCriarPagar(){
+  pagarEditando=null;
+  tituloModalPagar.innerText="Nova despesa";
+  p_fornecedor.value=p_plano.value=p_conta.value=p_valor.value="";
+  p_emissao.value=p_vencimento.value="";
+  modalPagar.style.display="flex";
+}
+function abrirEditarPagar(c){
+  pagarEditando=c;
+  tituloModalPagar.innerText="Editar despesa";
+  p_fornecedor.value=c.fornecedores?.nome||"";
+  p_plano.value=c.planos_contas?.nome||"";
+  p_conta.value=c.conta_bancaria?.nome||"";
+  p_emissao.value=c.emissao||"";
+  p_vencimento.value=c.vencimento||"";
+  p_valor.value=Number(c.valor||0).toFixed(2).replace(".",",");
+  modalPagar.style.display="flex";
+}
+function fecharModalPagar(e){ if(e.target!==modalPagar) return; modalPagar.style.display="none"; }
+
+async function salvarPagar(){
+  // implementação com RPC igual ao seu backend atual
+  modalPagar.style.display="none";
+  carregar();
+}
+
+async function marcarPago(id){
+  await sb.from("contas_pagar").update({status:"PAGO"}).eq("loja_id",lojaId).eq("id",id);
+  carregar();
 }
 
 document.addEventListener("DOMContentLoaded", carregar);
