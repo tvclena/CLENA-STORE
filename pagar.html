@@ -326,6 +326,17 @@ input.money{
   background:#e5e7eb;
   border-radius:999px;
 }
+
+select{
+  appearance:none;
+  background:
+    linear-gradient(135deg,#fff,#fafafa),
+    url("data:image/svg+xml;utf8,<svg fill='%236b7280' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 12px center;
+  background-size:18px;
+  padding-right:36px !important;
+  font-weight:800;
+}
+  
 </style>
 </head>
 <body>
@@ -361,10 +372,16 @@ input.money{
     <h3 id="tituloPagar">Nova conta a pagar</h3>
 
     <div class="field"><label>Fornecedor</label><input id="pagarFornecedor" /></div>
-    <div class="row">
-      <div class="field"><label>Vencimento inicial</label><input id="pagarData" type="date"></div>
-      <div class="field"><label>Valor</label><input id="pagarValor"></div>
-    </div>
+<div class="row">
+  <div class="field">
+    <label>Vencimento inicial</label>
+    <input id="pagarData" type="date">
+  </div>
+  <div class="field">
+    <label>Valor</label>
+    <input id="pagarValor" class="money" inputmode="decimal" pattern="[0-9.,]*" placeholder="0,00">
+  </div>
+</div>
 
     <div class="switch">
       <input type="checkbox" id="pagarRecorrente" onchange="toggleRecorrencia()" />
@@ -397,7 +414,7 @@ input.money{
     <div class="field"><label>Cliente</label><input id="editCliente" disabled></div>
     <div class="row">
       <div class="field"><label>Data</label><input id="editData" type="date"></div>
-      <div class="field"><label>Valor</label><input id="editValor"></div>
+      <div class="field"><label>Valor</label><input id="editValor" class="money" inputmode="decimal" pattern="[0-9.,]*" placeholder="0,00"></div>
     </div>
     <div class="field">
       <label>Status</label>
@@ -438,7 +455,7 @@ function abrirCriarPagar(){
 function abrirEditarPagar(c){
   pagarEditando=c;
   tituloPagar.innerText="Editar conta a pagar";
-  pagarFornecedor.value=c.fornecedores?.nome||""; pagarData.value=c.vencimento;
+  pagarFornecedor.value = c?.fornecedores?.nome || ""; pagarData.value=c.vencimento;
   pagarValor.value=Number(c.valor||0).toFixed(2).replace(".",",");
   pagarRecorrente.checked=!!c.recorrente; recorrenciaBox.style.display=c.recorrente?"grid":"none";
   pagarFrequencia.value=c.frequencia||"MENSAL"; pagarFimRecorrencia.value=c.recorrencia_fim||"";
@@ -569,6 +586,21 @@ async function alterarStatusReceber(id,status){
   carregar();
 }
 document.addEventListener("DOMContentLoaded", carregar);
+
+function formatBRLInput(input){
+  let v = input.value.replace(/\D/g,'');
+  if(!v) { input.value = ""; return; }
+  v = (parseInt(v,10) / 100).toFixed(2);
+  input.value = v.replace('.', ',');
+}
+
+document.addEventListener("input", (e)=>{
+  if(e.target.classList.contains("money")){
+    formatBRLInput(e.target);
+  }
+});
+
+
 </script>
 </body>
 </html>
