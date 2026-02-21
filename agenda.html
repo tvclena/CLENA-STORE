@@ -33,16 +33,41 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 
 .day{
-  background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px 4px;
-  min-height:110px;max-height:160px;
-  display:flex;flex-direction:column;align-items:center;
-  box-shadow:var(--shadow);cursor:pointer;overflow:hidden
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:8px 6px 10px;
+  min-height:160px;        /* ⬅️ MAIS ALTO */
+  max-height:none;        /* ⬅️ SEM LIMITE */
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;    /* ⬅️ ocupa toda largura */
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  overflow:visible;      /* ⬅️ NÃO ESCONDE */
 }
-.day strong{font-size:13px}
-.day .content{width:100%;overflow-y:auto;padding:2px 4px}
+
+.day strong{
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+}
+
+.day .content{
+  width:100%;
+  overflow:visible;      /* ⬅️ NÃO CRIA SCROLL */
+  padding:4px 2px 0;
+}
 .time{
-  font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;margin-top:4px;
-  width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  font-size:12px;          /* ⬅️ maior */
+  font-weight:800;
+  background:#f9fafb;
+  border-radius:10px;
+  padding:6px 8px;        /* ⬅️ mais alto */
+  margin-top:6px;
+  width:100%;
+  text-align:center;
+  white-space:nowrap;     /* mantém em 1 linha */
 }
 .badge.prev{font-size:10px;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:999px;margin-top:4px}
 
@@ -181,9 +206,9 @@ function render(){
     const content=document.createElement("div"); content.className="content";
 
     div.innerHTML=`<strong>${d}</strong>`;
-    (agenda[key]?.horarios||[]).slice(0,4).forEach(h=>{
-      content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
-    });
+(agenda[key]?.horarios||[]).forEach(h=>{
+  content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
+});
 
     div.appendChild(content);
     div.onclick=()=>open(key);
