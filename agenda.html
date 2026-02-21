@@ -118,6 +118,34 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   .day{ height:120px; }
   .time{ font-size:9px; padding:3px 5px; }
 }
+/* ===== DIA FECHADO ===== */
+.day.fechado{
+  background:#fef2f2;
+  border-color:#fecaca;
+  box-shadow:0 6px 16px rgba(220,38,38,.15);
+}
+
+.day.fechado strong{
+  color:#dc2626;
+}
+
+.day.fechado .content{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.day.fechado .closed-label{
+  font-size:11px;
+  font-weight:900;
+  color:#dc2626;
+  background:#fee2e2;
+  border:1px dashed #fecaca;
+  border-radius:999px;
+  padding:4px 10px;
+}
+
+  
 </style>
 </head>
 
@@ -215,20 +243,36 @@ function render(){
 
   for(let i=0;i<first;i++) days.innerHTML+=`<div class="day"></div>`;
 
-  for(let d=1; d<=total; d++){
-    const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const div=document.createElement("div"); div.className="day";
-    const content=document.createElement("div"); content.className="content";
+for(let d=1; d<=total; d++){
+  const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const div = document.createElement("div");
+  const content = document.createElement("div");
 
-    div.innerHTML=`<strong>${d}</strong>`;
-(agenda[key]?.horarios||[]).forEach(h=>{
-  content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
-});
+  div.className = "day";
+  content.className = "content";
 
+  div.innerHTML = `<strong>${d}</strong>`;
+
+  const info = agenda[key];
+
+  // 🔴 DIA FECHADO
+  if(info?.fechado){
+    div.classList.add("fechado");
+    content.innerHTML = `<div class="closed-label">Fechado</div>`;
     div.appendChild(content);
-    div.onclick=()=>open(key);
     days.appendChild(div);
+    continue; // ⬅️ não deixa abrir modal
   }
+
+  // 🟢 DIA ABERTO (horários)
+  (info?.horarios || []).forEach(h=>{
+    content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
+  });
+
+  div.appendChild(content);
+  div.onclick = () => open(key);
+  days.appendChild(div);
+}
 }
 
 async function open(iso){
