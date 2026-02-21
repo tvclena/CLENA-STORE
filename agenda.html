@@ -114,12 +114,59 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .horario input{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border)}
 .horario button{background:#fee2e2;border:none;border-radius:12px;padding:0 12px}
 .add-btn{width:100%;padding:12px;background:#fff7ed;border:none;border-radius:14px;margin:10px 0;font-weight:800}
-.insights{margin-top:10px;background:#f8fafc;border:1px dashed var(--border);border-radius:12px;padding:10px;font-size:12px}
-@media (max-width: 420px){
-  .day{ height:120px; }
-  .time{ font-size:9px; padding:3px 5px; }
+.insights{
+  margin-top:10px;
+  background:#f8fafc;
+  border:1px dashed var(--border);
+  border-radius:12px;
+  padding:10px;
+  font-size:12px;
 }
 
+/* ==============================
+   CONTAINER DO GRÁFICO (bonito + responsivo)
+============================== */
+.chart-wrap{
+  position:relative;
+  margin-top:10px;
+  height:220px;               /* desktop */
+  background:#ffffff;
+  border-radius:12px;
+  border:1px solid #eef2f7;
+  padding:8px;
+}
+
+/* desktop: melhora o respiro do modal */
+@media (min-width: 900px){
+  .sheet{
+    max-width: 920px;
+    margin: 0 auto 24px auto;
+  }
+  .sheet-body{
+    padding:18px 22px;
+  }
+}
+
+/* celular: compacto */
+@media (max-width: 420px){
+  .day{ height:120px; }
+
+  .time{ 
+    font-size:7px; 
+    padding:2px 4px; 
+    margin-top:3px;
+  }
+
+  .time.fechado{
+    font-size:7px;
+  }
+
+  .chart-wrap{
+    height:140px;
+  }
+}
+
+/* FECHADO (desktop / tablet) */
 .time.fechado{
   font-size:10px;
   background:#fee2e2;
@@ -180,12 +227,16 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
         <input type="checkbox" id="fechado"> Dia fechado
       </label>
 
-      <div class="insights">
-        <div><strong>Ano passado (mesmo dia):</strong> <span id="prevCount">0</span> agendamentos</div>
-        <div style="margin-top:8px;height:160px">
-          <canvas id="peakChart"></canvas>
-        </div>
-      </div>
+<div class="insights">
+  <div>
+    <strong>Ano passado (mesmo dia):</strong>
+    <span id="prevCount">0</span> agendamentos
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="peakChart"></canvas>
+  </div>
+</div>
 
       <div id="horarios"></div>
       <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
@@ -291,11 +342,46 @@ async function open(iso){
   prevCount.innerText = values.reduce((s,v)=>s+v,0);
 
   if(chart) chart.destroy();
-  chart = new Chart(peakChart,{
-    type:"bar",
-    data:{ labels, datasets:[{ data:values }] },
-    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
-  });
+chart = new Chart(peakChart, {
+  type: "bar",
+  data: {
+    labels,
+    datasets: [{
+      label: "Agendamentos",
+      data: values,
+      borderRadius: 10,
+      borderSkipped: false,
+      backgroundColor: "rgba(255,106,0,.35)",
+      hoverBackgroundColor: "rgba(255,106,0,.65)",
+      maxBarThickness: 26
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "#0f172a",
+        titleColor: "#fff",
+        bodyColor: "#e5e7eb",
+        cornerRadius: 10,
+        padding: 10
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: "#64748b", font: { weight: "700" } }
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: "#eef2f7" },
+        ticks: { color: "#64748b", stepSize: 1 }
+      }
+    }
+  }
+});
 
   overlayPrev.style.display="none";
 }
