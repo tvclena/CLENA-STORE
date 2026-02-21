@@ -74,7 +74,6 @@ body{
   background:#fff;
 }
 
-/* ================= GRID ================= */
 /* MOBILE (padrão) */
 .grid{
   display:grid;
@@ -94,16 +93,16 @@ body{
 /* NOTEBOOK */
 @media (min-width: 1024px){
   .grid{
-    grid-template-columns:repeat(5,1fr);
-    gap:14px;
+    grid-template-columns:repeat(6,1fr);
+    gap:12px;
   }
 }
 
-/* DESKTOP / MONITOR GRANDE */
-@media (min-width: 1280px){
+/* DESKTOP GRANDE (10 por linha) */
+@media (min-width: 1400px){
   .grid{
-    grid-template-columns:repeat(6,1fr);
-    gap:16px;
+    grid-template-columns:repeat(10, minmax(120px, 1fr));
+    gap:14px;
   }
 }
 
