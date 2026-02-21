@@ -57,16 +57,27 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 .weekdays{display:grid;grid-template-columns:repeat(7,1fr);font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .day{
-  background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px 4px;min-height:84px;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;box-shadow:var(--shadow);
-  transition:.15s ease; cursor:pointer;
+  background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px 4px;
+  min-height:120px; max-height:170px;   /* 🔥 limite de altura do card */
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  box-shadow:var(--shadow); transition:.15s ease; cursor:pointer; overflow:hidden;
 }
 .day:hover{transform:translateY(-1px); box-shadow:0 12px 28px rgba(0,0,0,.12)}
 .day.inactive{opacity:.35}
 .day strong{font-size:13px}
+
+/* ===== CONTEÚDO DO DIA COM SCROLL ===== */
+.day .content{
+  width:100%;
+  overflow-y:auto;         /* 🔥 scroll interno */
+  padding:2px 4px 4px;
+}
 .badge{font-size:10px;padding:2px 8px;border-radius:999px;margin-top:4px}
 .badge.closed{background:#fee2e2;color:var(--danger)}
-.time{font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;margin-top:4px;width:100%;text-align:center}
+.time{
+  font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;
+  margin-top:4px;width:100%;text-align:center;white-space:nowrap;
+}
 
 /* ===== MODAL ===== */
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:1000}
@@ -177,26 +188,12 @@ async function verificarPlanoMaster(){
     colaboradorSelecionado = "LOJA";
   }
 
-  if (
-    isMaster &&
-    window.parent &&
-    window.parent.profissionalSelecionado &&
-    window.parent.profissionalSelecionado !== "LOJA" &&
-    /^[0-9a-f-]{36}$/i.test(window.parent.profissionalSelecionado)
-  ) {
-    colaboradorSelecionado = window.parent.profissionalSelecionado;
-    document.getElementById("seletorColaborador").value = colaboradorSelecionado;
-  }
-
   definirUserId();
   await carregar();
   showLoading(false);
 })();
 
 async function carregarColaboradores(){
-  const isMaster = await verificarPlanoMaster();
-  if (!isMaster) return;
-
   const select = document.getElementById("seletorColaborador");
   select.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
   const { data } = await sb.from("colaboradores").select("id, nome").eq("loja_id", lojaId).eq("ativo", true).order("nome");
@@ -234,11 +231,13 @@ function render(){
   for(let d=1;d<=total;d++){
     const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const div=document.createElement("div"); div.className="day"; div.onclick=()=>open(key);
+    const content=document.createElement("div"); content.className="content";
     div.innerHTML=`<strong>${d}</strong>`;
     if(agenda[key]){
-      if(agenda[key].fechado) div.innerHTML+=`<div class="badge closed">Fechado</div>`;
-      else agenda[key].horarios.slice(0,2).forEach(h=> div.innerHTML+=`<div class="time">${h.inicio}-${h.fim}</div>`);
+      if(agenda[key].fechado) content.innerHTML+=`<div class="badge closed">Fechado</div>`;
+      else agenda[key].horarios.forEach(h=> content.innerHTML+=`<div class="time">${h.inicio}-${h.fim}</div>`);
     }
+    div.appendChild(content);
     days.appendChild(div);
   }
 }
@@ -267,12 +266,18 @@ function addHorario(i="",f=""){
 
 async function salvar(){
   const fechadoVal=fechado.checked, horariosVal=[];
-  document.querySelectorAll(".horario").forEach(h=>{const i=h.children[0].value,f=h.children[1].value;if(i&&f)horariosVal.push({inicio:i,fim:f});});
+  document.querySelectorAll(".horario").forEach(h=>{
+    const i=h.children[0].value, f=h.children[1].value;
+    if(i&&f) horariosVal.push({inicio:i,fim:f});
+  });
   const base={fechado:fechadoVal,horarios:horariosVal}, updates=new Set([selected]);
 
   if(replicaSemana.checked){
-    const b=dateFromISO(selected),wd=b.getDay(),y=b.getFullYear(),m=b.getMonth(),last=new Date(y,m+1,0).getDate();
-    for(let d=1;d<=last;d++){const dt=new Date(y,m,d,12,0,0); if(dt.getDay()===wd) updates.add(`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`);}
+    const b=dateFromISO(selected), wd=b.getDay(), y=b.getFullYear(), m=b.getMonth(), last=new Date(y,m+1,0).getDate();
+    for(let d=1;d<=last;d++){
+      const dt=new Date(y,m,d,12,0,0);
+      if(dt.getDay()===wd) updates.add(`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`);
+    }
   }
 
   showLoading(true);
@@ -281,7 +286,10 @@ async function salvar(){
   showLoading(false);
 }
 
-function dateFromISO(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d,12,0,0); }
+function dateFromISO(iso){
+  const [y,m,d]=iso.split("-").map(Number);
+  return new Date(y,m-1,d,12,0,0);
+}
 </script>
 </body>
 </html>
