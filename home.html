@@ -228,41 +228,104 @@ body::-webkit-scrollbar{
   display:flex;
   flex-direction:column;
   gap:4px;
+  min-width:0;                 /* 🔥 permite encolher sem vazar */
 }
 
 .agenda-info strong{
-  font-size:14px;
   font-weight:800;
+  line-height:1.2;
+
+  /* 🔥 fonte responsiva: diminui sozinha se não couber */
+  font-size:clamp(11px, 3.4vw, 14px);
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;     /* corta com ... se for grande demais */
 }
 
 .agenda-info .servico{
-  font-size:13px;
+  font-size:clamp(11px, 3.2vw, 13px);
   color:#111;
+  line-height:1.2;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .agenda-info .valor{
-  font-size:13px;
+  font-size:clamp(11px, 3.2vw, 13px);
   font-weight:700;
   color:#16a34a;
+  white-space:nowrap;
 }
 
 .agenda-info .cliente{
-  font-size:12px;
+  font-size:clamp(10px, 3vw, 12px);
   color:var(--muted);
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* COLUNA DA HORA */
+.agenda-hora{
+  width:56px;                 /* ⬅️ um pouco menor */
+  height:56px;
+  border-radius:12px;
+  background:#f8fafc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:clamp(11px, 3.5vw, 14px); /* 🔥 fonte responsiva */
+  color:var(--primary);
+  flex-shrink:0;              /* não deixa esmagar */
+}
+
+/* CARD */
+.agenda-item{
+  display:grid;
+  grid-template-columns:56px minmax(0,1fr) auto; /* 🔥 coluna central encolhe */
+  gap:12px;
+  align-items:center;
+
+  background:#ffffff;
+  border-radius:16px;
+  padding:12px;
+
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  border:1px solid #f1f5f9;
+  margin-bottom:12px;
 }
 
 /* AÇÕES */
 .agenda-actions{
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:6px;
+  flex-shrink:0;              /* não espreme */
+}
+
+.agenda-actions a{
+  background:#dcfce7;
+  color:#166534;
+  text-align:center;
+  padding:5px 8px;           /* ⬅️ menor */
+  border-radius:999px;
+  font-size:clamp(10px, 3vw, 12px); /* 🔥 fonte responsiva */
+  font-weight:800;
+  text-decoration:none;
+  white-space:nowrap;
 }
 
 .agenda-actions select{
-  padding:6px 10px;
+  padding:5px 8px;
   border-radius:10px;
   border:1px solid #e5e7eb;
-  font-weight:600;
+  font-weight:700;
+  font-size:clamp(10px, 3vw, 12px); /* 🔥 fonte responsiva */
 }
 
 .agenda-actions a{
@@ -751,8 +814,8 @@ box.innerHTML += `
       onclick='abrirHistorico(${JSON.stringify(a)})'>
       !
     </div>
-    <strong>${nomesServicos}</strong>
-  </div>
+<strong title="${nomesServicos}">${nomesServicos}</strong>
+</div>
 
   <div class="valor">${valor}</div>
   <div class="cliente">${a.cliente_nome}</div>
