@@ -134,7 +134,7 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let lojaId, userId, agenda={}, current=new Date(), selected="", dirty=false, chart;
+let lojaId, userId, agenda={}, current=new Date(), selected="", dirty=false, chart=null;
 
 const showLoading = v => loading.style.display = v ? "flex" : "none";
 
@@ -160,17 +160,37 @@ async function carregar(){
 }
 
 async function carregarInsightsAnoAnterior(iso){
-  const prevIso = iso.replace(/^(\d{4})/, y => +y - 1);
-  const { data } = await sb.from("agendamentos").select("hora").eq("user_id", userId).eq("data", prevIso);
+  const [y,m,d] = iso.split("-");
+  const start = `${Number(y)-1}-${m}-${d} 00:00:00`;
+  const end   = `${Number(y)-1}-${m}-${d} 23:59:59`;
 
-  const map={}; (data||[]).forEach(a=>{const h=(a.hora||"").slice(0,2)+":00"; map[h]=(map[h]||0)+1});
-  const labels=Object.keys(map).sort(); const values=labels.map(l=>map[l]);
+  const { data } = await sb
+    .from("agendamentos")
+    .select("hora, data")
+    .eq("user_id", userId)
+    .gte("data", start)
+    .lte("data", end);
+
+  const map={};
+  (data||[]).forEach(a=>{
+    const h=(a.hora||"").slice(0,2)+":00";
+    map[h]=(map[h]||0)+1;
+  });
+
+  const labels=Object.keys(map).sort();
+  const values=labels.map(l=>map[l]);
+
   prevCount.innerText = values.reduce((s,v)=>s+v,0) || 0;
   prevPeak.innerText = labels.length ? labels[values.indexOf(Math.max(...values))] : "—";
 
   if(chart) chart.destroy();
-  chart=new Chart(peakChart,{type:"line",data:{labels,datasets:[{data:values,tension:.4,fill:true}]},
-  options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  chart=new Chart(peakChart,{
+    type:"line",
+    data:{ labels, datasets:[{ data:values, tension:.4, fill:true }]},
+    options:{ responsive:true, plugins:{ legend:{ display:false }}, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  return values.reduce((s,v)=>s+v,0);
 }
 
 function render(){
@@ -186,18 +206,19 @@ function render(){
     div.innerHTML=`<strong>${d}</strong>`;
     (agenda[key]?.horarios||[]).forEach(h=>content.innerHTML+=`<div class="time">${h.inicio}-${h.fim}</div>`);
     div.appendChild(content); days.appendChild(div);
-    carregarInsightsAnoAnterior(key).then(t=>{ if(t){ const b=document.createElement("div"); b.className="badge prev"; b.innerText=`Ano passado: ${t}`; content.prepend(b);} });
   }
 }
 
 function open(key){
   selected=key; modal.style.display="flex"; document.body.style.overflow="hidden";
-  const d=new Date(key+"T12:00"); modalDate.innerText=d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  const d=new Date(key+"T12:00");
+  modalDate.innerText=d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
   replicaDia.innerText=d.toLocaleDateString("pt-BR",{weekday:"long"});
   fechado.checked=agenda[key]?.fechado||false; horarios.innerHTML="";
   (agenda[key]?.horarios||[]).forEach(h=>addHorario(h.inicio,h.fim));
   carregarInsightsAnoAnterior(key);
 }
+
 function fecharModal(){ modal.style.display="none"; document.body.style.overflow="auto"; }
 function addHorario(i="",f=""){ const d=document.createElement("div"); d.className="horario"; d.innerHTML=`<input type="time" value="${i}"><input type="time" value="${f}"><button onclick="this.parentElement.remove()">✕</button>`; horarios.appendChild(d); }
 async function salvar(){
