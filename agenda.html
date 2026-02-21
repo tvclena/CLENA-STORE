@@ -84,80 +84,19 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .badge.prev{font-size:10px;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:999px;margin-top:4px}
 
 /* MODAL */
-/* ==============================
-   MODAL RESPONSIVO (OK no Desktop e Mobile)
-============================== */
 #modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  align-items:flex-end;      /* mobile */
-  justify-content:center;    /* desktop */
-  z-index:1000;
+  position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:1000
 }
-
-/* Mobile (bottom-sheet) */
 .sheet{
-  background:#fff;
-  width:100%;
-  height:88vh;
-  max-height:88vh;
-  border-radius:18px 18px 0 0;
-  display:flex;
-  flex-direction:column;
-  box-shadow:0 -10px 24px rgba(0,0,0,.2);
+  background:#fff;width:100%;height:88vh;border-radius:18px 18px 0 0;
+  display:flex;flex-direction:column;box-shadow:0 -10px 24px rgba(0,0,0,.2)
 }
-
-/* Header fixo */
 .sheet-header{
-  padding:14px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-weight:900;
-  position:sticky;
-  top:0;
-  background:#fff;
-  z-index:2;
+  padding:14px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;font-weight:900
 }
-
-/* Corpo com scroll */
-.sheet-body{
-  flex:1;
-  padding:14px;
-  overflow:auto;
-  position:relative;
-}
-
-/* Footer fixo */
-.sheet-footer{
-  padding:12px;
-  border-top:1px solid var(--border);
-  display:flex;
-  gap:10px;
-  position:sticky;
-  bottom:0;
-  background:#fff;
-  z-index:2;
-}
-
-/* Desktop / Tablet: modal central */
-@media (min-width: 900px){
-  #modal{
-    align-items:center;
-  }
-
-  .sheet{
-    width:760px;
-    max-width:92vw;
-    height:auto;
-    max-height:90vh;
-    border-radius:18px;
-    box-shadow:0 20px 60px rgba(0,0,0,.25);
-  }
-}
+.sheet-body{flex:1;padding:14px;overflow:auto;position:relative}
+.sheet-footer{padding:12px;border-top:1px solid var(--border);display:flex;gap:10px}
 .sheet-footer button{flex:1;height:46px;border:none;border-radius:999px;font-weight:900}
 .btn-save{background:linear-gradient(180deg,var(--primary),var(--primary-700));color:#fff}
 .btn-close{background:#e5e7eb}
@@ -176,7 +115,18 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .horario button{background:#fee2e2;border:none;border-radius:12px;padding:0 12px}
 .add-btn{width:100%;padding:12px;background:#fff7ed;border:none;border-radius:14px;margin:10px 0;font-weight:800}
 .insights{margin-top:10px;background:#f8fafc;border:1px dashed var(--border);border-radius:12px;padding:10px;font-size:12px}
+@media (max-width: 420px){
+  .day{ height:120px; }
+  .time{ font-size:9px; padding:3px 5px; }
+}
 
+.time.fechado{
+  font-size:10px;
+  background:#fee2e2;
+  color:#991b1b;
+  font-weight:900;
+  letter-spacing:.4px;
+}
 
 
   @media (max-width: 420px){
