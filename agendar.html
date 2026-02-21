@@ -851,21 +851,19 @@ function clienteValido(){
 }
 
 function abrirModal(){
-  // 🚫 NUNCA abre no app do cliente
   if(!modoNovoPainel) return;
-
-  // 🚫 cliente final logado nunca vê modal
   if(usuarioLogado && clienteDB?.whatsapp) return;
 
   const modal = document.getElementById("clienteModal");
-  if(!modal || !modal.classList.contains("hidden")) return;
+  if(!modal) return;
+
+  modal.style.display = "flex";
+  modal.classList.remove("hidden");
 
   cliNome.value = "";
   cliWhats.value = "";
   cliEmail.value = "";
   clienteDB = null;
-
-  modal.classList.remove("hidden");
 
   setTimeout(ativarBuscaClientes, 0);
 }
@@ -875,11 +873,14 @@ function fecharModal(){
   if(!modal) return;
 
   modal.classList.add("hidden");
-  modal.style.pointerEvents = "none";   // 🔥 bloqueia clique residual
+
+  // 🔥 remove qualquer overlay residual
+  const overlay = modal.querySelector(".modal-overlay");
+  if(overlay) overlay.style.pointerEvents = "none";
 
   setTimeout(() => {
-    modal.style.pointerEvents = "auto"; // libera depois
-  }, 300);
+    modal.style.display = "none";
+  }, 50);
 }
 document.addEventListener("DOMContentLoaded", () => {
   const whatsInput = document.getElementById("cliWhats");
@@ -918,30 +919,32 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-await sb.from("clientes_profile").upsert({
-  id: usuarioLogado?.id || lojaId + "_" + Date.now(),
-  nome,
-  whatsapp: whats,
-  email,
-  loja_ativa: lojaId   // ✅ coluna real da sua tabela
-});
+    const { error } = await sb.from("clientes_profile").upsert({
+      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
+      nome,
+      whatsapp: whats,
+      email,
+      loja_ativa: lojaId
+    });
 
-clienteDB = { nome, whatsapp: whats, email };
+    if(error){
+      console.error("Erro Supabase:", error);
+      alert("Erro ao salvar cliente no banco");
+      return;
+    }
 
-fecharModal(); // ✅ fecha o pop-up
+    clienteDB = { nome, whatsapp: whats, email };
 
-// 👉 segue fluxo normal do agendamento
-if(confirmarDepois){
-  // se já tiver horário, confirma
-  if(dados?.hora){
-    setTimeout(() => confirmarAgendamento(), 120);
-  }
-  // se ainda não tiver horário, só continua a jornada normalmente (sem travar nada)
-}
+    fecharModal(); // ✅ fecha o pop-up
+
+    // 👉 segue o fluxo normal
+    if(confirmarDepois && dados?.hora){
+      setTimeout(() => confirmarAgendamento(), 150);
+    }
 
   } catch(e){
     console.error(e);
-    alert("Erro ao salvar cliente. Tente novamente.");
+    alert("Erro inesperado ao salvar cliente.");
   } finally {
     btns.forEach(b => {
       b.disabled = false;
@@ -950,7 +953,6 @@ if(confirmarDepois){
     salvandoCliente = false;
   }
 }
-
 async function confirmar(h){
 
   const cliente = getCliente();
