@@ -44,8 +44,7 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;margin-top:4px;
   width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
-.badge{font-size:10px;padding:2px 8px;border-radius:999px;margin-top:4px}
-.badge.prev{background:#eef2ff;color:#3730a3}
+.badge.prev{font-size:10px;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:999px;margin-top:4px}
 
 /* MODAL */
 #modal{
@@ -62,6 +61,7 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .sheet-body{flex:1;padding:14px;overflow:auto;position:relative}
 .sheet-footer{padding:12px;border-top:1px solid var(--border);display:flex;gap:10px}
 .sheet-footer button{flex:1;height:46px;border:none;border-radius:999px;font-weight:900}
+.btn-save{background:linear-gradient(180deg,var(--primary),var(--primary-700));color:#fff}
 .btn-close{background:#e5e7eb}
 
 /* OVERLAY ANO PASSADO */
@@ -71,6 +71,13 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 }
 .spinner{width:42px;height:42px;border:4px solid #eee;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* CONFIG HORÁRIOS */
+.horario{display:flex;gap:6px;margin-bottom:8px}
+.horario input{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border)}
+.horario button{background:#fee2e2;border:none;border-radius:12px;padding:0 12px}
+.add-btn{width:100%;padding:12px;background:#fff7ed;border:none;border-radius:14px;margin:10px 0;font-weight:800}
+.insights{margin-top:10px;background:#f8fafc;border:1px dashed var(--border);border-radius:12px;padding:10px;font-size:12px}
 </style>
 </head>
 
@@ -105,16 +112,24 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
         </div>
       </div>
 
-      <div style="font-weight:800;margin-bottom:6px">Ano passado (mesmo dia)</div>
-      <div><strong>Total:</strong> <span id="prevCount">0</span> agendamentos</div>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:700">
+        <input type="checkbox" id="fechado"> Dia fechado
+      </label>
 
-      <div style="margin-top:12px;height:160px">
-        <canvas id="peakChart"></canvas>
+      <div class="insights">
+        <div><strong>Ano passado (mesmo dia):</strong> <span id="prevCount">0</span> agendamentos</div>
+        <div style="margin-top:8px;height:160px">
+          <canvas id="peakChart"></canvas>
+        </div>
       </div>
+
+      <div id="horarios"></div>
+      <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
     </div>
 
     <div class="sheet-footer">
       <button class="btn-close" onclick="fecharModal()">Fechar</button>
+      <button class="btn-save" onclick="salvar()">Salvar</button>
     </div>
   </div>
 </div>
@@ -125,7 +140,7 @@ const sb = supabase.createClient(
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
 
-let lojaId, agenda={}, current=new Date(), chart;
+let lojaId, agenda={}, current=new Date(), selected="", chart;
 
 (async ()=>{
   const { data:{session} } = await sb.auth.getSession();
@@ -140,12 +155,12 @@ function changeMonth(v){
 }
 
 async function carregar(){
-  const { data } = await sb.from("agenda_loja").select("data, horarios").eq("user_id", lojaId);
+  const { data } = await sb.from("agenda_loja").select("data, fechado, horarios").eq("user_id", lojaId);
   agenda = {};
   (data||[]).forEach(r=>{
     let h=[];
     try{ h = typeof r.horarios==="string" ? JSON.parse(r.horarios) : (r.horarios||[]) }catch{}
-    agenda[r.data] = { horarios:h };
+    agenda[r.data] = { fechado: r.fechado, horarios: h };
   });
   render();
 }
@@ -177,17 +192,22 @@ function render(){
 }
 
 async function open(iso){
+  selected = iso;
   modal.style.display="flex";
   overlayPrev.style.display="flex";
 
   const d=new Date(iso+"T12:00");
   modalDate.innerText = d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
 
+  fechado.checked = agenda[iso]?.fechado || false;
+  horarios.innerHTML="";
+  (agenda[iso]?.horarios||[]).forEach(h=>addHorario(h.inicio,h.fim));
+
   const prevIso = iso.replace(/^(\d{4})/, y => +y - 1);
 
   const { data } = await sb
     .from("agendamentos")
-    .select("hora_inicio")
+    .select("hora_inicio,status")
     .eq("loja_id", lojaId)
     .eq("data", prevIso)
     .neq("status", "CANCELADO");
@@ -200,7 +220,6 @@ async function open(iso){
 
   const labels=Object.keys(map).sort();
   const values=labels.map(l=>map[l]);
-
   prevCount.innerText = values.reduce((s,v)=>s+v,0);
 
   if(chart) chart.destroy();
@@ -211,6 +230,33 @@ async function open(iso){
   });
 
   overlayPrev.style.display="none";
+}
+
+function addHorario(i="",f=""){
+  const d=document.createElement("div");
+  d.className="horario";
+  d.innerHTML = `
+    <input type="time" value="${i}">
+    <input type="time" value="${f}">
+    <button onclick="this.parentElement.remove()">✕</button>
+  `;
+  horarios.appendChild(d);
+}
+
+async function salvar(){
+  const h=[];
+  document.querySelectorAll(".horario").forEach(x=>{
+    const i=x.children[0].value, f=x.children[1].value;
+    if(i && f) h.push({ inicio:i, fim:f });
+  });
+
+  await sb.from("agenda_loja").upsert(
+    { user_id: lojaId, data: selected, fechado: fechado.checked, horarios: h },
+    { onConflict: "user_id,data" }
+  );
+
+  modal.style.display="none";
+  carregar();
 }
 
 function fecharModal(){
