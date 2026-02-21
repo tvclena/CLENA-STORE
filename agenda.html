@@ -20,6 +20,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
@@ -58,7 +59,7 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .day{
   background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px 4px;
-  min-height:120px; max-height:170px;   /* 🔥 limite de altura do card */
+  min-height:120px; max-height:170px;
   display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
   box-shadow:var(--shadow); transition:.15s ease; cursor:pointer; overflow:hidden;
 }
@@ -66,14 +67,17 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 .day.inactive{opacity:.35}
 .day strong{font-size:13px}
 
-/* ===== CONTEÚDO DO DIA COM SCROLL ===== */
 .day .content{
   width:100%;
-  overflow-y:auto;         /* 🔥 scroll interno */
+  overflow-y:auto;
   padding:2px 4px 4px;
+  scrollbar-width:none;
 }
+.day .content::-webkit-scrollbar{ width:0; height:0; }
+
 .badge{font-size:10px;padding:2px 8px;border-radius:999px;margin-top:4px}
 .badge.closed{background:#fee2e2;color:var(--danger)}
+.badge.prev{background:#eef2ff;color:#3730a3}
 .time{
   font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;
   margin-top:4px;width:100%;text-align:center;white-space:nowrap;
@@ -101,6 +105,18 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 .sheet-footer button{flex:1;height:46px;border:none;border-radius:999px;font-weight:900}
 .btn-save{background:linear-gradient(180deg,var(--primary),var(--primary-700));color:#fff}
 .btn-close{background:#e5e7eb}
+
+/* ===== INSIGHTS ===== */
+.insights{
+  margin-top:12px;
+  background:#f8fafc;
+  border:1px dashed var(--border);
+  border-radius:12px;
+  padding:10px;
+  font-size:12px;
+}
+.insights strong{font-size:12px}
+#chartWrap{margin-top:8px}
 
 /* ===== LOADING ===== */
 #loading{
@@ -138,6 +154,15 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
     </div>
     <div class="sheet-body">
       <label><input type="checkbox" id="fechado"> Dia fechado</label>
+
+      <div class="insights">
+        <div><strong>Ano passado (mesmo dia):</strong> <span id="prevCount">0</span> agendamentos</div>
+        <div><strong>Horário de pico:</strong> <span id="prevPeak">—</span></div>
+        <div id="chartWrap">
+          <canvas id="peakChart" height="120"></canvas>
+        </div>
+      </div>
+
       <div id="horarios"></div>
       <button class="add-btn" onclick="addHorario()">+ Adicionar horário</button>
       <div class="replica">
@@ -162,6 +187,7 @@ const sb = supabase.createClient(
 let lojaId;
 let colaboradorSelecionado = "LOJA";
 let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
+let chart;
 
 const loading = document.getElementById("loading");
 const showLoading = (v)=> loading.style.display = v ? "flex" : "none";
@@ -222,23 +248,75 @@ async function carregar(){
   showLoading(false);
 }
 
+async function carregarInsightsAnoAnterior(iso){
+  const prevIso = iso.replace(/^(\d{4})/, (m)=> String(Number(m)-1));
+  const { data } = await sb
+    .from("agendamentos")           // ⚠️ ajuste se sua tabela tiver outro nome
+    .select("hora")
+    .eq("user_id", userId)
+    .eq("data", prevIso);
+
+  const horas = {};
+  (data||[]).forEach(a=>{
+    const h = (a.hora||"").slice(0,2)+":00";
+    horas[h] = (horas[h]||0) + 1;
+  });
+
+  const labels = Object.keys(horas).sort();
+  const values = labels.map(l=>horas[l]);
+  const total = values.reduce((s,v)=>s+v,0);
+
+  document.getElementById("prevCount").innerText = total || 0;
+
+  if(labels.length){
+    const peakIdx = values.indexOf(Math.max(...values));
+    document.getElementById("prevPeak").innerText = labels[peakIdx];
+  } else {
+    document.getElementById("prevPeak").innerText = "—";
+  }
+
+  const ctx = document.getElementById("peakChart");
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:"line",
+    data:{ labels, datasets:[{ data:values, tension:.4, fill:true, borderWidth:2 }] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } }
+  });
+
+  return total;
+}
+
 function render(){
   days.innerHTML="";
   const y=current.getFullYear(), m=current.getMonth();
   monthLabel.innerText=current.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
   const first=new Date(y,m,1).getDay(), total=new Date(y,m+1,0).getDate();
+
   for(let i=0;i<first;i++) days.innerHTML+=`<div class="day inactive"></div>`;
+
   for(let d=1;d<=total;d++){
     const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const div=document.createElement("div"); div.className="day"; div.onclick=()=>open(key);
     const content=document.createElement("div"); content.className="content";
     div.innerHTML=`<strong>${d}</strong>`;
+
     if(agenda[key]){
       if(agenda[key].fechado) content.innerHTML+=`<div class="badge closed">Fechado</div>`;
       else agenda[key].horarios.forEach(h=> content.innerHTML+=`<div class="time">${h.inicio}-${h.fim}</div>`);
     }
+
     div.appendChild(content);
     days.appendChild(div);
+
+    // 🔎 badge do ano anterior (lazy)
+    carregarInsightsAnoAnterior(key).then(totalPrev=>{
+      if(totalPrev){
+        const b = document.createElement("div");
+        b.className = "badge prev";
+        b.innerText = `Ano passado: ${totalPrev}`;
+        content.prepend(b);
+      }
+    });
   }
 }
 
@@ -250,6 +328,7 @@ function open(key){
   fechado.checked=agenda[key]?.fechado||false;
   horarios.innerHTML="";
   (agenda[key]?.horarios||[]).forEach(h=>addHorario(h.inicio,h.fim));
+  carregarInsightsAnoAnterior(key);
 }
 
 function fecharModal(){
