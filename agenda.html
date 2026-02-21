@@ -34,7 +34,6 @@
   --shadow:0 10px 24px rgba(0,0,0,.08);
   --radius:16px;
 }
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 
@@ -179,6 +178,7 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
 <div id="loading"><div class="spinner"></div></div>
 
 <script>
+/* === CONEXÃO SUPABASE === */
 const sb = supabase.createClient(
   "https://egxjgmzukjyyxmkukwub.supabase.co",
   "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
@@ -192,12 +192,14 @@ let chart;
 const loading = document.getElementById("loading");
 const showLoading = (v)=> loading.style.display = v ? "flex" : "none";
 
+/* === PLANO MASTER === */
 async function verificarPlanoMaster(){
   const { data, error } = await sb.from("lojas").select("plano").eq("id", lojaId).single();
   if(error){ console.error(error); return false; }
   return data?.plano === "MASTER";
 }
 
+/* === INIT === */
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) location.href = "login.html";
@@ -219,6 +221,7 @@ async function verificarPlanoMaster(){
   showLoading(false);
 })();
 
+/* === COLABORADORES === */
 async function carregarColaboradores(){
   const select = document.getElementById("seletorColaborador");
   select.innerHTML = `<option value="LOJA">Agenda da Loja</option>`;
@@ -229,13 +232,16 @@ async function carregarColaboradores(){
   select.onchange=()=>{ colaboradorSelecionado=select.value; definirUserId(); carregar(); };
 }
 
+/* === USER ID === */
 function definirUserId(){
   userId = (colaboradorSelecionado && colaboradorSelecionado!=="LOJA" && /^[0-9a-f-]{36}$/i.test(colaboradorSelecionado))
     ? colaboradorSelecionado : lojaId;
 }
 
+/* === MÊS === */
 function changeMonth(v){ current.setMonth(current.getMonth()+v); carregar(); }
 
+/* === CARREGAR AGENDA === */
 async function carregar(){
   showLoading(true);
   const { data } = await sb.from("agenda_loja").select("data, fechado, horarios").eq("user_id", userId);
@@ -248,13 +254,10 @@ async function carregar(){
   showLoading(false);
 }
 
+/* === INSIGHTS ANO ANTERIOR === */
 async function carregarInsightsAnoAnterior(iso){
   const prevIso = iso.replace(/^(\d{4})/, (m)=> String(Number(m)-1));
-  const { data } = await sb
-    .from("agendamentos")           // ⚠️ ajuste se sua tabela tiver outro nome
-    .select("hora")
-    .eq("user_id", userId)
-    .eq("data", prevIso);
+  const { data } = await sb.from("agendamentos").select("hora").eq("user_id", userId).eq("data", prevIso);
 
   const horas = {};
   (data||[]).forEach(a=>{
@@ -267,13 +270,7 @@ async function carregarInsightsAnoAnterior(iso){
   const total = values.reduce((s,v)=>s+v,0);
 
   document.getElementById("prevCount").innerText = total || 0;
-
-  if(labels.length){
-    const peakIdx = values.indexOf(Math.max(...values));
-    document.getElementById("prevPeak").innerText = labels[peakIdx];
-  } else {
-    document.getElementById("prevPeak").innerText = "—";
-  }
+  document.getElementById("prevPeak").innerText = labels.length ? labels[values.indexOf(Math.max(...values))] : "—";
 
   const ctx = document.getElementById("peakChart");
   if(chart) chart.destroy();
@@ -286,6 +283,7 @@ async function carregarInsightsAnoAnterior(iso){
   return total;
 }
 
+/* === RENDER === */
 function render(){
   days.innerHTML="";
   const y=current.getFullYear(), m=current.getMonth();
@@ -308,7 +306,6 @@ function render(){
     div.appendChild(content);
     days.appendChild(div);
 
-    // 🔎 badge do ano anterior (lazy)
     carregarInsightsAnoAnterior(key).then(totalPrev=>{
       if(totalPrev){
         const b = document.createElement("div");
@@ -320,6 +317,7 @@ function render(){
   }
 }
 
+/* === MODAL === */
 function open(key){
   selected=key; dirty=false; modal.style.display="flex"; document.body.style.overflow="hidden";
   const date=dateFromISO(key);
@@ -330,12 +328,12 @@ function open(key){
   (agenda[key]?.horarios||[]).forEach(h=>addHorario(h.inicio,h.fim));
   carregarInsightsAnoAnterior(key);
 }
-
 function fecharModal(){
-  if(dirty&&confirm("Deseja salvar as alterações?")) salvar();
+  if(dirty && confirm("Deseja salvar as alterações?")) salvar();
   else{ modal.style.display="none"; document.body.style.overflow="auto"; }
 }
 
+/* === HORÁRIOS === */
 function addHorario(i="",f=""){
   dirty=true;
   const div=document.createElement("div"); div.className="horario";
@@ -343,12 +341,14 @@ function addHorario(i="",f=""){
   horarios.appendChild(div);
 }
 
+/* === SALVAR === */
 async function salvar(){
   const fechadoVal=fechado.checked, horariosVal=[];
   document.querySelectorAll(".horario").forEach(h=>{
     const i=h.children[0].value, f=h.children[1].value;
     if(i&&f) horariosVal.push({inicio:i,fim:f});
   });
+
   const base={fechado:fechadoVal,horarios:horariosVal}, updates=new Set([selected]);
 
   if(replicaSemana.checked){
@@ -360,11 +360,14 @@ async function salvar(){
   }
 
   showLoading(true);
-  for(const d of updates) await sb.from("agenda_loja").upsert({user_id:userId,data:d,...base},{onConflict:"user_id,data"});
+  for(const d of updates){
+    await sb.from("agenda_loja").upsert({user_id:userId,data:d,...base},{onConflict:"user_id,data"});
+  }
   replicaSemana.checked=false; modal.style.display="none"; document.body.style.overflow="auto"; await carregar();
   showLoading(false);
 }
 
+/* === UTIL === */
 function dateFromISO(iso){
   const [y,m,d]=iso.split("-").map(Number);
   return new Date(y,m-1,d,12,0,0);
