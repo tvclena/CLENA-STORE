@@ -926,13 +926,18 @@ await sb.from("clientes_profile").upsert({
   loja_ativa: lojaId   // ✅ coluna real da sua tabela
 });
 
-    clienteDB = { nome, whatsapp: whats, email };
+clienteDB = { nome, whatsapp: whats, email };
 
-    fecharModal(); // ✅ fecha só depois de salvar
+fecharModal(); // ✅ fecha o pop-up
 
-    if(confirmarDepois && dados?.hora){
-      setTimeout(() => confirmarAgendamento(), 120);
-    }
+// 👉 segue fluxo normal do agendamento
+if(confirmarDepois){
+  // se já tiver horário, confirma
+  if(dados?.hora){
+    setTimeout(() => confirmarAgendamento(), 120);
+  }
+  // se ainda não tiver horário, só continua a jornada normalmente (sem travar nada)
+}
 
   } catch(e){
     console.error(e);
@@ -1328,11 +1333,11 @@ function selecionarClienteLoja(id, nome, whatsapp, email){
 
   document.getElementById("buscaCliente").value = nome;
 
-  fecharModal(); // ✅ FECHA O POP-UP AO ESCOLHER O CLIENTE
+  fecharModal(); // ✅ fecha o pop-up
 
-  // 👉 Se já tiver horário escolhido, continua o fluxo automaticamente
+  // 👉 segue o fluxo normal
   if(dados?.hora){
-    confirmarAgendamento();
+    setTimeout(() => confirmarAgendamento(), 120);
   }
 }
 
