@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Agenda • Agenda Fácil</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,51 +16,60 @@
   --muted:#6b7280; --danger:#dc2626;
   --shadow:0 10px 24px rgba(0,0,0,.08); --radius:16px;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{width:100%;height:100%;background:var(--bg);overflow:hidden}
+*{box-sizing:border-box;font-family:Inter}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 /* HEADER */
-.header{position:sticky;top:0;z-index:5;height:56px;background:#fff;border-bottom:1px solid var(--border);
-display:grid;grid-template-columns:40px 1fr 40px;align-items:center;padding:0 10px}
+.header{
+  position:sticky;top:0;z-index:10;height:56px;background:#fff;border-bottom:1px solid var(--border);
+  display:grid;grid-template-columns:40px 1fr 40px;align-items:center;padding:0 10px
+}
 .header h1{font-size:14px;font-weight:800;text-align:center}
-.header button{background:#fff7ed;border:none;border-radius:12px;padding:8px 10px;font-weight:800;cursor:pointer}
+.header button{background:#fff7ed;border:none;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer}
 
 /* CALENDAR */
-.calendar{padding:12px;overflow-y:auto;height:calc(100vh - 56px)}
+.calendar{padding:12px;height:calc(100vh - 56px);overflow:auto}
 .weekdays{display:grid;grid-template-columns:repeat(7,1fr);font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 
-.day{background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px 4px;min-height:110px;max-height:160px;
-display:flex;flex-direction:column;align-items:center;box-shadow:var(--shadow);cursor:pointer;overflow:hidden}
+.day{
+  background:#fff;border:1px solid var(--border);border-radius:14px;padding:6px 4px;
+  min-height:110px;max-height:160px;
+  display:flex;flex-direction:column;align-items:center;
+  box-shadow:var(--shadow);cursor:pointer;overflow:hidden
+}
 .day strong{font-size:13px}
-.day .content{width:100%;overflow-y:auto;padding:2px 4px 4px}
-.time{font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;margin-top:4px;width:100%;text-align:center}
-
+.day .content{width:100%;overflow-y:auto;padding:2px 4px}
+.time{
+  font-size:10px;background:#f9fafb;border-radius:8px;padding:3px 6px;margin-top:4px;
+  width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
 .badge{font-size:10px;padding:2px 8px;border-radius:999px;margin-top:4px}
 .badge.prev{background:#eef2ff;color:#3730a3}
 
 /* MODAL */
-#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:1000}
-.sheet{background:#fff;width:100%;height:88vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column}
-.sheet-header{padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:900}
-.sheet-body{flex:1;padding:14px;overflow-y:auto}
+#modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:1000
+}
+.sheet{
+  background:#fff;width:100%;height:88vh;border-radius:18px 18px 0 0;
+  display:flex;flex-direction:column;box-shadow:0 -10px 24px rgba(0,0,0,.2)
+}
+.sheet-header{
+  padding:14px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;font-weight:900
+}
+.sheet-body{flex:1;padding:14px;overflow:auto;position:relative}
 .sheet-footer{padding:12px;border-top:1px solid var(--border);display:flex;gap:10px}
 .sheet-footer button{flex:1;height:46px;border:none;border-radius:999px;font-weight:900}
-.btn-save{background:linear-gradient(180deg,var(--primary),var(--primary-700));color:#fff}
 .btn-close{background:#e5e7eb}
 
-/* OVERLAY */
+/* OVERLAY ANO PASSADO */
 #overlayPrev{
-  position:absolute; inset:0;
-  background:rgba(255,255,255,.8);
-  backdrop-filter:blur(2px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  font-weight:900;
-  z-index:20;
+  position:absolute;inset:0;background:rgba(255,255,255,.85);
+  backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:10
 }
-.spinner{width:38px;height:38px;border:4px solid #eee;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+.spinner{width:42px;height:42px;border:4px solid #eee;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -88,17 +96,23 @@ display:flex;flex-direction:column;align-items:center;box-shadow:var(--shadow);c
       <span id="modalDate"></span>
       <span onclick="fecharModal()">✕</span>
     </div>
-    <div class="sheet-body" style="position:relative">
+
+    <div class="sheet-body">
       <div id="overlayPrev">
-        <div>
+        <div style="text-align:center">
           <div class="spinner"></div>
-          <div style="margin-top:10px">Buscando dados do ano anterior...</div>
+          <div style="margin-top:10px;font-weight:900">Buscando dados do ano anterior…</div>
         </div>
       </div>
 
-      <div><strong>Ano passado:</strong> <span id="prevCount">0</span> agendamentos</div>
-      <div id="chartWrap" style="margin-top:10px;height:120px"><canvas id="peakChart"></canvas></div>
+      <div style="font-weight:800;margin-bottom:6px">Ano passado (mesmo dia)</div>
+      <div><strong>Total:</strong> <span id="prevCount">0</span> agendamentos</div>
+
+      <div style="margin-top:12px;height:160px">
+        <canvas id="peakChart"></canvas>
+      </div>
     </div>
+
     <div class="sheet-footer">
       <button class="btn-close" onclick="fecharModal()">Fechar</button>
     </div>
@@ -116,18 +130,22 @@ let lojaId, agenda={}, current=new Date(), chart;
 (async ()=>{
   const { data:{session} } = await sb.auth.getSession();
   if(!session) location.href="login.html";
-  lojaId=session.user.id;
+  lojaId = session.user.id;
   carregar();
 })();
 
-function changeMonth(v){ current.setMonth(current.getMonth()+v); carregar(); }
+function changeMonth(v){
+  current.setMonth(current.getMonth()+v);
+  carregar();
+}
 
 async function carregar(){
   const { data } = await sb.from("agenda_loja").select("data, horarios").eq("user_id", lojaId);
-  agenda={};
+  agenda = {};
   (data||[]).forEach(r=>{
-    let h=[]; try{ h=typeof r.horarios==="string"?JSON.parse(r.horarios):r.horarios||[] }catch{}
-    agenda[r.data]={horarios:h};
+    let h=[];
+    try{ h = typeof r.horarios==="string" ? JSON.parse(r.horarios) : (r.horarios||[]) }catch{}
+    agenda[r.data] = { horarios:h };
   });
   render();
 }
@@ -135,17 +153,25 @@ async function carregar(){
 function render(){
   days.innerHTML="";
   const y=current.getFullYear(), m=current.getMonth();
-  monthLabel.innerText=current.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
-  const first=new Date(y,m,1).getDay(), total=new Date(y,m+1,0).getDate();
+  monthLabel.innerText = current.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+
+  const first=new Date(y,m,1).getDay();
+  const total=new Date(y,m+1,0).getDate();
 
   for(let i=0;i<first;i++) days.innerHTML+=`<div class="day"></div>`;
-  for(let d=1;d<=total;d++){
-    const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const div=document.createElement("div"); div.className="day"; div.onclick=()=>open(key);
+
+  for(let d=1; d<=total; d++){
+    const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const div=document.createElement("div"); div.className="day";
     const content=document.createElement("div"); content.className="content";
+
     div.innerHTML=`<strong>${d}</strong>`;
-    (agenda[key]?.horarios||[]).forEach(h=>content.innerHTML+=`<div class="time">${h.inicio}-${h.fim}</div>`);
+    (agenda[key]?.horarios||[]).slice(0,4).forEach(h=>{
+      content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
+    });
+
     div.appendChild(content);
+    div.onclick=()=>open(key);
     days.appendChild(div);
   }
 }
@@ -155,7 +181,7 @@ async function open(iso){
   overlayPrev.style.display="flex";
 
   const d=new Date(iso+"T12:00");
-  modalDate.innerText=d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  modalDate.innerText = d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
 
   const prevIso = iso.replace(/^(\d{4})/, y => +y - 1);
 
@@ -174,16 +200,22 @@ async function open(iso){
 
   const labels=Object.keys(map).sort();
   const values=labels.map(l=>map[l]);
+
   prevCount.innerText = values.reduce((s,v)=>s+v,0);
 
   if(chart) chart.destroy();
-  chart=new Chart(peakChart,{type:"bar",data:{labels,datasets:[{data:values}]},
-  options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  chart = new Chart(peakChart,{
+    type:"bar",
+    data:{ labels, datasets:[{ data:values }] },
+    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+  });
 
   overlayPrev.style.display="none";
 }
 
-function fecharModal(){ modal.style.display="none"; }
+function fecharModal(){
+  modal.style.display="none";
+}
 </script>
 </body>
 </html>
