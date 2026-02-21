@@ -515,8 +515,26 @@ body::-webkit-scrollbar{
   justify-content:space-between;
   margin-bottom:16px;
 ">
+<div style="display:flex;flex-direction:column;gap:6px">
   <h3 id="tituloAgenda"></h3>
 
+  <div id="horarioFuncionamentoDia" style="
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:800;
+    color:#0f172a;
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    border-radius:999px;
+    padding:6px 12px;
+    width:fit-content;
+  ">
+    <i class="ri-time-line" style="font-size:14px;color:#ff6a00"></i>
+    <span id="horarioTexto">—</span>
+  </div>
+</div>
   <div style="display:flex;gap:6px">
     <button class="btn-dia" onclick="mudarDia(-1)">‹</button>
     <button class="btn-dia" onclick="mudarDia(1)">›</button>
@@ -667,28 +685,26 @@ async function carregarAgendaDia(lojaId){
 
   const data = dataISO(dataAtual);
 
-  // título
   document.getElementById("tituloAgenda").innerText =
     "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
 
-  // 1️⃣ BUSCA AGENDAMENTOS
+  await carregarHorarioFuncionamento(lojaId, data);   // 👈 AQUI
+
   const { data: agenda, error } = await sbHome
     .from("agendamentos")
-.select(`
-  id,
-  data,
-  hora_inicio,
-  cliente_nome,
-  cliente_whatsapp,
-  status,
-  servico_nome,
-  servicos,
-  valor_total,
-  created_at,
-  updated_at
-`)
-
-
+    .select(`
+      id,
+      data,
+      hora_inicio,
+      cliente_nome,
+      cliente_whatsapp,
+      status,
+      servico_nome,
+      servicos,
+      valor_total,
+      created_at,
+      updated_at
+    `)
     .eq("user_id", lojaId)
     .eq("data", data)
     .neq("status", "CANCELADO")
@@ -1051,7 +1067,52 @@ function formatarDataBR(dataISO){
   return `${d}/${m}/${y}`;
 }
 
+async function carregarHorarioFuncionamento(lojaId, dataISO){
 
+  const { data, error } = await sbHome
+    .from("agenda_loja")
+    .select("fechado, horarios")
+    .eq("user_id", lojaId)
+    .eq("data", dataISO)
+    .single();
+
+  const box = document.getElementById("horarioFuncionamentoDia");
+  const texto = document.getElementById("horarioTexto");
+
+  if(error || !data){
+    box.style.display = "none";
+    return;
+  }
+
+  if(data.fechado){
+    box.style.display = "flex";
+    texto.innerText = "Fechado hoje";
+    box.style.background = "#fef2f2";
+    box.style.borderColor = "#fecaca";
+    texto.style.color = "#dc2626";
+    return;
+  }
+
+  const horarios = Array.isArray(data.horarios)
+    ? data.horarios
+    : (typeof data.horarios === "string" ? JSON.parse(data.horarios || "[]") : []);
+
+  if(!horarios.length){
+    box.style.display = "none";
+    return;
+  }
+
+  const textoHorario = horarios
+    .map(h => `${h.inicio} – ${h.fim}`)
+    .join(" • ");
+
+  box.style.display = "flex";
+  texto.innerText = textoHorario;
+
+  box.style.background = "#fff7ed";
+  box.style.borderColor = "#fed7aa";
+  texto.style.color = "#0f172a";
+}
 
 
   
