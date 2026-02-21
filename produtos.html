@@ -75,11 +75,36 @@ body{
 }
 
 /* ================= GRID ================= */
+/* MOBILE (padrão) */
 .grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:10px;
   padding:0 16px 140px;
+}
+
+/* TABLET */
+@media (min-width: 768px){
+  .grid{
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+  }
+}
+
+/* NOTEBOOK */
+@media (min-width: 1024px){
+  .grid{
+    grid-template-columns:repeat(5,1fr);
+    gap:14px;
+  }
+}
+
+/* DESKTOP / MONITOR GRANDE */
+@media (min-width: 1280px){
+  .grid{
+    grid-template-columns:repeat(6,1fr);
+    gap:16px;
+  }
 }
 
 /* ================= CARD ================= */
