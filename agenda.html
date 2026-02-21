@@ -118,6 +118,13 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   .day{ height:120px; }
   .time{ font-size:9px; padding:3px 5px; }
 }
+
+.time.fechado{
+  background:#fee2e2;
+  color:#991b1b;
+  font-weight:900;
+  letter-spacing:.4px;
+}
 </style>
 </head>
 
@@ -221,9 +228,13 @@ function render(){
     const content=document.createElement("div"); content.className="content";
 
     div.innerHTML=`<strong>${d}</strong>`;
-(agenda[key]?.horarios||[]).forEach(h=>{
-  content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
-});
+if (agenda[key]?.fechado) {
+  content.innerHTML = `<div class="time fechado">FECHADO</div>`;
+} else {
+  (agenda[key]?.horarios || []).forEach(h => {
+    content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
+  });
+}
 
     div.appendChild(content);
     div.onclick=()=>open(key);
@@ -284,11 +295,13 @@ function addHorario(i="",f=""){
 }
 
 async function salvar(){
-  const h=[];
-  document.querySelectorAll(".horario").forEach(x=>{
-    const i=x.children[0].value, f=x.children[1].value;
-    if(i && f) h.push({ inicio:i, fim:f });
-  });
+  let h = [];
+  if (!fechado.checked) {
+    document.querySelectorAll(".horario").forEach(x=>{
+      const i=x.children[0].value, f=x.children[1].value;
+      if(i && f) h.push({ inicio:i, fim:f });
+    });
+  }
 
   await sb.from("agenda_loja").upsert(
     { user_id: lojaId, data: selected, fechado: fechado.checked, horarios: h },
