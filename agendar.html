@@ -494,7 +494,7 @@ async function buscarClientesLoja(termo){
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id, nome, whatsapp, email")
-    .eq("loja_id", lojaId)
+    .eq("loja_ativa", lojaId)   // ✅ coluna real
     .order("nome")
     .limit(50);
 
@@ -923,7 +923,7 @@ await sb.from("clientes_profile").upsert({
   nome,
   whatsapp: whats,
   email,
-  loja_id: lojaId     // ✅ agora bate com a busca
+  loja_ativa: lojaId   // ✅ coluna real da sua tabela
 });
 
     clienteDB = { nome, whatsapp: whats, email };
