@@ -287,33 +287,77 @@ function addHorario(i="",f=""){
   const d=document.createElement("div");
   d.className="horario";
   d.innerHTML = `
-    <input type="time" value="${i}">
-    <input type="time" value="${f}">
+<input type="time" value="${i}" oninput="validarLinha(this)">
+<input type="time" value="${f}" oninput="validarLinha(this)">
     <button onclick="this.parentElement.remove()">✕</button>
   `;
   horarios.appendChild(d);
 }
 
 async function salvar(){
-  let h = [];
-  if (!fechado.checked) {
-    document.querySelectorAll(".horario").forEach(x=>{
-      const i=x.children[0].value, f=x.children[1].value;
-      if(i && f) h.push({ inicio:i, fim:f });
-    });
+  try{
+    let h = [];
+    if (!fechado.checked) {
+      document.querySelectorAll(".horario").forEach((x, idx)=>{
+        const i = x.children[0].value;
+        const f = x.children[1].value;
+
+        if (!i || !f) return;
+
+        // ❌ não permite início >= fim
+        if (i >= f) {
+          x.style.outline = "2px solid #dc2626";
+          throw new Error(`Horário inválido no item ${idx+1}: início deve ser menor que o término.`);
+        }
+
+        h.push({ inicio:i, fim:f });
+      });
+    }
+
+    // ✅ LOCAL EXATO: valida sobreposição (cole aqui)
+    h.sort((a,b)=> a.inicio.localeCompare(b.inicio));
+    for (let i = 1; i < h.length; i++) {
+      if (h[i].inicio < h[i-1].fim) {
+        throw new Error(
+          `Horários sobrepostos: ${h[i-1].inicio}–${h[i-1].fim} conflita com ${h[i].inicio}–${h[i].fim}`
+        );
+      }
+    }
+    // ⬆️ FIM DO LOCAL EXATO
+
+    await sb.from("agenda_loja").upsert(
+      { user_id: lojaId, data: selected, fechado: fechado.checked, horarios: h },
+      { onConflict: "user_id,data" }
+    );
+
+    modal.style.display="none";
+    carregar();
+
+  }catch(err){
+    alert(err.message || "Existe horário inválido. Corrija antes de salvar.");
   }
-
-  await sb.from("agenda_loja").upsert(
-    { user_id: lojaId, data: selected, fechado: fechado.checked, horarios: h },
-    { onConflict: "user_id,data" }
-  );
-
-  modal.style.display="none";
-  carregar();
 }
 
 function fecharModal(){
   modal.style.display="none";
+}
+
+
+function validarLinha(el){
+  const row = el.parentElement;
+  const i = row.children[0].value;
+  const f = row.children[1].value;
+
+  if (!i || !f) {
+    row.style.outline = "";
+    return;
+  }
+
+  if (i >= f) {
+    row.style.outline = "2px solid #dc2626";
+  } else {
+    row.style.outline = "";
+  }
 }
 </script>
 </body>
