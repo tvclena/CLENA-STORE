@@ -234,8 +234,9 @@ html,body{
 
   <h1 id="monthLabel"></h1>
 
- <select id="seletorColaborador"
+<select id="seletorColaborador"
   style="
+    display:none;
     border:1px solid #e5e7eb;
     border-radius:10px;
     padding:6px 10px;
@@ -300,8 +301,16 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
 
   lojaId = session.user.id;
 
-  await carregarColaboradores();
+const isMaster = await verificarPlanoMaster();
 
+if (isMaster) {
+  document.getElementById("seletorColaborador").style.display = "block";
+  await carregarColaboradores();
+} else {
+  document.getElementById("seletorColaborador").style.display = "none";
+  colaboradorSelecionado = "LOJA";
+  definirUserId();
+}
   // 🔥 herda do home se existir
  if (
   window.parent &&
@@ -317,7 +326,12 @@ let userId, agenda = {}, current = new Date(), selected = "", dirty = false;
   definirUserId();
   carregar();
 })();
+
+  
 async function carregarColaboradores(){
+  const isMaster = await verificarPlanoMaster();
+  if (!isMaster) return;
+
   const select = document.getElementById("seletorColaborador");
 
   // limpa tudo e recria corretamente
@@ -520,6 +534,23 @@ function dateFromISO(iso) {
   return new Date(y, m - 1, d, 12, 0, 0); // meio-dia local
 }
 
+  async function verificarPlanoMaster() {
+  const { data, error } = await sb
+    .from("lojas") // ⚠️ ajuste se sua tabela for outra
+    .select("plano")
+    .eq("id", lojaId)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar plano:", error);
+    return false;
+  }
+
+  return data?.plano === "MASTER";
+}
+
+
+  
 </script>
 
 </body>
