@@ -493,9 +493,10 @@ async function buscarClientesLoja(termo){
 
   const { data, error } = await sb
     .from("clientes_profile")
-    .select("id,nome,whatsapp,email,avatar_url")
-    .eq("loja_ativa", lojaId)   // UUID da loja (correto para seu banco)
-    .limit(80);
+    .select("id, nome, whatsapp, email")
+    .eq("loja_id", lojaId)
+    .order("nome")
+    .limit(50);
 
   if(error){
     console.error("Erro ao buscar clientes:", error);
@@ -917,13 +918,13 @@ async function salvarCliente(confirmarDepois = false){
       return;
     }
 
-    await sb.from("clientes_profile").upsert({
-      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
-      nome,
-      whatsapp: whats,
-      email,
-      loja_ativa: lojaId
-    });
+await sb.from("clientes_profile").upsert({
+  id: usuarioLogado?.id || lojaId + "_" + Date.now(),
+  nome,
+  whatsapp: whats,
+  email,
+  loja_id: lojaId     // ✅ agora bate com a busca
+});
 
     clienteDB = { nome, whatsapp: whats, email };
 
@@ -1293,18 +1294,23 @@ function ativarBuscaClientes(){
         return;
       }
 
-      lista.innerHTML = clientes.map(c => `
-        <div onclick="selecionarClienteLoja(
-          '${c.id}',
-          '${c.nome}',
-          '${c.whatsapp}',
-          '${c.email || ""}'
-        )"
-        style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
-          <strong>${c.nome}</strong><br>
-          <small>${c.whatsapp}</small>
-        </div>
-      `).join("");
+lista.innerHTML = clientes.map(c => {
+  const nome = (c.nome || "").replace(/'/g, "\\'");
+  const whats = (c.whatsapp || "").replace(/'/g, "\\'");
+  const email = (c.email || "").replace(/'/g, "\\'");
+  return `
+    <div onclick="selecionarClienteLoja(
+      '${c.id}',
+      '${nome}',
+      '${whats}',
+      '${email}'
+    )"
+    style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
+      <strong>${c.nome}</strong><br>
+      <small>${c.whatsapp || ""}</small>
+    </div>
+  `;
+}).join("");
 
       lista.style.display = "block";
     }, 300);
