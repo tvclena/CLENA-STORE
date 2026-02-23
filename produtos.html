@@ -632,7 +632,41 @@ html, body{
 }
 
   
+/* =========================
+   FIX: UMA ÚNICA BARRA DE ROLAGEM (IGUAL AO ANTIGO)
+========================= */
 
+/* Página principal: scroll normal */
+html, body{
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Quando o modal estiver aberto, trava o scroll do body */
+.modal.show ~ * ,
+.modal.show{
+  overscroll-behavior: contain;
+}
+
+/* Só o conteúdo do bottom-sheet rola */
+.sheet{
+  overflow: hidden;        /* não cria scroll no container */
+}
+.sheet-body{
+  overflow-y: auto;       /* scroll apenas aqui */
+  max-height: calc(92vh - 64px - 70px); 
+  /* 92vh da sheet - header - footer */
+}
+
+/* Garante que o body NÃO role quando o modal abrir */
+body.modal-open{
+  overflow: hidden !important;
+}
+
+
+
+
+  
   
 
 </style>
@@ -1299,6 +1333,8 @@ document.getElementById("btnExcluir").style.display = "block";
 
   
 function abrirModalNovo(){
+  document.body.classList.add("modal-open"); // 🔒 trava scroll do body
+
   editId = null;
   blobs = []; // ✅ LIMPA IMAGENS ANTERIORES
   formTitle.innerText = "Novo item";
@@ -1328,13 +1364,10 @@ function abrirModalNovo(){
   toggleTipo();
 
   preview.style.display = "none";
-  preview.src = "";
+  preview.innerHTML = "";
   blob = null;
-document.getElementById("btnExcluir").style.display = "none";
-atualizarBotaoIA();
-modal.classList.add("show");
-}
-function abrirModalEditar(){
+
+  document.getElementById("btnExcluir").style.display = "none";
   atualizarBotaoIA();
 
   modal.classList.add("show");
@@ -1342,8 +1375,24 @@ function abrirModalEditar(){
 
 
 
+
   
-function fecharModal(){modal.classList.remove("show");editId=null;blob=null;preview.style.display="none"}
+function abrirModalEditar(){
+  document.body.classList.add("modal-open"); // 🔒 trava scroll do body
+  atualizarBotaoIA();
+  modal.classList.add("show");
+}
+
+
+  
+function fecharModal(){
+  document.body.classList.remove("modal-open"); // 🔓 libera scroll do body
+  modal.classList.remove("show");
+  editId = null;
+  blob = null;
+  preview.style.display = "none";
+  preview.innerHTML = "";
+}
 
 // 🔎 FILTRO DE BUSCA (texto)
 search.addEventListener("input", () => {
@@ -1393,7 +1442,6 @@ imagem.addEventListener("change", () => {
 
   atualizarBotaoIA();
 });
-
 
   
 async function confirmarExclusao(){
