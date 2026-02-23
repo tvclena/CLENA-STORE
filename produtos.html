@@ -432,6 +432,172 @@ body{
 
 
 
+  
+
+/* =========================
+   UPGRADE VISUAL PREMIUM • PRODUTOS & SERVIÇOS
+   (colar no FINAL do <style>)
+========================= */
+
+/* Fundo com luz suave */
+body{
+  background:
+    radial-gradient(900px 260px at 50% -80px, rgba(255,106,0,.08), transparent 60%),
+    linear-gradient(180deg, #f8fafc, #f1f5f9);
+}
+
+/* Header em card */
+.header{
+  background:linear-gradient(135deg, #ffffff, #fff7ed);
+  border:1px solid #fde68a;
+  border-radius:18px;
+  margin:16px;
+  padding:14px 16px;
+  box-shadow:0 12px 28px rgba(0,0,0,.08);
+}
+.header h1{
+  letter-spacing:-.3px;
+}
+.header span{
+  background:linear-gradient(135deg, #ff6a00, #f97316);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* Filtros com “pill” */
+.filters input,
+.filters select{
+  background:linear-gradient(180deg,#ffffff,#fafafa);
+  box-shadow:0 6px 14px rgba(0,0,0,.06);
+  transition:box-shadow .2s ease, transform .12s ease;
+}
+.filters input:focus,
+.filters select:focus{
+  outline:none;
+  box-shadow:0 10px 22px rgba(255,106,0,.18);
+}
+
+/* Cards de item com profundidade */
+.item{
+  border:1px solid #eef2f7;
+  background:linear-gradient(180deg,#ffffff,#fafafa);
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.7);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.item:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 16px 34px rgba(0,0,0,.14),
+    0 0 0 1px rgba(255,106,0,.12) inset;
+}
+
+/* Imagem com brilho sutil */
+.item img{
+  filter:contrast(1.03) saturate(1.04);
+}
+
+/* Badge mais “premium” */
+.badge{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  border:1px solid rgba(0,0,0,.04);
+}
+
+/* Preço com destaque */
+.price{
+  color:#16a34a;
+  letter-spacing:.2px;
+}
+
+/* Ações com micro-interação */
+.actions{
+  transition:transform .12s ease, filter .12s ease;
+}
+.actions:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.05);
+}
+
+/* FAB com glow */
+.fab{
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.38),
+    0 0 0 8px rgba(255,106,0,.18);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.fab:hover{
+  transform:translateY(-2px) scale(1.03);
+  box-shadow:
+    0 22px 46px rgba(0,0,0,.48),
+    0 0 0 12px rgba(255,106,0,.22);
+}
+
+/* Modal com fade + sheet com slide */
+.modal{
+  backdrop-filter: blur(2px);
+}
+.modal.show{
+  animation:fadeIn .18s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.sheet{
+  animation:slideUp .22s ease;
+  box-shadow:0 -16px 48px rgba(0,0,0,.28);
+}
+@keyframes slideUp{
+  from{transform:translateY(24px);opacity:.9}
+  to{transform:translateY(0);opacity:1}
+}
+
+/* Inputs mais “soft” */
+.sheet-body input,
+.sheet-body textarea,
+.sheet-body select{
+  background:linear-gradient(180deg,#ffffff,#fafafa);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.sheet-body input:focus,
+.sheet-body textarea:focus,
+.sheet-body select:focus{
+  outline:none;
+  border-color:rgba(255,106,0,.55);
+  box-shadow:
+    0 0 0 3px rgba(255,106,0,.15),
+    inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+/* Toggle com brilho quando ativo */
+.sheet-body input[type="checkbox"]:checked{
+  box-shadow:0 0 0 6px rgba(255,106,0,.18);
+}
+
+/* Image box com “vidro” */
+.image-box{
+  background:
+    linear-gradient(180deg,#ffffff,#f3f4f6);
+  border:1px dashed #e5e7eb;
+}
+
+/* Footer fix com leve gradiente */
+.sheet-footer{
+  background:linear-gradient(180deg,#ffffff,#f8fafc);
+}
+
+/* Loading card mais elegante */
+.loading div{
+  box-shadow:0 18px 44px rgba(0,0,0,.28);
+}
+
+/* Drag & drop com realce premium */
+.item.drag-over{
+  outline:none;
+  box-shadow:
+    0 0 0 2px rgba(255,106,0,.55),
+    0 16px 34px rgba(0,0,0,.18);
+}
+
 
 
 
