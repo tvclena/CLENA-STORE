@@ -496,9 +496,7 @@ async function buscarClientesLoja(termo){
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id, nome, whatsapp, email")
-    // 🔥 força o cast do UUID para texto para não quebrar o filtro
     .filter("loja_ativa", "eq", lojaId)
-    // 🔎 busca por nome OU whatsapp
     .or(`nome.ilike.%${texto}%,whatsapp.ilike.%${somenteNumeros}%`)
     .limit(10);
 
@@ -509,6 +507,9 @@ async function buscarClientesLoja(termo){
 
   return data || [];
 }
+
+// 👇 ADICIONE ESTA LINHA
+window.buscarClientesLoja = buscarClientesLoja;
   
 /* ================= SERVIÇOS ================= */
 async function carregarServicos(){
