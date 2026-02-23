@@ -495,7 +495,7 @@ async function buscarClientesLoja(termo){
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id, nome, whatsapp, email")
-    .or(`and(loja_ativa.eq.${lojaId},nome.ilike.%${t}%),and(loja_ativa.eq.${lojaId},whatsapp.ilike.%${t}%)`)
+    .or(`and(loja_ativa.eq.'${lojaId}',nome.ilike.%${t}%),and(loja_ativa.eq.'${lojaId}',whatsapp.ilike.%${t}%)`)
     .limit(10);
 
   if(error){
