@@ -601,7 +601,35 @@ body{
 
 
 
+/* =========================
+   RESET TOTAL DA BARRA DE ROLAGEM
+   (visual igual ao antigo)
+========================= */
 
+/* Scroll nativo no body */
+html, body{
+  overflow-y: auto;
+}
+
+/* Remove qualquer efeito que altere renderização do scroll */
+.modal{
+  backdrop-filter: none !important;
+}
+
+/* Conteúdo do bottom-sheet com scroll nativo */
+.sheet-body{
+  overflow-y: auto !important;
+  scrollbar-width: auto;          /* Firefox */
+  -ms-overflow-style: auto;       /* Edge antigo */
+}
+
+/* Remove QUALQUER customização WebKit do scroll */
+.sheet-body::-webkit-scrollbar,
+.sheet-body::-webkit-scrollbar-track,
+.sheet-body::-webkit-scrollbar-thumb,
+.sheet-body::-webkit-scrollbar-corner{
+  all: unset;
+}
 
   
 
