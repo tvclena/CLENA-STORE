@@ -490,16 +490,16 @@ async function carregarCliente(){
 async function buscarClientesLoja(termo){
   if(!termo || termo.trim().length < 2) return [];
 
-  const t = termo.replace(/[%_]/g, "\\$&");
-  const somenteNumeros = termo.replace(/\D/g, ""); // 🔥 remove máscara do WhatsApp
+  const texto = termo.trim();
+  const somenteNumeros = texto.replace(/\D/g, "");
 
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id, nome, whatsapp, email")
-    .or(`
-      and(loja_ativa.eq.'${lojaId}',nome.ilike.%${t}%),
-      and(loja_ativa.eq.'${lojaId}',whatsapp.ilike.%${somenteNumeros}%)
-    `)
+    .eq("loja_ativa", lojaId)
+    .or(
+      `nome.ilike.%${texto}%,whatsapp.ilike.%${somenteNumeros}%`
+    )
     .limit(10);
 
   if(error){
