@@ -496,10 +496,10 @@ async function buscarClientesLoja(termo){
   const { data, error } = await sb
     .from("clientes_profile")
     .select("id, nome, whatsapp, email")
-    .eq("loja_ativa", lojaId)
-    .or(
-      `nome.ilike.%${texto}%,whatsapp.ilike.%${somenteNumeros}%`
-    )
+    // 🔥 força o cast do UUID para texto para não quebrar o filtro
+    .filter("loja_ativa", "eq", lojaId)
+    // 🔎 busca por nome OU whatsapp
+    .or(`nome.ilike.%${texto}%,whatsapp.ilike.%${somenteNumeros}%`)
     .limit(10);
 
   if(error){
