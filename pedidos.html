@@ -5,105 +5,77 @@
 <title>Pedidos • CLENA</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0f172a">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
+  --dark:#0f172a;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
-  --text:#111827;
-  --muted:#6b7280;
-  --radius:20px;
-  --shadow:0 18px 45px rgba(0,0,0,.08);
+  --text:#0f172a;
+  --muted:#64748b;
+  --radius:22px;
+  --shadow:0 18px 45px rgba(15,23,42,.08);
 }
 *{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);padding:18px;color:var(--text)}
+body{margin:0;background:linear-gradient(180deg,#fff,#f4f6fb);color:var(--text)}
 
 .header{
+  position:sticky; top:0; z-index:10;
   background:#fff;
-  padding:22px;
-  border-radius:22px;
-  box-shadow:var(--shadow);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:22px
+  padding:16px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
 }
-.brand strong{font-size:22px;font-weight:900}
-.brand span{font-size:12px;color:var(--muted)}
-
-.card{
-  background:#fff;
-  border-radius:var(--radius);
-  padding:24px;
-  box-shadow:var(--shadow);
-  margin-bottom:28px
-}
-
-.section-title{
-  font-size:14px;
-  font-weight:900;
-  margin:22px 0 10px;
-  display:flex;
-  align-items:center;
-  gap:8px
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px
-}
-
-.small{font-size:12px;color:var(--muted)}
-.bold{font-weight:800}
-.value{font-size:16px;font-weight:900}
-
+.brand{display:flex;align-items:center;gap:10px}
+.brand strong{font-size:18px;font-weight:900}
 .badge{
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:900;
-  display:inline-block
+  padding:6px 12px;border-radius:999px;font-size:11px;font-weight:900
 }
 .pago{background:#dcfce7;color:#166534}
 .pendente_pagamento{background:#fff7ed;color:#9a3412}
 .cancelado{background:#fee2e2;color:#991b1b}
 .manual{background:#fef3c7;color:#92400e}
 
-.item{
-  display:flex;
-  gap:16px;
-  align-items:center;
-  margin-top:14px
+.container{padding:16px;max-width:1100px;margin:auto}
+.toolbar{
+  background:#fff;border-radius:18px;padding:14px;
+  box-shadow:var(--shadow); margin-bottom:16px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px
 }
-.item img{
-  width:70px;height:70px;
-  border-radius:16px;
-  object-fit:cover;
-  border:1px solid var(--border)
+.toolbar input,.toolbar select{
+  padding:12px 14px;border-radius:14px;border:1px solid var(--border);
+  font-weight:700
 }
+.list{display:grid;gap:14px}
 
-.actions{
-  display:flex;
-  gap:14px;
-  margin-top:24px
+.card{
+  background:#fff;border-radius:22px;padding:18px;
+  box-shadow:var(--shadow);border:1px solid var(--border)
 }
+.card-head{
+  display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center
+}
+.small{font-size:12px;color:var(--muted)}
+.bold{font-weight:800}
+.value{font-size:16px;font-weight:900}
+.items{display:grid;gap:10px;margin:10px 0}
+.item{display:flex;gap:12px;align-items:center}
+.item img{width:56px;height:56px;border-radius:12px;object-fit:cover;border:1px solid var(--border)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
 button{
-  flex:1;
-  padding:16px;
-  border-radius:16px;
-  border:none;
-  font-weight:900;
-  cursor:pointer
+  padding:10px 14px;border-radius:12px;border:none;font-weight:900;cursor:pointer
 }
-.print{background:#111;color:#fff}
+.btn-print{background:#0f172a;color:#fff}
+.btn-ok{background:#16a34a;color:#fff}
+.btn-warn{background:#f59e0b;color:#111}
+.btn-danger{background:#dc2626;color:#fff}
 
 @media print{
   body *{visibility:hidden}
@@ -117,13 +89,32 @@ button{
 
 <div class="header">
   <div class="brand">
-    <strong>CLENA</strong>
-    <span>clena.com.br</span>
+    <i class="ri-file-list-3-fill" style="font-size:22px;color:var(--primary)"></i>
+    <strong>Pedidos</strong>
   </div>
-  <i class="ri-file-list-3-fill" style="font-size:28px;color:#ff6a00"></i>
 </div>
 
-<div id="lista"></div>
+<div class="container">
+
+  <!-- 🔎 FILTROS -->
+  <div class="toolbar">
+    <input id="fBusca" placeholder="Buscar cliente, pedido ou WhatsApp">
+    <select id="fStatus">
+      <option value="">Status (todos)</option>
+      <option value="pago">Pago</option>
+      <option value="pendente_pagamento">Pendente</option>
+      <option value="cancelado">Cancelado</option>
+    </select>
+    <select id="fTipo">
+      <option value="">Tipo (todos)</option>
+      <option value="online">Online</option>
+      <option value="offline">Manual</option>
+    </select>
+  </div>
+
+  <div id="lista" class="list"></div>
+
+</div>
 
 <script>
 const sb = supabase.createClient(
@@ -132,21 +123,21 @@ const sb = supabase.createClient(
 );
 
 const lista = document.getElementById("lista");
+const fBusca = document.getElementById("fBusca");
+const fStatus = document.getElementById("fStatus");
+const fTipo = document.getElementById("fTipo");
+
 const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 let produtosMap = {};
+let pedidosCache = [];
 
 function parseItensSeguro(itens){
   if(Array.isArray(itens)) return itens;
-  if(typeof itens === "string"){
-    try { return JSON.parse(itens); } catch { return []; }
-  }
+  if(typeof itens === "string"){ try { return JSON.parse(itens); } catch { return []; } }
   return [];
 }
 function getImagemProduto(item){
-  if(item.produto_id && produtosMap[item.produto_id]){
-    return produtosMap[item.produto_id];
-  }
-  return "https://via.placeholder.com/150?text=Produto";
+  return produtosMap[item.produto_id] || "https://via.placeholder.com/150?text=Produto";
 }
 
 async function carregar(){
@@ -156,123 +147,107 @@ async function carregar(){
     return;
   }
 
-  const { data: pedidos } = await sb
-    .from("pedidos")
-    .select("*")
-    .eq("loja_id", auth.user.id);
-/* ================= PRODUTOS (IMAGENS) ================= */
-const { data: produtos } = await sb
-  .from("produtos_servicos")
-  .select("id, imagem_url");
-
-produtosMap = {};
-(produtos || []).forEach(p => {
-  produtosMap[p.id] = p.imagem_url;
-});
+  const { data: pedidos } = await sb.from("pedidos").select("*").eq("loja_id", auth.user.id);
+  const { data: produtos } = await sb.from("produtos_servicos").select("id, imagem_url");
+  produtosMap = {}; (produtos||[]).forEach(p=>produtosMap[p.id]=p.imagem_url);
 
   const ids = (pedidos||[]).map(p=>p.id);
+  const { data: itens } = ids.length ? await sb.from("pedidos_itens").select("*").in("pedido_id", ids) : { data: [] };
+  const { data: pagamentos } = ids.length ? await sb.from("movimentacoes_pagamento").select("*").in("pedido_id", ids) : { data: [] };
+  const { data: offline } = await sb.from("pedidos_offline").select("*").eq("loja_id", auth.user.id);
 
-  const { data: itens } = ids.length
-    ? await sb.from("pedidos_itens").select("*").in("pedido_id", ids)
-    : { data: [] };
-
-  const { data: pagamentos } = ids.length
-    ? await sb.from("movimentacoes_pagamento").select("*").in("pedido_id", ids)
-    : { data: [] };
-
-  const { data: offline } = await sb
-    .from("pedidos_offline")
-    .select("*")
-    .eq("loja_id", auth.user.id);
-
-  const pedidosUnificados = [
-
+  pedidosCache = [
     ...(pedidos||[]).map(p=>{
       const its = itens.filter(i=>i.pedido_id===p.id);
       const pg = pagamentos.find(x=>x.pedido_id===p.id);
-      return {
-        tipo:"online",
-        id:p.id,
-        data:p.created_at,
-        status: pg?.status==="APROVED" ? "pago" : "pendente_pagamento",
-        cliente_nome:p.cliente_nome,
-        cliente_whatsapp:p.cliente_whatsapp,
-        itens:its,
-        total:p.valor_total
-      };
+      return { tipo:"online", id:p.id, data:p.created_at, status: pg?.status==="APROVED" ? "pago" : "pendente_pagamento",
+        cliente_nome:p.cliente_nome, cliente_whatsapp:p.cliente_whatsapp, itens:its, total:p.valor_total };
     }),
-
-    ...(offline||[]).map(p=>({
-      tipo:"offline",
-      id:p.id,
-      data:p.created_at,
-      status:p.status,
-      cliente_nome:p.cliente_nome,
-      cliente_whatsapp:p.cliente_whatsapp,
-      itens:parseItensSeguro(p.itens),
-      total:p.total
-    }))
-
+    ...(offline||[]).map(p=>({ tipo:"offline", id:p.id, data:p.created_at, status:p.status,
+      cliente_nome:p.cliente_nome, cliente_whatsapp:p.cliente_whatsapp, itens:parseItensSeguro(p.itens), total:p.total }))
   ].sort((a,b)=>new Date(b.data)-new Date(a.data));
 
-  lista.innerHTML = pedidosUnificados.map(p=>`
-    <div class="card">
+  render();
+}
 
-      <div class="grid">
+function render(){
+  const termo = (fBusca.value||"").toLowerCase();
+  const st = fStatus.value;
+  const tp = fTipo.value;
+
+  const listaFiltrada = pedidosCache.filter(p=>{
+    const alvo = `${p.id} ${p.cliente_nome||""} ${p.cliente_whatsapp||""}`.toLowerCase();
+    if(termo && !alvo.includes(termo)) return false;
+    if(st && p.status!==st) return false;
+    if(tp && p.tipo!==tp) return false;
+    return true;
+  });
+
+  lista.innerHTML = listaFiltrada.map(p=>`
+    <div class="card">
+      <div class="card-head">
         <div>
           <div class="small">Pedido</div>
           <div class="bold">#${p.id}</div>
           ${p.tipo==="offline" ? `<span class="badge manual">Manual</span>` : ``}
         </div>
-        <div>
-          <div class="small">Status</div>
-          <span class="badge ${p.status}">${p.status}</span>
-        </div>
-        <div>
-          <div class="small">Data</div>
-<div class="bold">
-  ${new Date(p.data).toLocaleString("pt-BR", {
-    timeZone: "America/Sao_Paulo"
-  })}
-</div>
-        </div>
+        <span class="badge ${p.status}">${p.status}</span>
+        <div class="small">${new Date(p.data).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"})}</div>
       </div>
 
-      <div class="section-title"><i class="ri-user-3-line"></i> Cliente</div>
-      <div class="grid">
-        <div><div class="small">Nome</div><div class="bold">${p.cliente_nome}</div></div>
-        <div><div class="small">WhatsApp</div><div class="bold">${p.cliente_whatsapp}</div></div>
-      </div>
-
-      <div class="section-title"><i class="ri-shopping-cart-line"></i> Itens</div>
-      ${p.itens.map(i=>`
-        <div class="item">
-<img src="${getImagemProduto(i)}">
-          <div>
-            <div class="bold">${i.nome}</div>
-            <div class="small">${i.quantidade} × ${money(i.preco_unitario || i.subtotal/i.quantidade)}</div>
-            <div class="value">${money(i.subtotal)}</div>
+      <div class="items">
+        ${p.itens.map(i=>`
+          <div class="item">
+            <img src="${getImagemProduto(i)}">
+            <div>
+              <div class="bold">${i.nome}</div>
+              <div class="small">${i.quantidade} × ${money(i.preco_unitario || i.subtotal/i.quantidade)}</div>
+              <div class="value">${money(i.subtotal)}</div>
+            </div>
           </div>
-        </div>
-      `).join("")}
+        `).join("")}
+      </div>
 
-      <div class="section-title"><i class="ri-bank-card-line"></i> Total</div>
-      <div class="value">${money(p.total)}</div>
+      <div class="value">Total: ${money(p.total)}</div>
 
       <div class="actions">
-        <button class="print" onclick="imprimirPedido(this)">Imprimir</button>
+        <button class="btn-print" onclick="imprimir(this)">Imprimir</button>
+        ${p.tipo==="offline" ? `
+          <button class="btn-ok" onclick="mudarStatus('${p.id}','pago')">Marcar Pago</button>
+          <button class="btn-warn" onclick="mudarStatus('${p.id}','pendente_pagamento')">Pendente</button>
+          <button class="btn-danger" onclick="mudarStatus('${p.id}','cancelado')">Cancelar</button>
+        ` : ``}
       </div>
-
     </div>
   `).join("");
 }
 
-function imprimirPedido(btn){
+async function mudarStatus(id, status){
+  if(!confirm("Alterar status para: " + status + "?")) return;
+
+  const { error } = await sb
+    .from("pedidos_offline")
+    .update({ status })
+    .eq("id", id);
+
+  if(error){
+    alert("Erro ao atualizar status");
+    return;
+  }
+
+  const p = pedidosCache.find(x=>x.id===id && x.tipo==="offline");
+  if(p) p.status = status;
+  render();
+}
+
+function imprimir(btn){
   document.querySelectorAll('.card').forEach(c=>c.classList.remove('print-only'));
   btn.closest('.card').classList.add('print-only');
   window.print();
   setTimeout(()=>btn.closest('.card').classList.remove('print-only'),500);
 }
+
+[fBusca,fStatus,fTipo].forEach(el=>el.addEventListener("input", render));
 
 carregar();
 </script>
