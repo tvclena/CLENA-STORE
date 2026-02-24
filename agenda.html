@@ -196,9 +196,15 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
-<button id="btnMulti" onclick="abrirMultiAgenda()" style="display:none" title="Disponível apenas no plano MASTER">
-  Multi Agenda
-</button>  <h1 id="monthLabel"></h1>
+
+  <select id="seletorColab" style="
+    height:36px;border-radius:10px;border:1px solid #e5e7eb;
+    padding:0 10px;font-weight:700;font-size:12px;max-width:180px;
+  ">
+    <option value="">Agenda da Loja</option>
+  </select>
+
+  <h1 id="monthLabel"></h1>
   <button onclick="changeMonth(1)">▶</button>
 </div>
 
@@ -258,7 +264,8 @@ const sb = supabase.createClient(
 );
 
 let lojaId, agenda={}, current=new Date(), selected="", chart;
-async function podeExibirMultiAgenda(){
+let colaboradorSelecionado = null;
+  async function podeExibirMultiAgenda(){
   const { data, error } = await sb
     .from("user_profile")           // ✅ tabela certa
     .select("assinatura_plano")     // ✅ coluna certa
@@ -284,20 +291,27 @@ function abrirMultiAgenda(){
 
   lojaId = session.user.id;
 
-  const exibirMulti = await podeExibirMultiAgenda();
-  const btn = document.getElementById("btnMulti");
-  if(btn) btn.style.display = exibirMulti ? "inline-flex" : "none";
-
+  await carregarColaboradores(); // 👈 carrega opções do seletor
   carregar();
 })();
-
 function changeMonth(v){
   current.setMonth(current.getMonth()+v);
   carregar();
 }
 
 async function carregar(){
-  const { data } = await sb.from("agenda_loja").select("data, fechado, horarios").eq("user_id", lojaId);
+  let q = sb.from("agenda_loja")
+    .select("data, fechado, horarios")
+    .eq("user_id", lojaId);
+
+  if(colaboradorSelecionado){
+    q = q.eq("colaborador_id", colaboradorSelecionado);
+  } else {
+    q = q.is("colaborador_id", null); // agenda da loja
+  }
+
+  const { data } = await q;
+
   agenda = {};
   (data||[]).forEach(r=>{
     let h=[];
@@ -305,6 +319,24 @@ async function carregar(){
     agenda[r.data] = { fechado: r.fechado, horarios: h };
   });
   render();
+}
+
+async function carregarColaboradores(){
+  const { data, error } = await sb
+    .from("colaboradores")
+    .select("id, nome")
+    .eq("loja_id", lojaId)
+    .eq("ativo", true)
+    .order("nome");
+
+  if(error){
+    console.error("Erro ao carregar colaboradores:", error);
+    return;
+  }
+
+  const sel = document.getElementById("seletorColab");
+  sel.innerHTML = `<option value="">Agenda da Loja</option>` +
+    (data || []).map(c => `<option value="${c.id}">${c.nome}</option>`).join("");
 }
 
 function render(){
@@ -455,10 +487,16 @@ async function salvar(){
     }
     // ⬆️ FIM DO LOCAL EXATO
 
-    await sb.from("agenda_loja").upsert(
-      { user_id: lojaId, data: selected, fechado: fechado.checked, horarios: h },
-      { onConflict: "user_id,data" }
-    );
+await sb.from("agenda_loja").upsert(
+  {
+    user_id: lojaId,
+    colaborador_id: colaboradorSelecionado, // 👈 vínculo com colaborador
+    data: selected,
+    fechado: fechado.checked,
+    horarios: h
+  },
+  { onConflict: "user_id,colaborador_id,data" }
+);
 
     modal.style.display="none";
     carregar();
