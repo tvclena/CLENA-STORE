@@ -372,15 +372,38 @@ async function salvar(){
       }
     }
 
-// remove registro antigo (loja ou colaborador)
-await sb.from("agenda_loja")
-  .delete()
-  .eq("user_id", lojaId)
-  .eq("data", selected)
-  .is("colaborador_id", colaboradorSelecionado ? null : null)
+if(colaboradorSelecionado){
+  // 👉 salva agenda do COLABORADOR
+  await sb.from("agenda_loja")
+    .delete()
+    .eq("user_id", lojaId)
+    .eq("data", selected)
+    .eq("colaborador_id", colaboradorSelecionado);
 
-    modal.style.display="none";
-    carregar();
+  await sb.from("agenda_loja").insert({
+    user_id: lojaId,
+    colaborador_id: colaboradorSelecionado,
+    data: selected,
+    fechado: fechado.checked,
+    horarios: h
+  });
+
+} else {
+  // 👉 salva agenda da LOJA
+  await sb.from("agenda_loja")
+    .delete()
+    .eq("user_id", lojaId)
+    .eq("data", selected)
+    .is("colaborador_id", null);
+
+  await sb.from("agenda_loja").insert({
+    user_id: lojaId,
+    colaborador_id: null,
+    data: selected,
+    fechado: fechado.checked,
+    horarios: h
+  });
+}
   }catch(err){
     alert(err.message || "Existe horário inválido. Corrija antes de salvar.");
   }
