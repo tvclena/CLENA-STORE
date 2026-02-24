@@ -126,9 +126,12 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .time.fechado{
   background:linear-gradient(180deg,#fee2e2,#fecaca);
   color:#7f1d1d;
-  font-weight:900;
-  letter-spacing:.6px;
+  font-weight:800;          /* menos pesado */
+  letter-spacing:.3px;     /* menos espaçamento */
   text-transform:uppercase;
+  font-size:9px;           /* 🔽 menor pra caber */
+  padding:3px 6px;         /* 🔽 mais compacto */
+  border-radius:999px;     /* pill menor e elegante */
 }
 
 /* MODAL */
@@ -352,8 +355,10 @@ function render(){
 
     div.innerHTML=`<strong>${d}</strong>`;
     if (agenda[key]?.fechado) content.innerHTML = `<div class="time fechado">FECHADO</div>`;
-    else (agenda[key]?.horarios||[]).forEach(h=> content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`);
-
+else (agenda[key]?.horarios||[]).forEach(h=> {
+  if(!h?.inicio || !h?.fim) return;   // 🔥 ignora horário incompleto
+  content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
+});
     div.appendChild(content);
     div.onclick=()=>open(key);
     days.appendChild(div);
@@ -446,8 +451,10 @@ async function salvar(){
     if(!fechado.checked){
       document.querySelectorAll(".horario").forEach((x,idx)=>{
         const i=x.children[0].value, f=x.children[1].value;
-        if(!i||!f) return;
-        if(i>=f){ x.style.outline="2px solid #dc2626"; throw new Error(`Horário inválido no item ${idx+1}`); }
+if(!i || !f){
+  x.style.outline = "2px solid #dc2626";
+  throw new Error(`Preencha início e fim no item ${idx+1}`);
+}        if(i>=f){ x.style.outline="2px solid #dc2626"; throw new Error(`Horário inválido no item ${idx+1}`); }
         h.push({inicio:i,fim:f});
       });
     }
