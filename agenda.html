@@ -285,7 +285,8 @@ if(planoUsuario === "master"){
     ? q.eq("colaborador_id", colaboradorSelecionado)
     : q.is("colaborador_id", null);
 }else{
-  q = q.is("colaborador_id", null); // força agenda da loja
+  colaboradorSelecionado = null;        // 🔒 zera qualquer valor forçado
+  q = q.is("colaborador_id", null);     // 🔒 força agenda da loja
 }
 
   const { data } = await q;
@@ -445,13 +446,13 @@ const payload = {
   colaborador_id: planoUsuario === "master" ? (colaboradorSelecionado || null) : null
 };
 
-    const { error } = await sb
-      .from("agenda_loja")
-      .upsert(payload, {
-        onConflict: colaboradorSelecionado
-          ? "user_id,data,colaborador_id"
-          : "user_id,data"
-      });
+const { error } = await sb
+  .from("agenda_loja")
+  .upsert(payload, {
+    onConflict: planoUsuario === "master"
+      ? "user_id,data,colaborador_id"
+      : "user_id,data"
+  });
 
     if(error) throw error;
 
