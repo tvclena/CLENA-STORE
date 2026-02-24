@@ -280,16 +280,20 @@ async function carregar(){
 async function carregarColaboradores(){
   const { data } = await sb
     .from("colaboradores")
-    .select("id, nome")
+    .select("id, nome, ativo, status")
     .eq("loja_id", lojaId)
-    .eq("ativo", true)
     .order("nome");
+
+  const ativos = (data || []).filter(c => 
+    c.ativo === true ||
+    c.ativo === 1 ||
+    String(c.status || "").toUpperCase() === "ATIVO"
+  );
 
   const sel = document.getElementById("seletorColab");
   sel.innerHTML = `<option value="">Agenda da Loja</option>` +
-    (data||[]).map(c=>`<option value="${c.id}">${c.nome}</option>`).join("");
+    ativos.map(c=>`<option value="${c.id}">${c.nome}</option>`).join("");
 }
-
 function render(){
   days.innerHTML="";
   const y=current.getFullYear(), m=current.getMonth();
