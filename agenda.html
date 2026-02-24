@@ -257,18 +257,22 @@ function trocarColaborador(id){
   if(!session) location.href="login.html";
   lojaId = session.user.id;
 
-  const { data: perfil } = await sb
-    .from("usuarios")
-    .select("plano")
-    .eq("id", lojaId)
-    .single();
+const { data: perfil } = await sb
+  .from("usuarios")
+  .select("assinatura_plano")
+  .eq("user_id", lojaId)
+  .single();
 
-  planoUsuario = perfil?.plano || "basico";
+planoUsuario = (perfil?.assinatura_plano || "BASICO").toLowerCase();
 
-  if(planoUsuario === "master"){
-    document.getElementById("seletorColab").style.display = "block";
-    await carregarColaboradores();
-  }else{
+if(planoUsuario === "master"){
+  document.getElementById("seletorColab").style.display = "block";
+  await carregarColaboradores();
+}else{
+  document.getElementById("seletorColab").style.display = "none";
+  colaboradorSelecionado = null;
+}
+  else{
     colaboradorSelecionado = null; // força agenda da loja
   }
 
