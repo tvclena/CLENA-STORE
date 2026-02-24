@@ -196,6 +196,7 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
+  <button id="btnMulti" onclick="abrirMultiAgenda()" style="display:none">Multi Agenda</button>
   <h1 id="monthLabel"></h1>
   <button onclick="changeMonth(1)">▶</button>
 </div>
@@ -256,6 +257,20 @@ const sb = supabase.createClient(
 );
 
 let lojaId, agenda={}, current=new Date(), selected="", chart;
+async function podeExibirMultiAgenda(){
+  const { data, error } = await sb
+    .from("lojas")          // 👈 sua tabela de lojas
+    .select("id")
+    .eq("user_id", lojaId);
+
+  if(error) return false;
+  return (data?.length || 0) > 1;  // 👈 só aparece se tiver + de 1 loja
+}
+
+function abrirMultiAgenda(){
+  alert("Aqui vai abrir a tela da Multi Agenda (te entrego já já pronta).");
+}
+  
 
 (async ()=>{
   const { data:{session} } = await sb.auth.getSession();
