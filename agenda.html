@@ -45,17 +45,56 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   cursor:pointer;
   overflow:hidden;
 }
-.day strong{font-size:12px;font-weight:900;text-align:center;margin-bottom:2px;flex-shrink:0}
-.day .content{width:100%;flex:1;overflow-y:auto;padding:2px 2px 0}
+
+.day strong{
+  font-size:12px;
+  font-weight:900;
+  text-align:center;
+  margin-bottom:2px;
+  flex-shrink:0;
+}
+
+.day .content{
+  width:100%;
+  flex:1;
+  overflow-y:auto;
+  padding:2px 2px 0;
+}
+
 .day .content::-webkit-scrollbar{width:4px}
 .day .content::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:999px}
-.time{font-size:10px;font-weight:800;background:#f3f4f6;border-radius:8px;padding:4px 6px;margin-top:4px;width:100%;text-align:center;white-space:nowrap}
-.time.fechado{font-size:10px;background:#fee2e2;color:#991b1b;font-weight:900;letter-spacing:.4px}
+
+/* Desktop / Tablet */
+.time{
+  font-size:10px;
+  font-weight:800;
+  background:#f3f4f6;
+  border-radius:8px;
+  padding:4px 6px;
+  margin-top:4px;
+  width:100%;
+  text-align:center;
+  white-space:nowrap;
+}
+.time.fechado{
+  background:#fee2e2;
+  color:#991b1b;
+  font-weight:900;
+  letter-spacing:.4px;
+}
 
 /* MODAL */
-#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:1000}
-.sheet{background:#fff;width:100%;height:88vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 24px rgba(0,0,0,.2)}
-.sheet-header{padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:900}
+#modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:1000
+}
+.sheet{
+  background:#fff;width:100%;height:88vh;border-radius:18px 18px 0 0;
+  display:flex;flex-direction:column;box-shadow:0 -10px 24px rgba(0,0,0,.2)
+}
+.sheet-header{
+  padding:14px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;font-weight:900
+}
 .sheet-body{flex:1;padding:14px;overflow:auto;position:relative}
 .sheet-footer{padding:12px;border-top:1px solid var(--border);display:flex;gap:10px}
 .sheet-footer button{flex:1;height:46px;border:none;border-radius:999px;font-weight:900}
@@ -63,7 +102,10 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 .btn-close{background:#e5e7eb}
 
 /* OVERLAY ANO PASSADO */
-#overlayPrev{position:absolute;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:10}
+#overlayPrev{
+  position:absolute;inset:0;background:rgba(255,255,255,.85);
+  backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:10
+}
 .spinner{width:42px;height:42px;border:4px solid #eee;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -96,7 +138,8 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
 
-  <select id="seletorColab" onchange="trocarColaborador(this.value)" style="height:36px;border-radius:10px;border:1px solid #e5e7eb;padding:0 10px;font-weight:700;font-size:12px;max-width:180px">
+  <select id="seletorColab" onchange="trocarColaborador(this.value)"
+    style="height:36px;border-radius:10px;border:1px solid #e5e7eb;padding:0 10px;font-weight:700;font-size:12px;max-width:180px">
     <option value="">Agenda da Loja</option>
   </select>
 
@@ -177,32 +220,15 @@ function trocarColaborador(id){
 function changeMonth(v){ current.setMonth(current.getMonth()+v); carregar(); }
 
 async function carregar(){
-  let q = sb.from("agenda_loja")
-    .select("data, fechado, horarios")
-    .eq("user_id", lojaId);
+  let q = sb.from("agenda_loja").select("data, fechado, horarios, colaborador_id").eq("user_id", lojaId);
+  q = colaboradorSelecionado ? q.eq("colaborador_id", colaboradorSelecionado) : q.is("colaborador_id", null);
 
-  if(colaboradorSelecionado){
-    // 🔹 agenda SOMENTE do colaborador
-    q = q.eq("colaborador_id", colaboradorSelecionado);
-  } else {
-    // 🔹 agenda SOMENTE da loja
-    q = q.is("colaborador_id", null);
-  }
-
-  let { data, error } = await q;
-
-  if(error){
-    console.error("Erro ao carregar agenda:", error);
-    data = [];
-  }
-
-  // ❌ REMOVIDO: fallback da agenda da loja para colaborador
-  // Cada colaborador começa vazio e só aparece o que for cadastrado pra ele
+  const { data } = await q;
 
   agenda = {};
   (data||[]).forEach(r=>{
     let h=[];
-    try{ h = typeof r.horarios==="string" ? JSON.parse(r.horarios) : (r.horarios||[]) }catch{}
+    try{ h = Array.isArray(r.horarios) ? r.horarios : JSON.parse(r.horarios||"[]") }catch{}
     agenda[r.data] = { fechado: r.fechado, horarios: h };
   });
 
@@ -210,13 +236,12 @@ async function carregar(){
 }
 
 async function carregarColaboradores(){
-  const { data, error } = await sb
+  const { data } = await sb
     .from("colaboradores")
     .select("id, nome")
     .eq("loja_id", lojaId)
     .eq("ativo", true)
     .order("nome");
-  if(error){ console.error(error); return; }
 
   const sel = document.getElementById("seletorColab");
   sel.innerHTML = `<option value="">Agenda da Loja</option>` +
@@ -239,13 +264,8 @@ function render(){
     const content=document.createElement("div"); content.className="content";
 
     div.innerHTML=`<strong>${d}</strong>`;
-    if (agenda[key]?.fechado) {
-      content.innerHTML = `<div class="time fechado">FECHADO</div>`;
-    } else {
-      (agenda[key]?.horarios || []).forEach(h => {
-        content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
-      });
-    }
+    if (agenda[key]?.fechado) content.innerHTML = `<div class="time fechado">FECHADO</div>`;
+    else (agenda[key]?.horarios||[]).forEach(h=> content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`);
 
     div.appendChild(content);
     div.onclick=()=>open(key);
@@ -287,11 +307,35 @@ async function open(iso){
   if(chart) chart.destroy();
   chart = new Chart(peakChart, {
     type: "bar",
-    data: { labels, datasets: [{ label:"Agendamentos", data: values, borderRadius:10, borderSkipped:false, backgroundColor:"rgba(255,106,0,.35)", hoverBackgroundColor:"rgba(255,106,0,.65)", maxBarThickness:26 }]},
+    data: {
+      labels,
+      datasets: [{
+        label: "Agendamentos",
+        data: values,
+        borderRadius: 10,
+        borderSkipped: false,
+        backgroundColor: "rgba(255,106,0,.35)",
+        hoverBackgroundColor: "rgba(255,106,0,.65)",
+        maxBarThickness: 26
+      }]
+    },
     options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:"#0f172a", titleColor:"#fff", bodyColor:"#e5e7eb", cornerRadius:10, padding:10 } },
-      scales:{ x:{ grid:{display:false}, ticks:{ color:"#64748b", font:{weight:"700"} } }, y:{ beginAtZero:true, grid:{ color:"#eef2f7" }, ticks:{ color:"#64748b", stepSize:1 } } }
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#0f172a",
+          titleColor: "#fff",
+          bodyColor: "#e5e7eb",
+          cornerRadius: 10,
+          padding: 10
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "#64748b", font: { weight: "700" } } },
+        y: { beginAtZero: true, grid: { color: "#eef2f7" }, ticks: { color: "#64748b", stepSize: 1 } }
+      }
     }
   });
 
@@ -328,13 +372,10 @@ async function salvar(){
       }
     }
 
-    if(colaboradorSelecionado){
-      await sb.from("agenda_loja").delete().eq("user_id",lojaId).eq("data",selected).eq("colaborador_id",colaboradorSelecionado);
-      await sb.from("agenda_loja").insert({ user_id:lojaId, colaborador_id:colaboradorSelecionado, data:selected, fechado:fechado.checked, horarios:h });
-    } else {
-      await sb.from("agenda_loja").delete().eq("user_id",lojaId).eq("data",selected).is("colaborador_id",null);
-      await sb.from("agenda_loja").insert({ user_id:lojaId, colaborador_id:null, data:selected, fechado:fechado.checked, horarios:h });
-    }
+    await sb.from("agenda_loja").upsert(
+      { user_id: lojaId, colaborador_id: colaboradorSelecionado, data: selected, fechado: fechado.checked, horarios: h },
+      { onConflict: "user_id,data,colaborador_id" }
+    );
 
     modal.style.display="none";
     carregar();
