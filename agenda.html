@@ -372,43 +372,32 @@ async function salvar(){
       }
     }
 
-if(colaboradorSelecionado){
-  // 👉 salva agenda do COLABORADOR
-  await sb.from("agenda_loja")
-    .delete()
-    .eq("user_id", lojaId)
-    .eq("data", selected)
-    .eq("colaborador_id", colaboradorSelecionado);
+    const payload = {
+      user_id: lojaId,
+      data: selected,
+      fechado: fechado.checked,
+      horarios: h,
+      colaborador_id: colaboradorSelecionado || null
+    };
 
-  await sb.from("agenda_loja").insert({
-    user_id: lojaId,
-    colaborador_id: colaboradorSelecionado,
-    data: selected,
-    fechado: fechado.checked,
-    horarios: h
-  });
+    const { error } = await sb
+      .from("agenda_loja")
+      .upsert(payload, {
+        onConflict: colaboradorSelecionado
+          ? "user_id,data,colaborador_id"
+          : "user_id,data"
+      });
 
-} else {
-  // 👉 salva agenda da LOJA
-  await sb.from("agenda_loja")
-    .delete()
-    .eq("user_id", lojaId)
-    .eq("data", selected)
-    .is("colaborador_id", null);
+    if(error) throw error;
 
-  await sb.from("agenda_loja").insert({
-    user_id: lojaId,
-    colaborador_id: null,
-    data: selected,
-    fechado: fechado.checked,
-    horarios: h
-  });
-}
+    modal.style.display="none";
+    carregar();
+
   }catch(err){
+    console.error(err);
     alert(err.message || "Existe horário inválido. Corrija antes de salvar.");
   }
 }
-
 function fecharModal(){ modal.style.display="none"; }
 
 function validarLinha(el){
