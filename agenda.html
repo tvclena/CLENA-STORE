@@ -33,8 +33,16 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   gap:8px;
   padding:0 10px;
 }
-.header h1{font-size:14px;font-weight:800;text-align:center}
-.header button{background:#fff7ed;border:none;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer}
+.header h1{
+  font-size:14px;
+  font-weight:800;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+  
+  .header button{background:#fff7ed;border:none;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer}
 #seletorColab{
   height:34px;
   width:150px;              /* largura controlada */
@@ -56,6 +64,11 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   background-repeat:no-repeat;
   background-position:right 8px center;
   background-size:14px;
+}
+
+  .header #seletorColab{
+  justify-self:start;   /* trava no começo da coluna */
+  min-width:110px;
 }
 /* CALENDAR */
 .calendar{padding:12px;height:calc(100vh - 56px);overflow:auto}
@@ -170,6 +183,25 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   #seletorColab{
     width:120px;
     max-width:120px;
+    font-size:11px;
+  }
+}
+
+@media (max-width: 420px){
+  .header{
+    grid-template-columns:34px auto 1fr 34px; /* encolhe os botões */
+    padding:0 8px;
+  }
+
+  .header button{
+    padding:6px 8px;
+    border-radius:10px;
+    font-size:12px;
+  }
+
+  #seletorColab{
+    width:110px;
+    max-width:110px;
     font-size:11px;
   }
 }
