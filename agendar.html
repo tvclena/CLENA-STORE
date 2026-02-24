@@ -591,14 +591,14 @@ async function buscarClientesLoja(termo){
   const somenteNumeros = texto.replace(/\D/g, "");
 
   const { data, error } = await sb
-    .from("clientes_profile")
-    .select("id, nome, whatsapp, email")
-    .filter("loja_ativa", "eq", lojaId)
-    .or(`nome.ilike.%${texto}%,whatsapp.ilike.%${somenteNumeros}%`)
+    .from("clientes_loja")
+    .select("id, nome_completo, whatsapp, email, cliente_id")
+    .eq("loja_id", lojaId)
+    .or(`nome_completo.ilike.%${texto}%,whatsapp_norm.ilike.%${somenteNumeros}%`)
     .limit(10);
 
   if(error){
-    console.error("Erro ao buscar clientes:", error);
+    console.error("❌ Erro ao buscar clientes_loja:", error);
     return [];
   }
 
@@ -1399,7 +1399,7 @@ function ativarBuscaClientes(){
       }
 
 lista.innerHTML = clientes.map(c => {
-  const nome = (c.nome || "").replace(/'/g, "\\'");
+  const nome = (c.nome_completo || "").replace(/'/g, "\\'");
   const whats = (c.whatsapp || "").replace(/'/g, "\\'");
   const email = (c.email || "").replace(/'/g, "\\'");
   return `
@@ -1410,7 +1410,7 @@ lista.innerHTML = clientes.map(c => {
       '${email}'
     )"
     style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
-      <strong>${c.nome}</strong><br>
+      <strong>${c.nome_completo || "Sem nome"}</strong><br>
       <small>${c.whatsapp || ""}</small>
     </div>
   `;
