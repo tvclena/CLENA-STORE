@@ -260,9 +260,9 @@ const sb = supabase.createClient(
 let lojaId, agenda={}, current=new Date(), selected="", chart;
 async function podeExibirMultiAgenda(){
   const { data, error } = await sb
-    .from("usuarios")      // 👈 MUDE AQUI se sua tabela de usuários tiver outro nome
-    .select("plano")
-    .eq("id", lojaId)
+    .from("user_profile")           // ✅ tabela certa
+    .select("assinatura_plano")     // ✅ coluna certa
+    .eq("user_id", lojaId)          // ✅ chave certa
     .single();
 
   if(error){
@@ -270,7 +270,7 @@ async function podeExibirMultiAgenda(){
     return false;
   }
 
-  return (data?.plano || "").toUpperCase() === "MASTER";
+  return (data?.assinatura_plano || "").toUpperCase() === "MASTER";
 }
 
 function abrirMultiAgenda(){
