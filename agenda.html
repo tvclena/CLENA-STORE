@@ -197,12 +197,12 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
 
-  <select id="seletorColab" style="
-    height:36px;border-radius:10px;border:1px solid #e5e7eb;
-    padding:0 10px;font-weight:700;font-size:12px;max-width:180px;
-  ">
-    <option value="">Agenda da Loja</option>
-  </select>
+<select id="seletorColab" onchange="trocarColaborador(this.value)" style="
+  height:36px;border-radius:10px;border:1px solid #e5e7eb;
+  padding:0 10px;font-weight:700;font-size:12px;max-width:180px;
+">
+  <option value="">Agenda da Loja</option>
+</select>
 
   <h1 id="monthLabel"></h1>
   <button onclick="changeMonth(1)">▶</button>
@@ -265,6 +265,12 @@ const sb = supabase.createClient(
 
 let lojaId, agenda={}, current=new Date(), selected="", chart;
 let colaboradorSelecionado = null;
+function trocarColaborador(id){
+  colaboradorSelecionado = id || null;
+  carregar(); // recarrega a agenda com o filtro correto
+}
+
+  
   async function podeExibirMultiAgenda(){
   const { data, error } = await sb
     .from("user_profile")           // ✅ tabela certa
@@ -503,21 +509,38 @@ async function salvar(){
     }
     // ⬆️ FIM DO LOCAL EXATO
 
-// remove agenda antiga do colaborador naquele dia (se existir)
-await sb.from("agenda_loja")
-  .delete()
-  .eq("user_id", lojaId)
-  .eq("data", selected)
-  .eq("colaborador_id", colaboradorSelecionado);
+if(colaboradorSelecionado){
+  // 👉 salva agenda do COLABORADOR
+  await sb.from("agenda_loja")
+    .delete()
+    .eq("user_id", lojaId)
+    .eq("data", selected)
+    .eq("colaborador_id", colaboradorSelecionado);
 
-// cria/atualiza a agenda do colaborador
-await sb.from("agenda_loja").insert({
-  user_id: lojaId,
-  colaborador_id: colaboradorSelecionado,
-  data: selected,
-  fechado: fechado.checked,
-  horarios: h
-});
+  await sb.from("agenda_loja").insert({
+    user_id: lojaId,
+    colaborador_id: colaboradorSelecionado,
+    data: selected,
+    fechado: fechado.checked,
+    horarios: h
+  });
+
+} else {
+  // 👉 salva agenda da LOJA
+  await sb.from("agenda_loja")
+    .delete()
+    .eq("user_id", lojaId)
+    .eq("data", selected)
+    .is("colaborador_id", null);
+
+  await sb.from("agenda_loja").insert({
+    user_id: lojaId,
+    colaborador_id: null,
+    data: selected,
+    fechado: fechado.checked,
+    horarios: h
+  });
+}
 
     modal.style.display="none";
     carregar();
