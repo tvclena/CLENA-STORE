@@ -1492,8 +1492,14 @@ document.addEventListener("DOMContentLoaded", () => {
         card.querySelector(".service-name")?.innerText || ""
       );
 
+      // quando vazio, mostra tudo de volta
+      if(!termo){
+        card.style.display = "flex";
+        return;
+      }
+
       if(nome.includes(termo)){
-        card.style.display = "block";
+        card.style.display = "flex";   // 🔥 mantém o layout horizontal
       }else{
         card.style.display = "none";
       }
