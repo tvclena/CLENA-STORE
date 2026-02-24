@@ -469,13 +469,22 @@ body:not([data-painel="1"]) #clienteModal {
 
 <div class="section hidden" id="secSelecionados">
   <div class="title">Serviços selecionados</div>
-<div id="resumoSelecionados" style="
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
-  gap:10px;
-">
+
+  <!-- 👤 Cliente ativo (mostra para quem está agendando) -->
+  <div id="clienteAtivo" style="
+    font-size:12px;
+    font-weight:700;
+    color:#374151;
+    margin-bottom:6px;
+  "></div>
+
+  <div id="resumoSelecionados" style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    gap:10px;
+  ">
 <div id="contadorServicos" style="font-weight:700;color:#6b7280;font-size:13px"></div>
 <div id="totalServicos" style="font-weight:800;color:var(--primary);font-size:14px"></div>
 </div>
@@ -594,7 +603,7 @@ async function buscarClientesLoja(termo){
     .from("clientes_loja")
     .select("id, nome_completo, whatsapp, email, cliente_id")
     .eq("loja_id", lojaId)
-    .or(`nome_completo.ilike.%${texto}%,whatsapp_norm.ilike.%${somenteNumeros}%`)
+.or(`nome_completo.ilike.%${texto}%,whatsapp.ilike.%${somenteNumeros}%`)
     .limit(10);
 
   if(error){
@@ -655,16 +664,15 @@ container.innerHTML = lista.map(s => `
 
 
   // ✅ SE VEIO SERVIÇO PELA URL, JÁ SELECIONA AUTOMATICAMENTE
-  if(servicoPreSelecionado){
-    const s = data.find(x => x.id === servicoPreSelecionado);
-    if(s){
-selecionarServico(
-  s.id,
-  s.duracao_minutos,
-  s.nome,
-  Number(s.preco)
-);
-    }
+if(servicoPreSelecionado && Array.isArray(data)){
+  const s = data.find(x => x.id === servicoPreSelecionado);
+  if(s){
+    selecionarServico(
+      s.id,
+      s.duracao_minutos,
+      s.nome,
+      Number(s.preco)
+    );
   }
 }
 
@@ -944,7 +952,16 @@ function clienteValido(){
   const c = getCliente();
   return !!(c?.nome && c?.whatsapp);
 }
+function renderClienteAtivo(){
+  const el = document.getElementById("clienteAtivo");
+  if(!el) return;
 
+  if(clienteDB?.nome){
+    el.innerHTML = `👤 Agendando para: <b>${clienteDB.nome}</b>`;
+  }else{
+    el.innerHTML = "";
+  }
+}
 function abrirModal(){
   if(!modoNovoPainel) return;
   if(usuarioLogado && clienteDB?.whatsapp) return;
@@ -1027,11 +1044,10 @@ async function salvarCliente(confirmarDepois = false){
       alert("Erro ao salvar cliente no banco");
       return;
     }
+clienteDB = { nome, whatsapp: whats, email };
+renderClienteAtivo(); // 👈 ADICIONE ESTA LINHA
 
-    clienteDB = { nome, whatsapp: whats, email };
-
-    fecharModal(); // ✅ fecha o pop-up
-
+fecharModal();
     // 👉 segue o fluxo normal
     if(confirmarDepois && dados?.hora){
       setTimeout(() => confirmarAgendamento(), 150);
@@ -1288,8 +1304,7 @@ function removerServico(id){
   renderizarSelecionados();
 }
 function confirmarServicos(){
-
-  if(dados.servicos.length === 0){
+  if(!dados.servicos.length){
     alert("Selecione ao menos um serviço");
     return;
   }
@@ -1420,15 +1435,15 @@ function selecionarClienteLoja(id, nome, whatsapp, email){
   cliWhats.value = whatsapp;
   cliEmail.value = email || "";
 
-  clienteDB = { id, nome, whatsapp, email };
+clienteDB = { id, nome, whatsapp, email };
+renderClienteAtivo(); // 👈 ADICIONE ESTA LINHA
 
-  const lista = document.getElementById("listaClientes");
-  if(lista) lista.style.display = "none";
+const lista = document.getElementById("listaClientes");
+if(lista) lista.style.display = "none";
 
-  document.getElementById("buscaCliente").value = nome;
+document.getElementById("buscaCliente").value = nome;
 
-  fecharModal(); // ✅ fecha o pop-up
-
+fecharModal();
   // 👉 segue o fluxo normal
   if(dados?.hora){
     setTimeout(() => confirmarAgendamento(), 120);
