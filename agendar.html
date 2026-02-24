@@ -913,13 +913,12 @@ document.getElementById("days").addEventListener("scroll", e=>{
 });
 
 function getCliente(){
-
-  // 1️⃣ Cliente logado → SEMPRE do banco
   if(clienteDB?.whatsapp){
     return {
       nome: clienteDB.nome,
       whatsapp: clienteDB.whatsapp,
-      email: clienteDB.email || usuarioLogado.email
+      email: clienteDB.email || usuarioLogado?.email || null,
+      cliente_loja_id: clienteDB.id   // ⬅ vincula com clientes_loja
     };
   }
 
@@ -1090,24 +1089,20 @@ if(alterarId){
     motivo: "ALTERACAO_CLIENTE"
   };
 }else{
-  payload = {
-    loja_id: lojaId,
-
-    servicos: dados.servicos,
-    valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
-    duracao_total: duracaoTotal,
-
-    data: dados.data,
-    hora_inicio: h,
-    hora_fim: fim,
-
-    cliente_nome: cliente.nome,
-    cliente_whatsapp: cliente.whatsapp,
-    cliente_email: cliente.email || null,
-    cliente_id: usuarioLogado?.id || null
-  };
-}
-
+payload = {
+  loja_id: lojaId,
+  cliente_loja_id: cliente.cliente_loja_id || null,  // ⬅ vínculo real
+  servicos: dados.servicos,
+  valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
+  duracao_total: duracaoTotal,
+  data: dados.data,
+  hora_inicio: h,
+  hora_fim: fim,
+  cliente_nome: cliente.nome,
+  cliente_whatsapp: cliente.whatsapp,
+  cliente_email: cliente.email || null,
+  cliente_id: usuarioLogado?.id || null
+};
   let response;
 
   try{
