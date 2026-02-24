@@ -372,10 +372,12 @@ async function salvar(){
       }
     }
 
-    await sb.from("agenda_loja").upsert(
-      { user_id: lojaId, colaborador_id: colaboradorSelecionado, data: selected, fechado: fechado.checked, horarios: h },
-      { onConflict: "user_id,data,colaborador_id" }
-    );
+// remove registro antigo (loja ou colaborador)
+await sb.from("agenda_loja")
+  .delete()
+  .eq("user_id", lojaId)
+  .eq("data", selected)
+  .is("colaborador_id", colaboradorSelecionado ? null : null)
 
     modal.style.display="none";
     carregar();
