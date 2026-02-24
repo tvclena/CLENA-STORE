@@ -1089,7 +1089,7 @@ const fim = toHour(toMin(h) + duracaoTotal);
 
 let payload;
 
-if(alterarId){
+if (alterarId) {
   payload = {
     agendamento_id: alterarId,
     loja_id: lojaId,
@@ -1108,22 +1108,27 @@ if(alterarId){
     cliente_email: cliente.email || null,
     motivo: "ALTERACAO_CLIENTE"
   };
-}else{
-payload = {
-  loja_id: lojaId,
-  cliente_loja_id: cliente.cliente_loja_id || null,  // ⬅ vínculo real
-  servicos: dados.servicos,
-  valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
-  duracao_total: duracaoTotal,
-  data: dados.data,
-  hora_inicio: h,
-  hora_fim: fim,
-  cliente_nome: cliente.nome,
-  cliente_whatsapp: cliente.whatsapp,
-  cliente_email: cliente.email || null,
-  cliente_id: usuarioLogado?.id || null
-};
-  let response;
+} else {
+  payload = {
+    loja_id: lojaId,
+    cliente_loja_id: cliente.cliente_loja_id || null,
+
+    servicos: dados.servicos,
+    valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
+    duracao_total: duracaoTotal,
+
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    cliente_id: usuarioLogado?.id || null
+  };
+}
+
+let response; // ✅ agora está fora do if/else
 
   try{
     response = await fetch(endpoint, {
