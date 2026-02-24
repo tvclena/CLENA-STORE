@@ -398,6 +398,55 @@ body:not([data-painel="1"]) #clienteModal {
 .busca-servico::placeholder{
   color:rgba(255,255,255,.6);
 }
+
+.chip-servico{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:6px 8px;
+  font-weight:700;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  animation: popIn .12s ease;
+  max-width:100%;
+}
+
+.chip-img{
+  width:26px;              /* ⬅ foto pequena */
+  height:26px;
+  border-radius:8px;
+  object-fit:cover;
+  flex-shrink:0;
+  border:1px solid #eee;
+}
+
+.chip-nome{
+  max-width:140px;         /* ⬅ evita estourar */
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.chip-servico .preco{
+  color:var(--primary);
+  font-weight:800;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.chip-servico button{
+  border:none;
+  background:transparent;
+  font-size:13px;
+  cursor:pointer;
+  font-weight:900;
+  line-height:1;
+  opacity:.6;
+}
+.chip-servico button:hover{ opacity:1; }
 </style>
 </head>
 
@@ -737,12 +786,13 @@ function selecionarServico(id, duracao, nome, preco){
       ?.classList.remove("selected");
   }else{
     // ADICIONA
-    dados.servicos.push({
-      id,
-      nome,
-      preco,
-      duracao
-    });
+dados.servicos.push({
+  id,
+  nome,
+  preco,
+  duracao,
+  imagem_url: document.querySelector(`[data-id="${id}"] img`)?.src
+});
     document.querySelector(`[data-id="${id}"]`)
       ?.classList.add("selected");
   }
@@ -1212,13 +1262,14 @@ function renderizarSelecionados(){
   if(totalEl) totalEl.innerText = `Total: R$ ${formatarMoedaBR(total)}`;
 
   // 🎨 chips premium
-  container.innerHTML = dados.servicos.map(s => `
-    <div class="chip-servico">
-      <span>${s.nome}</span>
-      <span class="preco">R$ ${formatarMoedaBR(s.preco)}</span>
-      <button onclick="removerServico('${s.id}')" aria-label="Remover ${s.nome}">✕</button>
-    </div>
-  `).join("");
+container.innerHTML = dados.servicos.map(s => `
+  <div class="chip-servico">
+    <img src="${s.imagem_url || 'https://via.placeholder.com/80'}" class="chip-img">
+    <span class="chip-nome">${s.nome}</span>
+    <span class="preco">R$ ${formatarMoedaBR(s.preco)}</span>
+    <button onclick="removerServico('${s.id}')" aria-label="Remover ${s.nome}">✕</button>
+  </div>
+`).join("");
 
   if(btnVerDatas) btnVerDatas.disabled = false;
 
