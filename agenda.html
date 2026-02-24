@@ -30,14 +30,17 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 /* CALENDAR */
 .calendar{padding:12px;height:calc(100vh - 56px);overflow:auto}
 .weekdays{display:grid;grid-template-columns:repeat(7,1fr);font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px}
-.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-
+.days{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:12px;          /* MAIS ESPAÇO */
+}
 .day{
   background:#fff;
   border:1px solid var(--border);
   border-radius:16px;
-  padding:6px 4px;
-  height:130px;
+  padding:8px 6px;
+  height:160px;               /* AUMENTEI */
   display:flex;
   flex-direction:column;
   align-items:stretch;
@@ -47,10 +50,11 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 }
 
 .day strong{
-  font-size:12px;
+  font-size:13px;           /* MAIOR */
   font-weight:900;
   text-align:center;
-  margin-bottom:2px;
+  margin-bottom:6px;       /* MAIS ESPAÇO */
+  color:#0f172a;
   flex-shrink:0;
 }
 
@@ -66,21 +70,22 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 /* Desktop / Tablet */
 .time{
-  font-size:10px;
+  font-size:11px;           /* MAIOR */
   font-weight:800;
   background:#f3f4f6;
-  border-radius:8px;
-  padding:4px 6px;
-  margin-top:4px;
+  border-radius:10px;
+  padding:6px 8px;         /* MAIS ALTURA */
+  margin-top:6px;         /* MAIS ESPAÇO */
   width:100%;
   text-align:center;
   white-space:nowrap;
 }
 .time.fechado{
-  background:#fee2e2;
-  color:#991b1b;
+  background:linear-gradient(180deg,#fee2e2,#fecaca);
+  color:#7f1d1d;
   font-weight:900;
-  letter-spacing:.4px;
+  letter-spacing:.6px;
+  text-transform:uppercase;
 }
 
 /* MODAL */
@@ -125,9 +130,9 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
   .sheet-body{padding:18px 22px}
 }
 @media (max-width: 420px){
-  .day{height:120px}
-  .time{font-size:7px;padding:2px 4px;margin-top:3px}
-  .time.fechado{font-size:7px}
+  .day{height:140px}                 /* MAIS ALTO */
+  .time{font-size:9px;padding:4px 6px;margin-top:4px}
+  .time.fechado{font-size:9px}
   .chart-wrap{height:140px}
 }
 </style>
