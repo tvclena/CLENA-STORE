@@ -260,12 +260,17 @@ const sb = supabase.createClient(
 let lojaId, agenda={}, current=new Date(), selected="", chart;
 async function podeExibirMultiAgenda(){
   const { data, error } = await sb
-    .from("lojas")          // 👈 sua tabela de lojas
-    .select("id")
-    .eq("user_id", lojaId);
+    .from("usuarios")      // 👈 MUDE AQUI se sua tabela de usuários tiver outro nome
+    .select("plano")
+    .eq("id", lojaId)
+    .single();
 
-  if(error) return false;
-  return (data?.length || 0) > 1;  // 👈 só aparece se tiver + de 1 loja
+  if(error){
+    console.error("Erro ao buscar plano:", error);
+    return false;
+  }
+
+  return (data?.plano || "").toUpperCase() === "MASTER";
 }
 
 function abrirMultiAgenda(){
