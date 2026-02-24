@@ -310,21 +310,30 @@ async function carregar(){
 }
 
 async function carregarColaboradores(){
-  const { data } = await sb
+  const { data, error } = await sb
     .from("colaboradores")
-    .select("id, nome, ativo, status")
+    .select("id, nome, funcao, ativo")
     .eq("loja_id", lojaId)
+    .eq("ativo", true)
+    .neq("funcao", "LOJA") // 🔥 remove Agenda da Loja fake
     .order("nome");
 
-  const ativos = (data || []).filter(c => 
-    c.ativo === true ||
-    c.ativo === 1 ||
-    String(c.status || "").toUpperCase() === "ATIVO"
-  );
+  if(error){
+    console.error(error);
+    alert("Erro ao carregar colaboradores");
+    return;
+  }
 
   const sel = document.getElementById("seletorColab");
-  sel.innerHTML = `<option value="">Agenda da Loja</option>` +
-    ativos.map(c=>`<option value="${c.id}">${c.nome}</option>`).join("");
+
+  sel.innerHTML = `
+    <option value="">Agenda da Loja</option>
+    ${data.map(c => `
+      <option value="${c.id}">
+        ${c.nome}
+      </option>
+    `).join("")}
+  `;
 }
 function render(){
   days.innerHTML="";
