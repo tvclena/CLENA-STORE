@@ -356,10 +356,10 @@ function render(){
 div.innerHTML = `<strong>${d}</strong>`;
 
 if (agenda[key]?.fechado) {
-  content.innerHTML = `<div class="time fechado">FECHADO</div>`;
+  content.innerHTML = `<div class="time fechado" title="Fechado">🔒</div>`;
 } else {
   (agenda[key]?.horarios || []).forEach(h => {
-    if (!h || !h.inicio || !h.fim) return; // ignora horário incompleto
+    if (!h || !h.inicio || !h.fim) return;
     content.innerHTML += `<div class="time">${h.inicio} – ${h.fim}</div>`;
   });
 }
