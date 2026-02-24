@@ -196,8 +196,9 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
-  <button id="btnMulti" onclick="abrirMultiAgenda()" style="display:none">Multi Agenda</button>
-  <h1 id="monthLabel"></h1>
+<button id="btnMulti" onclick="abrirMultiAgenda()" style="display:none" title="Disponível apenas no plano MASTER">
+  Multi Agenda
+</button>  <h1 id="monthLabel"></h1>
   <button onclick="changeMonth(1)">▶</button>
 </div>
 
@@ -275,7 +276,13 @@ function abrirMultiAgenda(){
 (async ()=>{
   const { data:{session} } = await sb.auth.getSession();
   if(!session) location.href="login.html";
+
   lojaId = session.user.id;
+
+  const exibirMulti = await podeExibirMultiAgenda();
+  const btn = document.getElementById("btnMulti");
+  if(btn) btn.style.display = exibirMulti ? "inline-flex" : "none";
+
   carregar();
 })();
 
