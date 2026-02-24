@@ -181,9 +181,9 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
 <div class="header">
   <button onclick="changeMonth(-1)">◀</button>
 
-<select id="seletorColab" onchange="trocarColaborador(this.value)" style="display:none">
-  <option value="">Agenda da Loja</option>
-</select>
+<select id="seletorColab" onchange="trocarColaborador(this.value)">
+    <option value="">Agenda da Loja</option>
+  </select>
 
   <h1 id="monthLabel"></h1>
   <button onclick="changeMonth(1)">▶</button>
@@ -245,7 +245,6 @@ const sb = supabase.createClient(
 
 let lojaId, agenda={}, current=new Date(), selected="", chart;
 let colaboradorSelecionado = null;
-let planoUsuario = "basico"; // basico | master
 
 function trocarColaborador(id){
   colaboradorSelecionado = id || null;
@@ -256,42 +255,15 @@ function trocarColaborador(id){
   const { data:{session} } = await sb.auth.getSession();
   if(!session) location.href="login.html";
   lojaId = session.user.id;
-
-const { data: perfil } = await sb
-  .from("usuarios")
-  .select("assinatura_plano")
-  .eq("user_id", lojaId)
-  .single();
-
-planoUsuario = (perfil?.assinatura_plano || "BASICO").toLowerCase();
-
-if(planoUsuario === "master"){
-  document.getElementById("seletorColab").style.display = "block";
   await carregarColaboradores();
-}else{
-  document.getElementById("seletorColab").style.display = "none";
-  colaboradorSelecionado = null;
-}
-  else{
-    colaboradorSelecionado = null; // força agenda da loja
-  }
-
   carregar();
 })();
 
 function changeMonth(v){ current.setMonth(current.getMonth()+v); carregar(); }
 
 async function carregar(){
-let q = sb.from("agenda_loja").select("data, fechado, horarios, colaborador_id").eq("user_id", lojaId);
-
-if(planoUsuario === "master"){
-  q = colaboradorSelecionado
-    ? q.eq("colaborador_id", colaboradorSelecionado)
-    : q.is("colaborador_id", null);
-}else{
-  colaboradorSelecionado = null;        // 🔒 zera qualquer valor forçado
-  q = q.is("colaborador_id", null);     // 🔒 força agenda da loja
-}
+  let q = sb.from("agenda_loja").select("data, fechado, horarios, colaborador_id").eq("user_id", lojaId);
+  q = colaboradorSelecionado ? q.eq("colaborador_id", colaboradorSelecionado) : q.is("colaborador_id", null);
 
   const { data } = await q;
 
@@ -442,21 +414,21 @@ async function salvar(){
       }
     }
 
-const payload = {
-  user_id: lojaId,
-  data: selected,
-  fechado: fechado.checked,
-  horarios: h,
-  colaborador_id: planoUsuario === "master" ? (colaboradorSelecionado || null) : null
-};
+    const payload = {
+      user_id: lojaId,
+      data: selected,
+      fechado: fechado.checked,
+      horarios: h,
+      colaborador_id: colaboradorSelecionado || null
+    };
 
-const { error } = await sb
-  .from("agenda_loja")
-  .upsert(payload, {
-    onConflict: planoUsuario === "master"
-      ? "user_id,data,colaborador_id"
-      : "user_id,data"
-  });
+    const { error } = await sb
+      .from("agenda_loja")
+      .upsert(payload, {
+        onConflict: colaboradorSelecionado
+          ? "user_id,data,colaborador_id"
+          : "user_id,data"
+      });
 
     if(error) throw error;
 
