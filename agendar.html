@@ -721,17 +721,16 @@ for(const d of (agenda || [])){
         : d.horarios;
     }catch{ continue }
 
-    const { data: ags } = await sb
-      .from("agendamentos")
-      .select("hora_inicio,hora_fim")
-      .eq("user_id", lojaId)
-      .eq("data", d.data);
+const { data: ags } = await sb
+  .from("agendamentos")
+  .select("hora_inicio,hora_fim")
+  .eq("user_id", lojaId)
+  .eq("data", d.data);
 
-    const ocupados = ags.map(a => [
-      toMin(a.hora_inicio),
-      toMin(a.hora_fim)
-    ]);
-
+const ocupados = (ags || []).map(a => [
+  toMin(a.hora_inicio),
+  toMin(a.hora_fim)
+]);
     let livre = false;
 
     blocos.forEach(b=>{
