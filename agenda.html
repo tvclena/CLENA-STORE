@@ -307,10 +307,25 @@ async function carregar(){
   if(colaboradorSelecionado){
     q = q.eq("colaborador_id", colaboradorSelecionado);
   } else {
-    q = q.is("colaborador_id", null); // agenda da loja
+    q = q.is("colaborador_id", null);
   }
 
-  const { data } = await q;
+  let { data, error } = await q;
+
+  if(error){
+    console.error("Erro ao carregar agenda:", error);
+    data = [];
+  }
+
+  // 👉 se não existir agenda do colaborador, usa a da loja como base (somente leitura)
+  if(colaboradorSelecionado && (!data || data.length === 0)){
+    const base = await sb.from("agenda_loja")
+      .select("data, fechado, horarios")
+      .eq("user_id", lojaId)
+      .is("colaborador_id", null);
+
+    data = base.data || [];
+  }
 
   agenda = {};
   (data||[]).forEach(r=>{
@@ -318,6 +333,7 @@ async function carregar(){
     try{ h = typeof r.horarios==="string" ? JSON.parse(r.horarios) : (r.horarios||[]) }catch{}
     agenda[r.data] = { fechado: r.fechado, horarios: h };
   });
+
   render();
 }
 
@@ -487,16 +503,21 @@ async function salvar(){
     }
     // ⬆️ FIM DO LOCAL EXATO
 
-await sb.from("agenda_loja").upsert(
-  {
-    user_id: lojaId,
-    colaborador_id: colaboradorSelecionado, // 👈 vínculo com colaborador
-    data: selected,
-    fechado: fechado.checked,
-    horarios: h
-  },
-  { onConflict: "user_id,colaborador_id,data" }
-);
+// remove agenda antiga do colaborador naquele dia (se existir)
+await sb.from("agenda_loja")
+  .delete()
+  .eq("user_id", lojaId)
+  .eq("data", selected)
+  .eq("colaborador_id", colaboradorSelecionado);
+
+// cria/atualiza a agenda do colaborador
+await sb.from("agenda_loja").insert({
+  user_id: lojaId,
+  colaborador_id: colaboradorSelecionado,
+  data: selected,
+  fechado: fechado.checked,
+  horarios: h
+});
 
     modal.style.display="none";
     carregar();
