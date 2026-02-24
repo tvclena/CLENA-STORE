@@ -663,7 +663,6 @@ container.innerHTML = lista.map(s => `
 `).join("");
 
 
-  // ✅ SE VEIO SERVIÇO PELA URL, JÁ SELECIONA AUTOMATICAMENTE
 if(servicoPreSelecionado && Array.isArray(data)){
   const s = data.find(x => x.id === servicoPreSelecionado);
   if(s){
@@ -676,6 +675,7 @@ if(servicoPreSelecionado && Array.isArray(data)){
   }
 }
 
+} // 👈 FECHA carregarServicos() AQUI
 
 
   
@@ -713,8 +713,7 @@ async function carregarDiasLazy(){
     .lte("data", fim)
     .order("data");
 
-  for(const d of agenda){
-
+for(const d of (agenda || [])){
     let blocos;
     try{
       blocos = typeof d.horarios === "string"
@@ -846,16 +845,16 @@ async function selecionarDia(index){
     : dia.horarios;
 
   /* ===== AGENDAMENTOS JÁ OCUPADOS ===== */
-  const { data: ag } = await sb
-    .from("agendamentos")
-    .select("hora_inicio,hora_fim")
-    .eq("user_id", lojaId)
-    .eq("data", dia.data);
+const { data: ag } = await sb
+  .from("agendamentos")
+  .select("hora_inicio,hora_fim")
+  .eq("user_id", lojaId)
+  .eq("data", dia.data);
 
-  const ocupados = ag.map(a => [
-    toMin(a.hora_inicio),
-    toMin(a.hora_fim)
-  ]);
+const ocupados = (ag || []).map(a => [
+  toMin(a.hora_inicio),
+  toMin(a.hora_fim)
+]);
 
   /* ===== GERA SLOTS LIVRES ===== */
   let slots = [];
@@ -913,12 +912,18 @@ function irParaAgendamentos(){
   // ajuste a rota se necessário
   window.location.href = "agendamentosclientes.html?l=" + lojaId;
 }
-document.getElementById("days").addEventListener("scroll", e=>{
-  const el = e.target;
-  if(el.scrollLeft + el.clientWidth >= el.scrollWidth - 50){
-    carregarDiasLazy();
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  const daysEl = document.getElementById("days");
+  if(!daysEl) return;
+
+  daysEl.addEventListener("scroll", e=>{
+    const el = e.target;
+    if(el.scrollLeft + el.clientWidth >= el.scrollWidth - 50){
+      carregarDiasLazy();
+    }
+  });
 });
+  
 
 function getCliente(){
   if(clienteDB?.whatsapp){
