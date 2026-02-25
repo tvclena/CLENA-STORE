@@ -487,6 +487,7 @@ body:not([data-painel="1"]) #clienteModal {
   ">
 <div id="contadorServicos" style="font-weight:700;color:#6b7280;font-size:13px"></div>
 <div id="totalServicos" style="font-weight:800;color:var(--primary);font-size:14px"></div>
+<div id="tempoTotal" style="font-size:12px;color:#6b7280;margin-top:2px"></div>
 </div>
   <div id="servicosSelecionados"
        style="display:flex;gap:10px;flex-wrap:wrap">
@@ -1285,7 +1286,10 @@ function renderizarSelecionados(){
   const total = dados.servicos.reduce((s, x) => s + x.preco, 0);
   if(contador) contador.innerText = `${dados.servicos.length} serviço(s) selecionado(s)`;
   if(totalEl) totalEl.innerText = `Total: R$ ${formatarMoedaBR(total)}`;
-
+const tempoEl = document.getElementById("tempoTotal");
+if(tempoEl){
+  tempoEl.innerText = `Duração total: ${duracaoTotal} min`;
+}
   // 🎨 chips premium
 container.innerHTML = dados.servicos.map(s => `
   <div class="chip-servico">
