@@ -1511,7 +1511,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("buscaServico");
 
   if(!input) return;
@@ -1526,12 +1525,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // quando vazio, mostra tudo de volta
       if(!termo){
-        card.style.display = "";   // 🔥 volta ao display original do CSS
+        card.style.display = "";   // volta ao display original do CSS
         return;
       }
 
       if(nome.includes(termo)){
-        card.style.display = "";   // 🔥 não força display:flex
+        card.style.display = "";   // não força display:flex
       }else{
         card.style.display = "none";
       }
