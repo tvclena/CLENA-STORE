@@ -529,6 +529,18 @@ const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+
+
+  // 🔧 REFERÊNCIAS DO MODAL (EVITA BUG DE BUSCA/SELEÇÃO)
+let cliNome, cliWhats, cliEmail;
+
+document.addEventListener("DOMContentLoaded", () => {
+  cliNome  = document.getElementById("cliNome");
+  cliWhats = document.getElementById("cliWhats");
+  cliEmail = document.getElementById("cliEmail");
+});
+
+  
 let usuarioLogado = null;
 let clienteDB = null;
 let confirmandoAgendamento = false; // 🔒 trava anti duplo clique
