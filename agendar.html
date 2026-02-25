@@ -655,10 +655,15 @@ container.innerHTML = lista.map(s => `
        )">
        
     <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
-    <div class="service-info">
-      <div class="service-name">${s.nome}</div>
-      <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
-    </div>
+<div class="service-info">
+  <div class="service-name">${s.nome}</div>
+
+  <div style="font-size:12px;color:#6b7280;margin-top:4px">
+    ⏱ ${s.duracao_minutos} min
+  </div>
+
+  <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
+</div>
   </div>
 `).join("");
 
@@ -1285,8 +1290,14 @@ function renderizarSelecionados(){
 container.innerHTML = dados.servicos.map(s => `
   <div class="chip-servico">
     <img src="${s.imagem_url || 'https://via.placeholder.com/80'}" class="chip-img">
-    <span class="chip-nome">${s.nome}</span>
+
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span class="chip-nome">${s.nome}</span>
+      <small style="font-size:11px;color:#6b7280">⏱ ${s.duracao} min</small>
+    </div>
+
     <span class="preco">R$ ${formatarMoedaBR(s.preco)}</span>
+
     <button onclick="removerServico('${s.id}')" aria-label="Remover ${s.nome}">✕</button>
   </div>
 `).join("");
