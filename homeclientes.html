@@ -1874,9 +1874,17 @@ if (produtoAtual.tipo === "PRODUTO") {
   carregarAvaliacoes();
   carregarRelacionados();
   configurarBotaoAcaoModal();
-
 document.body.classList.add("modal-open");
 modalProduto.style.display = "flex";
+
+/* 🔥 força o scroll do popup voltar pro topo */
+const conteudo = modalProduto.querySelector(".modal-content");
+if (conteudo) {
+  conteudo.scrollTo({ top: 0, behavior: "instant" });
+}
+
+/* 🔥 garante que o modal inteiro comece no topo (mobile) */
+modalProduto.scrollTo({ top: 0, behavior: "instant" });
 
 // espera o modal abrir pra iniciar o carrossel
 setTimeout(() => iniciarAutoplay(), 120);
