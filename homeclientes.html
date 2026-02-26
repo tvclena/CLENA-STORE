@@ -91,11 +91,12 @@ body{margin:0;background:var(--bg);padding:16px}
 
 /* ================= BANNER ================= */
 .banner{
-  position: relative; /* 👈 ESSENCIAL */
+  position: relative;
   background:linear-gradient(135deg,var(--primary),var(--primary-2));
-  border-radius:22px;
-  padding:18px;
+  border-radius:20px;
+  padding:14px 16px;     /* 🔥 antes 18px → mais compacto */
   color:#fff;
+  overflow:hidden;
 }
 .banner{
   overflow: hidden;
@@ -109,9 +110,10 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 
 .banner-logo{
-  width:120px;
-  height:120px;
-  min-width:120px;
+  width:96px;          /* 🔥 menor */
+  height:96px;
+  min-width:96px;
+  border-radius:16px;
   border-radius:18px;
   background:#fff;
   overflow:hidden;
@@ -126,9 +128,16 @@ body{margin:0;background:var(--bg);padding:16px}
   object-fit:cover;
 }
 
-.banner h1{font-size:18px;font-weight:800}
-.banner p{font-size:13px;opacity:.9}
-
+.banner h1{
+  font-size:16px;     /* 🔥 menor */
+  font-weight:900;
+  line-height:1.2;
+}
+.banner p{
+  font-size:12px;     /* 🔥 menor */
+  opacity:.9;
+  margin:4px 0;      /* 🔥 menos respiro vertical */
+}
 .banner-chips{
   display:flex;
   gap:8px;
@@ -621,10 +630,10 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 /* ===== BIO PREMIUM ===== */
 .bio-card{
-  margin-top:16px;
+  margin-top:10px;      /* 🔥 menos espaço */
   background:rgba(255,255,255,.18);
-  border-radius:18px;
-  padding:14px 16px;
+  border-radius:16px;
+  padding:10px 12px;   /* 🔥 menos alto */
   backdrop-filter: blur(8px);
   box-shadow:0 8px 24px rgba(0,0,0,.12);
 }
@@ -1291,7 +1300,10 @@ html.theme-ready{
   }
 }
 
-
+.banner .loja-titulo > div > div{
+  gap:6px;            /* 🔥 antes 10px */
+  margin-top:4px;    /* 🔥 menos altura */
+}
 
 
 
