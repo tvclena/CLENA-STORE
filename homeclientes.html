@@ -2249,7 +2249,7 @@ async function carregarMediaLoja(){
     .eq("loja_id", lojaId);
 
   if(error || !data || data.length === 0){
-    bannerStars.innerHTML = "⭐ Sem avaliações";
+    bannerStars.innerHTML = "";
     return;
   }
 
