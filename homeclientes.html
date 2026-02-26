@@ -332,27 +332,30 @@ body{margin:0;background:var(--bg);padding:16px}
   border-radius:22px;
   width:100%;
   max-width:860px;
-  height:90vh;              /* 🔥 altura fixa */
+  height:90vh;
+  min-height:90vh;           /* 🔒 trava a altura */
   display:flex;
   flex-direction:row;
-  overflow:hidden;          /* 🔥 impede vazamento */
+  overflow:hidden;
   box-shadow:0 25px 60px rgba(0,0,0,.25);
 }
-
 /* IMAGEM À ESQUERDA */
 .modal-img{
   width:45%;
   height:100%;
-  background:#f3f4f6;
+  min-height:100%;        /* 🔒 nunca encolhe */
+  background:#000;       /* fundo premium */
   display:flex;
   align-items:center;
   justify-content:center;
+  overflow:hidden;       /* 🔒 evita vazar */
 }
 
 .modal-img img{
   width:100%;
   height:100%;
-  object-fit:cover;         /* desktop mais bonito */
+  object-fit:contain;      /* 🔒 não corta e não distorce */
+  background:#000;
 }
 
 /* CONTEÚDO COM SCROLL */
@@ -377,13 +380,6 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 
 
-
-.modal-content{
-  width:55%;
-  padding:20px;
-  overflow-y:auto;
-  height:100%;
-}
 
 
 
@@ -961,31 +957,22 @@ body.modal-open{
   margin:0;
 }
 
-/* ===================================================== */
-/* ===================== MOBILE ======================== */
-/* ===================================================== */
 @media (max-width: 768px){
-
-  /* modal ocupa tela inteira */
-  .modal-box{
-    flex-direction:column;
-    height:100vh;
-    max-height:100vh;
-  }
-
-  /* IMAGEM EM CIMA */
   .modal-img{
     width:100%;
     height:260px;
+    min-height:260px;   /* 🔒 trava a altura */
     background:#000;
     flex-shrink:0;
+    overflow:hidden;   /* 🔒 evita vazamento */
   }
 
-  .modal-img img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-  }
+.modal-img img{
+  width:100%;
+  height:100%;
+  object-fit:contain;    /* 🔥 não corta e não distorce */
+  background:#000;      /* evita borda branca */
+}
 
   /* CONTEÚDO COM SCROLL */
   .modal-content{
@@ -1779,12 +1766,14 @@ function abrirProduto(id){
 
 galeria = extrairImagens(produtoAtual.imagem_url);
 if(!galeria.length) galeria = [""]; // segurança
-imgIndex = galeria.length > 1 ? 1 : 0;
-
+imgIndex = 0; // 🔒 sempre começa da primeira (evita salto inicial)
 
 // DESKTOP → começa na primeira imagem (carrossel)
-mpImagemDesktop.src = galeria[imgIndex] || "";
-
+const img = new Image();
+img.onload = () => {
+  mpImagemDesktop.src = img.src;
+};
+img.src = galeria[imgIndex] || "";
 // MOBILE → miniatura SEMPRE a primeira
 mpImagemMobile.src = galeria[0] || "";
 
@@ -1914,7 +1903,8 @@ function fecharProduto(){
   if (window.mpObsCarrinho) mpObsCarrinho.value = "";
   notaSelecionada = 5;
 
-  pararAutoplay(); // 🔥 AQUI
+  pararAutoplay();        // desktop
+  pararAutoplayMobile(); // 🔥 mobile também
 
   modalProduto.style.display = "none";
   document.body.classList.remove("modal-open");
@@ -2332,17 +2322,27 @@ function extrairImagens(imagem_url){
 
 function imgNext(){
   if(!galeria.length) return;
+
   imgIndex = (imgIndex + 1) % galeria.length;
-  mpImagemDesktop.src = galeria[imgIndex];
+
+  const img = new Image();
+  img.onload = () => {
+    mpImagemDesktop.src = img.src;   // 🔒 troca só depois de carregar
+  };
+  img.src = galeria[imgIndex];
 }
 
 function imgPrev(){
   if(!galeria.length) return;
+
   imgIndex = (imgIndex - 1 + galeria.length) % galeria.length;
-  mpImagemDesktop.src = galeria[imgIndex];
+
+  const img = new Image();
+  img.onload = () => {
+    mpImagemDesktop.src = img.src;
+  };
+  img.src = galeria[imgIndex];
 }
-
-
   let autoplay = null;
 
 function iniciarAutoplay(){
