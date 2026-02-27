@@ -113,10 +113,11 @@ export default async function handler(req, res) {
 
 
     
-    /* ===== MERCADO PAGO (CORRETO) ===== */
-    const client = new MercadoPagoConfig({
-      accessToken: cred.mp_access_token
-    });
+ const tokenCorrigido = cred.mp_access_token.replace("APP-USR", "APP_USR");
+
+const client = new MercadoPagoConfig({
+  accessToken: tokenCorrigido
+});
 
     const preference = new Preference(client);
 
