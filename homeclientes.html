@@ -2523,11 +2523,11 @@ return `
             : "☆☆☆☆☆"
         }
       </span>
-     <span class="card-vendidos">
+<span class="card-vendidos">
   ${
-    i.tipo === "DIGITAL"
-      ? "Arquivo digital"
-      : `${vendasPorProduto[i.id] || 0} vendidos`
+    i.tipo === "PRODUTO"
+      ? `${vendasPorProduto[i.id] || 0} vendidos`
+      : ""
   }
 </span>
 
