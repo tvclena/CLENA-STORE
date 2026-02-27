@@ -2515,23 +2515,28 @@ return `
       ${i.nome.replace(/#[^#]+#/g, "").trim()}
     </strong>
 
-    <div class="card-info-extra">
-      <span class="card-stars">
-        ${
-          avaliacoesPorItem[i.id]
-            ? "★".repeat(Math.round(avaliacoesPorItem[i.id].soma / avaliacoesPorItem[i.id].total))
-            : "☆☆☆☆☆"
-        }
-      </span>
-<span class="card-vendidos">
+<div class="card-info-extra">
+  <span class="card-stars">
+    ${
+      avaliacoesPorItem[i.id]
+        ? "★".repeat(
+            Math.round(
+              avaliacoesPorItem[i.id].soma /
+              avaliacoesPorItem[i.id].total
+            )
+          )
+        : "☆☆☆☆☆"
+    }
+  </span>
+
   ${
     i.tipo === "PRODUTO"
-      ? `${vendasPorProduto[i.id] || 0} vendidos`
+      ? `<span class="card-vendidos">
+           ${vendasPorProduto[i.id] || 0} vendidos
+         </span>`
       : ""
   }
-</span>
-
-    </div>
+</div>
 
     <div class="meta">
      <span>
