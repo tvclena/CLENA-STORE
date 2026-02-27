@@ -1294,7 +1294,12 @@ html.theme-ready{
   word-break:break-word;
 }
 
-  
+  .endereco-full{
+  margin-top:10px;
+  font-size:13px;
+  line-height:1.4;
+  opacity:.95;
+}
 
 
   
@@ -1346,13 +1351,20 @@ html.theme-ready{
           </div>
         </div>
 
-        <p id="cidadeLoja" class="loja-info"></p>
+<p id="cidadeLoja" class="loja-info"></p>
 
-        <p id="enderecoLoja"
-           class="endereco-click loja-info"
-           onclick="abrirMapaPopup()">
-          📍 <span id="enderecoTexto"></span>
-        </p>
+</div>
+</div>
+</div>
+
+<!-- 🔥 ENDEREÇO FORA DO FLEX -->
+<p id="enderecoLoja"
+   class="endereco-full endereco-click loja-info"
+   onclick="abrirMapaPopup()">
+  📍 <span id="enderecoTexto"></span>
+</p>
+
+<div class="banner-status">
 
       </div>
 
