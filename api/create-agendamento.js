@@ -1,14 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
-import { enviarEmail } from "../lib/email.js";
+import { MercadoPagoConfig, Preference } from "mercadopago";
 
+/* ================= SUPABASE ================= */
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 );
 
+/* ================= HANDLER ================= */
 export default async function handler(req, res) {
 
-  // 🔓 CORS
+  /* ===== CORS ===== */
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -17,6 +19,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -27,117 +30,123 @@ export default async function handler(req, res) {
         ? JSON.parse(req.body)
         : req.body;
 
-    console.log("📩 PAYLOAD RECEBIDO:", body);
+    const { loja_id, cliente, itens } = body;
 
-    /* ================= EXTRAI DADOS ================= */
-    const {
-      loja_id,
-      servicos,
-      valor_total,
-      duracao_total,
-      data,
-      hora_inicio,
-      hora_fim,
-      cliente_nome,
-      cliente_whatsapp,
-      cliente_email,
-      cliente_id
-    } = body;
-
-    /* ================= VALIDAÇÃO ================= */
-    if (
-      !loja_id ||
-      !Array.isArray(servicos) ||
-      servicos.length === 0 ||
-      !data ||
-      !hora_inicio ||
-      !hora_fim ||
-      !cliente_nome ||
-      !cliente_whatsapp
-    ) {
-      return res.status(400).json({
-        error: "Dados obrigatórios ausentes ou inválidos"
-      });
+    if (!loja_id || !cliente?.nome || !cliente?.whatsapp || !itens?.length) {
+      return res.status(400).json({ error: "Payload inválido" });
     }
 
-    /* ================= SALVA AGENDAMENTO ================= */
-    const { error: insertError } = await supabase
-      .from("agendamentos")
-      .insert({
-        user_id: loja_id,
-        loja_id,
-
-        servicos,          // jsonb
-        valor_total,
-        duracao_total,
-
-        data,
-        hora_inicio,
-        hora_fim,
-
-        cliente_nome,
-        cliente_whatsapp,
-        cliente_email: cliente_email || null,
-        cliente_id: cliente_id || null
-      });
-
-    if (insertError) {
-      console.error("❌ ERRO AO INSERIR AGENDAMENTO:", insertError);
-      return res.status(500).json({
-        error: "Erro ao salvar agendamento",
-        detail: insertError.message
-      });
-    }
-
-    console.log("✅ Agendamento salvo com sucesso");
-
-    /* ================= BUSCA EMAIL DA LOJA ================= */
+    /* ===== LOJA ===== */
     const { data: loja } = await supabase
       .from("user_profile")
-      .select("email_contato, negocio")
+      .select("user_id")
       .eq("user_id", loja_id)
       .single();
 
-    /* ================= ENVIA EMAIL ================= */
-    if (loja?.email_contato) {
-      try {
-        const listaServicos = servicos.map(s => s.nome).join(", ");
-
-        await enviarEmail({
-          to: loja.email_contato,
-          subject: "📅 Novo agendamento realizado",
-          html: `
-            <h2>Novo agendamento</h2>
-            <p><strong>Negócio:</strong> ${loja.negocio}</p>
-            <p><strong>Cliente:</strong> ${cliente_nome}</p>
-            <p><strong>WhatsApp:</strong> ${cliente_whatsapp}</p>
-
-            <p><strong>Serviços:</strong> ${listaServicos}</p>
-            <p><strong>Valor total:</strong> R$ ${valor_total}</p>
-            <p><strong>Duração:</strong> ${duracao_total} min</p>
-
-            <p><strong>Data:</strong> ${data}</p>
-            <p><strong>Horário:</strong> ${hora_inicio} - ${hora_fim}</p>
-          `
-        });
-
-        console.log("✅ Email enviado com sucesso");
-
-      } catch (emailError) {
-        console.error("❌ ERRO AO ENVIAR EMAIL:", emailError);
-      }
+    if (!loja) {
+      return res.status(400).json({ error: "Loja inválida" });
     }
 
+    /* ===== CREDENCIAL MP ===== */
+    const { data: cred } = await supabase
+      .from("lojas_pagamento_credenciais")
+      .select("mp_access_token")
+      .eq("user_id", loja.user_id)
+      .eq("ativo", true)
+      .single();
+
+    if (!cred?.mp_access_token) {
+      return res.status(400).json({
+        error: "Pagamento online não configurado"
+      });
+    }
+
+    /* ===== PRODUTOS ===== */
+    const ids = itens.map(i => i.id);
+
+    const { data: produtos } = await supabase
+      .from("produtos_servicos")
+      .select("id,nome,preco")
+      .in("id", ids)
+      .eq("user_id", loja.user_id)
+      .eq("ativo", true)
+      .eq("pg_online", true);
+
+    if (!produtos || produtos.length !== itens.length) {
+      return res.status(400).json({ error: "Itens inválidos" });
+    }
+
+    const mpItems = produtos.map(p => {
+      const c = itens.find(i => i.id === p.id);
+      return {
+        title: p.nome,
+        quantity: Number(c.quantidade),
+        unit_price: Number(p.preco),
+        currency_id: "BRL"
+      };
+    });
+
+    const total = mpItems.reduce(
+      (s, i) => s + i.unit_price * i.quantity,
+      0
+    );
+
+    /* ===== CRIA PEDIDO ===== */
+    const { data: pedido } = await supabase
+      .from("movimentacoes_pagamento")
+      .insert({
+        user_id: loja.user_id,
+        status: "CRIADO",
+        valor: total,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp
+      })
+      .select()
+      .single();
+
+
+
+
+
+    
+
+
+
+    
+    /* ===== MERCADO PAGO (CORRETO) ===== */
+    const client = new MercadoPagoConfig({
+      accessToken: cred.mp_access_token
+    });
+
+    const preference = new Preference(client);
+
+    const response = await preference.create({
+      body: {
+        items: mpItems,
+        external_reference: pedido.id,
+        back_urls: {
+          success: `${process.env.APP_URL}/sucesso.html`,
+          failure: `${process.env.APP_URL}/erro.html`,
+          pending: `${process.env.APP_URL}/pendente.html`
+        },
+        auto_return: "approved",
+        notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
+      }
+    });
+
+    await supabase
+      .from("movimentacoes_pagamento")
+      .update({ mp_preference_id: response.id })
+      .eq("id", pedido.id);
+
     return res.status(200).json({
-      success: true,
-      message: "Agendamento criado com sucesso"
+      init_point: response.init_point
     });
 
   } catch (err) {
-    console.error("🔥 ERRO GERAL NA API:", err);
+    console.error("❌ CREATE PAGAMENTO:", err);
     return res.status(500).json({
-      error: "Erro interno no servidor",
-      detail: err.message
+      error: err?.message || "Erro interno ao criar pagamento"
     });
   }
 }
