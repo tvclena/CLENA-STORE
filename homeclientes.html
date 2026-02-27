@@ -230,8 +230,12 @@ body{margin:0;background:var(--bg);padding:16px}
   font-weight:800;
 }
 
-.card-body{padding:12px}
-
+.card-body{
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
 .card-body strong{
   display:block;
   margin-bottom:6px;
@@ -242,9 +246,10 @@ body{margin:0;background:var(--bg);padding:16px}
 .meta{
   display:flex;
   justify-content:space-between;
+  align-items:flex-end;
   font-size:12px;
   color: color-mix(in srgb, var(--text) 60%, #9ca3af);
-  margin-bottom:10px;
+  margin-top:auto; /* 🔥 ISSO empurra pra baixo */
 }
 .cart-fab{
   position:absolute;
@@ -1772,7 +1777,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function abrirProduto(id){
   produtoAtual = todos.find(p => p.id === id);
   if(!produtoAtual) return;
-
+mpNome.innerText =
+  produtoAtual.nome.replace(/#[^#]+#/g, "").trim();
 
 
 
@@ -2556,23 +2562,20 @@ return `
   }
 
   <span class="price">
-
-
-      <span class="price">
-        ${
-          i.promocao_ativa && i.preco_promocional
-            ? `
-              <span class="old">
-                R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-              </span>
-              R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-            `
-            : `
-              R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-            `
-        }
-      </span>
-    </div>
+    ${
+      i.promocao_ativa && i.preco_promocional
+        ? `
+          <span class="old">
+            R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+          </span>
+          R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+        `
+        : `
+          R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+        `
+    }
+  </span>
+</div>
 
   </div>
 </div>
