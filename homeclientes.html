@@ -2538,16 +2538,19 @@ return `
   }
 </div>
 
-    <div class="meta">
-     <span>
+<div class="meta">
   ${
     i.tipo === "PRODUTO"
-      ? (
-          i.controla_estoque
-            ? `Em estoque: ${i.estoque_atual}`
-            : `Estoque livre`
-        )
-      : `Entrega digital`
+      ? `<span>
+          ${
+            i.controla_estoque
+              ? `Em estoque: ${i.estoque_atual}`
+              : `Estoque livre`
+          }
+        </span>`
+      : i.tipo === "DIGITAL"
+        ? `<span>Entrega digital</span>`
+        : ""
   }
 </span>
 
