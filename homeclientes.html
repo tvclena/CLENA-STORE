@@ -1773,7 +1773,12 @@ function abrirProduto(id){
   produtoAtual = todos.find(p => p.id === id);
   if(!produtoAtual) return;
 
+  // 🔥 AQUI
+  mpNome.innerText = produtoAtual.nome
+    .replace(/#[^#]+#/g, "")
+    .trim();
 
+  galeria = extrairImagens(produtoAtual.imagem_url);
 
 
 
