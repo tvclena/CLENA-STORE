@@ -372,26 +372,54 @@ async function finalizarCompra(){
 
     const data = await res.json();
 
-    if(data?.init_point){
+    /* ================= SUCESSO ================= */
+    if (res.ok && data?.init_point) {
       localStorage.removeItem(KEY);
       location.href = data.init_point;
       return;
     }
 
-const loja = await buscarLoja();
-await registrarPedidoOffline(loja);
-abrirPix(loja);
-;
+    /* ================= ERRO DA API ================= */
+    if (!res.ok) {
+
+      console.error("Erro API:", data);
+
+      if (data?.error?.includes("invalid access token")) {
+        alert("⚠️ Pagamento online não configurado corretamente para esta loja.");
+        return;
+      }
+
+      if (data?.error?.includes("Pagamento online não configurado")) {
+        alert("⚠️ Esta loja não possui pagamento online ativo.");
+        return;
+      }
+
+      alert("Erro ao gerar pagamento online. Usando PIX.");
+
+      const loja = await buscarLoja();
+      await registrarPedidoOffline(loja);
+      abrirPix(loja);
+      return;
+    }
+
+    /* ================= SEM INIT POINT ================= */
+    alert("Erro inesperado. Usando PIX.");
+
+    const loja = await buscarLoja();
+    await registrarPedidoOffline(loja);
+    abrirPix(loja);
 
   }catch(err){
-console.error("Erro pagamento:", err);
-const loja = await buscarLoja();
-await registrarPedidoOffline(loja);
-abrirPix(loja);
 
+    console.error("Erro pagamento:", err);
+
+    alert("Erro de conexão. Usando PIX.");
+
+    const loja = await buscarLoja();
+    await registrarPedidoOffline(loja);
+    abrirPix(loja);
   }
 }
-
 
 
 /* INIT */
