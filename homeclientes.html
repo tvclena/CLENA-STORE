@@ -1533,8 +1533,9 @@ cidadeLoja.innerText = `${loja.cidade} • ${loja.uf}`;
 logo.src = loja.avatar_url;
 
   
-let enderecoCompleto =
+enderecoCompleto =
   `${loja.rua || ""}, ${loja.numero || ""} - ${loja.cidade || ""}/${loja.uf || ""}`;
+
 document.getElementById("enderecoTexto").innerText = enderecoCompleto;
   // 🔥 BOTÃO WHATSAPP AO LADO DO NOME
 const btnWhatsLoja = document.getElementById("btnWhatsLoja");
