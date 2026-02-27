@@ -208,6 +208,31 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
     font-size:11px;
   }
 }
+
+.replicar-wrap{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-weight:700;
+  margin-top:8px;
+  line-height:1.3;
+}
+
+.replicar-wrap input{
+  margin-top:3px;
+  flex-shrink:0;
+}
+
+.replicar-wrap span{
+  flex:1;
+  word-break:normal;
+}
+
+@media (max-width:420px){
+  .replicar-wrap{
+    font-size:14px;
+  }
+}
 </style>
 </head>
 
@@ -250,9 +275,13 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
       <label style="display:flex;gap:8px;align-items:center;font-weight:700">
         <input type="checkbox" id="fechado"> Dia fechado
       </label>
-<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-top:8px">
+<label class="replicar-wrap">
   <input type="checkbox" id="replicarSemana">
-  Replicar para todas as <span id="replicarLabel"></span> deste mês
+  <span>
+    Replicar para todas as 
+    <strong id="replicarLabel"></strong> 
+    deste mês
+  </span>
 </label>
       <div class="insights">
         <div>
