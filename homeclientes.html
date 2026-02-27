@@ -230,12 +230,8 @@ body{margin:0;background:var(--bg);padding:16px}
   font-weight:800;
 }
 
-.card-body{
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  height:100%;
-}
+.card-body{padding:12px}
+
 .card-body strong{
   display:block;
   margin-bottom:6px;
@@ -246,10 +242,9 @@ body{margin:0;background:var(--bg);padding:16px}
 .meta{
   display:flex;
   justify-content:space-between;
-  align-items:flex-end;
   font-size:12px;
   color: color-mix(in srgb, var(--text) 60%, #9ca3af);
-  margin-top:auto; /* 🔥 ISSO empurra pra baixo */
+  margin-bottom:10px;
 }
 .cart-fab{
   position:absolute;
@@ -1533,9 +1528,8 @@ cidadeLoja.innerText = `${loja.cidade} • ${loja.uf}`;
 logo.src = loja.avatar_url;
 
   
-enderecoCompleto =
+let enderecoCompleto =
   `${loja.rua || ""}, ${loja.numero || ""} - ${loja.cidade || ""}/${loja.uf || ""}`;
-
 document.getElementById("enderecoTexto").innerText = enderecoCompleto;
   // 🔥 BOTÃO WHATSAPP AO LADO DO NOME
 const btnWhatsLoja = document.getElementById("btnWhatsLoja");
@@ -1778,8 +1772,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function abrirProduto(id){
   produtoAtual = todos.find(p => p.id === id);
   if(!produtoAtual) return;
-mpNome.innerText =
-  produtoAtual.nome.replace(/#[^#]+#/g, "").trim();
+
 
 
 
@@ -2563,20 +2556,23 @@ return `
   }
 
   <span class="price">
-    ${
-      i.promocao_ativa && i.preco_promocional
-        ? `
-          <span class="old">
-            R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-          </span>
-          R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-        `
-        : `
-          R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-        `
-    }
-  </span>
-</div>
+
+
+      <span class="price">
+        ${
+          i.promocao_ativa && i.preco_promocional
+            ? `
+              <span class="old">
+                R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+              </span>
+              R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+            `
+            : `
+              R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+            `
+        }
+      </span>
+    </div>
 
   </div>
 </div>
