@@ -1320,7 +1320,7 @@ html.theme-ready{
 
   <div class="banner-top">
 
-    <!-- LADO ESQUERDO (LOGO + INFO) -->
+    <!-- LADO ESQUERDO -->
     <div class="banner-left">
 
       <div class="banner-logo">
@@ -1334,14 +1334,12 @@ html.theme-ready{
             <h1 id="nomeLoja" class="loja-nome">Carregando…</h1>
 
             <div style="display:flex; gap:10px; margin-top:6px">
-              
-              <!-- INSTAGRAM -->
+
               <a id="btnInstaLoja" target="_blank" style="display:none">
                 <i class="ri-instagram-line"
                    style="font-size:22px;color:#E1306C"></i>
               </a>
 
-              <!-- WHATSAPP -->
               <a id="btnWhatsLoja" target="_blank" style="display:none">
                 <i class="ri-whatsapp-line"
                    style="font-size:22px;color:#25D366"></i>
@@ -1351,26 +1349,13 @@ html.theme-ready{
           </div>
         </div>
 
-<p id="cidadeLoja" class="loja-info"></p>
-
-</div>
-</div>
-</div>
-
-<!-- 🔥 ENDEREÇO FORA DO FLEX -->
-<p id="enderecoLoja"
-   class="endereco-full endereco-click loja-info"
-   onclick="abrirMapaPopup()">
-  📍 <span id="enderecoTexto"></span>
-</p>
-
-<div class="banner-status">
+        <p id="cidadeLoja" class="loja-info"></p>
 
       </div>
 
     </div>
 
-    <!-- STATUS DA LOJA (AGORA DENTRO DO FLEX) -->
+    <!-- STATUS (DENTRO DO FLEX) -->
     <div class="banner-status">
 
       <div class="banner-stars" id="bannerStars">
@@ -1387,6 +1372,13 @@ html.theme-ready{
     </div>
 
   </div>
+
+  <!-- 🔥 ENDEREÇO FORA DO FLEX -->
+  <p id="enderecoLoja"
+     class="endereco-full endereco-click loja-info"
+     onclick="abrirMapaPopup()">
+    📍 <span id="enderecoTexto"></span>
+  </p>
 
   <!-- BIO -->
   <div class="bio-card" id="bioCard" style="display:none">
