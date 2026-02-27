@@ -94,7 +94,7 @@ body{margin:0;background:var(--bg);padding:16px}
   position: relative;
   background:linear-gradient(135deg,var(--primary),var(--primary-2));
   border-radius:20px;
-  padding:14px 130px 14px 16px; /* 🔥 cria espaço fixo à direita */
+  padding:16px;
   color:#fff;
   overflow:hidden;
 }
@@ -105,8 +105,9 @@ body{margin:0;background:var(--bg);padding:16px}
 
 .banner-top{
   display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
   gap:14px;
-  align-items:center;
 }
 
 .banner-logo{
@@ -702,15 +703,19 @@ body{margin:0;background:var(--bg);padding:16px}
 
 
 /* ===== STATUS LOJA (AVALIAÇÕES + SELO) ===== */
+/* 🔥 novo container da esquerda */
+.banner-left{
+  display:flex;
+  gap:14px;
+  flex:1;
+}
+
+/* 🔥 status agora no fluxo normal */
 .banner-status{
-  position:absolute;
-  top:14px;
-  right:14px;
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   gap:6px;
-  max-width:120px; /* 🔥 impede crescer demais */
 }
 
 /* Estrelas */
@@ -1297,67 +1302,85 @@ html.theme-ready{
 <body>
 
 <div class="banner">
+
   <div class="banner-top">
-    <div class="banner-logo">
-      <img id="logo">
+
+    <!-- LADO ESQUERDO (LOGO + INFO) -->
+    <div class="banner-left">
+
+      <div class="banner-logo">
+        <img id="logo">
+      </div>
+
+      <div>
+
+        <div class="loja-titulo" style="align-items:flex-start; gap:8px">
+          <div>
+            <h1 id="nomeLoja" class="loja-nome">Carregando…</h1>
+
+            <div style="display:flex; gap:10px; margin-top:6px">
+              
+              <!-- INSTAGRAM -->
+              <a id="btnInstaLoja" target="_blank" style="display:none">
+                <i class="ri-instagram-line"
+                   style="font-size:22px;color:#E1306C"></i>
+              </a>
+
+              <!-- WHATSAPP -->
+              <a id="btnWhatsLoja" target="_blank" style="display:none">
+                <i class="ri-whatsapp-line"
+                   style="font-size:22px;color:#25D366"></i>
+              </a>
+
+            </div>
+          </div>
+        </div>
+
+        <p id="cidadeLoja" class="loja-info"></p>
+
+        <p id="enderecoLoja"
+           class="endereco-click loja-info"
+           onclick="abrirMapaPopup()">
+          📍 <span id="enderecoTexto"></span>
+        </p>
+
+      </div>
+
     </div>
-    <div>
-      
-<div class="loja-titulo" style="align-items:flex-start; gap:8px">
-  <div>
-    <h1 id="nomeLoja" class="loja-nome">Carregando…</h1>
 
-    <div style="display:flex; gap:10px; margin-top:6px">
-      <!-- BOTÃO INSTAGRAM (EM CIMA) -->
-      <a id="btnInstaLoja" target="_blank" style="display:none">
-        <i class="ri-instagram-line" style="font-size:22px;color:#E1306C"></i>
-      </a>
+    <!-- STATUS DA LOJA (AGORA DENTRO DO FLEX) -->
+    <div class="banner-status">
 
-      <!-- BOTÃO WHATSAPP (EMBAIXO) -->
-      <a id="btnWhatsLoja" target="_blank" style="display:none">
-        <i class="ri-whatsapp-line" style="font-size:22px;color:#25D366"></i>
-      </a>
-    </div>
-  </div>
-</div>
+      <div class="banner-stars" id="bannerStars">
+        ⏳ Carregando avaliações…
+      </div>
 
-<p id="cidadeLoja" class="loja-info"></p>
-
-<p id="enderecoLoja"
-   class="endereco-click loja-info"
-   onclick="abrirMapaPopup()">
-  📍 <span id="enderecoTexto"></span>
-</p>
-
-
+      <div class="banner-verificada"
+           id="bannerVerificada"
+           style="display:none">
+        <i class="ri-shield-check-fill"></i>
+        Verificada
+      </div>
 
     </div>
+
   </div>
 
-<div class="bio-card" id="bioCard" style="display:none">
-  <div class="bio-header">
-    <i class="ri-information-line"></i>
-    <span>Sobre a loja</span>
+  <!-- BIO -->
+  <div class="bio-card" id="bioCard" style="display:none">
+    <div class="bio-header">
+      <i class="ri-information-line"></i>
+      <span>Sobre a loja</span>
+    </div>
+
+    <div class="bio-text" id="bioLoja"></div>
+
+    <button id="btnBio"
+            class="bio-toggle"
+            style="display:none">
+      Ver mais
+    </button>
   </div>
-
-  <div class="bio-text" id="bioLoja"></div>
-
-  <button id="btnBio" class="bio-toggle" style="display:none">
-    Ver mais
-  </button>
-</div>
-<!-- STATUS DA LOJA (AVALIAÇÕES + SELO) -->
-<div class="banner-status">
-  <div class="banner-stars" id="bannerStars">
-  ⏳ Carregando avaliações…
-  </div>
-
-  <div class="banner-verificada" id="bannerVerificada" style="display:none">
-    <i class="ri-shield-check-fill"></i>
-    Verificada
-  </div>
-</div>
-
 
 </div>
 
