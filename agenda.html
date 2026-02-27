@@ -250,7 +250,10 @@ html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
       <label style="display:flex;gap:8px;align-items:center;font-weight:700">
         <input type="checkbox" id="fechado"> Dia fechado
       </label>
-
+<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin-top:8px">
+  <input type="checkbox" id="replicarSemana">
+  Replicar para todas as <span id="replicarLabel"></span> deste mês
+</label>
       <div class="insights">
         <div>
           <strong>Ano passado (mesmo dia):</strong>
@@ -378,7 +381,10 @@ async function open(iso){
 
   const d=new Date(iso+"T12:00");
   modalDate.innerText = d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
-
+// Atualiza texto da replicação
+const diaSemana = d.toLocaleDateString("pt-BR",{ weekday:"long" });
+document.getElementById("replicarLabel").innerText = diaSemana;
+document.getElementById("replicarSemana").checked = false;
   fechado.checked = agenda[iso]?.fechado || false;
   horarios.innerHTML="";
   (agenda[iso]?.horarios||[]).forEach(h=>addHorario(h.inicio,h.fim));
@@ -457,45 +463,77 @@ async function salvar(){
     if(!fechado.checked){
       document.querySelectorAll(".horario").forEach((x,idx)=>{
         const i=x.children[0].value, f=x.children[1].value;
-if(!i || !f){
-  x.style.outline = "2px solid #dc2626";
-  throw new Error(`Preencha início e fim no item ${idx+1}`);
-}        if(i>=f){ x.style.outline="2px solid #dc2626"; throw new Error(`Horário inválido no item ${idx+1}`); }
+
+        if(!i || !f){
+          x.style.outline = "2px solid #dc2626";
+          throw new Error(`Preencha início e fim no item ${idx+1}`);
+        }
+
+        if(i>=f){
+          x.style.outline="2px solid #dc2626";
+          throw new Error(`Horário inválido no item ${idx+1}`);
+        }
+
         h.push({inicio:i,fim:f});
       });
     }
 
     h.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+
     for(let i=1;i<h.length;i++){
       if(h[i].inicio < h[i-1].fim){
-        throw new Error(`Horários sobrepostos: ${h[i-1].inicio}–${h[i-1].fim} conflita com ${h[i].inicio}–${h[i].fim}`);
+        throw new Error("Horários sobrepostos");
       }
     }
 
-    const payload = {
-      user_id: lojaId,
-      data: selected,
-      fechado: fechado.checked,
-      horarios: h,
-      colaborador_id: colaboradorSelecionado || null
-    };
+    const replicar = document.getElementById("replicarSemana").checked;
+    const datasParaSalvar = [];
 
-    const { error } = await sb
-      .from("agenda_loja")
-      .upsert(payload, {
-        onConflict: colaboradorSelecionado
-          ? "user_id,data,colaborador_id"
-          : "user_id,data"
-      });
+    if(replicar){
+      const dataBase = new Date(selected+"T12:00");
+      const diaSemana = dataBase.getDay();
+      const ano = dataBase.getFullYear();
+      const mes = dataBase.getMonth();
+      const ultimoDia = new Date(ano, mes+1, 0).getDate();
 
-    if(error) throw error;
+      for(let d=1; d<=ultimoDia; d++){
+        const dataTeste = new Date(ano, mes, d);
+        if(dataTeste.getDay() === diaSemana){
+          const iso = `${ano}-${String(mes+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+          datasParaSalvar.push(iso);
+        }
+      }
+    }else{
+      datasParaSalvar.push(selected);
+    }
+
+    for(const dataIso of datasParaSalvar){
+
+      const payload = {
+        user_id: lojaId,
+        data: dataIso,
+        fechado: fechado.checked,
+        horarios: h,
+        colaborador_id: colaboradorSelecionado || null
+      };
+
+      const { error } = await sb
+        .from("agenda_loja")
+        .upsert(payload,{
+          onConflict: colaboradorSelecionado
+            ? "user_id,data,colaborador_id"
+            : "user_id,data"
+        });
+
+      if(error) throw error;
+    }
 
     modal.style.display="none";
     carregar();
 
   }catch(err){
     console.error(err);
-    alert(err.message || "Existe horário inválido. Corrija antes de salvar.");
+    alert(err.message || "Existe horário inválido.");
   }
 }
 function fecharModal(){ modal.style.display="none"; }
