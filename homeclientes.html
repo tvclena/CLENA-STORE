@@ -88,7 +88,11 @@
 
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:var(--bg);padding:16px}
-
+/* ===== CONTAINER DESKTOP ===== */
+.page{
+  max-width:1200px;
+  margin:0 auto;
+}
 /* ================= BANNER ================= */
 .banner{
   position: relative;
@@ -1315,6 +1319,8 @@ html.theme-ready{
 </head>
 
 <body>
+
+<div class="page">
 
 <div class="banner">
 
@@ -2833,5 +2839,6 @@ Pode me explicar como funciona a entrega?`
 </div>
 <button id="btnTopo" onclick="voltarTopo()">⬆</button>
 
+</div> <!-- page -->
 </body>
 </html>
