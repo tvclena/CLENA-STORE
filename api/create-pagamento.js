@@ -7,6 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 );
 
+/* ================= HANDLER ================= */
 export default async function handler(req, res) {
 
   /* ===== CORS ===== */
@@ -23,7 +24,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    /* ===== BODY ===== */
+
+    /* ================= BODY ================= */
     const body =
       typeof req.body === "string"
         ? JSON.parse(req.body)
@@ -41,9 +43,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Payload inválido" });
     }
 
-    /* =====================================================
-       LOJA
-    ===================================================== */
+    /* ================= LOJA ================= */
     const { data: loja } = await supabase
       .from("user_profile")
       .select("user_id")
@@ -54,9 +54,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Loja inválida" });
     }
 
-    /* =====================================================
-       CREDENCIAL MERCADO PAGO
-    ===================================================== */
+    /* ================= CREDENCIAL MP ================= */
     const { data: cred } = await supabase
       .from("lojas_pagamento_credenciais")
       .select("mp_access_token")
@@ -70,9 +68,7 @@ export default async function handler(req, res) {
       });
     }
 
-    /* =====================================================
-       PRODUTOS (VALIDAÇÃO + SNAPSHOT)
-    ===================================================== */
+    /* ================= PRODUTOS ================= */
     const ids = itens.map(i => i.id);
 
     const { data: produtos } = await supabase
@@ -87,9 +83,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Itens inválidos" });
     }
 
-    /* =====================================================
-       ITENS MP + TOTAL
-    ===================================================== */
+    /* ================= MONTA ITENS MP ================= */
     const mpItems = produtos.map(p => {
       const c = itens.find(i => i.id === p.id);
       return {
@@ -105,9 +99,7 @@ export default async function handler(req, res) {
       0
     );
 
-    /* =====================================================
-       CRIA PEDIDO
-    ===================================================== */
+    /* ================= CRIA PEDIDO ================= */
     const { data: pedido } = await supabase
       .from("pedidos")
       .insert({
@@ -121,9 +113,7 @@ export default async function handler(req, res) {
       .select()
       .single();
 
-    /* =====================================================
-       ITENS DO PEDIDO (SNAPSHOT)
-    ===================================================== */
+    /* ================= SNAPSHOT ITENS ================= */
     const itensPedido = produtos.map(p => {
       const c = itens.find(i => i.id === p.id);
       return {
@@ -140,9 +130,7 @@ export default async function handler(req, res) {
       .from("pedidos_itens")
       .insert(itensPedido);
 
-    /* =====================================================
-       MOVIMENTO DE PAGAMENTO
-    ===================================================== */
+    /* ================= MOVIMENTO PAGAMENTO ================= */
     const { data: movimento } = await supabase
       .from("movimentacoes_pagamento")
       .insert({
@@ -156,9 +144,7 @@ export default async function handler(req, res) {
       .select()
       .single();
 
-    /* =====================================================
-       MERCADO PAGO
-    ===================================================== */
+    /* ================= MERCADO PAGO ================= */
     const client = new MercadoPagoConfig({
       accessToken: cred.mp_access_token
     });
@@ -168,6 +154,7 @@ export default async function handler(req, res) {
     let response;
 
     try {
+
       response = await preference.create({
         body: {
           items: mpItems,
@@ -181,6 +168,7 @@ export default async function handler(req, res) {
           notification_url: `${process.env.APP_URL}/api/webhook-mercadopago`
         }
       });
+
     } catch (mpErr) {
 
       await supabase
@@ -196,9 +184,7 @@ export default async function handler(req, res) {
       throw mpErr;
     }
 
-    /* =====================================================
-       SALVA PREFERENCE ID
-    ===================================================== */
+    /* ================= SALVA PREFERENCE ================= */
     await supabase
       .from("movimentacoes_pagamento")
       .update({
@@ -206,13 +192,11 @@ export default async function handler(req, res) {
       })
       .eq("id", movimento.id);
 
-    /* =====================================================
-       RESPONSE
-    ===================================================== */
+    /* ================= RESPONSE (COMO PRIMEIRO) ================= */
     return res.status(200).json({
+      init_point: response.init_point,
       pedido_id: pedido.id,
-      pagamento_id: movimento.id,
-      init_point: response.init_point
+      pagamento_id: movimento.id
     });
 
   } catch (err) {
