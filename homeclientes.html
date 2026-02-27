@@ -2540,19 +2540,22 @@ return `
 
 <div class="meta">
   ${
-    i.tipo === "PRODUTO"
-      ? `<span>
-          ${
-            i.controla_estoque
-              ? `Em estoque: ${i.estoque_atual}`
-              : `Estoque livre`
-          }
-        </span>`
-      : i.tipo === "DIGITAL"
-        ? `<span>Entrega digital</span>`
-        : ""
+    i.tipo === "SERVICO" && i.duracao_minutos
+      ? `<span>⏱ ${formatarDuracao(i.duracao_minutos)}</span>`
+      : i.tipo === "PRODUTO"
+        ? `<span>
+            ${
+              i.controla_estoque
+                ? `Em estoque: ${i.estoque_atual}`
+                : `Estoque livre`
+            }
+          </span>`
+        : i.tipo === "DIGITAL"
+          ? `<span>Entrega digital</span>`
+          : ""
   }
-</span>
+
+  <span class="price">
 
 
       <span class="price">
@@ -2677,7 +2680,20 @@ Pode me explicar como funciona a entrega?`
 
   
 
-  
+  function formatarDuracao(min){
+  if(!min) return "";
+
+  const horas = Math.floor(min / 60);
+  const minutos = min % 60;
+
+  if(horas && minutos){
+    return `${horas}h ${minutos}min`;
+  }
+  if(horas){
+    return `${horas}h`;
+  }
+  return `${minutos}min`;
+}
 
 
 
