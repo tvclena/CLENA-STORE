@@ -1106,12 +1106,21 @@ body.modal-open{
   background:#000;
 }
 
-#imgPopup img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
+#imgPopup{
+  align-items:center;
+  justify-content:center;
 }
 
+#imgPopup img{
+  max-width:95vw;
+  max-height:95vh;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  border-radius:12px;
+  background:rgba(0,0,0,.9);
+  backdrop-filter:blur(4px);
+}
 
 
 #cidadeLoja{
