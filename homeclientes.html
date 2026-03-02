@@ -188,7 +188,11 @@ body{margin:0;background:var(--bg);padding:16px}
 }
 
 /* ================= GRID ================= */
-
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:14px;
+}
 
 /* TABLET */
 @media (min-width: 768px){
@@ -1299,11 +1303,7 @@ html.theme-ready{
 }
 
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2, minmax(0, 1fr));
-  gap:14px;
-}
+
 
 .card{
   width:100%;
