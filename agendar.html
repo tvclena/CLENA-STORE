@@ -203,44 +203,77 @@ html,body{margin:0;background:var(--bg)}
   min-width:70px;
 }
 
-.btn-ver-datas{
+/* ================= BOTÃO SECUNDÁRIO ================= */
+.btn-secundario{
   margin-top:18px;
   width:100%;
-  padding:16px 18px;
-  border-radius:18px;
+  padding:14px 18px;
+  border-radius:16px;
+  border:2px solid var(--primary);
+  background:#fff;
+  color:var(--primary);
+
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:.2px;
+
+  cursor:pointer;
+  transition:all .18s ease;
+}
+
+.btn-secundario:hover{
+  background:var(--primary);
+  color:#fff;
+  transform:translateY(-2px);
+}
+
+.btn-secundario:active{
+  transform:scale(.98);
+}
+
+.btn-secundario:disabled{
+  border:2px solid #e5e7eb;
+  color:#9ca3af;
+  background:#f3f4f6;
+  cursor:not-allowed;
+}
+
+
+/* ================= BOTÃO PRINCIPAL ================= */
+.btn-principal{
+  margin-top:24px;
+  width:100%;
+  padding:18px;
+  border-radius:22px;
   border:none;
 
   background: linear-gradient(135deg,var(--primary),var(--primary-2));
   color:#fff;
 
   font-weight:900;
-  font-size:15px;
-  letter-spacing:.3px;
+  font-size:16px;
+  letter-spacing:.4px;
 
+  box-shadow:0 20px 60px rgba(255,106,0,.45);
   cursor:pointer;
 
-  box-shadow:0 14px 34px rgba(255,106,0,.35);
-  transition: all .18s ease;
+  transition:all .2s ease;
 }
 
-/* hover (desktop) */
-.btn-ver-datas:hover{
-  transform: translateY(-2px);
-  box-shadow:0 18px 44px rgba(255,106,0,.45);
+.btn-principal:hover{
+  transform:translateY(-3px);
+  box-shadow:0 24px 70px rgba(255,106,0,.55);
 }
 
-/* clique */
-.btn-ver-datas:active{
-  transform: scale(.98);
+.btn-principal:active{
+  transform:scale(.96);
 }
 
-/* desabilitado */
-.btn-ver-datas:disabled{
+.btn-principal:disabled{
   background:#e5e7eb;
   color:#9ca3af;
   box-shadow:none;
   cursor:not-allowed;
-  transform:none;
 }
 @keyframes fadeUp{
   from{
@@ -519,7 +552,7 @@ body:not([data-painel="1"]) #clienteModal {
        style="display:flex;gap:10px;flex-wrap:wrap">
   </div>
 
-<button class="btn-ver-datas" onclick="confirmarServicos()">
+<button class="btn-secundario" onclick="confirmarServicos()">
   📅 Ver datas disponíveis
 </button>
 
@@ -540,9 +573,9 @@ body:not([data-painel="1"]) #clienteModal {
 <div class="section hidden" id="secConfirmar">
 <button
   id="btnConfirmar"
-  class="btn-ver-datas"
+  class="btn-principal"
   onclick="confirmarAgendamento()">
-  ✅ Confirmar agendamento
+  🚀 Confirmar agendamento
 </button>
 </div>
 
