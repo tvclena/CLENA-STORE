@@ -209,9 +209,10 @@ html,body{margin:0;background:var(--bg)}
   width:100%;
   padding:14px 18px;
   border-radius:16px;
-  border:2px solid var(--primary);
-  background:#fff;
-  color:var(--primary);
+  border:none;
+
+  background:#000;
+  color:#fff;
 
   font-weight:800;
   font-size:14px;
@@ -222,8 +223,7 @@ html,body{margin:0;background:var(--bg)}
 }
 
 .btn-secundario:hover{
-  background:var(--primary);
-  color:#fff;
+  background:#111;
   transform:translateY(-2px);
 }
 
@@ -232,9 +232,8 @@ html,body{margin:0;background:var(--bg)}
 }
 
 .btn-secundario:disabled{
-  border:2px solid #e5e7eb;
+  background:#e5e7eb;
   color:#9ca3af;
-  background:#f3f4f6;
   cursor:not-allowed;
 }
 
@@ -247,22 +246,22 @@ html,body{margin:0;background:var(--bg)}
   border-radius:22px;
   border:none;
 
-  background: linear-gradient(135deg,var(--primary),var(--primary-2));
+  background:#000;
   color:#fff;
 
   font-weight:900;
   font-size:16px;
   letter-spacing:.4px;
 
-  box-shadow:0 20px 60px rgba(255,106,0,.45);
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
   cursor:pointer;
 
   transition:all .2s ease;
 }
 
 .btn-principal:hover{
+  background:#111;
   transform:translateY(-3px);
-  box-shadow:0 24px 70px rgba(255,106,0,.55);
 }
 
 .btn-principal:active{
