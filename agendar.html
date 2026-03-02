@@ -713,6 +713,8 @@ const { data } = await sb
     id,
     nome,
     preco,
+    preco_promocional,
+    promocao_ativa,
     imagem_url,
     duracao_minutos,
     ordem_exibicao,
@@ -735,12 +737,18 @@ const lista = data || [];
 container.innerHTML = lista.map(s => `
   <div class="service"
        data-id="${s.id}"
-       onclick="selecionarServico(
-         '${s.id}',
-         ${s.duracao_minutos},
-         '${s.nome}',
-         ${Number(s.preco)}
-       )">
+onclick="selecionarServico(
+  '${s.id}',
+  ${s.duracao_minutos},
+  '${s.nome}',
+  ${
+    s.promocao_ativa &&
+    s.preco_promocional != null &&
+    Number(s.preco_promocional) < Number(s.preco)
+      ? Number(s.preco_promocional)
+      : Number(s.preco)
+  }
+)">
        
     <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
 <div class="service-info">
@@ -750,8 +758,26 @@ container.innerHTML = lista.map(s => `
     ⏱ ${s.duracao_minutos} min
   </div>
 
-  <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
-</div>
+<div class="service-price">
+  ${
+    s.promocao_ativa && 
+    s.preco_promocional != null &&
+    Number(s.preco_promocional) < Number(s.preco)
+      ? `
+        <span style="text-decoration:line-through;color:#9ca3af;font-weight:600">
+          R$ ${formatarMoedaBR(s.preco)}
+        </span>
+        <span style="margin-left:6px;color:var(--primary);font-weight:800">
+          R$ ${formatarMoedaBR(s.preco_promocional)}
+        </span>
+      `
+      : `
+        <span style="color:var(--primary);font-weight:800">
+          R$ ${formatarMoedaBR(s.preco)}
+        </span>
+      `
+  }
+</div></div>
   </div>
 `).join("");
 
@@ -759,11 +785,19 @@ container.innerHTML = lista.map(s => `
 if(servicoPreSelecionado && Array.isArray(data)){
   const s = data.find(x => x.id === servicoPreSelecionado);
   if(s){
+
+    const precoFinal =
+      s.promocao_ativa === true &&
+      s.preco_promocional != null &&
+      Number(s.preco_promocional) < Number(s.preco)
+        ? Number(s.preco_promocional)
+        : Number(s.preco);
+
     selecionarServico(
       s.id,
       s.duracao_minutos,
       s.nome,
-      Number(s.preco)
+      precoFinal
     );
   }
 }
