@@ -1914,40 +1914,36 @@ setTimeout(() => iniciarAutoplay(), 120);
 function configurarBotaoAcaoModal(){
   const btn = document.getElementById("btnAcaoModal");
 
-  const obsBox = document.getElementById("obsCarrinhoBox");
-  if (obsBox) {
-    obsBox.style.display =
-      produtoAtual.tipo === "PRODUTO" ? "block" : "none";
-  }
-
   if(produtoAtual.tipo === "PRODUTO"){
-    btn.innerText = "🛒 Adicionar ao carrinho";
+    btn.innerText = "🛒 Comprar agora";
     btn.onclick = adicionarAoCarrinho;
     btn.style.display = "block";
     return;
   }
 
-  if(produtoAtual.preco > 0){
+  if(produtoAtual.tipo === "DIGITAL"){
+    btn.innerText = "🛒 Comprar arquivo";
+    btn.onclick = adicionarAoCarrinho;
+    btn.style.display = "block";
+    return;
+  }
+
+  // 🔥 SERVIÇO continua como agendamento
+  if(produtoAtual.tipo === "SERVICO" && produtoAtual.preco > 0){
     btn.innerText = "📅 Agendar";
     btn.onclick = () => {
-      localStorage.setItem("SERVICO_SELECIONADO", produtoAtual.id);
       location.href = `agendar.html?l=${lojaId}&servico=${produtoAtual.id}`;
     };
     btn.style.display = "block";
     return;
   }
-if(produtoAtual.tipo === "DIGITAL"){
-  btn.innerText = "📥 Solicitar arquivo";
-  btn.onclick = solicitarArquivoWhats;
-  btn.style.display = "block";
-  return;
-}
 
   btn.innerText = "Orçamento";
   btn.onclick = solicitarOrcamentoWhats;
   btn.style.display = "block";
 }
 
+  
 
 function fecharProduto(){
   if (window.mpComentario) mpComentario.value = "";
@@ -2196,12 +2192,19 @@ function salvarCarrinho(carrinho){
 
 
 function adicionarAoCarrinho(){
-  if(produtoAtual.tipo !== "PRODUTO"){
+
+  // ❌ bloqueia serviço
+  if(produtoAtual.tipo === "SERVICO"){
     return;
   }
 
   const carrinho = getCarrinho();
-  const comentario = mpObsCarrinho.value || "";
+  const comentario = mpObsCarrinho?.value || "";
+
+  const precoFinal =
+    produtoAtual.promocao_ativa && produtoAtual.preco_promocional
+      ? Number(produtoAtual.preco_promocional)
+      : Number(produtoAtual.preco || 0);
 
   const existente = carrinho.find(
     i => i.produto_id === produtoAtual.id
@@ -2209,43 +2212,27 @@ function adicionarAoCarrinho(){
 
   if(existente){
     existente.quantidade += 1;
-    existente.comentario = comentario;
   }else{
-const precoFinal =
-  produtoAtual.promocao_ativa && produtoAtual.preco_promocional
-    ? Number(produtoAtual.preco_promocional)
-    : Number(produtoAtual.preco);
+    carrinho.push({
+      produto_id: produtoAtual.id,
+      nome: produtoAtual.nome,
+      tipo: produtoAtual.tipo, // importante para depois separar
 
-carrinho.push({
-  produto_id: produtoAtual.id,
-  nome: produtoAtual.nome,
+      preco: precoFinal,
+      preco_original: produtoAtual.preco,
+      promocao_ativa: produtoAtual.promocao_ativa,
 
-  preco: precoFinal,                  // 👈 preço que será usado no carrinho
-  preco_original: produtoAtual.preco, // 👈 opcional (pra mostrar riscado)
-  promocao_ativa: produtoAtual.promocao_ativa,
-
-  imagem: produtoAtual.imagem_url,
-  quantidade: 1,
-  comentario
-});
-
+      imagem: produtoAtual.imagem_url,
+      quantidade: 1,
+      comentario
+    });
   }
 
   salvarCarrinho(carrinho);
 
-// 🔥 animação visual
-const origem = document.querySelector(".modal-img img");
-if (origem) {
-const imagens = extrairImagens(produtoAtual.imagem_url);
-animarParaCarrinhoIframe(imagens[1] || imagens[0] || "", origem);
+  // 🔥 vai para carrinho
+  location.href = `carrinho.html?l=${lojaId}`;
 }
-
-fecharProduto();
-}
-
-
-
-
 
 
 
@@ -2675,12 +2662,14 @@ function calcularDescontoPercentual(precoOriginal, precoPromocional){
 
 function adicionarDireto(id){
   const item = todos.find(p => p.id === id);
-  if(!item || item.tipo !== "PRODUTO") return;
+  if(!item) return;
+
+  // ❌ não adiciona serviço direto
+  if(item.tipo === "SERVICO") return;
 
   produtoAtual = item;
   adicionarAoCarrinho();
 }
-
 
 function solicitarArquivoWhats(){
   const mensagem = encodeURIComponent(
