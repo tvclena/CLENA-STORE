@@ -884,25 +884,28 @@ function toggleTipo(){
   // RESET
   boxServico.style.display = "none";
   boxProduto.style.display = "none";
+  boxPagamentoOnline.style.display = "none";
+  pgOnline.checked = false;
 
-  // SERVIÇO
+  // ===== SERVIÇO =====
   if (tipoSelecionado === "SERVICO") {
     boxServico.style.display = "block";
+    boxPagamentoOnline.style.display = "block";
   }
 
-  // PRODUTO
+  // ===== PRODUTO =====
   if (tipoSelecionado === "PRODUTO") {
     boxProduto.style.display = "block";
+    boxPagamentoOnline.style.display = "block";
   }
 
-  // PAGAMENTO ONLINE (SERVICO, PRODUTO, DIGITAL)
-  if (pagamentoOnlineAtivo) {
+  // ===== DIGITAL =====
+  if (tipoSelecionado === "DIGITAL") {
     boxPagamentoOnline.style.display = "block";
-  } else {
-    boxPagamentoOnline.style.display = "none";
-    pgOnline.checked = false;
+    pgOnline.checked = true; // 🔥 digital já vem online por padrão
   }
 }
+
 
   
 promoAtiva.addEventListener("change", () => {
@@ -1011,8 +1014,8 @@ async function salvar(){
       ? Number(duracao.value || 0)
       : 0,   // 🔥 AQUI ESTÁ O FIX
 
-  pg_online: pagamentoOnlineAtivo ? !!pgOnline.checked : false,
-  controla_estoque: !!controlaEstoque.checked,
+pg_online: !!pgOnline.checked,
+    controla_estoque: !!controlaEstoque.checked,
   estoque_atual: Number(estoqueAtual.value || 0),
   estoque_minimo: Number(estoqueMinimo.value || 0),
   ordem_exibicao: Number(ordem.value || 0),
