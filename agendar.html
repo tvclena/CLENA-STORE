@@ -1379,8 +1379,14 @@ function renderizarSelecionados(){
     totalEl.innerText = `Total: R$ ${formatarMoedaBR(total)}`;
 
   if(tempoEl)
-    tempoEl.innerText = `Duração total: ${duracaoTotal} min`;
+const horas = Math.floor(duracaoTotal / 60);
+const minutos = duracaoTotal % 60;
 
+tempoEl.innerText =
+  horas > 0
+    ? `Duração total: ${horas}h ${String(minutos).padStart(2,"0")}min`
+    : `Duração total: ${minutos} min`;
+  
   container.innerHTML = dados.servicos.map(s => `
     <div class="chip-servico">
       <img src="${s.imagem_url || 'https://via.placeholder.com/80'}" class="chip-img">
@@ -1400,19 +1406,6 @@ function renderizarSelecionados(){
 }
 
   
-  // 🔥 reseta datas/horários ao mudar serviços
-  document.getElementById("secDays").classList.add("hidden");
-  document.getElementById("secTimes").classList.add("hidden");
-  document.getElementById("days").innerHTML = "";
-  document.getElementById("times").innerHTML = "";
-
-  DIAS_VALIDOS = [];
-  cursorData = null;
-  carregandoDias = false;
-
-  // ⏱️ duração total
-  duracaoTotal = dados.servicos.reduce((s, x) => s + x.duracao, 0);
-}
 function removerServico(id){
   dados.servicos = dados.servicos.filter(s => s.id !== id);
   document.querySelector(`[data-id="${id}"]`)
