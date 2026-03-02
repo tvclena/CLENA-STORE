@@ -1317,6 +1317,10 @@ if (modoNovoPainel) {
   clienteDB = null;
   try { localStorage.removeItem("CLIENTE_LOJA"); } catch {}
 }
+
+// 🔥 PREPARA PARA NOVO AGENDAMENTO
+resetarAgendamento();
+  
 }
 
 function selecionarHorario(el, h){
@@ -1619,6 +1623,48 @@ document.addEventListener("DOMContentLoaded", () => {
   return nome
     .replace(/#[^#]+#/g, "")
     .trim();
+}
+
+function resetarAgendamento(){
+
+  // 🔄 limpa objeto principal
+  dados = {
+    servicos: []
+  };
+
+  // 🔄 limpa variáveis de controle
+  DIAS_VALIDOS = [];
+  cursorData = null;
+  carregandoDias = false;
+
+  // 🔄 remove seleções visuais
+  document.querySelectorAll(".service")
+    .forEach(el => el.classList.remove("selected"));
+
+  document.querySelectorAll("#days .item")
+    .forEach(el => el.classList.remove("selected"));
+
+  document.querySelectorAll("#times .item")
+    .forEach(el => el.classList.remove("selected"));
+
+  // 🔄 limpa containers
+  document.getElementById("servicosSelecionados").innerHTML = "";
+  document.getElementById("days").innerHTML = "";
+  document.getElementById("times").innerHTML = "";
+
+  // 🔄 esconde seções
+  document.getElementById("secSelecionados").classList.add("hidden");
+  document.getElementById("secDays").classList.add("hidden");
+  document.getElementById("secTimes").classList.add("hidden");
+  document.getElementById("secConfirmar").classList.add("hidden");
+
+  // 🔄 limpa textos auxiliares
+  document.getElementById("contadorServicos").innerText = "";
+  document.getElementById("totalServicos").innerText = "";
+  document.getElementById("tempoTotal").innerText = "";
+
+  // 🔄 remove hora
+  dados.hora = null;
 }
 </script>
 <!-- MODAL CLIENTE (PREMIUM CENTRALIZADO) -->
