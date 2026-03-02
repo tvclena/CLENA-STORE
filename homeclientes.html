@@ -190,17 +190,18 @@ body{margin:0;background:var(--bg);padding:16px}
 /* ================= GRID ================= */
 .grid{
   display:grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns:1fr 1fr;
   gap:14px;
 }
-
-@media (min-width:768px){
+/* TABLET */
+@media (min-width: 768px){
   .grid{
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (min-width:1200px){
+/* DESKTOP */
+@media (min-width: 1200px){
   .grid{
     grid-template-columns: repeat(6, 1fr);
   }
@@ -2491,7 +2492,7 @@ return `
 
     ${
       customizacao
-        ? `<div class="badge badge-custom">✨</div>`
+        ? `<div class="badge badge-custom">✨ Personalizado</div>`
         : ""
     }
 
@@ -2568,38 +2569,24 @@ return `
           : ""
   }
 
-<div class="meta">
-  ${
-    i.tipo === "SERVICO" && i.duracao_minutos
-      ? `<span>⏱ ${formatarDuracao(i.duracao_minutos)}</span>`
-      : i.tipo === "PRODUTO"
-        ? `<span>
-            ${
-              i.controla_estoque
-                ? `Em estoque: ${i.estoque_atual}`
-                : `Estoque livre`
-            }
-          </span>`
-        : i.tipo === "DIGITAL"
-          ? `<span>Entrega digital</span>`
-          : ""
-  }
-
   <span class="price">
-    ${
-      i.promocao_ativa && i.preco_promocional
-        ? `
-          <span class="old">
-            R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-          </span>
-          R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-        `
-        : `
-          R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-        `
-    }
-  </span>
-</div>
+
+
+      <span class="price">
+        ${
+          i.promocao_ativa && i.preco_promocional
+            ? `
+              <span class="old">
+                R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+              </span>
+              R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+            `
+            : `
+              R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+            `
+        }
+      </span>
+    </div>
 
   </div>
 </div>
