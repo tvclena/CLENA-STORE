@@ -58,7 +58,9 @@
 
 *{box-sizing:border-box;font-family:Inter}
 html,body{margin:0;background:var(--bg)}
-
+html {
+  scroll-behavior: smooth;
+}
 .header{
   height:56px;
   background:var(--header-bg);
@@ -978,6 +980,12 @@ inicio += getDuracaoTotal();    }
   document.getElementById("times").innerHTML = slots.map(h => `
 <div class="item" onclick="selecionarHorario(this,'${h}')">${h}</div>
   `).join("");
+  // 🔽 ROLA ATÉ A SEÇÃO DE HORÁRIOS
+  setTimeout(() => {
+    document.getElementById("secTimes")
+      .scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 120);
+  
 }
 
 
@@ -1426,6 +1434,11 @@ function confirmarServicos(){
   carregandoDias = false;
 
   carregarDiasLazy();
+    // 🔽 ROLA ATÉ A SEÇÃO DE DATAS
+  setTimeout(() => {
+    document.getElementById("secDays")
+      .scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 120);
 }
 
 async function confirmarAgendamento(){
