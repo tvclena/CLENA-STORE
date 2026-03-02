@@ -2569,24 +2569,38 @@ return `
           : ""
   }
 
+<div class="meta">
+  ${
+    i.tipo === "SERVICO" && i.duracao_minutos
+      ? `<span>⏱ ${formatarDuracao(i.duracao_minutos)}</span>`
+      : i.tipo === "PRODUTO"
+        ? `<span>
+            ${
+              i.controla_estoque
+                ? `Em estoque: ${i.estoque_atual}`
+                : `Estoque livre`
+            }
+          </span>`
+        : i.tipo === "DIGITAL"
+          ? `<span>Entrega digital</span>`
+          : ""
+  }
+
   <span class="price">
-
-
-      <span class="price">
-        ${
-          i.promocao_ativa && i.preco_promocional
-            ? `
-              <span class="old">
-                R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-              </span>
-              R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-            `
-            : `
-              R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
-            `
-        }
-      </span>
-    </div>
+    ${
+      i.promocao_ativa && i.preco_promocional
+        ? `
+          <span class="old">
+            R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+          </span>
+          R$ ${Number(i.preco_promocional).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+        `
+        : `
+          R$ ${Number(i.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+        `
+    }
+  </span>
+</div>
 
   </div>
 </div>
