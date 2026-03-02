@@ -518,21 +518,35 @@ async function salvar(){
     const replicar = document.getElementById("replicarSemana").checked;
     const datasParaSalvar = [];
 
-    if(replicar){
-      const dataBase = new Date(selected+"T12:00");
-      const diaSemana = dataBase.getDay();
-      const ano = dataBase.getFullYear();
-      const mes = dataBase.getMonth();
-      const ultimoDia = new Date(ano, mes+1, 0).getDate();
+if(replicar){
 
-      for(let d=1; d<=ultimoDia; d++){
-        const dataTeste = new Date(ano, mes, d);
-        if(dataTeste.getDay() === diaSemana){
-          const iso = `${ano}-${String(mes+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-          datasParaSalvar.push(iso);
-        }
-      }
-    }else{
+  const dataBase = new Date(selected+"T12:00");
+  const diaSemana = dataBase.getDay();
+  const ano = dataBase.getFullYear();
+
+  const inicioAno = new Date(ano, 0, 1);
+  const fimAno = new Date(ano, 11, 31);
+
+  let dataLoop = new Date(inicioAno);
+
+  while(dataLoop <= fimAno){
+
+    if(dataLoop.getDay() === diaSemana){
+
+      const iso = `${dataLoop.getFullYear()}-${String(dataLoop.getMonth()+1).padStart(2,"0")}-${String(dataLoop.getDate()).padStart(2,"0")}`;
+
+      datasParaSalvar.push(iso);
+    }
+
+    dataLoop.setDate(dataLoop.getDate() + 1);
+  }
+
+}else{
+  datasParaSalvar.push(selected);
+}
+    
+    
+    else{
       datasParaSalvar.push(selected);
     }
 
