@@ -649,8 +649,12 @@ if(modoNovoPainel){
 let dados = {
   servicos: []
 };
-
-let duracaoTotal = 0;
+function getDuracaoTotal(){
+  return dados.servicos.reduce(
+    (s, x) => s + Number(x.duracao || 0),
+    0
+  );
+}
 
 let DIAS_VALIDOS = [];
 
@@ -832,9 +836,9 @@ const ocupados = (ags || []).map(a => [
       let s = toMin(b.inicio);
       let e = toMin(b.fim);
 
-while(s + duracaoTotal <= e){
+while(s + getDuracaoTotal() <= e){
   const conflito = ocupados.some(o =>
-    !(s + duracaoTotal <= o[0] || s >= o[1])
+    !(s + getDuracaoTotal() <= o[0] || s >= o[1])
   );
 
   if(!conflito){
@@ -842,7 +846,7 @@ while(s + duracaoTotal <= e){
     break;
   }
 
-  s += duracaoTotal;
+  s += getDuracaoTotal();
 }
 
     });
@@ -957,16 +961,16 @@ const ocupados = (ag || []).map(a => [
     let inicio = toMin(b.inicio);
     let fim = toMin(b.fim);
 
-while(inicio + duracaoTotal <= fim){
+while(inicio + getDuracaoTotal() <= fim){
       const conflito = ocupados.some(o =>
-!(inicio + duracaoTotal <= o[0] || inicio >= o[1])
+!(inicio + getDuracaoTotal() <= o[0] || inicio >= o[1])
       );
 
       if(!conflito){
         slots.push(toHour(inicio));
       }
 
-inicio += duracaoTotal;    }
+inicio += getDuracaoTotal();    }
   });
 
   /* ===== RENDERIZA HORÁRIOS ===== */
@@ -1175,7 +1179,7 @@ if(!cliente?.whatsapp){
   }
   return;
 }
-const fim = toHour(toMin(h) + duracaoTotal);
+const fim = toHour(toMin(h) + getDuracaoTotal());
 
   // 🔁 DEFINE ENDPOINT CORRETO
   const endpoint = alterarId
@@ -1192,7 +1196,7 @@ if (alterarId) {
 
     servicos: dados.servicos,
     valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
-    duracao_total: duracaoTotal,
+    duracao_total: getDuracaoTotal(),
 
     data: dados.data,
     hora_inicio: h,
@@ -1210,7 +1214,7 @@ if (alterarId) {
 
     servicos: dados.servicos,
     valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
-    duracao_total: duracaoTotal,
+    duracao_total: getDuracaoTotal(),
 
     data: dados.data,
     hora_inicio: h,
@@ -1354,7 +1358,6 @@ function renderizarSelecionados(){
     document.getElementById("secConfirmar").classList.add("hidden");
 
     dados.hora = null;
-    duracaoTotal = 0;
 
     container.innerHTML = "";
     if(contador) contador.innerText = "";
@@ -1367,10 +1370,8 @@ function renderizarSelecionados(){
 
   sec.classList.remove("hidden");
 
-  // 🔥 CALCULA PRIMEIRO
-  duracaoTotal = dados.servicos.reduce((s, x) => s + Number(x.duracao), 0);
-
-  const total = dados.servicos.reduce((s, x) => s + Number(x.preco), 0);
+  const duracaoTotal = getDuracaoTotal();
+  const total = dados.servicos.reduce((s, x) => s + Number(x.preco || 0), 0);
 
   if(contador)
     contador.innerText = `${dados.servicos.length} serviço(s) selecionado(s)`;
@@ -1378,15 +1379,16 @@ function renderizarSelecionados(){
   if(totalEl)
     totalEl.innerText = `Total: R$ ${formatarMoedaBR(total)}`;
 
-  if(tempoEl)
-const horas = Math.floor(duracaoTotal / 60);
-const minutos = duracaoTotal % 60;
+  if(tempoEl){
+    const horas = Math.floor(duracaoTotal / 60);
+    const minutos = duracaoTotal % 60;
 
-tempoEl.innerText =
-  horas > 0
-    ? `Duração total: ${horas}h ${String(minutos).padStart(2,"0")}min`
-    : `Duração total: ${minutos} min`;
-  
+    tempoEl.innerText =
+      horas > 0
+        ? `Duração total: ${horas}h ${String(minutos).padStart(2,"0")}min`
+        : `Duração total: ${minutos} min`;
+  }
+
   container.innerHTML = dados.servicos.map(s => `
     <div class="chip-servico">
       <img src="${s.imagem_url || 'https://via.placeholder.com/80'}" class="chip-img">
