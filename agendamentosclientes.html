@@ -166,8 +166,7 @@ if (servicosIds.length) {
   
   lista.innerHTML = ags.map(a=>{
     const mins=minutosAte(a.data,a.hora_inicio);
-    const bloqueado=mins<40 && mins>=0;
-
+    const bloqueado = mins < 20 && mins >= 0;
     const loja = mapaLojas[a.loja_id] || {};
 
     
@@ -230,8 +229,8 @@ const servicosHtml = Array.isArray(a.servicos)
         ${bloqueado?`
           <div class="lock">
             <i class="ri-lock-fill"></i>
-            Alterações permitidas até 40 minutos antes
-          </div>`:""}
+            Alterações permitidas até 20 minutos antes
+            </div>`:""}
       </div>
     `;
   }).join("");
