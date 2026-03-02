@@ -744,7 +744,7 @@ container.innerHTML = lista.map(s => `
        
     <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
 <div class="service-info">
-  <div class="service-name">${s.nome}</div>
+<div class="service-name">${limparMarcadores(s.nome)}</div>
 
   <div style="font-size:12px;color:#6b7280;margin-top:4px">
     ⏱ ${s.duracao_minutos} min
@@ -887,7 +887,7 @@ function selecionarServico(id, duracao, nome, preco){
     // ADICIONA
 dados.servicos.push({
   id,
-  nome,
+  nome: limparMarcadores(nome),
   preco,
   duracao,
   imagem_url: document.querySelector(`[data-id="${id}"] img`)?.src
@@ -1281,7 +1281,7 @@ document.body.insertAdjacentHTML("beforeend", `
       </div>
 
       <div style="font-size:14px;line-height:1.6;color:#374151">
-        <div><b>Serviços:</b> ${dados.servicos.map(s => s.nome).join(", ")}</div>
+        <div><b>Serviços:</b> ${dados.servicos.map(s => limparMarcadores(s.nome)).join(", ")}</div>
         <div><b>Data:</b> ${formatarDataBR(dados.data)}</div>
         <div><b>Horário:</b> ${h}</div>
       </div>
@@ -1394,8 +1394,8 @@ function renderizarSelecionados(){
       <img src="${s.imagem_url || 'https://via.placeholder.com/80'}" class="chip-img">
 
       <div style="display:flex;flex-direction:column;gap:2px">
-        <span class="chip-nome">${s.nome}</span>
-        <small style="font-size:11px;color:#6b7280">⏱ ${s.duracao} min</small>
+<span class="chip-nome">${limparMarcadores(s.nome)}</span>
+<small style="font-size:11px;color:#6b7280">⏱ ${s.duracao} min</small>
       </div>
 
       <span class="preco">R$ ${formatarMoedaBR(s.preco)}</span>
@@ -1613,6 +1613,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+
+  function limparMarcadores(nome = ""){
+  return nome
+    .replace(/#[^#]+#/g, "")
+    .trim();
+}
 </script>
 <!-- MODAL CLIENTE (PREMIUM CENTRALIZADO) -->
 <div id="clienteModal" class="hidden modal-root">
