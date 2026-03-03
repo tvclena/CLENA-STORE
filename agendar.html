@@ -1226,7 +1226,19 @@ if(!cliente?.whatsapp){
   return;
 }
 const fim = toHour(toMin(h) + getDuracaoTotal());
+// ============================
+// 🔥 DEFINE SE PRECISA PAGAMENTO ONLINE
+// ============================
 
+const temServicoOnline = dados.servicos
+  .some(s => s.pg_online === true);
+
+const precisaPagamento =
+  !alterarId &&
+  pagamentoOnlineAtivo &&
+  temServicoOnline;
+
+  
   // 🔁 DEFINE ENDPOINT CORRETO
   const endpoint = alterarId
     ? "/api/update-agendamento"
@@ -1254,8 +1266,14 @@ if (alterarId) {
     motivo: "ALTERACAO_CLIENTE"
   };
 } else {
+
   payload = {
     loja_id: lojaId,
+
+    status: precisaPagamento
+      ? "PENDENTE_PAGAMENTO"
+      : "CONFIRMADO",
+
     cliente_loja_id: cliente.cliente_loja_id || null,
 
     servicos: dados.servicos,
@@ -1271,6 +1289,8 @@ if (alterarId) {
     cliente_email: cliente.email || null,
     cliente_id: usuarioLogado?.id || null
   };
+
+}
 }
 
 let response; // ✅ agora está fora do if/else
@@ -1293,13 +1313,7 @@ let response; // ✅ agora está fora do if/else
     alert("❌ Erro ao salvar agendamento");
     return;
   }
-// ============================
-// 🔥 VERIFICA SE PRECISA PAGAMENTO ONLINE
-// ============================
 
-const precisaPagamento =
-  pagamentoOnlineAtivo &&
-  dados.servicos.some(s => s.pg_online === true);
 
 if(precisaPagamento){
 
