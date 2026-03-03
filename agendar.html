@@ -603,13 +603,29 @@ const sb = supabase.createClient(
 let pagamentoOnlineAtivo = false;
 
 async function verificarPagamentoOnline(){
+
+  // 1️⃣ Descobre dono da loja
+  const { data: loja } = await sb
+    .from("lojas")
+    .select("user_id")
+    .eq("id", lojaId)
+    .single();
+
+  if(!loja?.user_id){
+    pagamentoOnlineAtivo = false;
+    return;
+  }
+
+  // 2️⃣ Busca configuração do dono
   const { data } = await sb
     .from("user_profile")
     .select("pagamento_online_ativo")
-    .eq("user_id", lojaId)
+    .eq("user_id", loja.user_id)
     .single();
 
   pagamentoOnlineAtivo = !!data?.pagamento_online_ativo;
+
+  console.log("Pagamento online ativo:", pagamentoOnlineAtivo);
 }
 
   // 🔧 REFERÊNCIAS DO MODAL (EVITA BUG DE BUSCA/SELEÇÃO)
