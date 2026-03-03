@@ -889,7 +889,11 @@ const ocupados = (ags || []).map(a => [
       let s = toMin(b.inicio);
       let e = toMin(b.fim);
 
-while(s + getDuracaoTotal() <= e){
+const duracao = getDuracaoTotal();
+if(!duracao) continue;
+
+while(s + duracao <= e){
+  
   const conflito = ocupados.some(o =>
     !(s + getDuracaoTotal() <= o[0] || s >= o[1])
   );
