@@ -1303,35 +1303,42 @@ const precisaPagamento =
 
 if(precisaPagamento){
 
-  const total = dados.servicos.reduce((s,x)=>s + x.preco, 0);
+  const servicosOnline = dados.servicos
+    .filter(s => s.pg_online === true);
 
-  const pagamento = await fetch("/api/create-agendamento-pagamento", {
+  const pagamento = await fetch("https://www.clena.com.br/api/create-pagamento", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       loja_id: lojaId,
-      valor: total,
-      descricao: "Agendamento - " + dados.servicos.map(s=>s.nome).join(", "),
-      cliente_nome: cliente.nome,
-      cliente_whatsapp: cliente.whatsapp,
-      data: dados.data,
-      hora_inicio: h
+      cliente: {
+        nome: cliente.nome,
+        whatsapp: cliente.whatsapp
+      },
+      itens: servicosOnline.map(s => ({
+        id: s.id,
+        quantidade: 1
+      })),
+      tipo: "agendamento" // 🔥 opcional para backend diferenciar
     })
   });
 
-if(!pagamento.ok){
-  const erroTexto = await pagamento.text();
-  console.error("Erro pagamento:", erroTexto);
-  alert("Erro ao iniciar pagamento online");
-  return;
-}
+  if(!pagamento.ok){
+    const erroTexto = await pagamento.text();
+    console.error("Erro pagamento:", erroTexto);
+    alert("Erro ao iniciar pagamento online");
+    return;
+  }
 
-const dataPag = await pagamento.json();
+  const dataPag = await pagamento.json();
+
   if(dataPag?.init_point){
     window.location.href = dataPag.init_point;
-    return; // 🚀 interrompe aqui, não mostra confirmação
+    return;
   }
 }
+
+  
 document.body.insertAdjacentHTML("beforeend", `
   <div class="overlay" id="overlayConfirm">
     <div class="msg-final" style="
