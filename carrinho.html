@@ -251,6 +251,21 @@ carrinho.splice(idxExcluir, 1);
   fecharModal();
 }
 
+
+
+function carrinhoTemProdutoFisico(){
+  return carrinho.some(i => i.tipo !== "DIGITAL");
+}
+
+function carrinhoSoDigital(){
+  return carrinho.length > 0 && carrinho.every(i => i.tipo === "DIGITAL");
+}
+
+
+
+
+
+  
 /* RENDER */
 function render(){
 if(!carrinho.length){
@@ -261,14 +276,27 @@ if(!carrinho.length){
 
   let total = 0;
 
-  conteudo.innerHTML = `
-    <div class="card">
-      <div class="endereco-title">Entrega</div>
-      <div class="endereco-text">
-        ${cliente?.rua || ""}, ${cliente?.numero || ""}<br>
-        ${cliente?.bairro || ""} – ${cliente?.cidade || ""}/${cliente?.uf || ""}
-      </div>
-    </div>
+conteudo.innerHTML = `
+  ${
+    carrinhoTemProdutoFisico()
+      ? `
+        <div class="card">
+          <div class="endereco-title">Entrega</div>
+          <div class="endereco-text">
+            ${cliente?.rua || ""}, ${cliente?.numero || ""}<br>
+            ${cliente?.bairro || ""} – ${cliente?.cidade || ""}/${cliente?.uf || ""}
+          </div>
+        </div>
+      `
+      : `
+        <div class="card">
+          <div class="endereco-title">Entrega digital</div>
+          <div class="endereco-text">
+            O acesso será liberado automaticamente após confirmação do pagamento.
+          </div>
+        </div>
+      `
+  }
 
 ${carrinho.map((i,idx)=>{
       total += i.preco * i.quantidade;
@@ -296,11 +324,19 @@ ${carrinho.map((i,idx)=>{
 </div>
 
               <div class="item-controls">
-                <div class="qty">
-                  <button onclick="menos(${idx})">−</button>
-                  <span>${i.quantidade}</span>
-                  <button onclick="mais(${idx})">+</button>
-                </div>
+<div class="qty">
+  ${
+    i.tipo === "DIGITAL"
+      ? `
+        <span style="font-weight:800">Quantidade: 1</span>
+      `
+      : `
+        <button onclick="menos(${idx})">−</button>
+        <span>${i.quantidade}</span>
+        <button onclick="mais(${idx})">+</button>
+      `
+  }
+</div>
                 <div class="item-total">R$ ${moeda(i.preco*i.quantidade)}</div>
               </div>
 
@@ -323,10 +359,13 @@ function salvar(){
   render();
 }
 function mais(i){
+  if(carrinho[i].tipo === "DIGITAL") return;
   carrinho[i].quantidade++;
   salvar();
 }
 function menos(i){
+  if(carrinho[i].tipo === "DIGITAL") return;
+
   if(--carrinho[i].quantidade <= 0){
     abrirModal(i);
   } else {
