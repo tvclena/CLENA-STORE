@@ -1019,21 +1019,29 @@ const ocupados = (ag || []).map(a => [
   /* ===== GERA SLOTS LIVRES ===== */
   let slots = [];
 
-  blocos.forEach(b => {
-    let inicio = toMin(b.inicio);
-    let fim = toMin(b.fim);
+blocos.forEach(b => {
 
-while(inicio + getDuracaoTotal() <= fim){
-      const conflito = ocupados.some(o =>
-!(inicio + getDuracaoTotal() <= o[0] || inicio >= o[1])
-      );
+  let s = toMin(b.inicio);
+  let e = toMin(b.fim);
 
-      if(!conflito){
-        slots.push(toHour(inicio));
-      }
+  const duracao = getDuracaoTotal();
+  if(!duracao) return; // ✅ usa return, não continue
 
-inicio += getDuracaoTotal();    }
-  });
+  while(s + duracao <= e){
+
+    const conflito = ocupados.some(o =>
+      !(s + duracao <= o[0] || s >= o[1])
+    );
+
+    if(!conflito){
+      livre = true;
+      break;
+    }
+
+    s += duracao; // ✅ usa duracao já calculada
+  }
+
+});
 
   /* ===== RENDERIZA HORÁRIOS ===== */
   if(slots.length === 0){
