@@ -112,7 +112,7 @@ async function carregar(){
       valor_total
     `)
     .eq("cliente_id", auth.user.id)
-    .eq("status","CONFIRMADO")
+.in("status", ["CONFIRMADO","PENDENTE_PAGAMENTO"])
     .order("data");
 
   if(!ags || !ags.length){
@@ -151,15 +151,16 @@ let mapaServicos = {};
 if (servicosIds.length) {
   const { data: servs } = await sb
     .from("produtos_servicos")
-    .select("id,nome,imagem_url")
+    .select("id,nome,imagem_url,pg_online")
     .in("id", servicosIds);
 
-  servs?.forEach(s => {
-    mapaServicos[s.id] = {
-      nome: s.nome,
-      imagem: s.imagem_url
-    };
-  });
+servs?.forEach(s => {
+  mapaServicos[s.id] = {
+    nome: s.nome,
+    imagem: s.imagem_url,
+    pg_online: s.pg_online === true
+  };
+});
 }
 
 
@@ -168,7 +169,13 @@ if (servicosIds.length) {
     const mins=minutosAte(a.data,a.hora_inicio);
     const bloqueado = mins < 20 && mins >= 0;
     const loja = mapaLojas[a.loja_id] || {};
-
+const possuiOnlineNaoPago =
+  a.status === "PENDENTE_PAGAMENTO" &&
+  Array.isArray(a.servicos) &&
+  a.servicos.some(s => {
+    const srv = mapaServicos[s.id];
+    return srv?.pg_online === true;
+  });
     
 const servicosHtml = Array.isArray(a.servicos)
   ? a.servicos.map(s => {
@@ -215,16 +222,30 @@ const servicosHtml = Array.isArray(a.servicos)
           ${Number(a.valor_total||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
         </div>
 
-        <div class="actions">
-          <button class="btn-outline" ${bloqueado?"disabled":""}
-            onclick="alterar('${a.id}','${a.loja_id}')">
-            Alterar
-          </button>
-          <button class="btn-danger" ${bloqueado?"disabled":""}
-            onclick="cancelar('${a.id}','${a.loja_id}')">
-            Cancelar
-          </button>
-        </div>
+<div class="actions">
+
+  ${possuiOnlineNaoPago ? `
+    <button style="
+      background:#f59e0b;
+      color:#fff;
+      flex:1;
+    "
+    onclick="pagar('${a.id}','${a.loja_id}')">
+      💳 Pagar
+    </button>
+  ` : ""}
+
+  <button class="btn-outline" ${bloqueado?"disabled":""}
+    onclick="alterar('${a.id}','${a.loja_id}')">
+    Alterar
+  </button>
+
+  <button class="btn-danger" ${bloqueado?"disabled":""}
+    onclick="cancelar('${a.id}','${a.loja_id}')">
+    Cancelar
+  </button>
+
+</div>
 
         ${bloqueado?`
           <div class="lock">
@@ -253,7 +274,56 @@ async function cancelar(id,loja){
   });
   carregar();
 }
+async function pagar(agendamentoId, lojaId){
 
+  const { data:auth } = await sb.auth.getUser();
+  if(!auth?.user){
+    alert("Faça login novamente");
+    return;
+  }
+
+  const { data } = await sb
+    .from("agendamentos")
+    .select("servicos")
+    .eq("id", agendamentoId)
+    .single();
+
+  if(!data) return alert("Agendamento não encontrado");
+
+  const servicosOnline = data.servicos?.filter(s=>{
+    const srv = mapaServicos[s.id];
+    return srv?.pg_online === true;
+  }) || [];
+
+  if(!servicosOnline.length){
+    alert("Nenhum serviço online encontrado");
+    return;
+  }
+
+  const pagamento = await fetch("/api/create-pagamento",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      loja_id: lojaId,
+      cliente:{
+        nome: auth.user.user_metadata?.nome || "",
+        whatsapp: auth.user.user_metadata?.whatsapp || ""
+      },
+      itens: servicosOnline.map(s=>({
+        id: s.id,
+        quantidade: 1
+      }))
+    })
+  });
+
+  const resp = await pagamento.json();
+
+  if(resp?.init_point){
+    window.location.href = resp.init_point;
+  }else{
+    alert("Erro ao gerar pagamento");
+  }
+}
 carregar();
 </script>
 
