@@ -870,9 +870,14 @@ for(const d of (agenda || [])){
 
 const { data: ags } = await sb
   .from("agendamentos")
-  .select("hora_inicio,hora_fim")
+  .select("hora_inicio,hora_fim,status")
   .eq("user_id", lojaId)
-  .eq("data", d.data);
+  .eq("data", d.data)
+  .in("status", [
+    "CONFIRMADO",
+    "PENDENTE_PAGAMENTO",
+    "ALTERADO"
+  ]);
 
 const ocupados = (ags || []).map(a => [
   toMin(a.hora_inicio),
@@ -993,9 +998,14 @@ async function selecionarDia(index){
   /* ===== AGENDAMENTOS JÁ OCUPADOS ===== */
 const { data: ag } = await sb
   .from("agendamentos")
-  .select("hora_inicio,hora_fim")
+  .select("hora_inicio,hora_fim,status")
   .eq("user_id", lojaId)
-  .eq("data", dia.data);
+  .eq("data", dia.data)
+  .in("status", [
+    "CONFIRMADO",
+    "PENDENTE_PAGAMENTO",
+    "ALTERADO"
+  ]);
 
 const ocupados = (ag || []).map(a => [
   toMin(a.hora_inicio),
