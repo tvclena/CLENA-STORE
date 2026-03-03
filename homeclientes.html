@@ -87,8 +87,18 @@
 
 
 *{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);padding:16px}
+body{
+  margin:0;
+  background:var(--bg);
+  padding:24px;
+  display:flex;
+  justify-content:center;
+}
 
+.main-wrapper{
+  width:100%;
+  max-width:1280px;
+}
 /* ================= BANNER ================= */
 .banner{
   position: relative;
@@ -105,21 +115,30 @@ body{margin:0;background:var(--bg);padding:16px}
 
 .banner-top{
   display:flex;
-  align-items:flex-start;
+  align-items:center; /* centraliza vertical */
   justify-content:space-between;
-  gap:14px;
+  gap:20px;
 }
 
 .banner-logo{
-  width:82px;
-  height:82px;
-  min-width:82px;
-  border-radius:16px;
+  width:100px;
+  height:100px;
+  min-width:100px;
+  border-radius:20px;
   background:#fff;
   overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+
+@media (min-width:1200px){
+  .banner-logo{
+    width:130px;
+    height:130px;
+    min-width:130px;
+  }
 }
 
 .banner-logo img{
@@ -1310,7 +1329,27 @@ html.theme-ready{
   min-width:0; /* 🔥 ESSENCIAL */
 }
 
+@media (min-width:1200px){
 
+  .banner h1{
+    font-size:28px;
+  }
+
+  .loja-info{
+    font-size:16px;
+  }
+
+  .banner-stars{
+    font-size:15px;
+    padding:8px 16px;
+  }
+
+  .banner{
+    padding:28px;
+    border-radius:24px;
+  }
+
+}
 
 
 
@@ -1321,6 +1360,7 @@ html.theme-ready{
 </head>
 
 <body>
+<div class="main-wrapper">
 
 <div class="banner">
 
@@ -2835,5 +2875,6 @@ Pode me explicar como funciona a entrega?`
 </div>
 <button id="btnTopo" onclick="voltarTopo()">⬆</button>
 
+</div> <!-- main-wrapper -->
 </body>
 </html>
