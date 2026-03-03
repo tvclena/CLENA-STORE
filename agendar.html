@@ -600,7 +600,17 @@ const sb = supabase.createClient(
  "https://egxjgmzukjyyxmkukwub.supabase.co",
  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
 );
+let pagamentoOnlineAtivo = false;
 
+async function verificarPagamentoOnline(){
+  const { data } = await sb
+    .from("user_profile")
+    .select("pagamento_online_ativo")
+    .eq("user_id", lojaId)
+    .single();
+
+  pagamentoOnlineAtivo = !!data?.pagamento_online_ativo;
+}
 
   // 🔧 REFERÊNCIAS DO MODAL (EVITA BUG DE BUSCA/SELEÇÃO)
 let cliNome, cliWhats, cliEmail;
@@ -709,18 +719,19 @@ window.buscarClientesLoja = buscarClientesLoja;
 async function carregarServicos(){
 const { data } = await sb
   .from("produtos_servicos")
-  .select(`
-    id,
-    nome,
-    preco,
-    preco_promocional,
-    promocao_ativa,
-    imagem_url,
-    duracao_minutos,
-    ordem_exibicao,
-    created_at,
-    updated_at
-  `)
+.select(`
+  id,
+  nome,
+  preco,
+  preco_promocional,
+  promocao_ativa,
+  imagem_url,
+  duracao_minutos,
+  ordem_exibicao,
+  created_at,
+  updated_at,
+  pg_online
+`)
   .eq("user_id", lojaId)
   .eq("ativo", true)
   .eq("tipo", "SERVICO")
@@ -735,9 +746,10 @@ const container = document.getElementById("services");
 const lista = data || [];
 
 container.innerHTML = lista.map(s => `
-  <div class="service"
-       data-id="${s.id}"
-onclick="selecionarServico(
+<div class="service"
+     data-id="${s.id}"
+     data-pgonline="${s.pg_online ? 1 : 0}"
+     onclick="selecionarServico(
   '${s.id}',
   ${s.duracao_minutos},
   '${s.nome}',
@@ -910,24 +922,24 @@ function renderizarDia(d, index){
 
 function selecionarServico(id, duracao, nome, preco){
 
+  const card = document.querySelector(`[data-id="${id}"]`);
+  const pgOnline = card?.dataset.pgonline === "1";
+
   const existe = dados.servicos.find(s => s.id === id);
 
   if(existe){
-    // REMOVE
     dados.servicos = dados.servicos.filter(s => s.id !== id);
-    document.querySelector(`[data-id="${id}"]`)
-      ?.classList.remove("selected");
+    card?.classList.remove("selected");
   }else{
-    // ADICIONA
-dados.servicos.push({
-  id,
-  nome: limparMarcadores(nome),
-  preco,
-  duracao,
-  imagem_url: document.querySelector(`[data-id="${id}"] img`)?.src
-});
-    document.querySelector(`[data-id="${id}"]`)
-      ?.classList.add("selected");
+    dados.servicos.push({
+      id,
+      nome: limparMarcadores(nome),
+      preco,
+      duracao,
+      imagem_url: card?.querySelector("img")?.src,
+      pg_online: pgOnline
+    });
+    card?.classList.add("selected");
   }
 
   renderizarSelecionados();
@@ -1023,10 +1035,10 @@ inicio += getDuracaoTotal();    }
 }
 
 
-
 (async ()=>{
   await verificarLogin();
-  await carregarCliente(); // não mexe no fluxo do cliente final
+  await carregarCliente();
+  await verificarPagamentoOnline(); // 🔥 AQUI
   carregarServicos();
 
   // 🔥 SE VEIO DO PAINEL DA LOJA, abre o modal de cliente logo ao entrar
@@ -1281,7 +1293,39 @@ let response; // ✅ agora está fora do if/else
     alert("❌ Erro ao salvar agendamento");
     return;
   }
+// ============================
+// 🔥 VERIFICA SE PRECISA PAGAMENTO ONLINE
+// ============================
 
+const precisaPagamento =
+  pagamentoOnlineAtivo &&
+  dados.servicos.some(s => s.pg_online === true);
+
+if(precisaPagamento){
+
+  const total = dados.servicos.reduce((s,x)=>s + x.preco, 0);
+
+  const pagamento = await fetch("/api/create-agendamento-pagamento", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      loja_id: lojaId,
+      valor: total,
+      descricao: "Agendamento - " + dados.servicos.map(s=>s.nome).join(", "),
+      cliente_nome: cliente.nome,
+      cliente_whatsapp: cliente.whatsapp,
+      data: dados.data,
+      hora_inicio: h
+    })
+  });
+
+  const dataPag = await pagamento.json();
+
+  if(dataPag?.init_point){
+    window.location.href = dataPag.init_point;
+    return; // 🚀 interrompe aqui, não mostra confirmação
+  }
+}
 document.body.insertAdjacentHTML("beforeend", `
   <div class="overlay" id="overlayConfirm">
     <div class="msg-final" style="
