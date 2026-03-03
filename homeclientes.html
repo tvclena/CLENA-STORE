@@ -2216,12 +2216,10 @@ function adicionarAoCarrinho(){
     carrinho.push({
       produto_id: produtoAtual.id,
       nome: produtoAtual.nome,
-      tipo: produtoAtual.tipo, // importante para depois separar
-
+      tipo: produtoAtual.tipo,
       preco: precoFinal,
       preco_original: produtoAtual.preco,
       promocao_ativa: produtoAtual.promocao_ativa,
-
       imagem: produtoAtual.imagem_url,
       quantidade: 1,
       comentario
@@ -2230,11 +2228,24 @@ function adicionarAoCarrinho(){
 
   salvarCarrinho(carrinho);
 
-  // 🔥 vai para carrinho
-  location.href = `carrinho.html?l=${lojaId}`;
+  // 🔥 animação (se existir)
+  const img = document.querySelector(`#mpImagemMobile`)?.src;
+  const origem = document.querySelector(".modal-img-mini img");
+
+  if(img && origem){
+    animarParaCarrinhoIframe(img, origem);
+  }
+
+  // 🔔 Atualiza badge no app.html (se estiver em iframe)
+  if(window.parent?.atualizarBadgeCarrinho){
+    window.parent.atualizarBadgeCarrinho();
+  }
+
+  // ✅ FECHA MODAL
+  fecharProduto();
+
+  // ✅ NÃO REDIRECIONA
 }
-
-
 
 
 
