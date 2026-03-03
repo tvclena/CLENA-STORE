@@ -885,12 +885,29 @@ const ocupados = (ags || []).map(a => [
 ]);
     let livre = false;
 
-    blocos.forEach(b=>{
-      let s = toMin(b.inicio);
-      let e = toMin(b.fim);
+blocos.forEach(b => {
 
-const duracao = getDuracaoTotal();
-if(!duracao) continue;
+  const duracao = getDuracaoTotal();
+  if(!duracao) return;
+
+  let s = toMin(b.inicio);
+  let e = toMin(b.fim);
+
+  while(s + duracao <= e){
+
+    const conflito = ocupados.some(o =>
+      !(s + duracao <= o[0] || s >= o[1])
+    );
+
+    if(!conflito){
+      livre = true;
+      break;
+    }
+
+    s += duracao;
+  }
+
+});
 
 while(s + duracao <= e){
   
@@ -1017,15 +1034,15 @@ const ocupados = (ag || []).map(a => [
 ]);
 
   /* ===== GERA SLOTS LIVRES ===== */
-  let slots = [];
+let slots = [];
 
 blocos.forEach(b => {
 
+  const duracao = getDuracaoTotal();
+  if(!duracao) return;
+
   let s = toMin(b.inicio);
   let e = toMin(b.fim);
-
-  const duracao = getDuracaoTotal();
-  if(!duracao) return; // ✅ usa return, não continue
 
   while(s + duracao <= e){
 
@@ -1034,11 +1051,10 @@ blocos.forEach(b => {
     );
 
     if(!conflito){
-      livre = true;
-      break;
+      slots.push(toHour(s));  // ✅ CORRETO
     }
 
-    s += duracao; // ✅ usa duracao já calculada
+    s += duracao;
   }
 
 });
