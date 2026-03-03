@@ -1319,8 +1319,14 @@ if(precisaPagamento){
     })
   });
 
-  const dataPag = await pagamento.json();
+if(!pagamento.ok){
+  const erroTexto = await pagamento.text();
+  console.error("Erro pagamento:", erroTexto);
+  alert("Erro ao iniciar pagamento online");
+  return;
+}
 
+const dataPag = await pagamento.json();
   if(dataPag?.init_point){
     window.location.href = dataPag.init_point;
     return; // 🚀 interrompe aqui, não mostra confirmação
