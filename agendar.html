@@ -1341,22 +1341,19 @@ if(precisaPagamento){
 
 const pagamento = await fetch("https://www.clena.com.br/api/create-pagamento", {
   method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      loja_id: lojaId,
-      cliente: {
-        nome: cliente.nome,
-        whatsapp: cliente.whatsapp
-      },
-      valor: totalOnline,
-      descricao: "Serviços online: " +
-        servicosOnline.map(s=>s.nome).join(", "),
-      servicos_online: servicosOnline,
-      servicos_offline: servicosOffline,
-      data: dados.data,
-      hora_inicio: h
-    })
-  });
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    loja_id: lojaId,
+    cliente: {
+      nome: cliente.nome,
+      whatsapp: cliente.whatsapp
+    },
+    itens: servicosOnline.map(s => ({
+      id: s.id,
+      quantidade: 1
+    }))
+  })
+});
 
   if(!pagamento.ok){
     const erroTexto = await pagamento.text();
