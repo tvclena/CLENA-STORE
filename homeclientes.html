@@ -2193,7 +2193,6 @@ function salvarCarrinho(carrinho){
 
 function adicionarAoCarrinho(){
 
-  // ❌ bloqueia serviço
   if(produtoAtual.tipo === "SERVICO"){
     return;
   }
@@ -2228,25 +2227,22 @@ function adicionarAoCarrinho(){
 
   salvarCarrinho(carrinho);
 
-  // 🔥 animação (se existir)
-  const img = document.querySelector(`#mpImagemMobile`)?.src;
+  const img = mpImagemMobile?.src;
   const origem = document.querySelector(".modal-img-mini img");
 
   if(img && origem){
     animarParaCarrinhoIframe(img, origem);
+
+    // ⏳ ESPERA A ANIMAÇÃO TERMINAR
+    setTimeout(() => {
+      fecharProduto();
+    }, 650);
+
+  } else {
+    fecharProduto();
   }
 
-  // 🔔 Atualiza badge no app.html (se estiver em iframe)
-  if(window.parent?.atualizarBadgeCarrinho){
-    window.parent.atualizarBadgeCarrinho();
-  }
-
-  // ✅ FECHA MODAL
-  fecharProduto();
-
-  // ✅ NÃO REDIRECIONA
 }
-
 
 
 
