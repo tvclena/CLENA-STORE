@@ -1339,8 +1339,8 @@ if(precisaPagamento){
     totalOnline
   });
 
-  const pagamento = await fetch("/api/create-agendamento-pagamento", {
-    method: "POST",
+const pagamento = await fetch("https://www.clena.com.br/api/create-pagamento", {
+  method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       loja_id: lojaId,
