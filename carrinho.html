@@ -412,11 +412,10 @@ async function finalizarCompra(){
     const data = await res.json();
 
     /* ================= SUCESSO ================= */
-    if (res.ok && data?.init_point) {
-      localStorage.removeItem(KEY);
-      location.href = data.init_point;
-      return;
-    }
+if (res.ok && data?.init_point) {
+  location.href = data.init_point;
+  return;
+}
 
     /* ================= ERRO DA API ================= */
     if (!res.ok) {
