@@ -2,10 +2,14 @@
   "name": "clena-store",
   "version": "1.0.0",
   "type": "module",
+  "private": true,
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "openai": "^4.0.0",
     "mercadopago": "^2.0.8",
     "nodemailer": "^6.9.8"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
