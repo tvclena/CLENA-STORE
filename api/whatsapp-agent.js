@@ -74,108 +74,108 @@ if(req.method==="GET"){
  return res.status(403).send("Erro verificação")
 }
 
-/* ================= EVENTO WHATSAPP ================= */
+/* ================= RECEBER EVENTO ================= */
 
 if(req.method==="POST"){
 
- try{
+try{
 
- const openai = new OpenAI({
-  apiKey:process.env.OPENAI_API_KEY
- })
+const openai = new OpenAI({
+ apiKey:process.env.OPENAI_API_KEY
+})
 
- const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE
- )
+const supabase = createClient(
+ process.env.SUPABASE_URL,
+ process.env.SUPABASE_SERVICE_ROLE
+)
 
- const body=req.body
+const body=req.body
 
- const change = body.entry?.[0]?.changes?.[0]?.value
+const change = body.entry?.[0]?.changes?.[0]?.value
 
- if(!change) return res.status(200).end()
- if(!change.messages) return res.status(200).end()
+if(!change) return res.status(200).end()
+if(!change.messages) return res.status(200).end()
 
- const msg = change.messages[0]
+const msg = change.messages[0]
 
- const cliente = limparNumero(msg.from)
- const mensagem = msg.text?.body
- const message_id = msg.id
+const cliente = limparNumero(msg.from)
+const mensagem = msg.text?.body
+const message_id = msg.id
 
- if(!mensagem) return res.status(200).end()
+if(!mensagem) return res.status(200).end()
 
 /* ================= DUPLICIDADE ================= */
 
- const {data:jaProcessada} = await supabase
- .from("mensagens_processadas")
- .select("*")
- .eq("message_id",message_id)
- .maybeSingle()
+const {data:jaProcessada} = await supabase
+.from("mensagens_processadas")
+.select("*")
+.eq("message_id",message_id)
+.maybeSingle()
 
- if(jaProcessada){
-  return res.status(200).end()
- }
+if(jaProcessada){
+ return res.status(200).end()
+}
 
- await supabase
- .from("mensagens_processadas")
- .insert({message_id})
+await supabase
+.from("mensagens_processadas")
+.insert({message_id})
 
 /* ================= IDENTIFICAR LOJA ================= */
 
- const phone_number_id = change.metadata.phone_number_id
+const phone_number_id = change.metadata.phone_number_id
 
- const {data:loja} = await supabase
- .from("user_profile")
- .select("*")
- .eq("phone_number_id",phone_number_id)
- .maybeSingle()
+const {data:loja} = await supabase
+.from("user_profile")
+.select("*")
+.eq("phone_number_id",phone_number_id)
+.maybeSingle()
 
- if(!loja){
-  console.log("Loja não encontrada")
-  return res.status(200).end()
- }
+if(!loja){
+ console.log("Loja não encontrada")
+ return res.status(200).end()
+}
 
 /* ================= SALVAR MSG ================= */
 
- await supabase
- .from("conversas_whatsapp")
- .insert({
-  telefone:cliente,
-  loja_id:loja.id,
-  mensagem:mensagem,
-  role:"user"
- })
+await supabase
+.from("conversas_whatsapp")
+.insert({
+ telefone:cliente,
+ loja_id:loja.id,
+ mensagem:mensagem,
+ role:"user"
+})
 
-/* ================= HISTORICO ================= */
+/* ================= HISTÓRICO ================= */
 
- const {data:historico} = await supabase
- .from("conversas_whatsapp")
- .select("*")
- .eq("telefone",cliente)
- .eq("loja_id",loja.id)
- .order("created_at",{ascending:false})
- .limit(15)
+const {data:historico} = await supabase
+.from("conversas_whatsapp")
+.select("*")
+.eq("telefone",cliente)
+.eq("loja_id",loja.id)
+.order("created_at",{ascending:false})
+.limit(20)
 
- const mensagens = historico
+const mensagens = historico
  ? historico.reverse().map(m=>({
    role:m.role,
    content:m.mensagem
   }))
  : []
 
-/* ================= SERVICOS ================= */
+/* ================= SERVIÇOS ================= */
 
- const {data:servicos} = await supabase
- .from("produtos_servicos")
- .select("*")
- .eq("user_id",loja.user_id)
- .eq("ativo",true)
+const {data:servicos} = await supabase
+.from("produtos_servicos")
+.select("*")
+.eq("user_id",loja.user_id)
+.eq("ativo",true)
 
- let listaServicos=""
+let listaServicos=""
 
- if(servicos){
+if(servicos){
 
- listaServicos = servicos.map(s=>`
+listaServicos = servicos.map(s=>`
 
 ${s.nome}
 Preço: R$ ${s.preco}
@@ -183,31 +183,60 @@ Duração: ${s.duracao_minutos || 30} min
 
 `).join("\n")
 
- }
+}
 
 /* ================= DATA ================= */
 
- const sistema = obterDataSistema()
+const sistema = obterDataSistema()
+
+/* ================= AGENDA ================= */
+
+const {data:agenda} = await supabase
+.from("agenda_loja")
+.select("*")
+.eq("user_id",loja.user_id)
+.eq("data",sistema.dataISO)
+.maybeSingle()
+
+let horariosLivres=[]
+
+if(agenda && !agenda.fechado){
+
+const intervalos = JSON.parse(agenda.horarios)
+
+const {data:ocupados} = await supabase
+.from("agendamentos")
+.select("hora")
+.eq("loja_id",loja.id)
+.eq("data",sistema.dataISO)
+
+const horasOcupadas = ocupados?.map(o=>o.hora) || []
+
+horariosLivres = gerarHorariosLivres(intervalos,horasOcupadas,30)
+
+}
+
+/* ================= LISTA HORARIOS ================= */
+
+const horariosTexto = horariosLivres.join("\n")
 
 /* ================= OPENAI ================= */
 
- let resposta=""
+let resposta=""
 
- try{
+try{
 
- const completion = await openai.chat.completions.create({
+const completion = await openai.chat.completions.create({
 
- model:"gpt-4.1-mini",
+model:"gpt-4.1-mini",
 
- messages:[
+messages:[
 
- {
- role:"system",
- content:`
+{
+role:"system",
+content:`
 
-Você é o assistente da loja ${loja.negocio}.
-
-Nunca invente horários ou serviços.
+Você é o assistente oficial da loja ${loja.negocio}.
 
 Hoje é ${sistema.diaSemana} ${sistema.dataAtual}.
 
@@ -215,9 +244,18 @@ SERVIÇOS DISPONÍVEIS:
 
 ${listaServicos}
 
-Se cliente perguntar horários responda apenas com horários disponíveis.
+HORÁRIOS DISPONÍVEIS HOJE:
 
-Se cliente quiser agendar gere:
+${horariosTexto}
+
+Regras obrigatórias:
+
+• nunca invente horários
+• nunca invente serviços
+• se perguntarem horários mostre apenas os disponíveis
+• não faça perguntas desnecessárias
+• seja direto
+• confirme agendamento apenas se horário existir
 
 AGENDAMENTO_JSON:
 
@@ -228,154 +266,118 @@ AGENDAMENTO_JSON:
 "servico":""
 }
 
-Nunca invente horários.
-
 `
- },
+},
 
- ...mensagens,
+...mensagens,
 
- {
- role:"user",
- content:mensagem
- }
+{
+role:"user",
+content:mensagem
+}
 
- ]
+]
 
- })
+})
 
- resposta = completion.choices[0].message.content
+resposta = completion.choices[0].message.content
 
- }catch(e){
+}catch(e){
 
- resposta="Olá 👋 como posso ajudar?"
+console.log("Erro IA",e)
 
- }
+resposta="Olá 👋 como posso ajudar?"
 
-/* ================= HORARIOS DO DIA ================= */
-
- const {data:agenda} = await supabase
- .from("agenda_loja")
- .select("*")
- .eq("user_id",loja.user_id)
- .eq("data",sistema.dataISO)
- .maybeSingle()
-
- let horariosLivres=[]
-
- if(agenda && !agenda.fechado){
-
- const intervalos = JSON.parse(agenda.horarios)
-
- const {data:ocupados} = await supabase
- .from("agendamentos")
- .select("hora")
- .eq("loja_id",loja.id)
- .eq("data",sistema.dataISO)
-
- const horasOcupadas = ocupados?.map(o=>o.hora) || []
-
- horariosLivres = gerarHorariosLivres(intervalos,horasOcupadas,30)
-
- }
+}
 
 /* ================= PROCESSAR AGENDAMENTO ================= */
 
- try{
+try{
 
- const match = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
+const match = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
 
- if(match){
+if(match){
 
- const agendamento = JSON.parse(match[1])
+const agendamento = JSON.parse(match[1])
 
- const servico = servicos.find(
- s=>s.nome.toLowerCase()===agendamento.servico.toLowerCase()
- )
+const servico = servicos.find(
+s=>s.nome.toLowerCase()===agendamento.servico.toLowerCase()
+)
 
- if(!servico){
+if(!servico){
 
- resposta="Esse serviço não existe."
+resposta="Esse serviço não existe."
 
- }else{
+}else{
 
- if(!horariosLivres.includes(agendamento.hora)){
+if(!horariosLivres.includes(agendamento.hora)){
 
- resposta=`Esse horário não está disponível.
+resposta=`Esse horário não está disponível.
 
 Horários livres:
 
-${horariosLivres.slice(0,6).join("\n")}`
+${horariosTexto}`
 
- }else{
+}else{
 
- await supabase
- .from("agendamentos")
- .insert({
+await supabase
+.from("agendamentos")
+.insert({
 
- loja_id:loja.id,
- nome:agendamento.nome,
- telefone:cliente,
- data:agendamento.data,
- hora:agendamento.hora,
- servico:servico.nome
+loja_id:loja.id,
+nome:agendamento.nome,
+telefone:cliente,
+data:agendamento.data,
+hora:agendamento.hora,
+servico:servico.nome
 
- })
+})
 
- resposta="✅ Agendamento confirmado!"
+resposta="✅ Agendamento confirmado!"
 
- }
+}
 
- }
+}
 
- }
+}
 
- }catch(e){
- console.log("Erro agenda",e)
- }
+}catch(e){
 
-/* ================= SALVAR RESPOSTA ================= */
+console.log("Erro agenda",e)
 
- await supabase
- .from("conversas_whatsapp")
- .insert({
- telefone:cliente,
- loja_id:loja.id,
- mensagem:resposta,
- role:"assistant"
- })
+}
 
 /* ================= ENVIAR WHATSAPP ================= */
 
- const url=`https://graph.facebook.com/v19.0/${phone_number_id}/messages`
+const url=`https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
- await fetch(url,{
+await fetch(url,{
 
- method:"POST",
+method:"POST",
 
- headers:{
- Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
- "Content-Type":"application/json"
- },
+headers:{
+Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+"Content-Type":"application/json"
+},
 
- body:JSON.stringify({
+body:JSON.stringify({
 
- messaging_product:"whatsapp",
- to:cliente,
- type:"text",
- text:{body:resposta}
+messaging_product:"whatsapp",
+to:cliente,
+type:"text",
+text:{body:resposta}
 
- })
+})
 
- })
+})
 
- }catch(e){
+}catch(e){
 
- console.log("Erro geral",e)
+console.log("Erro geral:",e)
 
- }
+}
 
- return res.status(200).end()
+return res.status(200).end()
 
 }
 
