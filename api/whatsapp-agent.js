@@ -76,13 +76,15 @@ if(req.method==="GET"){
 
 }
 
-/* ================= RECEBER EVENTO ================= */
+/* ================= EVENTO WHATSAPP ================= */
 
 if(req.method==="POST"){
 
  try{
 
- const openai = new OpenAI({apiKey:process.env.OPENAI_API_KEY})
+ const openai = new OpenAI({
+  apiKey:process.env.OPENAI_API_KEY
+ })
 
  const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -163,23 +165,24 @@ if(req.method==="POST"){
   }))
  : []
 
-/* ================= PRODUTOS / SERVICOS ================= */
+/* ================= SERVICOS ================= */
 
  const {data:servicos} = await supabase
  .from("produtos_servicos")
  .select("*")
  .eq("user_id",loja.user_id)
  .eq("ativo",true)
- .order("ordem_exibicao",{ascending:true})
 
  let listaServicos=""
 
  if(servicos){
 
-  listaServicos = servicos.map(s=>`
+ listaServicos = servicos.map(s=>`
+
 ${s.nome}
 Preço: R$ ${s.preco}
-Duração: ${s.duracao_minutos || "30"} min
+Duração: ${s.duracao_minutos || 30} min
+
 `).join("\n")
 
  }
@@ -204,18 +207,18 @@ Duração: ${s.duracao_minutos || "30"} min
  role:"system",
  content:`
 
-Você é o assistente da loja ${loja.negocio}.
+Você é o assistente oficial da loja ${loja.negocio}.
 
 Nunca invente informações.
-Use apenas os dados fornecidos.
+Use apenas dados fornecidos.
 
 Hoje é ${sistema.diaSemana} ${sistema.dataAtual}.
 
-Serviços disponíveis:
+SERVIÇOS:
 
 ${listaServicos}
 
-Se o cliente quiser agendar gere:
+Se cliente pedir agendamento gere:
 
 AGENDAMENTO_JSON:
 
@@ -227,12 +230,17 @@ AGENDAMENTO_JSON:
 "servico":""
 }
 
-Pergunte apenas o que faltar.
+Nunca invente horários.
 
 `
  },
 
- ...mensagens
+ ...mensagens,
+
+ {
+ role:"user",
+ content:mensagem
+ }
 
  ]
 
@@ -242,7 +250,7 @@ Pergunte apenas o que faltar.
 
  }catch(e){
 
- resposta="Olá 👋 como posso ajudar?"
+ resposta="Olá 👋 Como posso ajudar?"
 
  }
 
@@ -256,6 +264,16 @@ Pergunte apenas o que faltar.
 
  const agendamento = JSON.parse(match[1])
 
+ const servico = servicos.find(
+ s=>s.nome.toLowerCase()===agendamento.servico.toLowerCase()
+ )
+
+ if(!servico){
+
+ resposta="Esse serviço não existe na loja."
+
+ }else{
+
  const {data:agenda} = await supabase
  .from("agenda_loja")
  .select("*")
@@ -265,7 +283,7 @@ Pergunte apenas o que faltar.
 
  if(!agenda){
 
- resposta="Não há agenda disponível para esse dia."
+ resposta="Não há agenda para esse dia."
 
  }else{
 
@@ -275,6 +293,8 @@ Pergunte apenas o que faltar.
 
  }else{
 
+ const intervalos = JSON.parse(agenda.horarios)
+
  const {data:ocupados} = await supabase
  .from("agendamentos")
  .select("hora")
@@ -283,25 +303,19 @@ Pergunte apenas o que faltar.
 
  const horasOcupadas = ocupados?.map(o=>o.hora) || []
 
- const servico = servicos.find(s=>s.nome===agendamento.servico)
-
- const duracao = servico?.duracao_minutos || 30
-
  const horariosLivres = gerarHorariosLivres(
-  agenda.horarios,
-  horasOcupadas,
-  duracao
+ intervalos,
+ horasOcupadas,
+ servico.duracao_minutos || 30
  )
 
  if(!horariosLivres.includes(agendamento.hora)){
 
- resposta = `Esse horário não está disponível.
+ resposta=`Esse horário não está disponível.
 
 Horários livres:
 
-${horariosLivres.slice(0,6).join("\n")}
-
-Deseja algum desses?`
+${horariosLivres.slice(0,6).join("\n")}`
 
  }else{
 
@@ -314,7 +328,7 @@ Deseja algum desses?`
  telefone:cliente,
  data:agendamento.data,
  hora:agendamento.hora,
- servico:agendamento.servico
+ servico:servico.nome
 
  })
 
@@ -328,8 +342,12 @@ Deseja algum desses?`
 
  }
 
+ }
+
  }catch(e){
+
  console.log("Erro agenda",e)
+
  }
 
 /* ================= SALVAR RESPOSTA ================= */
