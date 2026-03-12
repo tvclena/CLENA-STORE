@@ -1,15 +1,3 @@
-const OpenAI = require("openai")
-const { createClient } = require("@supabase/supabase-js")
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE
-)
-
 module.exports = async function handler(req,res){
 
 /* ================= WEBHOOK VERIFY ================= */
@@ -17,15 +5,18 @@ module.exports = async function handler(req,res){
 if(req.method==="GET"){
 
 const verify_token = process.env.VERIFY_TOKEN
+
 const mode = req.query["hub.mode"]
 const token = req.query["hub.verify_token"]
 const challenge = req.query["hub.challenge"]
 
-if(mode && token===verify_token){
+if(mode==="subscribe" && token===verify_token){
+
 return res.status(200).send(challenge)
+
 }
 
-return res.status(403).end()
+return res.status(403).send("Erro de verificação")
 
 }
 
@@ -33,9 +24,21 @@ return res.status(403).end()
 
 if(req.method==="POST"){
 
-const body=req.body
-
 try{
+
+const OpenAI = require("openai")
+const { createClient } = require("@supabase/supabase-js")
+
+const openai = new OpenAI({
+apiKey: process.env.OPENAI_API_KEY
+})
+
+const supabase = createClient(
+process.env.SUPABASE_URL,
+process.env.SUPABASE_SERVICE_ROLE
+)
+
+const body=req.body
 
 const change = body.entry?.[0]?.changes?.[0]?.value
 
@@ -103,14 +106,14 @@ const {data:historico} = await supabase
 .select("*")
 .eq("telefone",cliente)
 .order("created_at",{ascending:true})
-.limit(15)
+.limit(10)
 
 const mensagens = historico.map(m=>({
 role:m.role,
 content:m.mensagem
 }))
 
-/* ================= BUSCAR PRODUTOS ================= */
+/* ================= PRODUTOS ================= */
 
 const {data:produtos} = await supabase
 .from("produtos")
@@ -161,7 +164,6 @@ Seu trabalho é:
 • mostrar produtos
 • criar agendamentos
 • criar pedidos
-• gerar pagamento
 
 ----------------------------------
 
@@ -189,22 +191,7 @@ quantidade:1
 ]
 }
 
-----------------------------------
-
-PAGAMENTO_JSON:
-
-{
-pedido_id:"",
-valor:""
-}
-
-----------------------------------
-
-REGRAS
-
-Nunca gere JSON sem confirmação.
-
-Sempre confirme antes.
+Nunca gere JSON sem confirmação do cliente.
 
 `
 },
@@ -219,6 +206,8 @@ resposta = completion.choices[0].message.content
 
 }catch(e){
 
+console.log("erro openai",e)
+
 resposta = "Olá 👋 Como posso ajudar?"
 
 }
@@ -227,11 +216,11 @@ resposta = "Olá 👋 Como posso ajudar?"
 
 try{
 
-const agendamentoMatch = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
+const match = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
 
-if(agendamentoMatch){
+if(match){
 
-const agendamento = JSON.parse(agendamentoMatch[1])
+const agendamento = JSON.parse(match[1])
 
 await fetch(process.env.URL_API+"/create-agendamento",{
 
@@ -259,42 +248,6 @@ resposta="✅ Agendamento confirmado!"
 }catch(e){
 
 console.log("erro agendamento",e)
-
-}
-
-/* ================= PROCESSAR PEDIDO ================= */
-
-try{
-
-const pedidoMatch = resposta.match(/PEDIDO_JSON:\s*({[\s\S]*?})/)
-
-if(pedidoMatch){
-
-const pedido = JSON.parse(pedidoMatch[1])
-
-await fetch(process.env.URL_API+"/handlers/pedido",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-cliente:cliente,
-itens:pedido.itens,
-loja_id:loja.id
-})
-
-})
-
-resposta="🧾 Pedido criado com sucesso!"
-
-}
-
-}catch(e){
-
-console.log("erro pedido",e)
 
 }
 
