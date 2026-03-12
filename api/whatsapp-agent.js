@@ -8,9 +8,8 @@ function limparNumero(numero){
  return numero.replace(/\D/g,"")
 }
 
-function obterDataISO(){
- const agora = new Date()
- return agora.toISOString().split("T")[0]
+function dataHoje(){
+ return new Date().toISOString().split("T")[0]
 }
 
 function somarMinutos(hora,duracao){
@@ -25,11 +24,42 @@ function somarMinutos(hora,duracao){
  return `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}:00`
 }
 
+/* ================= HORARIOS LIVRES ================= */
+
+function gerarHorariosLivres(intervalos,ocupados,duracao){
+
+ const livres=[]
+
+ intervalos.forEach(intervalo=>{
+
+  let [h,m] = intervalo.inicio.split(":").map(Number)
+  const [hf,mf] = intervalo.fim.split(":").map(Number)
+
+  while(h<hf || (h===hf && m<mf)){
+
+   const hora=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`
+
+   if(!ocupados.includes(hora)){
+    livres.push(hora)
+   }
+
+   m += duracao
+
+   while(m>=60){
+    m -= 60
+    h++
+   }
+
+  }
+
+ })
+
+ return livres
+}
+
 /* ================= HANDLER ================= */
 
 export default async function handler(req,res){
-
-/* ================= VERIFY ================= */
 
 if(req.method==="GET"){
 
@@ -45,8 +75,6 @@ if(req.method==="GET"){
 
  return res.status(403).send("Erro verificação")
 }
-
-/* ================= RECEBER EVENTO ================= */
 
 if(req.method==="POST"){
 
@@ -84,9 +112,7 @@ const {data:jaProcessada} = await supabase
 .eq("message_id",message_id)
 .maybeSingle()
 
-if(jaProcessada){
- return res.status(200).end()
-}
+if(jaProcessada) return res.status(200).end()
 
 await supabase
 .from("mensagens_processadas")
@@ -102,10 +128,20 @@ const {data:loja} = await supabase
 .eq("phone_number_id",phone_number_id)
 .maybeSingle()
 
-if(!loja){
- console.log("Loja não encontrada")
- return res.status(200).end()
-}
+if(!loja) return res.status(200).end()
+
+/* ================= MEMÓRIA DO CLIENTE ================= */
+
+const {data:ultimoCliente} = await supabase
+.from("agendamentos")
+.select("cliente_nome")
+.eq("cliente_whatsapp",cliente)
+.eq("loja_id",loja.id)
+.order("created_at",{ascending:false})
+.limit(1)
+.maybeSingle()
+
+let nomeCliente = ultimoCliente?.cliente_nome || null
 
 /* ================= SERVIÇOS ================= */
 
@@ -115,7 +151,7 @@ const {data:servicos} = await supabase
 .eq("user_id",loja.user_id)
 .eq("ativo",true)
 
-/* ================= IA INTERPRETAÇÃO ================= */
+/* ================= INTERPRETAR MENSAGEM ================= */
 
 let interpretacao={}
 
@@ -138,14 +174,11 @@ servico
 hora
 nome
 
-Responda JSON:
-
 {
 "servico":"",
 "hora":"",
 "nome":""
 }
-
 `
 },
 
@@ -160,11 +193,9 @@ content:mensagem
 
 interpretacao = JSON.parse(completion.choices[0].message.content)
 
-}catch(e){
- console.log("erro ia")
-}
+}catch(e){}
 
-/* ================= IDENTIFICAR SERVIÇO ================= */
+/* ================= SERVIÇO ================= */
 
 const servico = servicos?.find(s=>
  interpretacao.servico?.toLowerCase().includes(s.nome.toLowerCase())
@@ -174,7 +205,7 @@ if(!servico){
 
 const lista = servicos.map(s=>`• ${s.nome}`).join("\n")
 
-await enviarMensagem(cliente,phone_number_id,
+await enviar(cliente,phone_number_id,
 `Qual serviço deseja?
 
 ${lista}`)
@@ -183,13 +214,13 @@ return res.status(200).end()
 
 }
 
-/* ================= HORÁRIO ================= */
+/* ================= HORA ================= */
 
 const hora = interpretacao.hora
 
 if(!hora){
 
-await enviarMensagem(cliente,phone_number_id,
+await enviar(cliente,phone_number_id,
 `Qual horário deseja para ${servico.nome}?`)
 
 return res.status(200).end()
@@ -198,9 +229,9 @@ return res.status(200).end()
 
 /* ================= DATA ================= */
 
-const data = obterDataISO()
+const data = dataHoje()
 
-/* ================= VERIFICAR AGENDA ================= */
+/* ================= AGENDA ================= */
 
 const {data:agenda} = await supabase
 .from("agenda_loja")
@@ -211,27 +242,42 @@ const {data:agenda} = await supabase
 
 if(!agenda){
 
-await enviarMensagem(cliente,phone_number_id,
-"A agenda desse dia não está cadastrada.")
+await enviar(cliente,phone_number_id,
+"A agenda não está cadastrada para hoje.")
 
 return res.status(200).end()
 
 }
 
-/* ================= VERIFICAR OCUPAÇÃO ================= */
+const intervalos = JSON.parse(agenda.horarios)
 
-const {data:ocupado} = await supabase
+/* ================= AGENDAMENTOS ================= */
+
+const {data:ocupados} = await supabase
 .from("agendamentos")
-.select("*")
+.select("hora_inicio")
 .eq("loja_id",loja.id)
 .eq("data",data)
-.eq("hora_inicio",`${hora}:00`)
-.maybeSingle()
 
-if(ocupado){
+const horasOcupadas = ocupados?.map(o=>o.hora_inicio.substring(0,5)) || []
 
-await enviarMensagem(cliente,phone_number_id,
-"Esse horário já está ocupado. Deseja outro horário?")
+const horariosLivres = gerarHorariosLivres(
+ intervalos,
+ horasOcupadas,
+ servico.duracao_minutos || 30
+)
+
+/* ================= OCUPADO ================= */
+
+if(!horariosLivres.includes(hora)){
+
+await enviar(cliente,phone_number_id,
+
+`Esse horário não está disponível.
+
+Horários livres:
+
+${horariosLivres.slice(0,6).join("\n")}`)
 
 return res.status(200).end()
 
@@ -239,41 +285,37 @@ return res.status(200).end()
 
 /* ================= NOME ================= */
 
-let nome = interpretacao.nome
+if(!nomeCliente){
 
-if(!nome){
+nomeCliente = interpretacao.nome
 
-await enviarMensagem(cliente,phone_number_id,
+if(!nomeCliente){
+
+await enviar(cliente,phone_number_id,
 "Qual seu nome para confirmar o agendamento?")
 
 return res.status(200).end()
 
 }
 
-/* ================= CALCULAR FIM ================= */
-
-const hora_inicio = `${hora}:00`
-const hora_fim = somarMinutos(hora,servico.duracao_minutos || 30)
+}
 
 /* ================= CONFIRMAÇÃO ================= */
 
-const resumo =
+const hora_inicio=`${hora}:00`
+const hora_fim = somarMinutos(hora,servico.duracao_minutos || 30)
+
+await enviar(cliente,phone_number_id,
 
 `Confirma seu agendamento?
 
 Serviço: ${servico.nome}
 Data: ${data}
 Horário: ${hora}
-Duração: ${servico.duracao_minutos} min
-Valor: R$ ${servico.preco}
 
-Digite CONFIRMAR para concluir.`
+Digite CONFIRMAR para concluir.`)
 
-await enviarMensagem(cliente,phone_number_id,resumo)
-
-/* ================= ESPERA CONFIRMAÇÃO ================= */
-
-if(mensagem.toLowerCase() === "confirmar"){
+if(mensagem.toLowerCase()==="confirmar"){
 
 await supabase
 .from("agendamentos")
@@ -289,7 +331,7 @@ data:data,
 hora_inicio:hora_inicio,
 hora_fim:hora_fim,
 
-cliente_nome:nome,
+cliente_nome:nomeCliente,
 cliente_whatsapp:cliente,
 
 status:"CONFIRMADO",
@@ -309,7 +351,7 @@ duracao_total:servico.duracao_minutos
 
 })
 
-await enviarMensagem(cliente,phone_number_id,
+await enviar(cliente,phone_number_id,
 
 `✅ Agendamento confirmado!
 
@@ -317,13 +359,13 @@ Serviço: ${servico.nome}
 Data: ${data}
 Horário: ${hora}
 
-Até breve!`)
+Até breve.`)
 
 }
 
 }catch(e){
 
-console.log("erro geral",e)
+console.log(e)
 
 }
 
@@ -333,9 +375,9 @@ return res.status(200).end()
 
 }
 
-/* ================= WHATSAPP ================= */
+/* ================= ENVIAR WHATSAPP ================= */
 
-async function enviarMensagem(cliente,phone_number_id,texto){
+async function enviar(cliente,phone_number_id,texto){
 
 const url=`https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
