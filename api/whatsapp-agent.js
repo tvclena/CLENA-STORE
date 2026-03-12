@@ -23,13 +23,10 @@ export default async function handler(req, res) {
     const challenge = req.query["hub.challenge"]
 
     if (mode === "subscribe" && token === verify_token) {
-
       return res.status(200).send(challenge)
-
     }
 
     return res.status(403).send("Erro de verificação")
-
   }
 
   /* ================= RECEBER EVENTO ================= */
@@ -71,14 +68,11 @@ export default async function handler(req, res) {
         .from("mensagens_processadas")
         .select("*")
         .eq("message_id", message_id)
-        .single()
+        .maybeSingle()
 
       if (jaProcessada) {
-
-        console.log("Mensagem duplicada")
-
+        console.log("Mensagem duplicada ignorada")
         return res.status(200).end()
-
       }
 
       await supabase
@@ -87,22 +81,23 @@ export default async function handler(req, res) {
 
       /* ================= IDENTIFICAR LOJA ================= */
 
-      const numeroLoja = limparNumero(change.metadata.display_phone_number)
+      const phone_number_id = change.metadata.phone_number_id
 
-      const { data: lojas } = await supabase
+      console.log("PHONE NUMBER ID:", phone_number_id)
+
+      const { data: loja, error } = await supabase
         .from("user_profile")
         .select("*")
+        .eq("phone_number_id", phone_number_id)
+        .maybeSingle()
 
-      const loja = lojas?.find(l =>
-        limparNumero(l.whatsapp) === numeroLoja
-      )
+      if (error) {
+        console.log("Erro ao buscar loja:", error)
+      }
 
       if (!loja) {
-
-        console.log("Loja não encontrada")
-
+        console.log("Loja não encontrada para:", phone_number_id)
         return res.status(200).end()
-
       }
 
       console.log("Loja encontrada:", loja.negocio)
@@ -142,11 +137,9 @@ export default async function handler(req, res) {
       let listaProdutos = ""
 
       if (produtos) {
-
         listaProdutos = produtos
           .map(p => `${p.nome} - R$ ${p.preco}`)
           .join("\n")
-
       }
 
       /* ================= OPENAI ================= */
@@ -234,7 +227,7 @@ Nunca gere JSON sem confirmação do cliente.
 
       } catch (e) {
 
-        console.log("Erro OpenAI", e)
+        console.log("Erro OpenAI:", e)
 
         resposta = "Olá 👋 Como posso ajudar?"
 
@@ -275,7 +268,7 @@ Nunca gere JSON sem confirmação do cliente.
 
       } catch (e) {
 
-        console.log("Erro agendamento", e)
+        console.log("Erro ao processar agendamento:", e)
 
       }
 
@@ -291,8 +284,6 @@ Nunca gere JSON sem confirmação do cliente.
         })
 
       /* ================= ENVIAR WHATSAPP ================= */
-
-      const phone_number_id = change.metadata.phone_number_id
 
       const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
