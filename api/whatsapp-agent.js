@@ -8,49 +8,21 @@ function limparNumero(numero){
  return numero.replace(/\D/g,"")
 }
 
-function obterDataSistema(){
-
+function obterDataISO(){
  const agora = new Date()
-
- const dataAtual = agora.toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"})
- const horaAtual = agora.toLocaleTimeString("pt-BR",{timeZone:"America/Sao_Paulo"})
- const diaSemana = agora.toLocaleDateString("pt-BR",{weekday:"long",timeZone:"America/Sao_Paulo"})
- const dataISO = agora.toISOString().split("T")[0]
-
- return {dataAtual,horaAtual,diaSemana,dataISO}
+ return agora.toISOString().split("T")[0]
 }
 
-/* ================= HORARIOS LIVRES ================= */
+function somarMinutos(hora,duracao){
 
-function gerarHorariosLivres(intervalos,ocupados,duracao){
+ const [h,m] = hora.split(":").map(Number)
 
- const livres=[]
+ let minutos = h*60 + m + duracao
 
- intervalos.forEach(intervalo=>{
+ const nh = Math.floor(minutos/60)
+ const nm = minutos % 60
 
-  let [h,m] = intervalo.inicio.split(":").map(Number)
-  const [hf,mf] = intervalo.fim.split(":").map(Number)
-
-  while(h<hf || (h===hf && m<mf)){
-
-   const hora=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`
-
-   if(!ocupados.includes(hora)){
-    livres.push(hora)
-   }
-
-   m += duracao
-
-   while(m>=60){
-    m -= 60
-    h++
-   }
-
-  }
-
- })
-
- return livres
+ return `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}:00`
 }
 
 /* ================= HANDLER ================= */
@@ -135,34 +107,6 @@ if(!loja){
  return res.status(200).end()
 }
 
-/* ================= SALVAR MSG ================= */
-
-await supabase
-.from("conversas_whatsapp")
-.insert({
- telefone:cliente,
- loja_id:loja.id,
- mensagem:mensagem,
- role:"user"
-})
-
-/* ================= HISTÓRICO ================= */
-
-const {data:historico} = await supabase
-.from("conversas_whatsapp")
-.select("*")
-.eq("telefone",cliente)
-.eq("loja_id",loja.id)
-.order("created_at",{ascending:false})
-.limit(20)
-
-const mensagens = historico
- ? historico.reverse().map(m=>({
-   role:m.role,
-   content:m.mensagem
-  }))
- : []
-
 /* ================= SERVIÇOS ================= */
 
 const {data:servicos} = await supabase
@@ -171,58 +115,9 @@ const {data:servicos} = await supabase
 .eq("user_id",loja.user_id)
 .eq("ativo",true)
 
-let listaServicos=""
+/* ================= IA INTERPRETAÇÃO ================= */
 
-if(servicos){
-
-listaServicos = servicos.map(s=>`
-
-${s.nome}
-Preço: R$ ${s.preco}
-Duração: ${s.duracao_minutos || 30} min
-
-`).join("\n")
-
-}
-
-/* ================= DATA ================= */
-
-const sistema = obterDataSistema()
-
-/* ================= AGENDA ================= */
-
-const {data:agenda} = await supabase
-.from("agenda_loja")
-.select("*")
-.eq("user_id",loja.user_id)
-.eq("data",sistema.dataISO)
-.maybeSingle()
-
-let horariosLivres=[]
-
-if(agenda && !agenda.fechado){
-
-const intervalos = JSON.parse(agenda.horarios)
-
-const {data:ocupados} = await supabase
-.from("agendamentos")
-.select("hora")
-.eq("loja_id",loja.id)
-.eq("data",sistema.dataISO)
-
-const horasOcupadas = ocupados?.map(o=>o.hora) || []
-
-horariosLivres = gerarHorariosLivres(intervalos,horasOcupadas,30)
-
-}
-
-/* ================= LISTA HORARIOS ================= */
-
-const horariosTexto = horariosLivres.join("\n")
-
-/* ================= OPENAI ================= */
-
-let resposta=""
+let interpretacao={}
 
 try{
 
@@ -230,46 +125,29 @@ const completion = await openai.chat.completions.create({
 
 model:"gpt-4.1-mini",
 
+response_format:{type:"json_object"},
+
 messages:[
 
 {
 role:"system",
 content:`
+Extraia da mensagem:
 
-Você é o assistente oficial da loja ${loja.negocio}.
+servico
+hora
+nome
 
-Hoje é ${sistema.diaSemana} ${sistema.dataAtual}.
-
-SERVIÇOS DISPONÍVEIS:
-
-${listaServicos}
-
-HORÁRIOS DISPONÍVEIS HOJE:
-
-${horariosTexto}
-
-Regras obrigatórias:
-
-• nunca invente horários
-• nunca invente serviços
-• se perguntarem horários mostre apenas os disponíveis
-• não faça perguntas desnecessárias
-• seja direto
-• confirme agendamento apenas se horário existir
-
-AGENDAMENTO_JSON:
+Responda JSON:
 
 {
-"nome":"",
-"data":"",
+"servico":"",
 "hora":"",
-"servico":""
+"nome":""
 }
 
 `
 },
-
-...mensagens,
 
 {
 role:"user",
@@ -280,74 +158,184 @@ content:mensagem
 
 })
 
-resposta = completion.choices[0].message.content
+interpretacao = JSON.parse(completion.choices[0].message.content)
 
 }catch(e){
-
-console.log("Erro IA",e)
-
-resposta="Olá 👋 como posso ajudar?"
-
+ console.log("erro ia")
 }
 
-/* ================= PROCESSAR AGENDAMENTO ================= */
+/* ================= IDENTIFICAR SERVIÇO ================= */
 
-try{
-
-const match = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
-
-if(match){
-
-const agendamento = JSON.parse(match[1])
-
-const servico = servicos.find(
-s=>s.nome.toLowerCase()===agendamento.servico.toLowerCase()
+const servico = servicos?.find(s=>
+ interpretacao.servico?.toLowerCase().includes(s.nome.toLowerCase())
 )
 
 if(!servico){
 
-resposta="Esse serviço não existe."
+const lista = servicos.map(s=>`• ${s.nome}`).join("\n")
 
-}else{
+await enviarMensagem(cliente,phone_number_id,
+`Qual serviço deseja?
 
-if(!horariosLivres.includes(agendamento.hora)){
+${lista}`)
 
-resposta=`Esse horário não está disponível.
+return res.status(200).end()
 
-Horários livres:
+}
 
-${horariosTexto}`
+/* ================= HORÁRIO ================= */
 
-}else{
+const hora = interpretacao.hora
+
+if(!hora){
+
+await enviarMensagem(cliente,phone_number_id,
+`Qual horário deseja para ${servico.nome}?`)
+
+return res.status(200).end()
+
+}
+
+/* ================= DATA ================= */
+
+const data = obterDataISO()
+
+/* ================= VERIFICAR AGENDA ================= */
+
+const {data:agenda} = await supabase
+.from("agenda_loja")
+.select("*")
+.eq("user_id",loja.user_id)
+.eq("data",data)
+.maybeSingle()
+
+if(!agenda){
+
+await enviarMensagem(cliente,phone_number_id,
+"A agenda desse dia não está cadastrada.")
+
+return res.status(200).end()
+
+}
+
+/* ================= VERIFICAR OCUPAÇÃO ================= */
+
+const {data:ocupado} = await supabase
+.from("agendamentos")
+.select("*")
+.eq("loja_id",loja.id)
+.eq("data",data)
+.eq("hora_inicio",`${hora}:00`)
+.maybeSingle()
+
+if(ocupado){
+
+await enviarMensagem(cliente,phone_number_id,
+"Esse horário já está ocupado. Deseja outro horário?")
+
+return res.status(200).end()
+
+}
+
+/* ================= NOME ================= */
+
+let nome = interpretacao.nome
+
+if(!nome){
+
+await enviarMensagem(cliente,phone_number_id,
+"Qual seu nome para confirmar o agendamento?")
+
+return res.status(200).end()
+
+}
+
+/* ================= CALCULAR FIM ================= */
+
+const hora_inicio = `${hora}:00`
+const hora_fim = somarMinutos(hora,servico.duracao_minutos || 30)
+
+/* ================= CONFIRMAÇÃO ================= */
+
+const resumo =
+
+`Confirma seu agendamento?
+
+Serviço: ${servico.nome}
+Data: ${data}
+Horário: ${hora}
+Duração: ${servico.duracao_minutos} min
+Valor: R$ ${servico.preco}
+
+Digite CONFIRMAR para concluir.`
+
+await enviarMensagem(cliente,phone_number_id,resumo)
+
+/* ================= ESPERA CONFIRMAÇÃO ================= */
+
+if(mensagem.toLowerCase() === "confirmar"){
 
 await supabase
 .from("agendamentos")
 .insert({
 
 loja_id:loja.id,
-nome:agendamento.nome,
-telefone:cliente,
-data:agendamento.data,
-hora:agendamento.hora,
-servico:servico.nome
+user_id:loja.user_id,
+
+servico_id:servico.id,
+
+data:data,
+
+hora_inicio:hora_inicio,
+hora_fim:hora_fim,
+
+cliente_nome:nome,
+cliente_whatsapp:cliente,
+
+status:"CONFIRMADO",
+
+valor_servico:servico.preco,
+servico_nome:servico.nome,
+
+servicos:JSON.stringify([{
+id:servico.id,
+nome:servico.nome,
+preco:servico.preco,
+duracao:servico.duracao_minutos
+}]),
+
+valor_total:servico.preco,
+duracao_total:servico.duracao_minutos
 
 })
 
-resposta="✅ Agendamento confirmado!"
+await enviarMensagem(cliente,phone_number_id,
 
-}
+`✅ Agendamento confirmado!
 
-}
+Serviço: ${servico.nome}
+Data: ${data}
+Horário: ${hora}
+
+Até breve!`)
 
 }
 
 }catch(e){
 
-console.log("Erro agenda",e)
+console.log("erro geral",e)
 
 }
 
-/* ================= ENVIAR WHATSAPP ================= */
+return res.status(200).end()
+
+}
+
+}
+
+/* ================= WHATSAPP ================= */
+
+async function enviarMensagem(cliente,phone_number_id,texto){
 
 const url=`https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
@@ -365,20 +353,10 @@ body:JSON.stringify({
 messaging_product:"whatsapp",
 to:cliente,
 type:"text",
-text:{body:resposta}
+text:{body:texto}
 
 })
 
 })
-
-}catch(e){
-
-console.log("Erro geral:",e)
-
-}
-
-return res.status(200).end()
-
-}
 
 }
