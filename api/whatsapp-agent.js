@@ -1,4 +1,7 @@
-module.exports = async function handler(req,res){
+import OpenAI from "openai"
+import { createClient } from "@supabase/supabase-js"
+
+export default async function handler(req,res){
 
 /* ================= WEBHOOK VERIFY ================= */
 
@@ -25,9 +28,6 @@ return res.status(403).send("Erro de verificação")
 if(req.method==="POST"){
 
 try{
-
-const OpenAI = require("openai")
-const { createClient } = require("@supabase/supabase-js")
 
 const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY
