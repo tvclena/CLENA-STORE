@@ -18,10 +18,9 @@ function obterDataSistema(){
  const dataISO = agora.toISOString().split("T")[0]
 
  return {dataAtual,horaAtual,diaSemana,dataISO}
-
 }
 
-/* ================= CALCULAR HORARIOS ================= */
+/* ================= HORARIOS LIVRES ================= */
 
 function gerarHorariosLivres(intervalos,ocupados,duracao){
 
@@ -29,8 +28,8 @@ function gerarHorariosLivres(intervalos,ocupados,duracao){
 
  intervalos.forEach(intervalo=>{
 
-  let [h,m]=intervalo.inicio.split(":").map(Number)
-  const [hf,mf]=intervalo.fim.split(":").map(Number)
+  let [h,m] = intervalo.inicio.split(":").map(Number)
+  const [hf,mf] = intervalo.fim.split(":").map(Number)
 
   while(h<hf || (h===hf && m<mf)){
 
@@ -40,10 +39,10 @@ function gerarHorariosLivres(intervalos,ocupados,duracao){
     livres.push(hora)
    }
 
-   m+=duracao
+   m += duracao
 
    while(m>=60){
-    m-=60
+    m -= 60
     h++
    }
 
@@ -73,7 +72,6 @@ if(req.method==="GET"){
  }
 
  return res.status(403).send("Erro verificação")
-
 }
 
 /* ================= EVENTO WHATSAPP ================= */
@@ -106,7 +104,7 @@ if(req.method==="POST"){
 
  if(!mensagem) return res.status(200).end()
 
-/* ================= BLOQUEAR DUPLICIDADE ================= */
+/* ================= DUPLICIDADE ================= */
 
  const {data:jaProcessada} = await supabase
  .from("mensagens_processadas")
@@ -207,24 +205,24 @@ Duração: ${s.duracao_minutos || 30} min
  role:"system",
  content:`
 
-Você é o assistente oficial da loja ${loja.negocio}.
+Você é o assistente da loja ${loja.negocio}.
 
-Nunca invente informações.
-Use apenas dados fornecidos.
+Nunca invente horários ou serviços.
 
 Hoje é ${sistema.diaSemana} ${sistema.dataAtual}.
 
-SERVIÇOS:
+SERVIÇOS DISPONÍVEIS:
 
 ${listaServicos}
 
-Se cliente pedir agendamento gere:
+Se cliente perguntar horários responda apenas com horários disponíveis.
+
+Se cliente quiser agendar gere:
 
 AGENDAMENTO_JSON:
 
 {
 "nome":"",
-"telefone":"",
 "data":"",
 "hora":"",
 "servico":""
@@ -250,7 +248,34 @@ Nunca invente horários.
 
  }catch(e){
 
- resposta="Olá 👋 Como posso ajudar?"
+ resposta="Olá 👋 como posso ajudar?"
+
+ }
+
+/* ================= HORARIOS DO DIA ================= */
+
+ const {data:agenda} = await supabase
+ .from("agenda_loja")
+ .select("*")
+ .eq("user_id",loja.user_id)
+ .eq("data",sistema.dataISO)
+ .maybeSingle()
+
+ let horariosLivres=[]
+
+ if(agenda && !agenda.fechado){
+
+ const intervalos = JSON.parse(agenda.horarios)
+
+ const {data:ocupados} = await supabase
+ .from("agendamentos")
+ .select("hora")
+ .eq("loja_id",loja.id)
+ .eq("data",sistema.dataISO)
+
+ const horasOcupadas = ocupados?.map(o=>o.hora) || []
+
+ horariosLivres = gerarHorariosLivres(intervalos,horasOcupadas,30)
 
  }
 
@@ -270,44 +295,9 @@ Nunca invente horários.
 
  if(!servico){
 
- resposta="Esse serviço não existe na loja."
+ resposta="Esse serviço não existe."
 
  }else{
-
- const {data:agenda} = await supabase
- .from("agenda_loja")
- .select("*")
- .eq("user_id",loja.user_id)
- .eq("data",agendamento.data)
- .maybeSingle()
-
- if(!agenda){
-
- resposta="Não há agenda para esse dia."
-
- }else{
-
- if(agenda.fechado){
-
- resposta="A loja estará fechada nesse dia."
-
- }else{
-
- const intervalos = JSON.parse(agenda.horarios)
-
- const {data:ocupados} = await supabase
- .from("agendamentos")
- .select("hora")
- .eq("loja_id",loja.id)
- .eq("data",agendamento.data)
-
- const horasOcupadas = ocupados?.map(o=>o.hora) || []
-
- const horariosLivres = gerarHorariosLivres(
- intervalos,
- horasOcupadas,
- servico.duracao_minutos || 30
- )
 
  if(!horariosLivres.includes(agendamento.hora)){
 
@@ -340,14 +330,8 @@ ${horariosLivres.slice(0,6).join("\n")}`
 
  }
 
- }
-
- }
-
  }catch(e){
-
  console.log("Erro agenda",e)
-
  }
 
 /* ================= SALVAR RESPOSTA ================= */
