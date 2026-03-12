@@ -1,159 +1,182 @@
 import OpenAI from "openai"
 import { createClient } from "@supabase/supabase-js"
 
-export default async function handler(req,res){
+/* ================= UTIL ================= */
 
-/* ================= WEBHOOK VERIFY ================= */
-
-if(req.method==="GET"){
-
-const verify_token = process.env.VERIFY_TOKEN
-
-const mode = req.query["hub.mode"]
-const token = req.query["hub.verify_token"]
-const challenge = req.query["hub.challenge"]
-
-if(mode==="subscribe" && token===verify_token){
-
-return res.status(200).send(challenge)
-
+function limparNumero(numero) {
+  if (!numero) return ""
+  return numero.replace(/\D/g, "")
 }
 
-return res.status(403).send("Erro de verificação")
+/* ================= HANDLER ================= */
 
-}
+export default async function handler(req, res) {
 
-/* ================= RECEBER EVENTO ================= */
+  /* ================= WEBHOOK VERIFY ================= */
 
-if(req.method==="POST"){
+  if (req.method === "GET") {
 
-try{
+    const verify_token = process.env.VERIFY_TOKEN
 
-const openai = new OpenAI({
-apiKey: process.env.OPENAI_API_KEY
-})
+    const mode = req.query["hub.mode"]
+    const token = req.query["hub.verify_token"]
+    const challenge = req.query["hub.challenge"]
 
-const supabase = createClient(
-process.env.SUPABASE_URL,
-process.env.SUPABASE_SERVICE_ROLE
-)
+    if (mode === "subscribe" && token === verify_token) {
 
-const body=req.body
+      return res.status(200).send(challenge)
 
-const change = body.entry?.[0]?.changes?.[0]?.value
+    }
 
-if(!change) return res.status(200).end()
+    return res.status(403).send("Erro de verificação")
 
-if(!change.messages) return res.status(200).end()
+  }
 
-const msg = change.messages[0]
+  /* ================= RECEBER EVENTO ================= */
 
-const cliente = msg.from
-const mensagem = msg.text?.body
-const message_id = msg.id
+  if (req.method === "POST") {
 
-if(!mensagem) return res.status(200).end()
+    try {
 
-/* ================= BLOQUEAR DUPLICIDADE ================= */
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+      })
 
-const { data: jaProcessada } = await supabase
-.from("mensagens_processadas")
-.select("*")
-.eq("message_id", message_id)
-.single()
+      const supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE
+      )
 
-if(jaProcessada){
-return res.status(200).end()
-}
+      const body = req.body
 
-await supabase
-.from("mensagens_processadas")
-.insert({ message_id })
+      console.log("Webhook recebido:", JSON.stringify(body))
 
-/* ================= IDENTIFICAR LOJA ================= */
+      const change = body.entry?.[0]?.changes?.[0]?.value
 
-const phone_number_id = change.metadata.phone_number_id
+      if (!change) return res.status(200).end()
 
-const {data:loja} = await supabase
-.from("lojas")
-.select("*")
-.eq("phone_number_id",phone_number_id)
-.single()
+      if (!change.messages) return res.status(200).end()
 
-if(!loja){
+      const msg = change.messages[0]
 
-console.log("Loja não encontrada")
+      const cliente = limparNumero(msg.from)
+      const mensagem = msg.text?.body
+      const message_id = msg.id
 
-return res.status(200).end()
+      if (!mensagem) return res.status(200).end()
 
-}
+      /* ================= BLOQUEAR DUPLICIDADE ================= */
 
-/* ================= SALVAR MENSAGEM ================= */
+      const { data: jaProcessada } = await supabase
+        .from("mensagens_processadas")
+        .select("*")
+        .eq("message_id", message_id)
+        .single()
 
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-loja_id:loja.id,
-mensagem:mensagem,
-role:"user"
-})
+      if (jaProcessada) {
 
-/* ================= HISTÓRICO ================= */
+        console.log("Mensagem duplicada")
 
-const {data:historico} = await supabase
-.from("conversas_whatsapp")
-.select("*")
-.eq("telefone",cliente)
-.order("created_at",{ascending:true})
-.limit(10)
+        return res.status(200).end()
 
-const mensagens = historico.map(m=>({
-role:m.role,
-content:m.mensagem
-}))
+      }
 
-/* ================= PRODUTOS ================= */
+      await supabase
+        .from("mensagens_processadas")
+        .insert({ message_id })
 
-const {data:produtos} = await supabase
-.from("produtos")
-.select("nome,preco")
-.limit(20)
+      /* ================= IDENTIFICAR LOJA ================= */
 
-let listaProdutos=""
+      const numeroLoja = limparNumero(change.metadata.display_phone_number)
 
-if(produtos){
+      const { data: lojas } = await supabase
+        .from("user_profile")
+        .select("*")
 
-listaProdutos = produtos.map(p=>`${p.nome} - R$ ${p.preco}`).join("\n")
+      const loja = lojas?.find(l =>
+        limparNumero(l.whatsapp) === numeroLoja
+      )
 
-}
+      if (!loja) {
 
-/* ================= OPENAI ================= */
+        console.log("Loja não encontrada")
 
-let resposta=""
+        return res.status(200).end()
 
-try{
+      }
 
-const completion = await openai.chat.completions.create({
+      console.log("Loja encontrada:", loja.negocio)
 
-model:"gpt-4.1-mini",
+      /* ================= SALVAR MENSAGEM ================= */
 
-messages:[
+      await supabase
+        .from("conversas_whatsapp")
+        .insert({
+          telefone: cliente,
+          loja_id: loja.id,
+          mensagem: mensagem,
+          role: "user"
+        })
 
-{
-role:"system",
-content:`
+      /* ================= HISTÓRICO ================= */
 
-Você é o assistente oficial da loja ${loja.nome}.
+      const { data: historico } = await supabase
+        .from("conversas_whatsapp")
+        .select("*")
+        .eq("telefone", cliente)
+        .order("created_at", { ascending: true })
+        .limit(10)
+
+      const mensagens = historico?.map(m => ({
+        role: m.role,
+        content: m.mensagem
+      })) || []
+
+      /* ================= PRODUTOS ================= */
+
+      const { data: produtos } = await supabase
+        .from("produtos")
+        .select("nome,preco")
+        .limit(20)
+
+      let listaProdutos = ""
+
+      if (produtos) {
+
+        listaProdutos = produtos
+          .map(p => `${p.nome} - R$ ${p.preco}`)
+          .join("\n")
+
+      }
+
+      /* ================= OPENAI ================= */
+
+      let resposta = ""
+
+      try {
+
+        const completion = await openai.chat.completions.create({
+
+          model: "gpt-4.1-mini",
+
+          messages: [
+
+            {
+              role: "system",
+              content: `
+Você é o assistente oficial da loja ${loja.negocio}.
+
+Cidade: ${loja.cidade}
+Tipo de negócio: ${loja.tipo}
 
 Endereço:
-${loja.endereco}
-
-Horário:
-${loja.horario}
+${loja.rua || ""} ${loja.numero || ""} ${loja.bairro || ""}
 
 Instagram:
-${loja.instagram}
+${loja.instagram || ""}
+
+Descrição:
+${loja.bio || ""}
 
 PRODUTOS DISPONÍVEIS:
 ${listaProdutos}
@@ -162,6 +185,7 @@ Seu trabalho é:
 
 • responder clientes
 • mostrar produtos
+• ajudar clientes
 • criar agendamentos
 • criar pedidos
 
@@ -192,113 +216,119 @@ quantidade:1
 }
 
 Nunca gere JSON sem confirmação do cliente.
-
 `
-},
+            },
 
-...mensagens
+            ...mensagens,
 
-]
+            {
+              role: "user",
+              content: mensagem
+            }
 
-})
+          ]
 
-resposta = completion.choices[0].message.content
+        })
 
-}catch(e){
+        resposta = completion.choices[0].message.content
 
-console.log("erro openai",e)
+      } catch (e) {
 
-resposta = "Olá 👋 Como posso ajudar?"
+        console.log("Erro OpenAI", e)
 
-}
+        resposta = "Olá 👋 Como posso ajudar?"
 
-/* ================= PROCESSAR AGENDAMENTO ================= */
+      }
 
-try{
+      /* ================= PROCESSAR AGENDAMENTO ================= */
 
-const match = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
+      try {
 
-if(match){
+        const match = resposta.match(/AGENDAMENTO_JSON:\s*({[\s\S]*?})/)
 
-const agendamento = JSON.parse(match[1])
+        if (match) {
 
-await fetch(process.env.URL_API+"/create-agendamento",{
+          const agendamento = JSON.parse(match[1])
 
-method:"POST",
+          await fetch(process.env.URL_API + "/create-agendamento", {
 
-headers:{
-"Content-Type":"application/json"
-},
+            method: "POST",
 
-body:JSON.stringify({
-nome:agendamento.nome,
-telefone:cliente,
-data:agendamento.data,
-hora:agendamento.hora,
-servico:agendamento.servico,
-loja_id:loja.id
-})
+            headers: {
+              "Content-Type": "application/json"
+            },
 
-})
+            body: JSON.stringify({
+              nome: agendamento.nome,
+              telefone: cliente,
+              data: agendamento.data,
+              hora: agendamento.hora,
+              servico: agendamento.servico,
+              loja_id: loja.id
+            })
 
-resposta="✅ Agendamento confirmado!"
+          })
 
-}
+          resposta = "✅ Agendamento confirmado!"
 
-}catch(e){
+        }
 
-console.log("erro agendamento",e)
+      } catch (e) {
 
-}
+        console.log("Erro agendamento", e)
 
-/* ================= SALVAR RESPOSTA ================= */
+      }
 
-await supabase
-.from("conversas_whatsapp")
-.insert({
-telefone:cliente,
-loja_id:loja.id,
-mensagem:resposta,
-role:"assistant"
-})
+      /* ================= SALVAR RESPOSTA ================= */
 
-/* ================= ENVIAR WHATSAPP ================= */
+      await supabase
+        .from("conversas_whatsapp")
+        .insert({
+          telefone: cliente,
+          loja_id: loja.id,
+          mensagem: resposta,
+          role: "assistant"
+        })
 
-const url=`https://graph.facebook.com/v19.0/${phone_number_id}/messages`
+      /* ================= ENVIAR WHATSAPP ================= */
 
-await fetch(url,{
+      const phone_number_id = change.metadata.phone_number_id
 
-method:"POST",
+      const url = `https://graph.facebook.com/v19.0/${phone_number_id}/messages`
 
-headers:{
-Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
-"Content-Type":"application/json"
-},
+      await fetch(url, {
 
-body:JSON.stringify({
+        method: "POST",
 
-messaging_product:"whatsapp",
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json"
+        },
 
-to:cliente,
+        body: JSON.stringify({
 
-type:"text",
+          messaging_product: "whatsapp",
 
-text:{
-body:resposta
-}
+          to: cliente,
 
-})
+          type: "text",
 
-})
+          text: {
+            body: resposta
+          }
 
-}catch(e){
+        })
 
-console.log("erro geral",e)
+      })
 
-}
+    } catch (e) {
 
-return res.status(200).end()
+      console.log("Erro geral:", e)
 
-}
+    }
+
+    return res.status(200).end()
+
+  }
 
 }
