@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Conectar WhatsApp</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+.card{
+  background:#1e293b;
+  padding:30px;
+  border-radius:20px;
+  width:320px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+
+h2{
+  margin-bottom:20px;
+}
+
+.qr img{
+  width:220px;
+  border-radius:12px;
+}
+
+.status{
+  margin-top:15px;
+  font-weight:bold;
+}
+
+.ok{ color:#22c55e }
+.off{ color:#ef4444 }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>📲 Conectar WhatsApp</h2>
+
+<div class="qr">
+  <img id="qr">
+</div>
+
+<div id="status" class="status off">
+🔄 Gerando QR...
+</div>
+
+</div>
+
+<script>
+
+const loja_id = new URLSearchParams(location.search).get("l")
+
+if(!loja_id){
+  document.body.innerHTML = "<h2>Loja não informada</h2>"
+}
+
+/* ================= INICIAR ================= */
+
+async function iniciar(){
+
+  await fetch("/criar-sessao",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ loja_id })
+  })
+
+  monitorar()
+}
+
+/* ================= LOOP ================= */
+
+function monitorar(){
+
+  setInterval(async ()=>{
+
+    // QR
+    const qrRes = await fetch(`/qr/${loja_id}`)
+    const qrData = await qrRes.json()
+
+    const img = document.getElementById("qr")
+
+    if(qrData.qr){
+      img.src = qrData.qr
+    }
+
+    // STATUS
+    const stRes = await fetch(`/status/${loja_id}`)
+    const st = await stRes.json()
+
+    const el = document.getElementById("status")
+
+    if(st.conectado){
+      el.innerText = "🟢 Conectado com sucesso!"
+      el.className = "status ok"
+      img.style.display = "none"
+    }else{
+      el.innerText = "📸 Escaneie o QR no WhatsApp"
+      el.className = "status off"
+    }
+
+  },2000)
+}
+
+iniciar()
+
+</script>
+
+</body>
+</html>
