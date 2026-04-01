@@ -2,62 +2,73 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Conectar WhatsApp</title>
+<title>WhatsApp • Conectar</title>
 
 <style>
 body{
-  font-family:Arial;
+  margin:0;
+  font-family:Inter, Arial;
   background:#0f172a;
   color:#fff;
-  text-align:center;
-  padding:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
 }
 
 .card{
   background:#1e293b;
   padding:30px;
   border-radius:20px;
-  max-width:400px;
-  margin:auto;
+  width:360px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
 }
 
-img{
-  width:250px;
-  margin-top:20px;
-  border-radius:10px;
-}
-
-.status{
-  margin-top:20px;
-  font-weight:bold;
-}
-
-.conectado{
-  color:#22c55e;
-}
-
-.desconectado{
-  color:#ef4444;
+h2{
+  margin-bottom:20px;
 }
 
 input{
-  padding:10px;
-  border-radius:10px;
-  border:none;
   width:100%;
-  margin-top:10px;
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  margin-bottom:10px;
+  font-size:14px;
 }
 
 button{
-  margin-top:10px;
-  padding:12px;
+  width:100%;
+  padding:14px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#22c55e;
   color:#fff;
-  font-weight:bold;
+  font-weight:800;
   cursor:pointer;
 }
+
+button:hover{
+  background:#16a34a;
+}
+
+.qr{
+  margin-top:20px;
+}
+
+.qr img{
+  width:240px;
+  border-radius:12px;
+}
+
+.status{
+  margin-top:15px;
+  font-weight:700;
+}
+
+.ok{ color:#22c55e }
+.off{ color:#ef4444 }
 </style>
 
 </head>
@@ -68,14 +79,16 @@ button{
 
 <h2>📲 Conectar WhatsApp</h2>
 
-<input id="loja_id" placeholder="Digite o ID da loja">
+<input id="loja" placeholder="ID da loja">
 
-<button onclick="iniciar()">Gerar QR</button>
+<button onclick="start()">Gerar QR</button>
 
-<img id="qr" style="display:none">
+<div class="qr">
+  <img id="qr" style="display:none">
+</div>
 
-<div id="status" class="status desconectado">
-Desconectado
+<div id="status" class="status off">
+🔴 Desconectado
 </div>
 
 </div>
@@ -84,16 +97,16 @@ Desconectado
 
 let loja_id = null
 
-async function iniciar(){
+async function start(){
 
-  loja_id = document.getElementById("loja_id").value
+  loja_id = document.getElementById("loja").value
 
   if(!loja_id){
-    alert("Informe o ID da loja")
+    alert("Digite o ID da loja")
     return
   }
 
-  await fetch("http://localhost:3000/criar-sessao",{
+  await fetch("/criar-sessao",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ loja_id })
@@ -102,47 +115,40 @@ async function iniciar(){
   monitorar()
 }
 
-/* ================= QR ================= */
-
-async function atualizarQR(){
-
-  const res = await fetch(`http://localhost:3000/qr/${loja_id}`)
-  const data = await res.json()
-
-  const img = document.getElementById("qr")
-
-  if(data.qr){
-    img.src = data.qr
-    img.style.display = "block"
-  }
-}
-
-/* ================= STATUS ================= */
-
-async function atualizarStatus(){
-
-  const res = await fetch(`http://localhost:3000/status/${loja_id}`)
-  const data = await res.json()
-
-  const el = document.getElementById("status")
-
-  if(data.conectado){
-    el.innerText = "🟢 Conectado"
-    el.className = "status conectado"
-    document.getElementById("qr").style.display = "none"
-  }else{
-    el.innerText = "🔴 Desconectado"
-    el.className = "status desconectado"
-  }
-}
-
 /* ================= LOOP ================= */
 
 function monitorar(){
 
-  setInterval(()=>{
-    atualizarQR()
-    atualizarStatus()
+  setInterval(async ()=>{
+
+    if(!loja_id) return
+
+    // QR
+    const qrRes = await fetch(`/qr/${loja_id}`)
+    const qrData = await qrRes.json()
+
+    const img = document.getElementById("qr")
+
+    if(qrData.qr){
+      img.src = qrData.qr
+      img.style.display = "block"
+    }
+
+    // STATUS
+    const stRes = await fetch(`/status/${loja_id}`)
+    const st = await stRes.json()
+
+    const el = document.getElementById("status")
+
+    if(st.conectado){
+      el.innerText = "🟢 Conectado"
+      el.className = "status ok"
+      img.style.display = "none"
+    }else{
+      el.innerText = "🔴 Aguardando conexão"
+      el.className = "status off"
+    }
+
   },2000)
 }
 
