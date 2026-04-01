@@ -7,7 +7,6 @@ const sb = createClient(
 )
 
 /* ================= UTILS (IGUAL SEU INDEX) ================= */
-
 const toMin = h => {
   const [a,b] = h.split(":").map(Number)
   return a*60 + b
