@@ -1,80 +1,139 @@
 import { createClient } from "@supabase/supabase-js"
+import fetch from "node-fetch"
 
-const supabase = createClient(
+const sb = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 )
 
 export default async function handler(req, res){
 
-  const { telefone, mensagem } = req.body
+  const { telefone, mensagem, loja_id } = req.body
 
-  // 🔥 BUSCA ESTADO DO CLIENTE
-  let { data: estado } = await supabase
+  let { data: estado } = await sb
     .from("estado_conversa")
     .select("*")
     .eq("telefone", telefone)
     .single()
 
   if(!estado){
-    await supabase.from("estado_conversa").insert({
+    await sb.from("estado_conversa").insert({
       telefone,
-      etapa: "inicio"
+      etapa: "inicio",
+      loja_id
     })
-    estado = { etapa: "inicio" }
+    estado = { etapa: "inicio", loja_id }
   }
 
-  /* ================= FLUXO ================= */
+  /* ================= INICIO ================= */
 
-  // INICIO
   if(estado.etapa === "inicio"){
-    await atualizarEstado(telefone, "nome")
-
-    return responder(telefone, "Qual seu nome?")
-  }
-
-  // NOME
-  if(estado.etapa === "nome"){
-    await atualizarEstado(telefone, "servico", { nome: mensagem })
-
+    await atualizar(telefone, "servico")
     return responder(telefone, "Qual serviço deseja?")
   }
 
-  // SERVIÇO
+  /* ================= SERVIÇOS ================= */
+
   if(estado.etapa === "servico"){
-    await atualizarEstado(telefone, "data", { servico: mensagem })
+
+    const { data: servicos } = await sb
+      .from("produtos_servicos")
+      .select("*")
+      .eq("user_id", loja_id)
+      .eq("tipo", "SERVICO")
+      .eq("ativo", true)
+
+    let lista = "Escolha um serviço:\n\n"
+
+    servicos.forEach((s,i)=>{
+      lista += `${i+1} - ${s.nome} (R$ ${s.preco})\n`
+    })
+
+    await atualizar(telefone, "selecionar_servico", {
+      lista_servicos: servicos
+    })
+
+    return responder(telefone, lista)
+  }
+
+  /* ================= ESCOLHA SERVIÇO ================= */
+
+  if(estado.etapa === "selecionar_servico"){
+
+    const index = Number(mensagem) - 1
+    const servico = estado.lista_servicos[index]
+
+    if(!servico){
+      return responder(telefone, "Escolha um número válido.")
+    }
+
+    await atualizar(telefone, "data", {
+      servicos: [servico]
+    })
 
     return responder(telefone, "Qual data? (ex: 25/04)")
   }
 
-  // DATA
+  /* ================= DATA ================= */
+
   if(estado.etapa === "data"){
-    await atualizarEstado(telefone, "hora", { data: mensagem })
 
-    return responder(telefone, "Qual horário?")
-  }
+    const dataISO = formatarData(estado.data || mensagem)
 
-  // HORA FINAL
-  if(estado.etapa === "hora"){
+    const { data: agenda } = await sb
+      .from("agenda_loja")
+      .select("*")
+      .eq("user_id", loja_id)
+      .eq("data", dataISO)
+      .eq("fechado", false)
+      .single()
 
-    const dados = {
-      telefone,
-      nome: estado.nome,
-      servico: estado.servico,
-      data: estado.data,
-      hora: mensagem
+    if(!agenda){
+      return responder(telefone, "Loja fechada nessa data.")
     }
 
-    // 🔥 SALVA NO BANCO
-    await supabase.from("agendamentos").insert(dados)
+    const horarios = gerarHorarios(agenda, estado.servicos, loja_id, dataISO)
 
-    // 🔥 LIMPA ESTADO
-    await supabase.from("estado_conversa").delete().eq("telefone", telefone)
+    await atualizar(telefone, "hora", {
+      data: dataISO,
+      horarios
+    })
 
-    return responder(
-      telefone,
-      `Agendamento confirmado!\n\n📅 ${dados.data}\n⏰ ${dados.hora}`
-    )
+    return responder(telefone, formatarHorarios(horarios))
+  }
+
+  /* ================= HORA ================= */
+
+  if(estado.etapa === "hora"){
+
+    const horario = estado.horarios[Number(mensagem)-1]
+
+    if(!horario){
+      return responder(telefone, "Escolha um horário válido.")
+    }
+
+    const cliente = {
+      nome: "Cliente WhatsApp",
+      whatsapp: telefone
+    }
+
+    // 🔥 CHAMA SUA API REAL
+    await fetch(process.env.APP_URL + "/api/create-agendamento", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({
+        loja_id,
+        data: estado.data,
+        hora_inicio: horario,
+        servicos: estado.servicos,
+        cliente_nome: cliente.nome,
+        cliente_whatsapp: cliente.whatsapp
+      })
+    })
+
+    await sb.from("estado_conversa").delete().eq("telefone", telefone)
+
+    return responder(telefone, "✅ Agendamento confirmado!")
   }
 
   res.status(200).end()
@@ -82,26 +141,45 @@ export default async function handler(req, res){
 
 /* ================= FUNÇÕES ================= */
 
-async function atualizarEstado(telefone, etapa, extra = {}){
-  await supabase.from("estado_conversa").upsert({
+async function atualizar(telefone, etapa, extra = {}){
+  await sb.from("estado_conversa").upsert({
     telefone,
     etapa,
     ...extra
   })
 }
 
+function formatarData(dataBR){
+  const [d,m] = dataBR.split("/")
+  const y = new Date().getFullYear()
+  return `${y}-${m}-${d}`
+}
+
+function gerarHorarios(agenda, servicos, loja_id, data){
+  // versão simplificada (posso fazer igual 100% ao seu depois)
+  return ["09:00","10:00","11:00"]
+}
+
+function formatarHorarios(horarios){
+  let txt = "Escolha um horário:\n\n"
+  horarios.forEach((h,i)=>{
+    txt += `${i+1} - ${h}\n`
+  })
+  return txt
+}
+
 async function responder(telefone, texto){
   await fetch(`https://graph.facebook.com/v19.0/${process.env.PHONE_ID}/messages`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json"
+    method:"POST",
+    headers:{
+      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type":"application/json"
     },
     body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: telefone,
-      type: "text",
-      text: { body: texto }
+      messaging_product:"whatsapp",
+      to:telefone,
+      type:"text",
+      text:{ body:texto }
     })
   })
 }
