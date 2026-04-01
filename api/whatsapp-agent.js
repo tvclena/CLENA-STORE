@@ -12,6 +12,8 @@ const toMin = h => {
   return a*60 + b
 }
 
+
+
 const toHour = m => {
   const hh = String(Math.floor(m/60)).padStart(2,"0")
   const mm = String(m%60).padStart(2,"0")
