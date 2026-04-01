@@ -22,11 +22,6 @@ body{
   border-radius:20px;
   width:340px;
   text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.4);
-}
-
-h2{
-  margin-bottom:20px;
 }
 
 .qr img{
@@ -42,12 +37,6 @@ h2{
 
 .ok{ color:#22c55e }
 .off{ color:#ef4444 }
-
-.loader{
-  margin-top:10px;
-  font-size:13px;
-  opacity:.7;
-}
 </style>
 </head>
 
@@ -65,30 +54,25 @@ h2{
 🔄 Iniciando...
 </div>
 
-<div class="loader" id="info">
-Aguarde, gerando QR...
-</div>
-
 </div>
 
 <script>
 
-/* ================= PEGAR LOJA ================= */
-
+const BASE = "https://clena.com.br/whatsapp"
 const loja_id = new URLSearchParams(location.search).get("l")
 
 if(!loja_id){
-  document.body.innerHTML = "<h2 style='color:white'>❌ Loja não informada</h2>"
+  document.body.innerHTML = "<h2>❌ Loja não informada</h2>"
 }
 
-/* ================= FUNÇÃO SEGURA FETCH ================= */
+/* ================= SAFE FETCH ================= */
 
 async function fetchJSON(url, options = {}) {
   try{
     const res = await fetch(url, options)
 
     if(!res.ok){
-      console.warn("Erro:", url, res.status)
+      console.warn("Erro:", url)
       return null
     }
 
@@ -100,17 +84,16 @@ async function fetchJSON(url, options = {}) {
       return null
     }
 
-  }catch(err){
-    console.error("Erro fetch:", err)
+  }catch{
     return null
   }
 }
 
-/* ================= INICIAR ================= */
+/* ================= START ================= */
 
 async function iniciar(){
 
-  await fetchJSON("/whatsapp/criar-sessao", {
+  await fetchJSON(BASE + "/criar-sessao", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ loja_id })
@@ -119,14 +102,14 @@ async function iniciar(){
   monitorar()
 }
 
-/* ================= MONITOR ================= */
+/* ================= LOOP ================= */
 
 function monitorar(){
 
   setInterval(async ()=>{
 
-    /* ===== QR ===== */
-    const qrData = await fetchJSON(`/whatsapp/qr/${loja_id}`)
+    // QR
+    const qrData = await fetchJSON(BASE + "/qr/" + loja_id)
 
     const img = document.getElementById("qr")
 
@@ -135,30 +118,22 @@ function monitorar(){
       img.style.display = "block"
     }
 
-    /* ===== STATUS ===== */
-    const statusData = await fetchJSON(`/whatsapp/status/${loja_id}`)
+    // STATUS
+    const statusData = await fetchJSON(BASE + "/status/" + loja_id)
 
     const el = document.getElementById("status")
-    const info = document.getElementById("info")
 
     if(statusData && statusData.conectado){
-      el.innerText = "🟢 Conectado com sucesso!"
+      el.innerText = "🟢 Conectado!"
       el.className = "status ok"
-
-      info.innerText = "WhatsApp conectado"
-
       img.style.display = "none"
     }else{
-      el.innerText = "📸 Escaneie o QR no WhatsApp"
+      el.innerText = "📸 Escaneie o QR"
       el.className = "status off"
-
-      info.innerText = "Abra o WhatsApp > Aparelhos conectados"
     }
 
   },2000)
 }
-
-/* ================= START ================= */
 
 iniciar()
 
