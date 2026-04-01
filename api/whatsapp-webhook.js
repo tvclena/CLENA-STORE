@@ -14,7 +14,6 @@ export default async function handler(req, res){
     }
     return res.sendStatus(403)
   }
-
   if(req.method === "POST"){
 
     const body = req.body
