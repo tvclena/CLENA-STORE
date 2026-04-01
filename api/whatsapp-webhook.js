@@ -18,6 +18,8 @@ export default async function handler(req, res){
 
     const body = req.body
 
+
+    
     const entry = body.entry?.[0]?.changes?.[0]?.value
 
     const phone_number_id = entry?.metadata?.phone_number_id
