@@ -6,9 +6,52 @@ const sb = createClient(
   process.env.SUPABASE_SERVICE_ROLE
 )
 
-export default async function handler(req, res){
+/* ================= UTILS (IGUAL SEU INDEX) ================= */
 
-  const { telefone, mensagem, loja_id } = req.body
+const toMin = h => {
+  const [a,b] = h.split(":").map(Number)
+  return a*60 + b
+}
+
+const toHour = m => {
+  const hh = String(Math.floor(m/60)).padStart(2,"0")
+  const mm = String(m%60).padStart(2,"0")
+  return `${hh}:${mm}`
+}
+
+function getDuracaoTotal(servicos){
+  return servicos.reduce((s,x)=> s + Number(x.duracao_minutos || x.duracao || 0),0)
+}
+
+function formatarDataBRparaISO(data){
+  const [d,m] = data.split("/")
+  const y = new Date().getFullYear()
+  return `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`
+}
+
+/* ================= MAIN ================= */
+
+export default async function handler(req,res){
+
+  const { telefone, mensagem, phone_number_id } = req.body
+
+  /* ================= IDENTIFICAR LOJA ================= */
+
+  const { data: cred } = await sb
+    .from("whatsapp_credenciais")
+    .select("*")
+    .eq("phone_number_id", phone_number_id)
+    .eq("ativo", true)
+    .single()
+
+  if(!cred){
+    console.log("❌ Número não cadastrado")
+    return res.sendStatus(200)
+  }
+
+  const loja_id = cred.loja_id
+
+  /* ================= ESTADO ================= */
 
   let { data: estado } = await sb
     .from("estado_conversa")
@@ -17,68 +60,62 @@ export default async function handler(req, res){
     .single()
 
   if(!estado){
-    await sb.from("estado_conversa").insert({
-      telefone,
-      etapa: "inicio",
-      loja_id
-    })
-    estado = { etapa: "inicio", loja_id }
+    await atualizar(telefone, loja_id, "inicio")
+    estado = { etapa:"inicio", loja_id }
   }
 
-  /* ================= INICIO ================= */
+  /* ================= FLUXO ================= */
 
+  // INICIO
   if(estado.etapa === "inicio"){
-    await atualizar(telefone, "servico")
-    return responder(telefone, "Qual serviço deseja?")
+    await atualizar(telefone, loja_id, "servico")
+    return responder(cred, telefone, "👋 Olá! Qual serviço deseja?")
   }
 
-  /* ================= SERVIÇOS ================= */
-
+  // LISTAR SERVIÇOS
   if(estado.etapa === "servico"){
 
     const { data: servicos } = await sb
       .from("produtos_servicos")
       .select("*")
       .eq("user_id", loja_id)
-      .eq("tipo", "SERVICO")
+      .eq("tipo","SERVICO")
       .eq("ativo", true)
 
-    let lista = "Escolha um serviço:\n\n"
+    let lista = "💼 Serviços disponíveis:\n\n"
 
     servicos.forEach((s,i)=>{
       lista += `${i+1} - ${s.nome} (R$ ${s.preco})\n`
     })
 
-    await atualizar(telefone, "selecionar_servico", {
+    await atualizar(telefone, loja_id, "selecionar_servico", {
       lista_servicos: servicos
     })
 
-    return responder(telefone, lista)
+    return responder(cred, telefone, lista)
   }
 
-  /* ================= ESCOLHA SERVIÇO ================= */
-
+  // ESCOLHER SERVIÇO
   if(estado.etapa === "selecionar_servico"){
 
     const index = Number(mensagem) - 1
     const servico = estado.lista_servicos[index]
 
     if(!servico){
-      return responder(telefone, "Escolha um número válido.")
+      return responder(cred, telefone, "Escolha um número válido.")
     }
 
-    await atualizar(telefone, "data", {
+    await atualizar(telefone, loja_id, "data", {
       servicos: [servico]
     })
 
-    return responder(telefone, "Qual data? (ex: 25/04)")
+    return responder(cred, telefone, "📅 Qual data? (ex: 25/04)")
   }
 
-  /* ================= DATA ================= */
-
+  // DATA
   if(estado.etapa === "data"){
 
-    const dataISO = formatarData(estado.data || mensagem)
+    const dataISO = formatarDataBRparaISO(mensagem)
 
     const { data: agenda } = await sb
       .from("agenda_loja")
@@ -89,95 +126,125 @@ export default async function handler(req, res){
       .single()
 
     if(!agenda){
-      return responder(telefone, "Loja fechada nessa data.")
+      return responder(cred, telefone, "❌ Loja fechada nessa data.")
     }
 
-    const horarios = gerarHorarios(agenda, estado.servicos, loja_id, dataISO)
+    // horários ocupados
+    const { data: ags } = await sb
+      .from("agendamentos")
+      .select("hora_inicio,hora_fim")
+      .eq("user_id", loja_id)
+      .eq("data", dataISO)
 
-    await atualizar(telefone, "hora", {
-      data: dataISO,
-      horarios
+    const ocupados = (ags||[]).map(a=>[
+      toMin(a.hora_inicio),
+      toMin(a.hora_fim)
+    ])
+
+    const blocos = typeof agenda.horarios === "string"
+      ? JSON.parse(agenda.horarios)
+      : agenda.horarios
+
+    const duracao = getDuracaoTotal(estado.servicos)
+
+    let slots = []
+
+    blocos.forEach(b=>{
+      let inicio = toMin(b.inicio)
+      let fim = toMin(b.fim)
+
+      while(inicio + duracao <= fim){
+
+        const conflito = ocupados.some(o =>
+          !(inicio + duracao <= o[0] || inicio >= o[1])
+        )
+
+        if(!conflito){
+          slots.push(toHour(inicio))
+        }
+
+        inicio += duracao
+      }
     })
 
-    return responder(telefone, formatarHorarios(horarios))
+    if(!slots.length){
+      return responder(cred, telefone, "❌ Sem horários disponíveis.")
+    }
+
+    let txt = "⏰ Horários disponíveis:\n\n"
+    slots.forEach((h,i)=> txt += `${i+1} - ${h}\n`)
+
+    await atualizar(telefone, loja_id, "hora", {
+      data: dataISO,
+      horarios: slots
+    })
+
+    return responder(cred, telefone, txt)
   }
 
-  /* ================= HORA ================= */
-
+  // HORÁRIO
   if(estado.etapa === "hora"){
 
-    const horario = estado.horarios[Number(mensagem)-1]
+    const index = Number(mensagem)-1
+    const horario = estado.horarios[index]
 
     if(!horario){
-      return responder(telefone, "Escolha um horário válido.")
+      return responder(cred, telefone, "Escolha um horário válido.")
     }
 
-    const cliente = {
-      nome: "Cliente WhatsApp",
-      whatsapp: telefone
-    }
+    const fim = toHour(
+      toMin(horario) + getDuracaoTotal(estado.servicos)
+    )
 
     // 🔥 CHAMA SUA API REAL
     await fetch(process.env.APP_URL + "/api/create-agendamento", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({
         loja_id,
         data: estado.data,
         hora_inicio: horario,
+        hora_fim: fim,
         servicos: estado.servicos,
-        cliente_nome: cliente.nome,
-        cliente_whatsapp: cliente.whatsapp
+        cliente_nome: "Cliente WhatsApp",
+        cliente_whatsapp: telefone
       })
     })
 
     await sb.from("estado_conversa").delete().eq("telefone", telefone)
 
-    return responder(telefone, "✅ Agendamento confirmado!")
+    return responder(cred, telefone,
+`✅ Agendamento confirmado!
+
+📅 ${estado.data}
+⏰ ${horario}`
+    )
   }
 
-  res.status(200).end()
+  res.sendStatus(200)
 }
 
 /* ================= FUNÇÕES ================= */
 
-async function atualizar(telefone, etapa, extra = {}){
+async function atualizar(telefone, loja_id, etapa, extra = {}){
   await sb.from("estado_conversa").upsert({
     telefone,
+    loja_id,
     etapa,
     ...extra
   })
 }
 
-function formatarData(dataBR){
-  const [d,m] = dataBR.split("/")
-  const y = new Date().getFullYear()
-  return `${y}-${m}-${d}`
-}
-
-function gerarHorarios(agenda, servicos, loja_id, data){
-  // versão simplificada (posso fazer igual 100% ao seu depois)
-  return ["09:00","10:00","11:00"]
-}
-
-function formatarHorarios(horarios){
-  let txt = "Escolha um horário:\n\n"
-  horarios.forEach((h,i)=>{
-    txt += `${i+1} - ${h}\n`
-  })
-  return txt
-}
-
-async function responder(telefone, texto){
-  await fetch(`https://graph.facebook.com/v19.0/${process.env.PHONE_ID}/messages`, {
+async function responder(cred, telefone, texto){
+  await fetch(`https://graph.facebook.com/v19.0/${cred.phone_number_id}/messages`, {
     method:"POST",
     headers:{
-      Authorization:`Bearer ${process.env.WHATSAPP_TOKEN}`,
+      Authorization:`Bearer ${cred.access_token}`,
       "Content-Type":"application/json"
     },
     body: JSON.stringify({
       messaging_product:"whatsapp",
-      to:telefone,
+      to: telefone,
       type:"text",
       text:{ body:texto }
     })
